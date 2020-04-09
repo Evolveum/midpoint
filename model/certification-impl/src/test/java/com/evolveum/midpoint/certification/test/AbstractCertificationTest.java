@@ -6,11 +6,28 @@
  */
 package com.evolveum.midpoint.certification.test;
 
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -27,38 +44,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
- *
  */
 @SuppressWarnings({ "UnusedReturnValue", "WeakerAccess", "SameParameterValue" })
 public class AbstractCertificationTest extends AbstractUninitializedCertificationTest {
 
     @Autowired
     private AccCertResponseComputationHelper computationHelper;
-
-//    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-//    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final File ORGS_AND_USERS_FILE = new File(COMMON_DIR, "orgs-and-users.xml");
     protected static final File USER_BOB_FILE = new File(COMMON_DIR, "user-bob.xml");
@@ -70,31 +65,19 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
     protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
-//    protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
-//    protected static final String ORG_MINISTRY_OF_DEFENSE_OID = "00000000-8888-6666-0000-100000000002";
-//    protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
-//    protected static final String ORG_SWASHBUCKLER_SECTION_OID = "00000000-8888-6666-0000-100000000005";
-//    protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
-//    protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
     protected static final String ORG_EROOT_OID = "00000000-8888-6666-0000-300000000000";
 
     protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
     protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-//    protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
     protected static final String USER_CHEESE_OID = "c0c010c0-d34d-b33f-f00d-111111111130";
-//    protected static final String USER_CHEF_OID = "c0c010c0-d34d-b33f-f00d-111111111131";
-//    protected static final String USER_BARKEEPER_OID = "c0c010c0-d34d-b33f-f00d-111111111132";
-//    protected static final String USER_CARLA_OID = "c0c010c0-d34d-b33f-f00d-111111111133";
     protected static final String USER_BOB_OID = "c0c010c0-d34d-b33f-f00d-111111111134";
     protected static final String USER_BOB_DEPUTY_FULL_OID = "71d27191-df8c-4513-836e-ed01c68a4ab4";
     protected static final String USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID = "afc1c45d-fdb8-48cf-860b-b305f96a07e3";
-//    protected static final String USER_BOB_DEPUTY_NO_PRIVILEGES_OID = "ad371f45-352d-4c1f-80f3-2e279af399ae";
     protected static final String USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID = "0b88d83f-1722-4b13-b7cc-a2d500470d7f";
     protected static final String USER_ADMINISTRATOR_DEPUTY_NONE_OID = "e38df3fc-3510-45c2-a379-2b4a1406d4b6";
 
     protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
     protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-//    protected static final String USER_JACK_USERNAME = "jack";
 
     public static final File ROLE_REVIEWER_FILE = new File(COMMON_DIR, "role-reviewer.xml");
     protected static final String ROLE_REVIEWER_OID = "00000000-d34d-b33f-f00d-ffffffff0000";
@@ -108,7 +91,6 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
     public static final File METAROLE_CXO_FILE = new File(COMMON_DIR, "metarole-cxo.xml");
-//    protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
 
     public static final File ROLE_CEO_FILE = new File(COMMON_DIR, "role-ceo.xml");
     protected static final String ROLE_CEO_OID = "00000000-d34d-b33f-f00d-000000000001";
@@ -136,15 +118,11 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
-//    protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 
     protected static final String RESOURCE_DUMMY_BLACK_FILENAME = COMMON_DIR + "/resource-dummy-black.xml";
     protected static final String RESOURCE_DUMMY_BLACK_OID = "10000000-0000-0000-0000-000000000305";
     protected static final String RESOURCE_DUMMY_BLACK_NAME = "black";
-//    protected static final String RESOURCE_DUMMY_BLACK_NAMESPACE = MidPointConstants.NS_RI;
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired protected CertificationManagerImpl certificationManager;
     @Autowired protected AccessCertificationService certificationService;
@@ -162,7 +140,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         // roles
@@ -253,7 +231,6 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         return checkCaseAssignmentSanity(aCase, focus);
     }
 
-
     protected AccessCertificationCaseType checkCaseSanity(Collection<AccessCertificationCaseType> caseList, String objectOid,
             String targetOid, FocusType focus, String tenantOid, String orgOid,
             ActivationStatusType administrativeStatus) {
@@ -337,6 +314,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertNull("Unexpected start time", campaign.getStartTimestamp());
         assertNull("Unexpected end time", campaign.getEndTimestamp());
     }
+
     protected void assertSanityAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -419,10 +397,10 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected void assertCaseReviewers(AccessCertificationCaseType _case, AccessCertificationResponseType currentStageOutcome,
             int currentStage, List<String> reviewerOidList) {
-        assertEquals("wrong current stage outcome for "+_case, OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
-        assertEquals("wrong current stage number for "+_case, currentStage, _case.getStageNumber());
+        assertEquals("wrong current stage outcome for " + _case, OutcomeUtils.toUri(currentStageOutcome), _case.getCurrentStageOutcome());
+        assertEquals("wrong current stage number for " + _case, currentStage, _case.getStageNumber());
         Set<String> realReviewerOids = CertCampaignTypeUtil.getCurrentReviewers(_case).stream().map(ref -> ref.getOid()).collect(Collectors.toSet());
-        assertEquals("wrong reviewer oids for "+_case, new HashSet<>(reviewerOidList), realReviewerOids);
+        assertEquals("wrong reviewer oids for " + _case, new HashSet<>(reviewerOidList), realReviewerOids);
     }
 
     protected void recordDecision(String campaignOid, AccessCertificationCaseType aCase, AccessCertificationResponseType response,
@@ -512,7 +490,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
     protected void assertCaseHistoricOutcomes(AccessCertificationCaseType aCase, int iteration, AccessCertificationResponseType... outcomes) {
         for (int stage = 0; stage < outcomes.length; stage++) {
-            assertHistoricOutcome(aCase, stage+1, iteration, outcomes[stage]);
+            assertHistoricOutcome(aCase, stage + 1, iteration, outcomes[stage]);
         }
         assertEquals("wrong # of stored stage outcomes", outcomes.length, CertCampaignTypeUtil.getCompletedStageEvents(aCase, iteration).size());
     }
@@ -629,10 +607,6 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         AccessCertificationResponseType expectedOverall = computationHelper.computeOverallOutcome(aCase, campaign);
         assertEquals("Inconsistent overall outcome", OutcomeUtils.toUri(expectedOverall), aCase.getOutcome());
     }
-
-//    private AccessCertificationResponseType getCaseStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
-//        return OutcomeUtils.fromUri(CertCampaignTypeUtil.getStageOutcome(aCase, stageNumber, iteration));
-//    }
 
     // completedStage - if not null, checks the stage outcome in the history list
     protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,

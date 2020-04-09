@@ -22,10 +22,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +40,8 @@ import java.io.File;
  * <p/>
  * The import task might be executed on a different node (as usual for async tasks), but this won't work as the file
  * is not serializable. Therefore the task needs to be locked to the executing node. (TODO)
+ *
+ * UNFINISHED. MIGHT BE USEFUL IN THE FUTURE.
  *
  * @author Radovan Semancik
  * @see TaskHandler
@@ -198,5 +200,10 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.IMPORT_FROM_FILE;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

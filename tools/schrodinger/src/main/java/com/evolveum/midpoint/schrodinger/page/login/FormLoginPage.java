@@ -39,6 +39,15 @@ public class FormLoginPage extends LoginPage {
         return this;
     }
 
+    public BasicPage loginIfUserIsNotLog(String username, String password){
+        open("/login");
+        Selenide.sleep(5000);
+        if(!$(".dropdown.user.user-menu").exists()) {
+            return login(username, password);
+        }
+        return new BasicPage();
+    }
+
     public BasicPage loginWithReloadLoginPage(String username, String password) {
         return loginWithReloadLoginPage(username, password, null);
     }

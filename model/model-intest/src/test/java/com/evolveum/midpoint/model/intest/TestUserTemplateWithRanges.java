@@ -6,6 +6,19 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import java.io.File;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -15,39 +28,34 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * User template with "mapping range" features.
- *
- * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/object-template-ranges");
 
-    public static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
+    private static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
 
-    protected static final File ROLE_BLOODY_NOSE_FILE = new File(TEST_DIR, "role-bloody-nose.xml");
-    protected static final String ROLE_BLOODY_NOSE_OID = "ed34d3fe-1f0b-11e9-8e31-b3cfa585868a";
-    protected static final String ROLE_BLOODY_NOSE_NAME = "Bloody Nose";
+    private static final File ROLE_BLOODY_NOSE_FILE = new File(TEST_DIR, "role-bloody-nose.xml");
+    private static final String ROLE_BLOODY_NOSE_OID = "ed34d3fe-1f0b-11e9-8e31-b3cfa585868a";
+    private static final String ROLE_BLOODY_NOSE_NAME = "Bloody Nose";
 
-    protected static final File ORG_MONKEY_ISLAND_LOCAL_FILE = new File(TEST_DIR, "org-monkey-island-local.xml");
+    private static final File ORG_MONKEY_ISLAND_LOCAL_FILE = new File(TEST_DIR, "org-monkey-island-local.xml");
 
-    protected static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
-    protected static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
+    private static final File USER_TEMPLATE_RANGES_FILE = new File(TEST_DIR, "user-template-ranges.xml");
+    private static final String USER_TEMPLATE_RANGES_OID = "f486e3a7-6970-416e-8fe2-995358f59c46";
+
+    private static final TestResource USER_TEMPLATE_MID_5953 = new TestResource(TEST_DIR, "user-template-mid-5953.xml", "55acacd1-2b42-4af1-9e98-d2d54293e4e9");
+
+    private static final String SUBTYPE_MID_5953 = "mid-5953"; // range application in inactive (condition false->false) mappings
 
     private static final String BLOODY_ASSIGNMENT_SUBTYPE = "bloody";
 
@@ -71,7 +79,10 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLOODY_NOSE_FILE, initResult);
+        repoAdd(USER_TEMPLATE_MID_5953, initResult);
+
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MID_5953, USER_TEMPLATE_MID_5953.oid, initResult);
 
         changeEmployeeIdRaw("EM100", initTask, initResult);
     }
@@ -81,11 +92,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test100RecomputeElaine() throws Exception {
-        final String TEST_NAME = "test100RecomputeElaine";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -107,11 +115,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test110ChangeManagerAndRecomputeElaine() throws Exception {
-        final String TEST_NAME = "test110ChangeManagerAndRecomputeElaine";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -135,11 +140,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test120RestoreManagerAndRecomputeElaineAgain() throws Exception {
-        final String TEST_NAME = "test120RestoreManagerAndRecomputeElaineAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignOrg(USER_ELAINE_OID, ORG_GOVERNOR_OFFICE_OID, null);
@@ -167,11 +169,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test140ChangeManagerAndRecomputeElaineAgain() throws Exception {
-        final String TEST_NAME = "test140ChangeManagerAndRecomputeElaineAgain";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -201,18 +200,15 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test200SimpleOrgUnitAddition() throws Exception {
-        final String TEST_NAME = "test200SimpleOrgUnitAddition";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
         executeChanges(
                 deltaFor(UserType.class)
-                        .item(UserType.F_ORGANIZATIONAL_UNIT).add(
-                                PolyString.fromOrig("U1"),
+                        .item(UserType.F_ORGANIZATIONAL_UNIT)
+                        .add(PolyString.fromOrig("U1"),
                                 PolyString.fromOrig("U2"),
                                 PolyString.fromOrig("U3"),
                                 PolyString.fromOrig("U4"))
@@ -244,11 +240,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test210RemoveUnit1() throws Exception {
-        final String TEST_NAME = "test210RemoveUnit1";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -284,11 +277,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test220RemoveUnit2AndNumber() throws Exception {
-        final String TEST_NAME = "test220RemoveUnit2AndNumber";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -324,11 +314,8 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test230RestoreNumber() throws Exception {
-        final String TEST_NAME = "test230RestoreNumber";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -360,15 +347,12 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
     @Test
     public void test300GuybrushBloodyNose() throws Exception {
-        final String TEST_NAME = "test300GuybrushBloodyNose";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -376,9 +360,10 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_GUYBRUSH_OID)
             .assertTitle(ROLE_BLOODY_NOSE_NAME)
             .assignments()
@@ -387,20 +372,17 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                     .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
                     .activation()
                         .assertNoValidTo();
-
+        // @formatter:on
     }
 
     @Test
     public void test309GuybrushNotBloody() throws Exception {
-        final String TEST_NAME = "test309GuybrushNotBloody";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -408,30 +390,25 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertNoTitle()
-            .assignments()
-                .assertNone();
-
+                .assertNoTitle()
+                .assignments().assertNone();
     }
 
     @Test
     public void test310GuybrushBloodyNoseFuneral() throws Exception {
-        final String TEST_NAME = "test310GuybrushBloodyNoseFuneral";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
                 GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -439,31 +416,28 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertTitle(ROLE_BLOODY_NOSE_NAME)
-            .assignments()
+                .assertTitle(ROLE_BLOODY_NOSE_NAME)
+                .assignments()
                 .single()
-                    .assertTargetOid(ROLE_BLOODY_NOSE_OID)
-                    .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
-                    .activation()
-                        .assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
+                .assertTargetOid(ROLE_BLOODY_NOSE_OID)
+                .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+                .activation()
+                .assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
     }
 
     @Test
     public void test319GuybrushNoBloodyNoseFuneral() throws Exception {
-        final String TEST_NAME = "test319GuybrushNoBloodyNoseFuneral";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -471,30 +445,27 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertNoTitle()
-            .assignments()
+                .assertNoTitle()
+                .assignments()
                 .assertNone();
 
     }
 
     @Test
     public void test320GuybrushBloodyNose() throws Exception {
-        final String TEST_NAME = "test320GuybrushBloodyNose";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
                 /* no value */);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).add(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -502,67 +473,62 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertTitle(ROLE_BLOODY_NOSE_NAME)
-            .assignments()
+                .assertTitle(ROLE_BLOODY_NOSE_NAME)
+                .assignments()
                 .single()
-                    .assertTargetOid(ROLE_BLOODY_NOSE_OID)
-                    .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
-                    .activation()
-                        .assertNoValidTo();
+                .assertTargetOid(ROLE_BLOODY_NOSE_OID)
+                .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+                .activation()
+                .assertNoValidTo();
 
     }
 
     @Test
     public void test322GuybrushSetFuneral() throws Exception {
-        final String TEST_NAME = "test322GuybrushSetFuneral";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
                 GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertTitle(ROLE_BLOODY_NOSE_NAME)
-            .assignments()
+                .assertTitle(ROLE_BLOODY_NOSE_NAME)
+                .assignments()
                 .single()
-                    .assertTargetOid(ROLE_BLOODY_NOSE_OID)
-                    .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
-                    .activation()
-                        .assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
+                .assertTargetOid(ROLE_BLOODY_NOSE_OID)
+                .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
+                .activation()
+                .assertValidTo(GUYBRUSH_FUNERAL_DATE_123456_CAL);
 
     }
 
     @Test
     public void test324GuybrushSetFuneral22222() throws Exception {
-        final String TEST_NAME = "test324GuybrushSetFuneral22222";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result,
                 GUYBRUSH_FUNERAL_DATE_22222_CAL);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_GUYBRUSH_OID)
             .assertTitle(ROLE_BLOODY_NOSE_NAME)
             .assignments()
@@ -571,6 +537,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                     .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
                     .activation()
                         .assertValidTo(GUYBRUSH_FUNERAL_DATE_22222_CAL);
+        // @formatter:on
     }
 
     /**
@@ -578,22 +545,20 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
      */
     @Test
     public void test326GuybrushNoFuneral() throws Exception {
-        final String TEST_NAME = "test326GuybrushNoFuneral";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_GUYBRUSH_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result
                 /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
+        // @formatter:off
         assertUserAfter(USER_GUYBRUSH_OID)
             .assertTitle(ROLE_BLOODY_NOSE_NAME)
             .assignments()
@@ -602,19 +567,17 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                     .assertSubtype(BLOODY_ASSIGNMENT_SUBTYPE)
                     .activation()
                         .assertNoValidTo();
+        // @formatter:on
     }
 
     @Test
     public void test329GuybrushNoBloodyNose() throws Exception {
-        final String TEST_NAME = "test329GuybrushNoBloodyNose";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_TITLE).delete(PolyString.fromOrig(ROLE_BLOODY_NOSE_NAME))
@@ -622,14 +585,40 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_GUYBRUSH_OID)
-            .assertNoTitle()
-            .assignments()
-                .assertNone();
+                .assertNoTitle()
+                .assignments().assertNone();
+    }
 
+    /**
+     * MID-5953
+     */
+    @Test
+    public void test350DisabledMappingRange() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("test350")
+                .subtype(SUBTYPE_MID_5953)
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        when();
+        recomputeUser(user.getOid(), task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(user.getOid())
+                .assertAssignments(0);
     }
 
     private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {
@@ -647,5 +636,4 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                         .asObjectDelta(USER_ELAINE_OID),
                 ModelExecuteOptions.createRaw(), initTask, initResult);
     }
-
 }

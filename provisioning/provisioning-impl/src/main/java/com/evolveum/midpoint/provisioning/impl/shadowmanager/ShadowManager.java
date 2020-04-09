@@ -581,18 +581,18 @@ public class ShadowManager {
     private ObjectQuery createSearchShadowQueryByPrimaryIdentifier(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow,
             PrismContext prismContext, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceShadow);
-        PrismProperty identifier = attributesContainer.getPrimaryIdentifier();
+        PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
         if (identifier == null) {
             return null;
         }
 
-        Collection<PrismPropertyValue<Object>> idValues = identifier.getValues();
+        int identifierCount = identifier.getValues().size();
         // Only one value is supported for an identifier
-        if (idValues.size() > 1) {
+        if (identifierCount > 1) {
             // TODO: This should probably be switched to checked exception later
             throw new IllegalArgumentException("More than one identifier value is not supported");
         }
-        if (idValues.size() < 1) {
+        if (identifierCount < 1) {
             // TODO: This should probably be switched to checked exception later
             throw new IllegalArgumentException("The identifier has no value");
         }
@@ -1400,7 +1400,7 @@ public class ShadowManager {
             PasswordType passwordType = creds.getPassword();
             if (passwordType != null) {
                 preparePasswordForStorage(passwordType, ctx.getObjectClassDefinition());
-                PrismObject<UserType> owner = null;
+                PrismObject<? extends FocusType> owner = null;
                 if (ctx.getTask() != null) {
                     owner = ctx.getTask().getOwner();
                 }

@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -23,4 +26,8 @@ public interface Mapping<V extends PrismValue,D extends ItemDefinition> {
     <T> T getStateProperty(String propertyName);
 
     <T> T setStateProperty(String propertyName, T value);
+
+    PrismValueDeltaSetTriple<V> getOutputTriple();
+
+    ItemPath getOutputPath() throws SchemaException;
 }

@@ -73,13 +73,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathStringProperty() throws Exception {
-        final String TEST_NAME = "testResolvePathStringProperty";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        PrismProperty<String> resolvedProperty = resolvePath("$user/description", TEST_NAME);
+        PrismProperty<String> resolvedProperty = resolvePath("$user/description", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved property value", "jack", resolvedProperty.getRealValue());
@@ -87,13 +84,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringProperty() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringProperty";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        PrismProperty<PolyString> resolvedProperty = resolvePath("$user/fullName", TEST_NAME);
+        PrismProperty<PolyString> resolvedProperty = resolvePath("$user/fullName", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved property value", PrismTestUtil.createPolyString("Jack Sparrow"),
@@ -102,13 +96,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringOrig() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringOrig";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        String resolved = resolvePath("$user/fullName/t:orig", TEST_NAME);
+        String resolved = resolvePath("$user/fullName/t:orig", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved property value", "Jack Sparrow", resolved);
@@ -116,13 +107,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringNorm() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringNorm";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        String resolved = resolvePath("$user/fullName/t:norm", TEST_NAME);
+        String resolved = resolvePath("$user/fullName/t:norm", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved property value", "jack sparrow", resolved);
@@ -130,13 +118,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringOdo() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringOdo";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName", TEST_NAME);
+        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"),
@@ -151,13 +136,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringOdoOrig() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringOdoOrig";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:orig", TEST_NAME);
+        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:orig", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"),
@@ -170,13 +152,10 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     @Test
     public void testResolvePathPolyStringOdoNorm() throws Exception {
-        final String TEST_NAME = "testResolvePathPolyStringOdoNorm";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         // WHEN
-        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:norm", TEST_NAME);
+        ItemDeltaItem<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> idi = resolvePathOdo("$user/fullName/t:norm", getTestNameShort());
 
         // THEN
         assertEquals("Wrong resolved idi old value", PrismTestUtil.createPolyString("Jack Sparrow"),
@@ -188,24 +167,31 @@ public class TestExpressionUtil extends AbstractModelCommonTest {
 
     }
 
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <T> T resolvePath(String path, final String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ExpressionVariables variables = createVariables();
-        return resolvePath(path, variables, TEST_NAME);
+        return resolvePath(path, variables, exprShortDesc);
     }
 
-    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <T> T resolvePathOdo(String path, final String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, IOException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ExpressionVariables variables = createVariablesOdo();
-        return resolvePath(path, variables, TEST_NAME);
+        return resolvePath(path, variables, exprShortDesc);
     }
 
-    private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
+    private <T> T resolvePath(String path, ExpressionVariables variables, String exprShortDesc)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = createOperationResult();
         ItemPath itemPath = toItemPath(path);
 
         // WHEN
         ObjectResolver objectResolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-        Object resolved = ExpressionUtil.resolvePathGetValue(itemPath, variables, false, null, objectResolver,
-                PrismTestUtil.getPrismContext(), TEST_NAME, new NullTaskImpl(), result);
+        Object resolved = ExpressionUtil.resolvePathGetValue(
+                itemPath, variables, false, null, objectResolver,
+                PrismTestUtil.getPrismContext(), exprShortDesc, new NullTaskImpl(), result);
 
         // THEN
         IntegrationTestTools.display("Resolved", resolved);

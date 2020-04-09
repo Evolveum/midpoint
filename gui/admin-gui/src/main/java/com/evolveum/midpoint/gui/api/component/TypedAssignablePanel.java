@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -434,7 +433,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
                     Task task = TypedAssignablePanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
 
-                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), AbstractRoleType.class,
+                    ObjectFilter filter = WebComponentUtil.getAssignableRolesFilter(SecurityUtils.getPrincipalUser().getFocus().asPrismObject(), AbstractRoleType.class,
                             WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, TypedAssignablePanel.this.getPageBase());
                     if (query == null){
                         query = getPrismContext().queryFactory().createQuery();

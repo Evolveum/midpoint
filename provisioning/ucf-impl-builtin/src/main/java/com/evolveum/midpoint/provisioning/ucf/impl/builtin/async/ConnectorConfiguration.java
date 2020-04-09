@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
+import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +25,7 @@ public class ConnectorConfiguration {
     private AsyncUpdateErrorHandlingActionType errorHandlingAction;
     private ProcessTracingConfigurationType processTracingConfiguration;
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public AsyncUpdateSourcesType getSources() {
         return sources;
     }
@@ -34,7 +34,7 @@ public class ConnectorConfiguration {
         this.sources = sources;
     }
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public ExpressionType getTransformExpression() {
         return transformExpression;
     }
@@ -43,7 +43,7 @@ public class ConnectorConfiguration {
         this.transformExpression = transformExpression;
     }
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
         return errorHandlingAction;
     }
@@ -52,7 +52,7 @@ public class ConnectorConfiguration {
         this.errorHandlingAction = errorHandlingAction;
     }
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public ProcessTracingConfigurationType getProcessTracingConfiguration() {
         return processTracingConfiguration;
     }

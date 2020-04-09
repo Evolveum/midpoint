@@ -18,6 +18,7 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +65,9 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
             task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
         }
 
-        final String CTX = "Async Update";
+        final String ctx = "Async Update";
 
-        TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
+        TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, ctx);
         if (targetInfo == null) {
             return runResult;
         }
@@ -76,7 +77,7 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
             provisioningService.processAsynchronousUpdates(targetInfo.coords, task, opResult);
         } catch (RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
                 ExpressionEvaluationException e) {
-            helper.processException(LOGGER, e, opResult, runResult, partition, CTX);
+            helper.processException(LOGGER, e, opResult, runResult, partition, ctx);
             return runResult;
         }
 
@@ -88,5 +89,10 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.ASYNCHRONOUS_UPDATE;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value();
     }
 }

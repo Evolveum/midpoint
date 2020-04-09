@@ -27,7 +27,9 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDt
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
+
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -45,14 +47,7 @@ import java.util.Map;
  * @author mederly
  */
 @PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, label = "PageAdminUsers.auth.usersAll.label", description = "PageAdminUsers.auth.usersAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL, label = "PageUser.auth.user.label", description = "PageUser.auth.user.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, label = "PageAdminUsers.auth.orgAll.label", description = "PageAdminUsers.auth.orgAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, label = "PageAdminServices.auth.servicesAll.label", description = "PageAdminServices.auth.servicesAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description")
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_PREVIEW_CHANGES_URL, label = "PageAdmin.auth.previewChanges.label", description = "PageAdmin.auth.previewChanges.description")
 })
 public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
     private static final long serialVersionUID = 1L;
@@ -65,6 +60,10 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
 
     private Map<PrismObject<O>, ModelContext<O>> modelContextMap;
     private ModelInteractionService modelInteractionService;
+
+    public PagePreviewChanges() {
+        throw new RestartResponseException(getApplication().getHomePage());
+    }
 
     public PagePreviewChanges(Map<PrismObject<O>, ModelContext<O>> modelContextMap, ModelInteractionService modelInteractionService) {
         this.modelContextMap = modelContextMap;
@@ -115,8 +114,8 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
     //TODO relocate the logic from the loop to some util method, code repeats in PreviewChangesTabPanel
     private boolean violationsEmpty() {
         for (ModelContext<O> modelContext : modelContextMap.values()) {
-            PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
-                    ? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+            PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
+                    ? modelContext.getPolicyRuleEnforcerPreviewOutput()
                     : null;
             List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
                     ? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))

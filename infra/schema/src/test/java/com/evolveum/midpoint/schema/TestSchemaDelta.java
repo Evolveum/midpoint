@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -39,9 +38,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testAssignmentNullIdApplyToObject() throws Exception {
-        final String TEST_NAME = "testAssignmentNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
@@ -66,9 +62,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testAddInducementNullIdApplyToObject() throws Exception {
-        final String TEST_NAME = "testAddInducementNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
@@ -93,9 +86,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteInducementValidIdSameValueApplyToObject() throws Exception {
-        final String TEST_NAME = "testDeleteInducementValidIdSameValueApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
@@ -125,9 +115,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteInducementValidIdEmptyValueApplyToObject() throws Exception {
-        final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
@@ -152,9 +139,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteInducementValidIdEmptyValueApplyToObjectStatic() throws Exception {
-        final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObjectStatic";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
         System.out.println("Role before delta application:");
@@ -181,9 +165,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteInducementConstructionSameNullIdApplyToObject() throws Exception {
-        final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
@@ -220,9 +201,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteInducementActivationSameNullIdApplyToObject() throws Exception {
-        final String TEST_NAME = "testDeleteInducementActivationSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
@@ -255,9 +233,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testDeleteUserAssignmentActivationSameNullIdApplyToObject() throws Exception {
-        final String TEST_NAME = "testDeleteUserAssignmentActivationSameNullIdApplyToObject";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
 
@@ -294,9 +269,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testAddAssignmentSameOidDifferentTargetType() throws Exception {
-        final String TEST_NAME = "testAddAssignmentSameOidDifferentTargetType";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = new UserType(getPrismContext())
                 .name("test")
@@ -324,9 +296,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     // subtract of single-valued PCV from multivalued one
     @Test
     public void testSubtractAssignmentFromAddDelta() throws Exception {
-        final String TEST_NAME = "testSubtractAssignmentFromAddDelta";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
         ObjectDelta<UserType> addDelta = DeltaFactory.Object.createAddDelta(user);
@@ -358,9 +327,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testSubtractAssignmentFromModifyDelta() throws Exception {
-        final String TEST_NAME = "testSubtractAssignmentFromModifyDelta";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
         user.asObjectable().getAssignment().get(0).setId(9999L);
@@ -399,9 +365,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     // subtract of single-valued PCV from multivalued one
     @Test
     public void testFactorAddDeltaForItem() throws Exception {
-        final String TEST_NAME = "testFactorAddDeltaForItem";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
         String OID = "user-oid-1";
@@ -433,9 +396,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
     // subtract of single-valued PCV from multivalued one
     @Test
     public void testFactorAddDeltaForItems() throws Exception {
-        final String TEST_NAME = "testFactorAddDeltaForItems";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
         String OID = "user-oid-1";
@@ -461,9 +421,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testFactorAddDeltaForItemValues() throws Exception {
-        final String TEST_NAME = "testFactorAddDeltaForItemValues";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_BILL_FILE);
         String OID = "user-oid-1";
@@ -491,9 +448,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testFactorModifyDeltaForItem() throws Exception {
-        final String TEST_NAME = "testFactorModifyDeltaForItem";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         String OID = "oid1";
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -523,9 +477,6 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testFactorModifyDeltaForItemValues() throws Exception {
-        final String TEST_NAME = "testFactorModifyDeltaForItemValues";
-        displayTestTile(TEST_NAME);
-
         // GIVEN
         String OID = "oid1";
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
@@ -572,10 +523,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
      */
     @Test      // MID-4690
     public void testObjectDeltaUnion() throws Exception {
-        final String TEST_NAME="testObjectDeltaUnion";
-        displayTestTile(TEST_NAME);
         // GIVEN
-
         ProtectedStringType value = new ProtectedStringType();
         value.setClearValue("hi");
         PasswordType newPassword = new PasswordType(getPrismContext()).value(value);
@@ -592,19 +540,19 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> userDeltaUnion = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);
 
         // THEN
-        display("result", userDeltaUnion);
+        displayValue("result", userDeltaUnion);
 
         PrismObject<UserType> userWithSeparateDeltas = new UserType(getPrismContext()).asPrismObject();
         userDelta1.applyTo(userWithSeparateDeltas);
         userDelta2.applyTo(userWithSeparateDeltas);
-        display("userWithSeparateDeltas after", userWithSeparateDeltas);
+        displayValue("userWithSeparateDeltas after", userWithSeparateDeltas);
 
         PrismObject<UserType> userWithUnion = new UserType(getPrismContext()).asPrismObject();
         userDeltaUnion.applyTo(userWithUnion);
-        display("userWithUnion after", userWithUnion);
+        displayValue("userWithUnion after", userWithUnion);
 
         ObjectDelta<UserType> diff = userWithSeparateDeltas.diff(userWithUnion, EquivalenceStrategy.LITERAL);       // set to isLiteral = false after fixing MID-4688
-        display("diff", diff.debugDump());
+        displayValue("diff", diff.debugDump());
         assertTrue("Deltas have different effects:\n" + diff.debugDump(), diff.isEmpty());
     }
 }

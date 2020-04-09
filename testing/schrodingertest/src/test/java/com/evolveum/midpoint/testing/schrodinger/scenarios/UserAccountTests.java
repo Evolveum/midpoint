@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -19,8 +19,6 @@ public class UserAccountTests extends AccountTests {
     private static final String DISABLE_MP_USER_DEPENDENCY = "disableUser";
     private static final String ENABLE_MP_USER_DEPENDENCY = "enableUser";
     private static final String BULK_DISABLE_MP_USER_DEPENDENCY = "bulkDisableUsers";
-
-
 
     @Test (dependsOnMethods = {CREATE_MP_USER_DEPENDENCY}, groups = TEST_GROUP_BEFORE_USER_DELETION)
     public void modifyUserAttribute(){

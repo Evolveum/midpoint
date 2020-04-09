@@ -8,17 +8,17 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
+import com.evolveum.midpoint.util.DOMUtil;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -30,20 +30,15 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
+public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     private static final long serialVersionUID = 1L;
 
@@ -64,7 +59,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -87,7 +82,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
         AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (DisplayNamePanel.this.getModelObject() instanceof ObjectType){
+                if (DisplayNamePanel.this.getModelObject() instanceof ObjectType) {
                     ObjectType o = (ObjectType) DisplayNamePanel.this.getModelObject();
                     ObjectReferenceType ort = new ObjectReferenceType();
                     ort.setOid(o.getOid());
@@ -97,7 +92,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
             }
         };
         navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
-                WebComponentUtil.getObjectDetailsPage(((ObjectType)DisplayNamePanel.this.getModelObject()).getClass()) != null));
+                WebComponentUtil.getObjectDetailsPage(((ObjectType) DisplayNamePanel.this.getModelObject()).getClass()) != null));
         navigateToObject.setOutputMarkupId(true);
         add(navigateToObject);
 
@@ -129,14 +124,14 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     }
 
     private boolean isObjectPolicyConfigurationType() {
-        if(QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
+        if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
             return true;
         }
         return false;
     }
 
     protected String createImageModel() {
-        if (getModelObject() == null){
+        if (getModelObject() == null) {
             return "";
         }
         if (ConstructionType.class.isAssignableFrom(getModelObject().getClass())) {
@@ -149,35 +144,45 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
     private IModel<String> createHeaderModel() {
         // TODO: align with DisplayNameModel
-        if (getModelObject() == null){
-            return Model.of("");
-        }
-        if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
-            return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
-        }
-        if (isObjectPolicyConfigurationType()) {
-            QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
-            ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
-            if(objectTemplate == null || objectTemplate.getTargetName() == null){
-                return Model.of("");
+        return new ReadOnlyModel<String>(() -> {
+            if (getModelObject() == null) {
+                return "";
             }
-            String objectTemplateNameValue = objectTemplate.getTargetName().toString();
-            StringBuilder sb = new StringBuilder();
-            if(typeValue != null) {
-                sb.append(typeValue.getLocalPart()).append(" - ");
+            if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
+                return WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME);
             }
-            sb.append(objectTemplateNameValue);
-            return Model.of(sb.toString());
-        }
-        PrismProperty<PolyString> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
-        if (name == null || name.isEmpty()) {
-            return Model.of("");
-        }
-        return Model.of(WebComponentUtil.getTranslatedPolyString(name.getRealValue()));
+            if (isObjectPolicyConfigurationType()) {
+                QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
+                ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType) getModel().getObject()).getObjectTemplateRef();
+                if (objectTemplate == null || objectTemplate.getTargetName() == null) {
+                    return "";
+                }
+                String objectTemplateNameValue = objectTemplate.getTargetName().toString();
+                StringBuilder sb = new StringBuilder();
+                if (typeValue != null) {
+                    sb.append(typeValue.getLocalPart()).append(" - ");
+                }
+                sb.append(objectTemplateNameValue);
+                return sb.toString();
+            }
+            PrismProperty<?> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
+            if (name == null || name.isEmpty()) {
+                return "";
+            }
+
+            if (QNameUtil.match(DOMUtil.XSD_STRING,name.getDefinition().getTypeName())) {
+                return (String) name.getRealValue();
+            } else if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, name.getDefinition().getTypeName())) {
+                return WebComponentUtil.getTranslatedPolyString((PolyString) name.getRealValue());
+            }
+
+            return name.getRealValue().toString();
+        });
+
     }
 
     private IModel<String> createIdentifierModel() {
-        if (getModelObject() == null){
+        if (getModelObject() == null) {
             return Model.of("");
         }
         if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
@@ -187,7 +192,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     }
 
     private boolean isIdentifierVisible() {
-        if (getModelObject() == null){
+        if (getModelObject() == null) {
             return false;
         }
         if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
@@ -216,12 +221,12 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     }
 
     protected IModel<String> getKindIntentLabelModel() {
-        // To be overriden in subclasses
+        // To be overridden in subclasses
         return Model.of("");
     }
 
     protected IModel<String> getDescriptionLabelModel() {
-        if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+        if (getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
             return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
         }
         return null;
@@ -229,8 +234,8 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
     protected IModel<List<String>> getDescriptionLabelsModel() {
         List<String> descriptionLabels = new ArrayList<String>();
-        IModel<String> des= getDescriptionLabelModel();
-        if(des != null) {
+        IModel<String> des = getDescriptionLabelModel();
+        if (des != null) {
             descriptionLabels.add(des.getObject());
         }
         return new IModel<List<String>>() {
@@ -243,7 +248,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     }
 
     protected QName getRelation() {
-        // To be overriden in subclasses
+        // To be overridden in subclasses
         return null;
     }
 }

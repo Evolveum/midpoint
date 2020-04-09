@@ -68,7 +68,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             childItem = (I) parent.getNewValue().findOrCreateItem(name);
         }
 
-        return createWrapper(parent, childItem, status, context);
+        return createCompleteWrapper(parent, childItem, status, context);
     }
 
     private ItemStatus getStatus(I childItem) {
@@ -82,15 +82,15 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
 
     public IW createWrapper(Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
-        return createWrapper(null, (I) childItem, status, context);
+        return createCompleteWrapper(null, (I) childItem, status, context);
 
-    };
+    }
 
-    private IW createWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
-        IW itemWrapper = createWrapper(parent, childItem, status);
+    private IW createCompleteWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+        IW itemWrapper = createWrapper(parent, childItem, status, context);
 
         List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
-        itemWrapper.getValues().addAll((Collection) valueWrappers);
+        itemWrapper.getValues().addAll(valueWrappers);
         itemWrapper.setShowEmpty(context.isShowEmpty(), false);
 
         boolean readOnly = determineReadOnly(itemWrapper, context);
@@ -230,7 +230,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     protected abstract PV createNewValue(I item) throws SchemaException;
 
-    protected abstract IW createWrapper(PrismContainerValueWrapper<?> parent, I childContainer, ItemStatus status);
+    protected abstract IW createWrapper(PrismContainerValueWrapper<?> parent, I childContainer, ItemStatus status, WrapperContext wrapperContext);
 
     protected boolean shouldCreateEmptyValue(I item, WrapperContext context) {
         if (item.getDefinition().isEmphasized()) {

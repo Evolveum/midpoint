@@ -6,59 +6,44 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
+
+import java.io.File;
+import java.io.IOException;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.IOException;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getSchemaRegistry;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * @author semancik
- *
  */
-public class TestParseTask {
+public class TestParseTask extends AbstractSchemaTest {
 
     public static final File TASK_FILE = new File("src/test/resources/common/task-1.xml");
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
-
     @Test(enabled = false)
     public void testParseTaskFile() throws Exception {
-        System.out.println("===[ testParseTaskFile ]===");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -78,8 +63,6 @@ public class TestParseTask {
 
     @Test(enabled = false)
     public void testParseTaskDom() throws SchemaException {
-        System.out.println("===[ testParseTaskDom ]===");
-
         // GIVEN
         PrismContext prismContext = getPrismContext();
 
@@ -95,95 +78,6 @@ public class TestParseTask {
 
         assertTask(task);
     }
-
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
-        System.out.println("===[ testPrismParseJaxb ]===");
-
-        // GIVEN
-        PrismContext prismContext = getPrismContext();
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
-     * the actual type.
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
-        System.out.println("===[ testPrismParseJaxbObjectType ]===");
-
-        // GIVEN
-        PrismContext prismContext = getPrismContext();
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBELement
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
-        System.out.println("===[ testPrismParseJaxbElement ]===");
-
-        // GIVEN
-        PrismContext prismContext = getPrismContext();
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
-        TaskType taskType = jaxbElement.getValue();
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBELement, with declared ObjectType
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
-        System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
-
-        // GIVEN
-        PrismContext prismContext = getPrismContext();
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
-        TaskType taskType = jaxbElement.getValue();
-
-        // THEN
-        System.out.println("Parsed task:");
-        System.out.println(taskType.asPrismObject().debugDump());
-
-        assertTask(taskType.asPrismObject());
-    }
-
 
     private void assertTask(PrismObject<TaskType> task) {
 

@@ -382,8 +382,8 @@ public class ModelRestService {
         Response response;
 
         try {
-            UserType loggedInUser = SecurityUtil.getPrincipal().getUser();
-            PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
+            FocusType loggedInUser = SecurityUtil.getPrincipal().getFocus();
+            PrismObject<? extends FocusType> user = model.getObject(loggedInUser.getClass(), loggedInUser.getOid(), null, task, parentResult);
             response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult, true);
             parentResult.recordSuccessIfUnknown();
         } catch (SecurityViolationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
@@ -637,8 +637,8 @@ public class ModelRestService {
 
         Response response;
         try {
-            PrismObject<UserType> user = modelService.findShadowOwner(shadowOid, task, parentResult);
-            response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
+            PrismObject<? extends FocusType> focus = modelService.searchShadowOwner(shadowOid, null, task, parentResult);
+            response = RestServiceUtil.createResponse(Response.Status.OK, focus, parentResult);
         } catch (Exception ex) {
             response = RestServiceUtil.handleException(parentResult, ex);
         }
@@ -1078,7 +1078,7 @@ public class ModelRestService {
         } else if (principal != null){
             return;
         }
-        PrismObject<UserType> user = principal!= null ? ((MidPointPrincipal)principal).getUser().asPrismObject() : null;
+        PrismObject<? extends FocusType> user = principal!= null ? ((MidPointPrincipal)principal).getFocus().asPrismObject() : null;
 
         Task task = taskManager.createTaskInstance();
         task.setOwner(user);

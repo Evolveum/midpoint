@@ -16,7 +16,8 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +52,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -139,7 +136,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             objectclassProp.setRealValue(objectclass);
             task.setExtensionProperty(objectclassProp);
             task.flushPendingModifications(result);        // just to be sure (if the task was already persistent)
-//          task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
             result.recordFatalError("Task object not found", e);
@@ -167,19 +163,16 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Override
     protected SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
             OperationResult opResult) {
-
         ResourceType resource = resolveObjectRef(ResourceType.class, runResult, coordinatorTask, opResult);
         if (resource == null) {
             return null;
         }
-
         return createHandler(partition, resource, null, runResult, coordinatorTask, opResult);
     }
 
     // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
     private SynchronizeAccountResultHandler createHandler(TaskPartitionDefinitionType partition, ResourceType resource, PrismObject<ShadowType> shadowToImport,
             TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
-
         ObjectClassComplexTypeDefinition objectClass = determineObjectClassDefinition(resource, shadowToImport, runResult, coordinatorTask, opResult);
         if (objectClass == null) {
             return null;
@@ -242,9 +235,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
-            }
+            LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDumpLazily());
 
             if (shadowToImport != null) {
                 objectClass = ModelImplUtils.determineObjectClass(refinedSchema, shadowToImport);
@@ -332,18 +323,21 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         // This is required for proper error reporting
         resultHandler.setStopOnError(true);
 
-        boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
-        if (!cont) {
+        if (!initializeRun(resultHandler, runResult, task, parentResult)) {
             return false;
         }
 
-        cont = resultHandler.handle(shadow, parentResult);
-        if (!cont) {
+        if (!resultHandler.handle(shadow, parentResult)) {
             return false;
         }
 
         finish(resultHandler, runResult, fakeRunningTask, parentResult);
 
         return true;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
     }
 }

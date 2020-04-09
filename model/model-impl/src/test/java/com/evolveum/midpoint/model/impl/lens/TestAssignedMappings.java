@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
+import java.io.File;
+import javax.xml.bind.JAXBElement;
+
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -16,18 +19,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-import javax.xml.bind.JAXBElement;
-import java.io.File;
-
-/**
- *
- */
 public class TestAssignedMappings extends AbstractLensTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens/focusMappings");
@@ -73,16 +67,11 @@ public class TestAssignedMappings extends AbstractLensTest {
     private static final TestResource USER_ADAM = new TestResource(TEST_DIR, "user-adam.xml", "cf10f112-a731-45cd-8dfb-1b3fe9375c14");
     private static final TestResource USER_BENJAMIN = new TestResource(TEST_DIR, "user-benjamin.xml", "2e1a427c-d6a7-4783-90ec-9dc0ebc98630");
 
-    //private static final TestResource ROLE_ORGANIZER = new TestResource(TEST_DIR, "role-organizer.xml", "7d31a3c2-cecf-4e3d-8740-988b37848a7c");
-
     private static final TestResource USER_FRODO = new TestResource(TEST_DIR, "user-frodo.xml", "786919b7-23c9-4a38-90e7-5a1efd0ab853");
     private static final TestResource ROLE_BEARABLE = new TestResource(TEST_DIR, "metarole-bearable.xml", "2421b2c5-8563-4ba7-9a87-f9ef4b169620");
     private static final TestResource SERVICE_RING = new TestResource(TEST_DIR, "service-ring.xml", "7540cf28-a143-4eea-9379-75cae5d212cb");
     private static final TestResource SERVICE_STING = new TestResource(TEST_DIR, "service-sting.xml", "f8b109bf-d393-47b9-8eec-41d74e39a992");
     private static final TestResource ROLE_PROPAGATOR = new TestResource(TEST_DIR, "role-propagator.xml", "8e56a98a-bcb9-4178-94f2-5488da473132");
-
-    @Autowired private AssignmentProcessor assignmentProcessor;
-    @Autowired private Clock clock;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -141,11 +130,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test100AssignSimpleToJim() throws Exception {
-        final String TEST_NAME = "test100AssignSimpleToJim";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -188,11 +174,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test110AssignRingToFrodo() throws Exception {
-        final String TEST_NAME = "test110AssignRingToFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -238,11 +221,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test120AssignStingToFrodo() throws Exception {
-        final String TEST_NAME = "test120AssignStingToFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -287,11 +267,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test130UnassignRingFromFrodo() throws Exception {
-        final String TEST_NAME = "test130UnassignRingFromFrodo";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -343,11 +320,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test200AssignRolesToAdam() throws Exception {
-        final String TEST_NAME = "test200AssignRolesToAdam";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -401,11 +375,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test210AssignRolesToBenjamin() throws Exception {
-        final String TEST_NAME = "test210AssignRolesToBenjamin";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -425,7 +396,6 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
-        UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
                 .display()
                 .assertExtensionValue("p111a", "null:mmr1.1.1")
@@ -486,11 +456,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test220AdamConditionFalseToTrue() throws Exception {
-        final String TEST_NAME = "test220AdamConditionFalseToTrue";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -504,7 +471,6 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
-        UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
                 .display()
                 .assertExtensionValue("p111a", "null:mmr1.1.1")
@@ -565,11 +531,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test230BenjaminConditionTrueToFalse() throws Exception {
-        final String TEST_NAME = "test230BenjaminConditionTrueToFalse";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -583,7 +546,6 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
-        UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
                 .display()
                 .assertExtensionValue("p111a", "null:mmr1.1.1")
@@ -599,11 +561,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test280UnassignRolesFromAdam() throws Exception {
-        final String TEST_NAME = "test280UnassignRolesFromAdam";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -617,7 +576,6 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
-        UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
                 .display()
                 .assertExtensionItems(0)
@@ -629,11 +587,8 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test290UnassignRolesFromBenjamin() throws Exception {
-        final String TEST_NAME = "test290UnassignRolesFromBenjamin";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -647,7 +602,6 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
-        UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
                 .display()
                 .assertExtensionItems(0)
@@ -689,11 +643,8 @@ public class TestAssignedMappings extends AbstractLensTest {
 //     */
 //    @Test
 //    public void test150UnassignOrganizerFromAdam() throws Exception {
-//        final String TEST_NAME = "test150UnassignOrganizerFromAdam";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
 //        // GIVEN
-//        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+//        Task task = getTestTask();
 //        setModelLoggingTracing(task);
 //        OperationResult result = task.getResult();
 //

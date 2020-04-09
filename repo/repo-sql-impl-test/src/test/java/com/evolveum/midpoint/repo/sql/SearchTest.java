@@ -7,61 +7,54 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.*;
+import static java.util.Collections.emptySet;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-
-import static java.util.Collections.emptySet;
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author lazyman
- */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SearchTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
     private static final String DESCRIPTION_TO_FIND = "tralala";
     private static final String ARCHETYPE1_OID = "a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad";
 
     private String beforeConfigOid;
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-
+    @Override
+    public void initSystem() throws Exception {
         OperationResult result = new OperationResult("add objects");
         PrismObject<UserType> beforeConfig = prismContext.createObjectable(UserType.class)
                 .name("before-config")
@@ -75,7 +68,7 @@ public class SearchTest extends BaseSQLRepoTest {
         entry.getItem().add(new ItemPathType(ObjectType.F_DESCRIPTION));
         fullTextConfig.getIndexed().add(entry);
         repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
-        LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
+        logger.info("Applying full text search configuration: {}", fullTextConfig);
 
         List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
@@ -143,6 +136,7 @@ public class SearchTest extends BaseSQLRepoTest {
         ResultHandler<UserType> handler = new ResultHandler<UserType>() {
 
             private int index = 0;
+
             @Override
             public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
                 objects.add(object);
@@ -155,7 +149,7 @@ public class SearchTest extends BaseSQLRepoTest {
         int oldBatchSize = config.getIterativeSearchByPagingBatchSize();
         config.setIterativeSearchByPagingBatchSize(batch);
 
-        LOGGER.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
+        logger.trace(">>>>>> iterateGeneral: offset = " + offset + ", size = " + size + ", batch = " + batch + " <<<<<<");
 
         ObjectQuery query = prismContext.queryFactory().createQuery();
         query.setPaging(prismContext.queryFactory().createPaging(offset, size, ObjectType.F_NAME, OrderDirection.ASCENDING));
@@ -412,7 +406,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
         assertEquals("Wrong role1 name", "Judge", roles.get(judge).getName().getOrig());
-        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1-judge).getName().getOrig());
+        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1 - judge).getName().getOrig());
     }
 
     @Test
@@ -442,7 +436,7 @@ public class SearchTest extends BaseSQLRepoTest {
 
         int judge = roles.get(0).getName().getOrig().startsWith("J") ? 0 : 1;
         assertEquals("Wrong role1 name", "Judge", roles.get(judge).getName().getOrig());
-        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1-judge).getName().getOrig());
+        assertEquals("Wrong role2 name", "Admin-owned role", roles.get(1 - judge).getName().getOrig());
     }
 
     @Test
@@ -459,16 +453,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
     }
 
-    @Test(enabled = false)
+    @Test
     public void testIndividualOwnerRef() throws Exception {
-        testOwnerRef(RoleType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned role");
-        testOwnerRef(RoleType.class, null, "Judge", "Pirate");
-        testOwnerRef(RoleType.class, "123");
-
-        testOwnerRef(OrgType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned org");
-        testOwnerRef(OrgType.class, null, "F0085");
-        testOwnerRef(OrgType.class, "123");
-
         testOwnerRef(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRef(TaskType.class, null, "Task with no owner");
         testOwnerRef(TaskType.class, "123");
@@ -482,16 +468,8 @@ public class SearchTest extends BaseSQLRepoTest {
         testOwnerRef(AccessCertificationDefinitionType.class, "123");
     }
 
-    @Test(enabled = false)
+    @Test
     public void testOwnerRefWithTypeRestriction() throws Exception {
-        testOwnerRefWithTypeRestriction(RoleType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned role");
-        testOwnerRefWithTypeRestriction(RoleType.class, null, "Judge", "Pirate");
-        testOwnerRefWithTypeRestriction(RoleType.class, "123");
-
-        testOwnerRefWithTypeRestriction(OrgType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Admin-owned org");
-        testOwnerRefWithTypeRestriction(OrgType.class, null, "F0085");
-        testOwnerRefWithTypeRestriction(OrgType.class, "123");
-
         testOwnerRefWithTypeRestriction(TaskType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), "Synchronization: Embedded Test OpenDJ");
         testOwnerRefWithTypeRestriction(TaskType.class, null, "Task with no owner");
         testOwnerRefWithTypeRestriction(TaskType.class, "123");
@@ -515,7 +493,7 @@ public class SearchTest extends BaseSQLRepoTest {
     private void testOwnerRefWithTypeRestriction(Class<? extends ObjectType> clazz, String oid, String... names) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .type(clazz)
-                    .item(new QName(SchemaConstants.NS_C, "ownerRef")).ref(oid)
+                .item(new QName(SchemaConstants.NS_C, "ownerRef")).ref(oid)
                 .build();
         checkResult(ObjectType.class, clazz, oid, query, names);
     }
@@ -534,12 +512,14 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Wrong names of found objects", expectedNames, realNames);
     }
 
-    @Test(enabled = false)
+    @Test
     public void testWildOwnerRef() throws SchemaException {
         final String oid = SystemObjectsType.USER_ADMINISTRATOR.value();
-        ItemDefinition<?> delegatedRefDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).findItemDefinition(RoleType.F_DELEGATED_REF);
+        ItemDefinition<?> ownerRefDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(TaskType.class)
+                .findItemDefinition(TaskType.F_OWNER_REF);
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
-                .item(ItemPath.create(new QName(SchemaConstants.NS_C, "delegatedRef")), delegatedRefDef).ref(oid)
+                .item(ItemPath.create(new QName(SchemaConstants.NS_C, "ownerRef")), ownerRefDef).ref(oid)
                 .build();
         OperationResult result = new OperationResult("search");
         try {
@@ -638,18 +618,18 @@ public class SearchTest extends BaseSQLRepoTest {
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig).matchingNorm()
-                .build(),
+                        .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig).matchingNorm()
+                        .build(),
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_EMAIL_ADDRESS).eq(emailLowerCase).matchingCaseIgnore()
-                .build(),
+                        .item(UserType.F_EMAIL_ADDRESS).eq(emailLowerCase).matchingCaseIgnore()
+                        .build(),
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_EMAIL_ADDRESS).eq(emailVariousCase).matchingCaseIgnore()
-                .build(),
+                        .item(UserType.F_EMAIL_ADDRESS).eq(emailVariousCase).matchingCaseIgnore()
+                        .build(),
                 false, 1);
 
         // comparing polystrings, but providing plain String
@@ -669,18 +649,18 @@ public class SearchTest extends BaseSQLRepoTest {
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_FULL_NAME).containsPoly(existingNameOrig).matchingNorm()
-                .build(),
+                        .item(UserType.F_FULL_NAME).containsPoly(existingNameOrig).matchingNorm()
+                        .build(),
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_EMAIL_ADDRESS).contains(emailLowerCase).matchingCaseIgnore()
-                .build(),
+                        .item(UserType.F_EMAIL_ADDRESS).contains(emailLowerCase).matchingCaseIgnore()
+                        .build(),
                 false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
-                .item(UserType.F_EMAIL_ADDRESS).contains(emailVariousCase).matchingCaseIgnore()
-                .build(),
+                        .item(UserType.F_EMAIL_ADDRESS).contains(emailVariousCase).matchingCaseIgnore()
+                        .build(),
                 false, 1);
 
         // comparing polystrings, but providing plain String
@@ -745,7 +725,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 + "\t\t\tVestibulum vel pulvinar ligula, vitae rutrum leo. Sed efficitur dignissim augue in placerat. Aliquam dapibus mauris\n"
                 + "\t\t\teget diam pharetra molestie. Morbi vitae nulla sollicitudin, dignissim tellus a, tincidunt neque.\n";
 
-        LOGGER.info("## changing description ##");
+        logger.info("## changing description ##");
         repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_DESCRIPTION).replace(newDescription)
@@ -753,7 +733,7 @@ public class SearchTest extends BaseSQLRepoTest {
                 result);
 
         // just to see SQL used
-        LOGGER.info("## changing telephoneNumber ##");
+        logger.info("## changing telephoneNumber ##");
         repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_TELEPHONE_NUMBER).replace("123456")
@@ -869,10 +849,10 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testOperationExecutionWithTask() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION)
-                    .block()
-                        .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
-                        .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
-                    .endBlock()
+                .block()
+                .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+                .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
+                .endBlock()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
@@ -885,10 +865,10 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testOperationExecutionWithTask2() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(CaseType.class)
                 .exists(ObjectType.F_OPERATION_EXECUTION)
-                    .block()
-                        .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
-                        .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
-                    .endBlock()
+                .block()
+                .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+                .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+                .endBlock()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
@@ -901,7 +881,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testExtensionReference() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
-                    .ref("12345678-1234-1234-1234-123456789012")
+                .ref("12345678-1234-1234-1234-123456789012")
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
@@ -914,7 +894,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testExtensionReferenceNotMatching() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
-                    .ref("12345678-1234-1234-1234-123456789xxx")
+                .ref("12345678-1234-1234-1234-123456789xxx")
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
@@ -927,7 +907,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testExtensionReferenceNull() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .item(ObjectType.F_EXTENSION, new QName("referenceType"))
-                    .isNull()
+                .isNull()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
@@ -940,7 +920,7 @@ public class SearchTest extends BaseSQLRepoTest {
     public void testExtensionReferenceNonNull() throws SchemaException {
         ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                 .not().item(ObjectType.F_EXTENSION, new QName("referenceType"))
-                    .isNull()
+                .isNull()
                 .build();
         OperationResult result = new OperationResult("search");
         List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);

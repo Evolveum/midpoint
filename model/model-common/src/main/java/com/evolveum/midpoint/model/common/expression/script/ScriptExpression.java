@@ -118,30 +118,6 @@ public class ScriptExpression {
         this.prismContext = prismContext;
     }
 
-    @Deprecated
-    public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
-            boolean useNew, String contextDescription, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
-        context.setExpressionType(scriptType);
-        context.setVariables(variables);
-        context.setFunctions(functions);
-        context.setExpressionProfile(expressionProfile);
-        context.setScriptExpressionProfile(scriptExpressionProfile);
-        context.setOutputDefinition(outputDefinition);
-        context.setAdditionalConvertor(additionalConvertor);
-        context.setSuggestedReturnType(suggestedReturnType);
-        context.setObjectResolver(objectResolver);
-        context.setEvaluateNew(useNew);
-        context.setScriptExpression(this);
-        context.setContextDescription(contextDescription);
-        context.setTask(task);
-        context.setResult(result);
-
-        return evaluate(context);
-    }
-
     public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -181,8 +157,8 @@ public class ScriptExpression {
             context.setTrace(null);
         }
         context.setResult(result);      // a bit of hack: this is to provide some tracing of script evaluation
+        ScriptExpressionEvaluationContext oldContext = context.setupThreadLocal();
         try {
-            context.setupThreadLocal();
 
             List<V> expressionResult = evaluator.evaluate(context);
             if (context.getTrace() != null) {
@@ -197,7 +173,7 @@ public class ScriptExpression {
             result.recordFatalError(ex.getMessage(), ex);
             throw ex;
         } finally {
-            context.cleanupThreadLocal();
+            context.cleanupThreadLocal(oldContext);
             result.computeStatusIfUnknown();
             context.setResult(parentResult);        // a bit of hack
         }

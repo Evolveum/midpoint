@@ -205,6 +205,11 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
     }
 
     @Override
+    public boolean isCompletelyDefined() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<PrismPropertyDefinition> getPropertyDefinitions() {
         throw new UnsupportedOperationException();
     }
@@ -261,7 +266,7 @@ public class DummyPrismObjectDefinition implements PrismObjectDefinition<Objecta
     }
 
     @Override
-    public MutablePrismContainerDefinition<Objectable> toMutable() {
+    public MutablePrismObjectDefinition<Objectable> toMutable() {
         throw new UnsupportedOperationException();
     }
 

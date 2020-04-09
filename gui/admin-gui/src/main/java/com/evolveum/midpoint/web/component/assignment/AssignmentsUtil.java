@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.record.ObjRecord;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -27,7 +26,7 @@ import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -510,7 +509,7 @@ public class AssignmentsUtil {
     public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
         int assignmentsLimit = -1;
         try {
-            CompiledUserProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledUserProfile(
+            CompiledGuiProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledGuiProfile(
                     pageBase.createSimpleTask(result.getOperation()), result);//pageBase.loadUserSelf().asObjectable().getAdminGuiConfiguration();
             if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null){
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();

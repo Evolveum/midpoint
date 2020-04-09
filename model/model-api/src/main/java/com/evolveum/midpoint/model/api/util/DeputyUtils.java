@@ -30,22 +30,22 @@ import java.util.stream.Collectors;
 public class DeputyUtils {
 
     @NotNull
-    public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user,
+    public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull FocusType focus,
             @NotNull RelationRegistry relationRegistry) {
-        return user.getDelegatedRef().stream()
+        return focus.getDelegatedRef().stream()
                 .filter(ref -> relationRegistry.isDelegation(ref.getRelation()))
                 .map(ref -> ref.asReferenceValue().clone())
                 .collect(Collectors.toList());
     }
 
     @NotNull
-    public static Collection<String> getDelegatorOids(@NotNull UserType user, @NotNull RelationRegistry relationRegistry) {
-        return getDelegatorReferences(user, relationRegistry).stream()
+    public static Collection<String> getDelegatorOids(@NotNull FocusType focus, @NotNull RelationRegistry relationRegistry) {
+        return getDelegatorReferences(focus, relationRegistry).stream()
                 .map(PrismReferenceValue::getOid)
                 .collect(Collectors.toList());
     }
 
-    public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid,
+    public static boolean isDelegationPresent(@NotNull FocusType deputy, @NotNull String delegatorOid,
             @NotNull RelationRegistry relationRegistry) {
         return getDelegatorOids(deputy, relationRegistry).contains(delegatorOid);
     }

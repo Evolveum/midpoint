@@ -169,8 +169,14 @@ public class ArchetypeManager {
         if (archetypePolicy.getObjectTemplateRef() == null && objectPolicy.getObjectTemplateRef() != null) {
             resultPolicy.setObjectTemplateRef(objectPolicy.getObjectTemplateRef().clone());
         }
+        if (archetypePolicy.getItemConstraint().isEmpty()) {
+            for (ItemConstraintType objItemConstraint : objectPolicy.getItemConstraint()) {
+                resultPolicy.getItemConstraint().add(objItemConstraint.clone());
+            }
+        }
+        // Deprecated
         if (archetypePolicy.getPropertyConstraint().isEmpty()) {
-            for (PropertyConstraintType objPropertyConstraint : objectPolicy.getPropertyConstraint()) {
+            for (ItemConstraintType objPropertyConstraint : objectPolicy.getPropertyConstraint()) {
                 resultPolicy.getPropertyConstraint().add(objPropertyConstraint.clone());
             }
         }

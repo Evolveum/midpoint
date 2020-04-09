@@ -8,7 +8,6 @@ package com.evolveum.midpoint.report.impl;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -26,8 +24,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -262,10 +258,10 @@ public class ReportFunctions {
                 .collect(Collectors.toList());
     }
 
-    public UserType getShadowOwner(String shadowOid) {
+    public FocusType getShadowOwner(String shadowOid) {
         Task task = taskManager.createTaskInstance();
         try {
-            PrismObject<UserType> owner = model.findShadowOwner(shadowOid, task, task.getResult());
+            PrismObject<? extends FocusType> owner = model.searchShadowOwner(shadowOid, null, task, task.getResult());
             return owner.asObjectable();
         } catch (ObjectNotFoundException | SecurityViolationException | SchemaException | ConfigurationException | ExpressionEvaluationException | CommunicationException e) {
             // TODO Auto-generated catch block

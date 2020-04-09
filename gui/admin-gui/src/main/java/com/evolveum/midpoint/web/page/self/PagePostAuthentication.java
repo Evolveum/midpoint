@@ -93,7 +93,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
             @Override
             protected UserType load() {
                 //TODO: fix this... part of this is executed in object wrapper facotry..
-                // but the prism object in object wrapper was overriden with this loading..
+                // but the prism object in object wrapper was overridden with this loading..
                 MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
                 Task task = createSimpleTask("load self");
                 PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PagePostAuthentication.this, task, task.getResult());
@@ -221,7 +221,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
         } else {
             MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
             try {
-                getModelInteractionService().refreshPrincipal(principal.getOid());
+                getModelInteractionService().refreshPrincipal(principal.getOid(), principal.getFocus().getClass());
                 navigateToNext(getMidpointApplication().getHomePage());
             } catch (CommonException e) {
                 LOGGER.error("Error while refreshing user: ", e);

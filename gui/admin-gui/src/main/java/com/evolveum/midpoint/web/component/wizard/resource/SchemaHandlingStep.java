@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -877,7 +878,7 @@ public class SchemaHandlingStep extends WizardStep {
             if (!delta.isEmpty()) {
                 parentPage.logDelta(delta);
                 @SuppressWarnings("unchecked")
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 modelService.executeChanges(deltas, null, parentPage.createSimpleTask(OPERATION_SAVE_SCHEMA_HANDLING), result);
                 parentPage.resetModels();
                 saved = true;

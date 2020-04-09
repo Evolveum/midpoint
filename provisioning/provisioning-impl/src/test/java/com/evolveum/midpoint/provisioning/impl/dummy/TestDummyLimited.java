@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
@@ -45,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -97,24 +94,22 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test150DisableAccount() throws Exception {
-        final String TEST_NAME = "test150DisableAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -130,7 +125,7 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was unchanged
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertNotifyFailureOnly();
 
@@ -138,31 +133,28 @@ public class TestDummyLimited extends TestDummy {
     }
 
     @Override
-    public void test151SearchDisabledAccounts() throws Exception {
+    public void test151SearchDisabledAccounts() {
         // N/A
     }
 
     @Override
     public void test152ActivationStatusUndefinedAccount() throws Exception {
-        final String TEST_NAME = "test152ActivationStatusUndefinedAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
-
 
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -178,7 +170,7 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was unchanged
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertNotifyFailureOnly();
 
@@ -188,25 +180,22 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test154EnableAccount() throws Exception {
-        final String TEST_NAME = "test154EnableAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.ENABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
-
 
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -222,7 +211,7 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was unchanged
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
 
         syncServiceMock.assertNotifyFailureOnly();
 
@@ -230,22 +219,18 @@ public class TestDummyLimited extends TestDummy {
     }
 
     @Override
-    public void test155SearchDisabledAccounts() throws Exception {
+    public void test155SearchDisabledAccounts() {
         // N/A
     }
 
     @Test
     @Override
     public void test156SetValidFrom() throws Exception {
-        final String TEST_NAME = "test156SetValidFrom";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
-
-        long millis = VALID_FROM_MILLIS;
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
@@ -255,7 +240,7 @@ public class TestDummyLimited extends TestDummy {
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -271,9 +256,9 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was not changed
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
-        assertNull("Unexpected account validFrom in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
-        assertNull("Unexpected account validTo in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidTo(), dummyAccount.getValidTo());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
+        assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+        assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
         syncServiceMock.assertNotifyFailureOnly();
 
@@ -283,15 +268,11 @@ public class TestDummyLimited extends TestDummy {
     @Test
     @Override
     public void test157SetValidTo() throws Exception {
-        final String TEST_NAME = "test157SetValidTo";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
-
-        long millis = VALID_TO_MILLIS;
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
@@ -301,7 +282,7 @@ public class TestDummyLimited extends TestDummy {
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -317,9 +298,9 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was changed
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
-        assertNull("Unexpected account validFrom in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
-        assertNull("Unexpected account validTo in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidTo(), dummyAccount.getValidTo());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
+        assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+        assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
         syncServiceMock.assertNotifyFailureOnly();
 
@@ -328,30 +309,26 @@ public class TestDummyLimited extends TestDummy {
 
     @Override
     public void test158DeleteValidToValidFrom() throws Exception {
-        final String TEST_NAME = "test158DeleteValidToValidFrom";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
-
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO,
                 XmlTypeConverter.createXMLGregorianCalendar(VALID_TO_MILLIS));
-        PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        PropertyDelta validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+        PrismObjectDefinition<?> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+        PropertyDelta<?> validFromDelta = prismContext.deltaFactory().property().createModificationDeleteProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                 def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_VALID_FROM),
                 XmlTypeConverter.createXMLGregorianCalendar(VALID_FROM_MILLIS));
         delta.addModification(validFromDelta);
         delta.checkConsistence();
 
-
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
@@ -367,35 +344,32 @@ public class TestDummyLimited extends TestDummy {
         delta.checkConsistence();
         // check if activation was changed
         DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
-        assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
-        assertNull("Unexpected account validFrom in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
-        assertNull("Unexpected account validTo in account "+ACCOUNT_WILL_USERNAME+": "+dummyAccount.getValidTo(), dummyAccount.getValidTo());
+        assertTrue("Dummy account " + ACCOUNT_WILL_USERNAME + " is disabled, expected enabled", dummyAccount.isEnabled());
+        assertNull("Unexpected account validFrom in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidFrom(), dummyAccount.getValidFrom());
+        assertNull("Unexpected account validTo in account " + ACCOUNT_WILL_USERNAME + ": " + dummyAccount.getValidTo(), dummyAccount.getValidTo());
 
         syncServiceMock.assertNotifyFailureOnly();
 
         assertSteadyResource();
-
     }
 
     @Test
     @Override
-    public void test159GetLockedoutAccount() throws Exception {
+    public void test159GetLockedoutAccount() {
         // Not relevant
     }
 
     @Override
-    public void test160SearchLockedAccounts() throws Exception {
+    public void test160SearchLockedAccounts() {
         // N/A
     }
 
     @Test
     @Override
     public void test162UnlockAccount() throws Exception {
-        final String TEST_NAME = "test162UnlockAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -403,22 +377,21 @@ public class TestDummyLimited extends TestDummy {
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
                 LockoutStatusType.NORMAL);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         try {
             // WHEN
             provisioningService.modifyObject(ShadowType.class, delta.getOid(),
-                delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
+                    delta.getModifications(), new OperationProvisioningScriptsType(), null, task, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
             // This is expected
         }
 
-
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertFailure(result);
@@ -446,14 +419,13 @@ public class TestDummyLimited extends TestDummy {
 
     @Test
     @Override
-    public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
+    public void test181SearchNullPagingOffset0Size3Desc() {
         // Nothing to do. No sorting support. So desc sorting won't work at all.
     }
 
     @Test
     @Override
-    public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
+    public void test183SearchNullPagingOffset2Size3Desc() {
         // Nothing to do. No sorting support. So desc sorting won't work at all.
     }
-
 }

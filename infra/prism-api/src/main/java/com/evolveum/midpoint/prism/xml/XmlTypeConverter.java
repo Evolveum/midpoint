@@ -175,7 +175,7 @@ public class XmlTypeConverter {
     }
 
     public static long toMillis(XMLGregorianCalendar xmlCal) {
-        if (xmlCal == null){
+        if (xmlCal == null) {
             return 0;
         }
         return xmlCal.toGregorianCalendar().getTimeInMillis();
@@ -183,6 +183,10 @@ public class XmlTypeConverter {
 
     public static Date toDate(XMLGregorianCalendar xmlCal) {
         return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
+    }
+
+    public static XMLGregorianCalendar fromNow(String timeSpec) {
+        return fromNow(XmlTypeConverter.createDuration(timeSpec));
     }
 
     public static XMLGregorianCalendar fromNow(Duration duration) {
@@ -266,9 +270,7 @@ public class XmlTypeConverter {
         Field field;
         try {
             field = enumValue.getClass().getField(fieldName);
-        } catch (SecurityException e) {
-            throw new IllegalArgumentException("Error getting field from "+enumValue, e);
-        } catch (NoSuchFieldException e) {
+        } catch (SecurityException | NoSuchFieldException e) {
             throw new IllegalArgumentException("Error getting field from "+enumValue, e);
         }
         XmlEnumValue annotation = field.getAnnotation(XmlEnumValue.class);

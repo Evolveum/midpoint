@@ -6,37 +6,33 @@ package com.evolveum.midpoint.testing.story.uuid;
  * and European Union Public License. See LICENSE file for details.
  */
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+
 import org.opends.server.types.DirectoryException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.io.File;
-
-import static org.testng.AssertJUnit.assertEquals;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestUuidClient extends AbstractUuidTest {
@@ -101,9 +97,7 @@ public class TestUuidClient extends AbstractUuidTest {
 
     @Test
     public void test100AddUserRapp() throws Exception {
-        final String TEST_NAME = "test100AddUserRapp";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createNoNameUser(USER_RAPP_GIVEN_NAME, USER_RAPP_FAMILY_NAME, true);
@@ -122,9 +116,7 @@ public class TestUuidClient extends AbstractUuidTest {
 
     @Test
     public void test101RappAssignRoleClient() throws Exception {
-        final String TEST_NAME = "test101RappAssignRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -143,9 +135,7 @@ public class TestUuidClient extends AbstractUuidTest {
 
     @Test
     public void test107RappUnAssignRoleClient() throws Exception {
-        final String TEST_NAME = "test107RappUnAssignRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
         unassignRole(userRappOid, ROLE_CLIENT_OID);
@@ -158,9 +148,7 @@ public class TestUuidClient extends AbstractUuidTest {
 
     @Test
     public void test110AddMancombWithRoleClient() throws Exception {
-        final String TEST_NAME = "test110AddMancombWithRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createClientUser(null, null, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME, true);
@@ -183,9 +171,7 @@ public class TestUuidClient extends AbstractUuidTest {
      */
     @Test
     public void test112RenameMancomb() throws Exception {
-        final String TEST_NAME = "test112RenameMancomb";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         try {
@@ -206,9 +192,7 @@ public class TestUuidClient extends AbstractUuidTest {
 
     @Test
     public void test119MancombDelete() throws Exception {
-        final String TEST_NAME = "test119MancombDelete";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -218,7 +202,7 @@ public class TestUuidClient extends AbstractUuidTest {
         assertSuccess(result);
 
         assertNoObject(UserType.class, userMancombOid, task, result);
-        openDJController.assertNoEntry("uid="+userMancombOid+",ou=clients,dc=example,dc=com");
+        openDJController.assertNoEntry("uid=" + userMancombOid + ",ou=clients,dc=example,dc=com");
     }
 
     /**
@@ -226,9 +210,7 @@ public class TestUuidClient extends AbstractUuidTest {
      */
     @Test
     public void test120AddKateWithRoleClient() throws Exception {
-        final String TEST_NAME = "test120AddKateWithRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createClientUser(null, USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);
@@ -249,9 +231,7 @@ public class TestUuidClient extends AbstractUuidTest {
      */
     @Test
     public void test122AddWallyWithRoleClient() throws Exception {
-        final String TEST_NAME = "test122AddWallyWithRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createClientUser(USER_WALLY_OID, null, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME, true);
@@ -272,9 +252,7 @@ public class TestUuidClient extends AbstractUuidTest {
      */
     @Test
     public void test124AddRogersWithRoleClient() throws Exception {
-        final String TEST_NAME = "test124AddMartyWithRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createClientUser(USER_ROGERS_OID, USER_ROGERS_OID, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME, true);
@@ -295,9 +273,7 @@ public class TestUuidClient extends AbstractUuidTest {
      */
     @Test
     public void test126AddMartyWithRoleClient() throws Exception {
-        final String TEST_NAME = "test124AddMartyWithRoleClient";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createClientUser(USER_MARTY_OID, USER_MARTY_NAME, USER_MARTY_GIVEN_NAME, USER_MARTY_FAMILY_NAME, true);
@@ -315,10 +291,10 @@ public class TestUuidClient extends AbstractUuidTest {
         // THEN
 
         assertNoObject(UserType.class, USER_MARTY_OID, task, result);
-        openDJController.assertNoEntry("uid="+USER_MARTY_OID+",ou=clients,dc=example,dc=com");
+        openDJController.assertNoEntry("uid=" + USER_MARTY_OID + ",ou=clients,dc=example,dc=com");
     }
 
-    private void assertUser(PrismObject<UserType> user, String firstName, String lastName)  {
+    private void assertUser(PrismObject<UserType> user, String firstName, String lastName) {
         display("User", user);
         String oid = user.getOid();
         PolyStringType name = user.asObjectable().getName();
@@ -326,7 +302,9 @@ public class TestUuidClient extends AbstractUuidTest {
         // TODO
     }
 
-    private void assertLdapClient(PrismObject<UserType> user, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void assertLdapClient(PrismObject<UserType> user, String firstName, String lastName)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         assertLinks(user, 1);
         assertAssignments(user, RoleType.class, 1);
         assertAssignedRole(user, ROLE_CLIENT_OID);
@@ -334,8 +312,8 @@ public class TestUuidClient extends AbstractUuidTest {
         assertAccount(user, RESOURCE_OPENDJ_OID);
         PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
-        display("OpenDJ shadow linked to "+user, shadow);
-        IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid="+user.getOid()+",ou=clients,dc=example,dc=com");
+        display("OpenDJ shadow linked to " + user, shadow);
+        IntegrationTestTools.assertSecondaryIdentifier(shadow, "uid=" + user.getOid() + ",ou=clients,dc=example,dc=com");
         // TODO: cn, sn, givenName
 
         // MID-5114
@@ -343,12 +321,12 @@ public class TestUuidClient extends AbstractUuidTest {
         assertAttribute(resourceOpenDj, shadow.asObjectable(), ATTR_MOBILE, user.getOid());
     }
 
-    private void assertNoLdapClient(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+    private void assertNoLdapClient(PrismObject<UserType> user) throws DirectoryException {
         assertLinks(user, 0);
         assertAssignments(user, RoleType.class, 0);
         assertNotAssignedRole(user, ROLE_CLIENT_OID);
 
-        openDJController.assertNoEntry("uid="+user.getOid()+",ou=clients,dc=example,dc=com");
+        openDJController.assertNoEntry("uid=" + user.getOid() + ",ou=clients,dc=example,dc=com");
     }
 
     protected PrismObject<UserType> createNoNameUser(String givenName, String familyName, Boolean enabled) throws SchemaException {

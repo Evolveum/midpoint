@@ -12,8 +12,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -67,6 +67,7 @@ public class MappingDiagEvaluator {
 
         builder = builder
                 .mappingType(request.getMapping())
+                .mappingKind(MappingKindType.OTHER)
                 .contextDescription("mapping diagnostic execution")
                 .sourceContext(sourceContext)
                 .targetContext(createTargetContext(request, sourceContext))

@@ -7,16 +7,14 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
+import static org.testng.AssertJUnit.assertEquals;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -26,23 +24,26 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Reconciliation performance tests.
- *
+ * <p>
  * We want a resource that is quite real. E.g. it needs to have quite a big schema, real
  * initialization costs and so on.
- *
+ * <p>
  * MID-5284
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapReconPerformance extends AbstractLdapTest {
 
@@ -69,9 +70,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
     private static final int RECON_TASK_WAIT_TIMEOUT = 60000;
 
-    private PrismObject<ResourceType> resourceOpenDj;
-
-    private Map<String,Long> durations = new LinkedHashMap<>();
+    private Map<String, Long> durations = new LinkedHashMap<>();
 
     private long reconDuration1ThreadBaseline;
     private long reconDuration4ThreadBaseline;
@@ -82,7 +81,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -91,7 +90,7 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
 //        InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
@@ -104,69 +103,57 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
     @Test
     public void test010GenerateUsers() throws Exception {
-        final String TEST_NAME = "test010GenerateUsers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // Add objects using model, we also want to create LDAP accounts
-         generateObjects(UserType.class, NUMBER_OF_GENERATED_USERS, GENERATED_USER_NAME_FORMAT, GENERATED_USER_OID_FORMAT,
-                     (user,i) -> {
-                         user
-                             .fullName(String.format(GENERATED_USER_FULL_NAME_FORMAT, i))
-                             .givenName(String.format(GENERATED_USER_GIVEN_NAME_FORMAT, i))
-                             .familyName(String.format(GENERATED_USER_FAMILY_NAME_FORMAT, i))
-                             .beginAssignment()
-                                 .beginConstruction()
-                                     .resourceRef(RESOURCE_OPENDJ_OID, ResourceType.COMPLEX_TYPE);
-                     },
-                     user -> addObject(user, task, result),
-                     result);
+        generateObjects(UserType.class, NUMBER_OF_GENERATED_USERS, GENERATED_USER_NAME_FORMAT, GENERATED_USER_OID_FORMAT,
+                (user, i) -> user
+                        .fullName(String.format(GENERATED_USER_FULL_NAME_FORMAT, i))
+                        .givenName(String.format(GENERATED_USER_GIVEN_NAME_FORMAT, i))
+                        .familyName(String.format(GENERATED_USER_FAMILY_NAME_FORMAT, i))
+                        .beginAssignment()
+                        .beginConstruction()
+                        .resourceRef(RESOURCE_OPENDJ_OID, ResourceType.COMPLEX_TYPE),
+                user -> addObject(user, task, result),
+                result);
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         long endMillis = System.currentTimeMillis();
-         recordDuration(TEST_NAME, (endMillis - startMillis));
+        long endMillis = System.currentTimeMillis();
+        recordDuration((endMillis - startMillis));
 
-         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+        assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
 
         dumpLdap();
         assertLdapAccounts();
         assertLdapConnectorInstances(1);
     }
 
-
     /**
      * No changes for recon to fix. Single-threaded recon.
      */
     @Test
     public void test100Reconcile1ThreadLdap0() throws Exception {
-        final String TEST_NAME = "test100Reconcile1ThreadLdap0";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addTask(TASK_RECON_1_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_1_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_1_OPENDJ_OID));
+        recordDuration(getRunDurationMillis(TASK_RECON_1_OPENDJ_OID));
 
-         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+        assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
 
         assertLdapAccounts();
         assertLdapConnectorInstances(1);
@@ -178,12 +165,12 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
     @Test
     public void test110Reconcile1ThreadLdap1() throws Exception {
-        reconDuration1ThreadBaseline = testReconcileLdapRestart1Thread("test110Reconcile1ThreadLdap1");
+        reconDuration1ThreadBaseline = testReconcileLdapRestart1Thread();
     }
 
     @Test
     public void test120Reconcile1ThreadLdap2() throws Exception {
-        testReconcileLdapRestart1Thread("test110Reconcile1ThreadLdap2");
+        testReconcileLdapRestart1Thread();
     }
 
     /**
@@ -191,26 +178,20 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
      */
     @Test
     public void test200ReconcileLdap0() throws Exception {
-        final String TEST_NAME = "test200ReconcileLdap0";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addTask(TASK_RECON_4_OPENDJ_FILE);
         waitForTaskFinish(TASK_RECON_4_OPENDJ_OID, true, RECON_TASK_WAIT_TIMEOUT);
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECON_4_OPENDJ_OID));
+        recordDuration(getRunDurationMillis(TASK_RECON_4_OPENDJ_OID));
 
-         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+        assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
 
         assertLdapAccounts();
         assertLdapConnectorInstances(1);
@@ -220,112 +201,96 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 
     @Test
     public void test210ReconcileLdap1() throws Exception {
-        reconDuration4ThreadBaseline = testReconcileLdapRestart("test210ReconcileLdap1");
+        reconDuration4ThreadBaseline = testReconcileLdapRestart();
     }
 
     @Test
     public void test220ReconcileLdap2() throws Exception {
-        testReconcileLdapRestart("test220ReconcileLdap2");
+        testReconcileLdapRestart();
     }
 
     @Test
     public void test230ReconcileLdap3() throws Exception {
-        testReconcileLdapRestart("test230ReconcileLdap3");
+        testReconcileLdapRestart();
     }
 
     @Test
     public void test310ReconcileLdapX1() throws Exception {
-        final String TEST_NAME = "test310ReconcileLdapX1";
-        displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestLdapReconPerformance.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
         display("Test connection result", testResultOpenDj);
 
-        testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_4_OPENDJ_OID);
+        testReconcileLdapRestartWhen(TASK_RECON_4_OPENDJ_OID);
     }
 
     @Test
     public void test320ReconcileLdapX2() throws Exception {
-        testReconcileLdapRestart("test320ReconcileLdapX2");
+        testReconcileLdapRestart();
     }
 
     @Test
     public void test330ReconcileLdapX3() throws Exception {
-        testReconcileLdapRestart("test330ReconcileLdapX3");
+        testReconcileLdapRestart();
     }
 
-    private long testReconcileLdapRestart1Thread(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
-
-        long duration = testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_1_OPENDJ_OID);
+    private long testReconcileLdapRestart1Thread() throws Exception {
+        long duration = testReconcileLdapRestartWhen(TASK_RECON_1_OPENDJ_OID);
 
         assertLdapConnectorInstances(1);
 
         return duration;
     }
 
-    private long testReconcileLdapRestart(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
-
-        long duration =  testReconcileLdapRestartWhen(TEST_NAME, TASK_RECON_4_OPENDJ_OID);
+    private long testReconcileLdapRestart() throws Exception {
+        long duration = testReconcileLdapRestartWhen(TASK_RECON_4_OPENDJ_OID);
 
         assertLdapConnectorInstances();
 
         return duration;
     }
 
-    private long testReconcileLdapRestartWhen(final String TEST_NAME, String taskOid) throws Exception {
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
+    private long testReconcileLdapRestartWhen(String taskOid) throws Exception {
         ruinLdapAccounts();
         rememberConnectorResourceCounters();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         restartTask(taskOid);
         waitForTaskFinish(taskOid, true, RECON_TASK_WAIT_TIMEOUT);
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         long duration = recordDuration(TEST_NAME, getRunDurationMillis(taskOid));
+        long duration = recordDuration(getRunDurationMillis(taskOid));
 
-         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+        assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
         assertLdapAccounts();
         assertSteadyResource();
         // Re-reading modified account after the modificaiton (because context is not fresh), hence 2*NUMBER_OF_GENERATED_USERS
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1 + 1 + 2*NUMBER_OF_GENERATED_USERS);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1 + 1 + 2 * NUMBER_OF_GENERATED_USERS);
         assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, NUMBER_OF_GENERATED_USERS);
 
         return duration;
     }
 
     @Test
-    public void test900Summarize() throws Exception {
-        final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
+    public void test900Summarize() {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary ("+NUMBER_OF_GENERATED_USERS+" users)", sb.toString());
+        displayValue("Summary (" + NUMBER_OF_GENERATED_USERS + " users)", sb.toString());
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         if (reconDuration1ThreadBaseline < reconDuration4ThreadBaseline) {
-             fail("Multi-thread recon SLOWER than single-thread! singlethread="+reconDuration1ThreadBaseline+"ms, multithread="+reconDuration4ThreadBaseline+"ms");
-         }
+        if (reconDuration1ThreadBaseline < reconDuration4ThreadBaseline) {
+            fail("Multi-thread recon SLOWER than single-thread! singlethread=" + reconDuration1ThreadBaseline + "ms, multithread=" + reconDuration4ThreadBaseline + "ms");
+        }
 
-         // TODO: more threasholds
+        // TODO: more thresholds
 
     }
 
@@ -352,8 +317,8 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     private void ruinLdapAccounts() throws DirectoryException, LDIFException, IOException {
-        for (Entry entry : openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON)) {
-            String cn = openDJController.getAttributeValue(entry, "cn");
+        for (Entry entry : openDJController.search("objectclass=" + OBJECTCLASS_INETORGPERSON)) {
+            String cn = OpenDJController.getAttributeValue(entry, "cn");
             if (cn.startsWith("Random")) {
                 cn = cn.replace("Random", "Broken");
                 openDJController.modifyReplace(entry.getDN().toString(), "cn", cn);
@@ -366,12 +331,12 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
     }
 
     protected void assertLdapAccounts() throws DirectoryException {
-        List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
+        List<? extends Entry> entries = openDJController.search("objectclass=" + OBJECTCLASS_INETORGPERSON);
         int randoms = 0;
-        for (Entry entry : openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON)) {
-            String cn = openDJController.getAttributeValue(entry, "cn");
+        for (Entry entry : openDJController.search("objectclass=" + OBJECTCLASS_INETORGPERSON)) {
+            String cn = OpenDJController.getAttributeValue(entry, "cn");
             if (cn.startsWith("Broken")) {
-                fail("Broken LDAP account: "+entry);
+                fail("Broken LDAP account: " + entry);
             }
             if (cn.startsWith("Random")) {
                 randoms++;
@@ -380,12 +345,14 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
         assertEquals("Wrong number of Random LDAP accounts", NUMBER_OF_GENERATED_USERS, randoms);
     }
 
-    protected void assertLdapConnectorInstances() throws NumberFormatException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException, InterruptedException {
-        assertLdapConnectorInstances(2,4);
+    protected void assertLdapConnectorInstances()
+            throws NumberFormatException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        assertLdapConnectorInstances(2, 4);
     }
 
-    private long recordDuration(String label, long duration) {
-        durations.put(label, duration);
+    private long recordDuration(long duration) {
+        durations.put(getTestNameShort(), duration);
         return duration;
     }
 

@@ -23,7 +23,4 @@ public interface ListeningActivity {
      * @return true if this activity is alive i.e. it can (eventually) deliver some messages
      */
     boolean isAlive();
-
-    @Deprecated
-    AsyncUpdateListeningActivityInformationType getInformation();
 }

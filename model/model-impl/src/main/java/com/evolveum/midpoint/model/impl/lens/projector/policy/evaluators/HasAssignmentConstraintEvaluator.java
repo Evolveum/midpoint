@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedHasAssignmentTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author mederly
- */
 @Component
 public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
 
@@ -55,8 +53,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-            PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <AH extends AssignmentHolderType> EvaluatedHasAssignmentTrigger evaluate(@NotNull JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
+            @NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -81,9 +79,10 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
 
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-                boolean assignmentIsInPlusSet = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
-                boolean assignmentIsInZeroSet = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
-                boolean assignmentIsInMinusSet = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
+                AssignmentOrigin origin = evaluatedAssignment.getOrigin();
+                boolean assignmentIsAdded = origin.isBeingAdded();
+                boolean assignmentIsDeleted = origin.isBeingDeleted();
+                boolean assignmentIsModified = origin.isBeingModified();
                 DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
                 for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
                     if (!target.appliesToFocus()) {
@@ -103,9 +102,9 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     boolean targetIsInZeroSet = targetsTriple.presentInZeroSet(target);
                     boolean targetIsInMinusSet = targetsTriple.presentInMinusSet(target);
                     // TODO check these computations
-                    boolean isPlus = assignmentIsInPlusSet || assignmentIsInZeroSet && targetIsInPlusSet;
-                    boolean isZero = assignmentIsInZeroSet && targetIsInZeroSet;
-                    boolean isMinus = assignmentIsInMinusSet || assignmentIsInZeroSet && targetIsInMinusSet;
+                    boolean isPlus = assignmentIsAdded || assignmentIsModified && targetIsInPlusSet;
+                    boolean isZero = assignmentIsModified && targetIsInZeroSet;
+                    boolean isMinus = assignmentIsDeleted || assignmentIsModified && targetIsInMinusSet;
                     if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
                         continue;
                     }
@@ -176,7 +175,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private EvaluatedPolicyRuleTrigger createTriggerIfShouldNotExist(boolean shouldExist,
+    private EvaluatedHasAssignmentTrigger createTriggerIfShouldNotExist(boolean shouldExist,
             JAXBElement<HasAssignmentPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();

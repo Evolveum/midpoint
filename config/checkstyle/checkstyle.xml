@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+          "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+          "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!-- Based on  checkstyle/src/main/resources/sun_checks.xml -->
+<!-- See https://checkstyle.sourceforge.io/checks.html for explanation -->
+<module name="Checker">
+    <!--
+        <property name="basedir" value="${basedir}"/>
+    -->
+    <property name="severity" value="error"/>
+
+    <!-- Also need to add suffixes to parent pom.xml in checkstyle plugin configuration -->
+    <property name="fileExtensions" value="java, properties, xml, xsd, wsdl, json, yml, yaml"/>
+
+    <!-- Excludes all 'module-info.java' files              -->
+    <!-- See https://checkstyle.org/config_filefilters.html -->
+    <module name="BeforeExecutionExclusionFileFilter">
+        <property name="fileNamePattern" value="module\-info\.java$"/>
+    </module>
+
+    <!-- Checks that property files contain the same keys.         -->
+    <!-- See https://checkstyle.org/config_misc.html#Translation -->
+    <module name="Translation"/>
+
+    <!-- Checks for whitespace. We indent by spaces, not tabs. -->
+    <module name="FileTabCharacter"/>
+    <module name="NewlineAtEndOfFile">
+        <!-- Make this explicit due to some problems on Windows -->
+        <property name="lineSeparator" value="lf_cr_crlf" />
+    </module>
+
+    <module name="TreeWalker">
+
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+        <module name="RedundantImport"/>
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="InterfaceIsType"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="UpperEll"/>
+
+        <!-- TODO: enable later (problem: eclipse equals() code)
+        <module name="NeedBraces">
+            <property name="allowSingleLineStatement" value="true"/>
+        </module>
+        -->
+
+        <!-- TODO: enable later (problem: too many of those)
+        <module name="FinalClass"/>
+        <module name="RedundantModifier"/>
+        -->
+
+
+        <!--    TODO: enable those MUCH later
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="false"/>
+        </module> -->
+
+    </module>
+
+</module>

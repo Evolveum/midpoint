@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.*;
 import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
-import com.evolveum.midpoint.prism.impl.path.UniformItemPathImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.impl.schema.SchemaFactoryImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
@@ -197,7 +196,6 @@ public final class PrismContextImpl implements PrismContext {
         return extraValidation;
     }
 
-    @Override
     public XmlEntityResolver getEntityResolver() {
         return schemaRegistry.getEntityResolver();
     }
@@ -241,7 +239,6 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @NotNull
-    @Override
     public JaxbDomHack getJaxbDomHack() {
         return jaxbDomHack;
     }
@@ -356,7 +353,6 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @NotNull
-    @Deprecated
     @Override
     public PrismParserNoIO parserFor(@NotNull Element data) {
         return new PrismParserImplNoIO(new ParserElementSource(data), null, getDefaultParsingContext(), this, null, null, null, null);
@@ -435,12 +431,6 @@ public final class PrismContextImpl implements PrismContext {
         getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
     }
     //endregion
-
-    //region Serializing objects, containers, atomic values (properties)
-    @Override
-    public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
-        return serializerFor(language).serialize(object);
-    }
 
     @NotNull
     @Override
@@ -563,12 +553,12 @@ public final class PrismContextImpl implements PrismContext {
 
     @Override
     public UniformItemPath emptyPath() {
-        return UniformItemPathImpl.EMPTY_PATH;
+        return UniformItemPath.empty();
     }
 
     @Override
     public UniformItemPath path(Object... namesOrIdsOrSegments) {
-        return new UniformItemPathImpl(namesOrIdsOrSegments);
+        return UniformItemPath.create(namesOrIdsOrSegments);
     }
 
     @Override
@@ -601,17 +591,17 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull
     @Override
     public UniformItemPath toUniformPath(ItemPath path) {
-        return UniformItemPathImpl.fromItemPath(path);
+        return UniformItemPath.from(path);
     }
 
     @Override
     public UniformItemPath toUniformPathKeepNull(ItemPath path) {
-        return path != null ? UniformItemPathImpl.fromItemPath(path) : null;
+        return path != null ? UniformItemPath.from(path) : null;
     }
 
     @Override
     public UniformItemPath toUniformPath(ItemPathType path) {
-        return UniformItemPathImpl.fromItemPath(path.getItemPath());
+        return UniformItemPath.from(path.getItemPath());
     }
 
     @Override

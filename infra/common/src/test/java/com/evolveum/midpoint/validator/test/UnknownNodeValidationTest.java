@@ -16,10 +16,14 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class UnknownNodeValidationTest {
+// TODO testing: missing from suite, all passing
+public class UnknownNodeValidationTest extends AbstractUnitTest
+        implements InfraTestMixin {
 
     public static final String BASE_PATH = "src/test/resources/validator/unknown/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -29,7 +33,6 @@ public class UnknownNodeValidationTest {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-
 
     @Test
     public void attributeInReference() throws Exception {
@@ -87,10 +90,9 @@ public class UnknownNodeValidationTest {
     }
 
     protected void validateNodeFailure(String name, String file, String expected) throws Exception {
-        System.out.println("\n===[ " + name + " ]=====");
-        OperationResult result = new OperationResult(this.getClass().getName()+"." + name);
-        validateFile(file,result);
-        System.out.println(result.debugDump());
+        OperationResult result = createOperationResult();
+        validateFile(file, result);
+        displayDumpable("result", result);
         AssertJUnit.assertFalse("Result should not be successful", result.isSuccess());
         String message = result.getMessage();
         AssertJUnit.assertTrue(message.contains("undeclared"));
@@ -98,12 +100,12 @@ public class UnknownNodeValidationTest {
     }
 
     protected void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename,(EventHandler) null,result);
+        validateFile(filename, (EventHandler) null, result);
     }
 
-    protected void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
+    protected void validateFile(String filename, EventHandler handler, OperationResult result) throws FileNotFoundException {
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
-        if (handler!=null) {
+        if (handler != null) {
             validator.setHandler(handler);
         }
         validator.setVerbose(false);
@@ -112,7 +114,6 @@ public class UnknownNodeValidationTest {
     }
 
     protected void customizeValidator(LegacyValidator validator) {
-
     }
 
     private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
@@ -124,12 +125,9 @@ public class UnknownNodeValidationTest {
         fis = new FileInputStream(file);
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
         if (!result.isSuccess()) {
-            System.out.println("Errors:");
-            System.out.println(result.debugDump());
+            displayDumpable("Errors:", result);
         } else {
-            System.out.println("No errors");
-            System.out.println(result.debugDump());
+            displayDumpable("No errors", result);
         }
-
     }
 }

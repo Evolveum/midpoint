@@ -6,44 +6,25 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- * @author mederly
- *
- */
-public class TestProtectedString {
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.AbstractPrismTest;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismInternalTestUtil;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+public class TestProtectedString extends AbstractPrismTest {
 
     @Test
     public void testParseProtectedStringEncrypted() throws Exception {
-        final String TEST_NAME = "testParseProtectedStringEncrypted";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
         ProtectedStringType protectedStringType = protector.encryptString("salalala");
@@ -64,9 +45,6 @@ public class TestProtectedString {
 
     @Test
     public void testParseProtectedStringHashed() throws Exception {
-        final String TEST_NAME = "testParseProtectedStringHashed";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         ProtectedStringType protectedStringType = new ProtectedStringType();
         protectedStringType.setClearValue("blabla");

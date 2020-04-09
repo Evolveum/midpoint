@@ -17,8 +17,6 @@ import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -28,15 +26,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class TestInitialObjects extends AbstractGuiUnitTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestInitialObjects.class);
-
     private static final File DIR_INITIAL_OBJECTS = new File("src/main/resources/initial-objects");
 
     @Test
     public void testInitialObjects() throws Exception {
-        final String TEST_NAME = "testInitialObjects";
-        displayTestTitle(TEST_NAME);
-
         ObjectValidator validator = new ObjectValidator(getPrismContext());
         validator.setAllWarnings();
 
@@ -48,8 +41,8 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
                     testInitialObject(validator, errorsSb, file);
                 } catch (Throwable e) {
                     String msg = "Error processing file "+file.getName()+": "+e.getMessage();
-                    LOGGER.error(msg, e);
-                    display(msg, e);
+                    logger.error(msg, e);
+                    displayException(msg, e);
                     throw e;
                 }
             }
@@ -67,7 +60,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
             display("Checked "+object+": no warnings");
             return;
         }
-        display("Validation warnings for "+object, validationResult);
+        displayDumpable("Validation warnings for "+object, validationResult);
         for (ValidationItem valItem : validationResult.getItems()) {
             errorsSb.append(file.getName());
             errorsSb.append(" ");

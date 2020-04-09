@@ -53,8 +53,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
                 return this;
             }
 
-            @Override
-            public AbstractTableWithPrismView<AssignmentsTab<P>> unassignByName(String name) {
+            public AbstractTableWithPrismView<AssignmentsTab<P>> removeByName(String name) {
 
                 $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("button", "title", "Unassign", null, null, name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -71,7 +70,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new FocusSetAssignmentsModal<AssignmentsTab<P>>(this, modalElement);
+        return new FocusSetAssignmentsModal<>(this, modalElement);
     }
 
     public boolean assignmentExists(String assignmentName){

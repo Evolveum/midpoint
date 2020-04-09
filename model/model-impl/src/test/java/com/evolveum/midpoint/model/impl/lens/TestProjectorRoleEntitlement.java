@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static org.testng.AssertJUnit.*;
 
-import java.io.File;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
@@ -31,27 +30,19 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjectorRoleEntitlement extends AbstractLensTest {
 
-    public static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE = new File(TEST_DIR,
-            "user-barbossa-modify-assignment-replace-ac.xml");
-
-    @Autowired(required = true)
+    @Autowired
     private Projector projector;
-
-    @Autowired(required = true)
-    private TaskManager taskManager;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -70,11 +61,8 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
      */
     @Test
     public void test100AddEntitlementToPirateDirect() throws Exception {
-        final String TEST_NAME = "test100AddEntitlementToPirateDirect";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
@@ -83,7 +71,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         // We want "shadow" so the fullname will be computed by outbound expression
         addModificationToContextAddProjection(context, RoleType.class, ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -91,9 +79,9 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         projector.project(context, "test", task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
-        assertNull("Unexpected focus primary changes "+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
+        assertNull("Unexpected focus primary changes " + context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No projection contexts", context.getProjectionContexts().isEmpty());
 
@@ -133,11 +121,8 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
 
     @Test
     public void test110AssignEntitlementToPirate() throws Exception {
-        final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -147,7 +132,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
                 ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
         addFocusDeltaToContext(context, roleAssignmentDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -163,11 +148,8 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
      */
     @Test
     public void test111AssignEntitlementToPirateBroken() throws Exception {
-        final String TEST_NAME = "test110AssignEntitlementToPirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -177,7 +159,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
                 ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
         addFocusDeltaToContext(context, roleAssignmentDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -192,10 +174,11 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
     }
 
     private void assertAssignEntitlementToPirate(LensContext<RoleType> context) {
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(),
+                "focus secondary delta", ActivationStatusType.ENABLED);
         assertFalse("No projection changes", context.getProjectionContexts().isEmpty());
 
         Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
@@ -205,17 +188,16 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
 
         ObjectDelta<ShadowType> projSecondaryDelta = projContext.getSecondaryDelta();
 
-        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,projContext.getSynchronizationPolicyDecision());
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD, projContext.getSynchronizationPolicyDecision());
 
         assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());
 
-        PrismAsserts.assertPropertyReplace(projSecondaryDelta, getIcfsNameAttributePath() , "Pirate");
+        PrismAsserts.assertPropertyReplace(projSecondaryDelta, getIcfsNameAttributePath(), "Pirate");
         PrismAsserts.assertPropertyReplace(projSecondaryDelta,
                 getDummyResourceController().getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
                 "Bloody pirates");
         PrismAsserts.assertOrigin(projSecondaryDelta, OriginType.OUTBOUND);
 
     }
-
 
 }

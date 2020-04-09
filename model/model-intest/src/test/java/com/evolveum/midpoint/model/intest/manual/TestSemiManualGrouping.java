@@ -122,22 +122,20 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
     @Test
     @Override
     public void test400PhantomAccount() throws Exception {
-        final String TEST_NAME = "test400PhantomAccount";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        setupPhantom(TEST_NAME);
+        setupPhantom();
 
         // WHEN (mid1)
-        displayWhen(TEST_NAME, "mid1");
+        when("mid1");
         recomputeUser(USER_PHANTOM_OID, task, result);
 
         // THEN (mid1)
-        displayThen(TEST_NAME, "mid1");
+        then("mid1");
         String caseOid1 = assertInProgress(result);
-        display("Case 1", caseOid1);
+        displayValue("Case 1", caseOid1);
         // No case OID yet. The case would be created after propagation is run.
         assertNull("Unexpected case 1 OID", caseOid1);
 
@@ -156,7 +154,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         clockForward("PT3M");
 
         // WHEN (mid2)
-        displayWhen(TEST_NAME, "mid2");
+        when("mid2");
         // Existing account is detected now. Hence partial error.
         runPropagation(OperationResultStatusType.PARTIAL_ERROR);
 
@@ -165,9 +163,9 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         // fixed immediately. Instead there is a pending delta to fix the problem.
 
         // THEN (mid2)
-        displayThen(TEST_NAME, "mid2");
+        then("mid2");
         String caseOid2 = assertInProgress(result);
-        display("Case 2", caseOid2);
+        displayValue("Case 2", caseOid2);
         // No case OID yet. The case will be created after propagation is run.
         assertNull("Unexpected case 2 OID", caseOid2);
 
@@ -215,11 +213,11 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
         clockForward("PT20M");
 
         // WHEN (final)
-        displayWhen(TEST_NAME, "final");
+        when("final");
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME, "final");
+        then("final");
 
         String liveShadowOid = assertUser(USER_PHANTOM_OID, "final")
             .displayWithProjections()

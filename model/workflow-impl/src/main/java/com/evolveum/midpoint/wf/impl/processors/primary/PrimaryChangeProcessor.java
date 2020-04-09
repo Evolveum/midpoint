@@ -28,11 +28,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -196,7 +196,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         if (actx == null) {
             return true;
         }
-        List<ApprovalStageDefinitionType> stages = ApprovalContextUtil.getStages(actx.getApprovalSchema());
+        List<ApprovalStageDefinitionType> stages = actx.getApprovalSchema().getStage();
         // first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
         for (ApprovalStageDefinitionType stage : stages) {
             if (stage.getAutomaticallyCompleted() == null) {
@@ -205,8 +205,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
         // second pass: check the conditions
         for (ApprovalStageDefinitionType stage : stages) {
-            if (!SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(
-                    evaluateAutoCompleteExpression(instruction.getCase(), stage, instruction, stageComputeHelper, ctx, result))) {
+            String autoCompletionResult = evaluateAutoCompleteExpression(instruction.getCase(), stage, instruction,
+                    stageComputeHelper, ctx, result);
+            if (!QNameUtil.matchUri(SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP, autoCompletionResult)) {
                 return false;
             }
         }
@@ -241,6 +242,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 logAspectResult(aspect, instructions, changesBeingDecomposed);
                 startProcessInstructions.addAll(instructions);
             }
+            result.addParam("instructionsCount", startProcessInstructions.size());
             return startProcessInstructions;
         } catch (Throwable t) {
             result.recordFatalError(t);

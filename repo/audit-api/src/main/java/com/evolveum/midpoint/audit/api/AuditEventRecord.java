@@ -109,7 +109,7 @@ public class AuditEventRecord implements DebugDumpable {
      * Task OID. This field is used for records that are executed in the context
      * of a persistent task.
      */
-    private String taskOID;
+    private String taskOid;
 
     private String hostIdentifier;        // local node name as obtained from the networking stack
     private String nodeIdentifier;        // midPoint cluster node identifier (NodeType.nodeIdentifier)
@@ -122,15 +122,19 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    private PrismObject<UserType> initiator;
+    private PrismObject<? extends FocusType> initiator;
 
     /**
-     * Attorney is the (physical) user who have executed the action.
-     * This is the user that have logged-in to the user interface. This is the user that
-     * pressed the button to execute the action. This is always identity of a user and
-     * it will always be a user. It cannot be a company or any other virtual entity.
+     * Attorney is the (physical) object who has executed the action. This is the user
+     * (or similar object, e.g. service) that has logged-in to the user interface or REST
+     * or other mechanism. Figuratively speaking, this is the user that pressed the button
+     * to execute the action.
+     *
+     * For the vast majority of cases, this is really an object of UserType. But sometimes it can be
+     * a ServiceType (or, very occasionally, maybe RoleType or OrgType - but this does not make
+     * much sense).
      */
-    private PrismObject<UserType> attorney;
+    private PrismObject<? extends FocusType> attorney;
 
     /**
      *  (primary) target (object, the thing acted on): store OID, type, name.
@@ -240,12 +244,12 @@ public class AuditEventRecord implements DebugDumpable {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public String getTaskOID() {
-        return taskOID;
+    public String getTaskOid() {
+        return taskOid;
     }
 
-    public void setTaskOID(String taskOID) {
-        this.taskOID = taskOID;
+    public void setTaskOid(String taskOid) {
+        this.taskOid = taskOid;
     }
 
     public String getHostIdentifier() {
@@ -279,11 +283,11 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    public PrismObject<UserType> getInitiator() {
+    public PrismObject<? extends FocusType> getInitiator() {
         return initiator;
     }
 
-    public void setInitiator(PrismObject<UserType> initiator) {
+    public void setInitiator(PrismObject<? extends FocusType> initiator) {
         this.initiator = initiator;
     }
 
@@ -293,11 +297,11 @@ public class AuditEventRecord implements DebugDumpable {
      * pressed the button to execute the action. This is always identity of a user and
      * it will always be a user. It cannot be a company or any other virtual entity.
      */
-    public PrismObject<UserType> getAttorney() {
+    public PrismObject<? extends FocusType> getAttorney() {
         return attorney;
     }
 
-    public void setAttorney(PrismObject<UserType> attorney) {
+    public void setAttorney(PrismObject<? extends FocusType> attorney) {
         this.attorney = attorney;
     }
 
@@ -512,7 +516,7 @@ public class AuditEventRecord implements DebugDumpable {
         auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
         auditRecordType.setRequestIdentifier(requestIdentifier);
         auditRecordType.setTaskIdentifier(taskIdentifier);
-        auditRecordType.setTaskOID(taskOID);
+        auditRecordType.setTaskOID(taskOid);
         auditRecordType.getResourceOid().addAll(resourceOids);
         auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
         for (ObjectDeltaOperation delta : deltas) {
@@ -569,7 +573,7 @@ public class AuditEventRecord implements DebugDumpable {
         clone.targetOwner = this.targetOwner;
         clone.requestIdentifier = this.requestIdentifier;
         clone.taskIdentifier = this.taskIdentifier;
-        clone.taskOID = this.taskOID;
+        clone.taskOid = this.taskOid;
         clone.timestamp = this.timestamp;
         clone.result = this.result;
         clone.parameter = this.parameter;
@@ -585,7 +589,7 @@ public class AuditEventRecord implements DebugDumpable {
     public String toString() {
         return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
-                + " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
+                + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
                 + ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
@@ -636,12 +640,6 @@ public class AuditEventRecord implements DebugDumpable {
         return refVal.toString();
     }
 
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
@@ -653,7 +651,7 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Session Identifier", sessionIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Request Identifier", requestIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOid, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Node Identifier", nodeIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
@@ -714,7 +712,7 @@ public class AuditEventRecord implements DebugDumpable {
         }
     }
 
-    public void setInitiatorAndLoginParameter(PrismObject<UserType> initiator) {
+    public void setInitiatorAndLoginParameter(PrismObject<? extends FocusType> initiator) {
         setInitiator(initiator);
         String parameter = null;
         if (initiator != null) {

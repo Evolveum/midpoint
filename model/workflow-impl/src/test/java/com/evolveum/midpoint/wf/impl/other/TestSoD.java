@@ -6,45 +6,38 @@
  */
 package com.evolveum.midpoint.wf.impl.other;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
-import com.evolveum.midpoint.wf.impl.ExpectedTask;
-import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.impl.ExpectedTask;
+import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Testing approvals of role SoD: assigning roles that are in conflict.
- *
+ * <p>
  * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSoD extends AbstractWfTestPolicy {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(TestSoD.class);
 
     protected static final File TEST_SOD_RESOURCE_DIR = new File("src/test/resources/sod");
 
@@ -82,15 +75,15 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test010AssignRoleJudge() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
         assignRole(userJackOid, roleJudgeOid, task, result);
 
         // THEN
         display("jack as a Judge", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
     }
 
     /**
@@ -100,8 +93,7 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test020AssignRolePirate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> jack = getUser(userJackOid);
         String originalDescription = jack.asObjectable().getDescription();
@@ -117,14 +109,14 @@ public class TestSoD extends AbstractWfTestPolicy {
         ObjectDelta<UserType> primaryDelta = ObjectDeltaCollectionsUtil.summarize(addPirateDelta, changeDescriptionDelta);
 
         // WHEN+THEN
-        executeTest2(null, new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
-            protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+            protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
             }
 
             @Override
-            protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+            protected ObjectDelta<UserType> getFocusDelta() {
                 return primaryDelta.clone();
             }
 
@@ -185,9 +177,9 @@ public class TestSoD extends AbstractWfTestPolicy {
 
                     case 1:
                         if (yes) {
-                            assertAssignedRole(userJackOid, rolePirateOid, opTask, result);
+                            assertAssignedRole(userJackOid, rolePirateOid, result);
                         } else {
-                            assertNotAssignedRole(userJackOid, rolePirateOid, opTask, result);
+                            assertNotAssignedRole(userJackOid, rolePirateOid, result);
                         }
                         break;
                 }
@@ -203,8 +195,8 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // THEN
         display("jack as a Pirate + Judge", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
-        assertAssignedRole(userJackOid, rolePirateOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
+        assertAssignedRole(userJackOid, rolePirateOid, result);
     }
 
     /**
@@ -214,30 +206,29 @@ public class TestSoD extends AbstractWfTestPolicy {
     public void test030AssignRoleRespectable() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         unassignRole(userJackOid, rolePirateOid, task, result);
-        assertNotAssignedRole(userJackOid, rolePirateOid, task, result);
+        assertNotAssignedRole(userJackOid, rolePirateOid, result);
 
         // WHEN+THEN
         PrismObject<UserType> jack = getUser(userJackOid);
-        @SuppressWarnings("unchecked")
         ObjectDelta<UserType> addRespectableDelta = prismContext
                 .deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRespectableOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDelta(userJackOid);
 
         // WHEN+THEN
-        executeTest2(null, new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
-            protected PrismObject<UserType> getFocus(OperationResult result) throws Exception {
+            protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
             }
 
             @Override
-            protected ObjectDelta<UserType> getFocusDelta() throws SchemaException {
+            protected ObjectDelta<UserType> getFocusDelta() {
                 return addRespectableDelta.clone();
             }
 
@@ -287,9 +278,9 @@ public class TestSoD extends AbstractWfTestPolicy {
                 switch (number) {
                     case 1:
                         if (yes) {
-                            assertAssignedRole(userJackOid, roleRespectableOid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRespectableOid, result);
                         } else {
-                            assertNotAssignedRole(userJackOid, roleRespectableOid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRespectableOid, result);
                         }
                         break;
                 }
@@ -305,14 +296,7 @@ public class TestSoD extends AbstractWfTestPolicy {
 
         // THEN
         display("jack as a Judge + Respectable", getUser(userJackOid));
-        assertAssignedRole(userJackOid, roleJudgeOid, task, result);
-        assertAssignedRole(userJackOid, roleRespectableOid, task, result);
+        assertAssignedRole(userJackOid, roleJudgeOid, result);
+        assertAssignedRole(userJackOid, roleRespectableOid, result);
     }
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
-
 }

@@ -423,34 +423,6 @@ public interface ProvisioningService {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
-     * Lists resource objects.
-     *
-     * This method differs from other method in this interface as it works with resource objects directly.
-     * It returns resource objects in a form of "detached shadow", that means fully-populated shadow objects
-     * with no OID. The results of this method may not be stored in the repository.
-     *
-     * The purpose of this method is to work directly with the resource without the potential problems of
-     * provisioning implementation. E.g. it may be used to test resource connectivity or correctness of resource
-     * setup. It may also be used to reach object types that are not directly supported as "shadows" by the provisioning
-     * implementation.
-     *
-     * @param resourceOid OID of the resource to fetch objects from
-     * @param objectClass Object class of the objects to fetch
-     * @param paging paging specification to limit operation result (optional)
-     * @param task
-     *@param parentResult
-     *            parent OperationResult (in/out)  @return resource objects in a form of "detached shadows"
-     * @throws ObjectNotFoundException specified resource object does not exist
-     * @throws SchemaException error handling resource schema
-     * @throws CommunicationException error communicating with the resource
-     */
-    @Deprecated
-    List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-                Task task, OperationResult parentResult)
-                        throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
-
-
-    /**
      * Makes sure that the shadow is in accord with the reality. If there are any unfinished operations associated with the shadow
      * then this method will try to finish them. If there are pending (async) operations then this method will update their status.
      * And so on. However, this is NOT reconciliation function that will make sure that the resource object attributes are OK

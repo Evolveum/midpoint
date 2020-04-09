@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -45,6 +46,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -193,7 +195,9 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
-        columns.add(createTaskCategoryColumn());
+        if (!isCollectionViewPanel()){
+            columns.add(createTaskCategoryColumn());
+        }
         columns.addAll(initCustomTaskColumns());
 
         return columns;
@@ -224,6 +228,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         columns.add(createTaskExecutionStatusColumn());
 
         columns.add(createProgressColumn("pageTasks.task.progress"));
+        columns.add(createErrorsColumn("pageTasks.task.errors"));
 
         columns.add(new IconColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
@@ -293,6 +298,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
+    private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn(String titleKey) {
+        return new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource(titleKey)) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
+                TaskType task = rowModel.getObject().getValue();
+                cellItem.add(new Label(componentId, new Model<>(TaskTypeUtil.getObjectsProcessedFailures(task, getPrismContext()))));
+
+            }
+        };
+    }
+
     private String getProgressDescription(SelectableBean<TaskType> task) {
         Long stalledSince = getStalledSince(task.getValue());
         if (stalledSince != null) {
@@ -303,33 +319,10 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     private String getRealProgressDescription(SelectableBean<TaskType> task) {
-        if (isWorkStateHolder(task)) {
+        if (TaskTypeUtil.isWorkStateHolder(task.getValue())) {
             return getBucketedTaskProgressDescription(task.getValue());
         } else {
             return getPlainTaskProgressDescription(task.getValue());
-        }
-    }
-
-    private boolean isWorkStateHolder(SelectableBean<TaskType> taskType) {
-        return (TaskTypeUtil.isCoordinator(taskType.getValue()) || hasBuckets(taskType.getValue())) && !isCoordinatedWorker(taskType.getValue());
-    }
-
-    private boolean isCoordinatedWorker(TaskType taskType) {
-        return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
-    }
-
-    private boolean hasBuckets(TaskType taskType) {
-        if (taskType.getWorkState() == null) {
-            return false;
-        }
-        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
-            return true;
-        }
-        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
-        if (buckets.size() > 1) {
-            return true;
-        } else {
-            return buckets.size() == 1 && buckets.get(0).getContent() != null;
         }
     }
 
@@ -405,6 +398,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 String actionName = createStringResource("pageTasks.message.suspendAction").getString();
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null){
+                    return Model.of(Boolean.TRUE);
+                }
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
+                boolean visible = WebComponentUtil.canSuspendTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase());
+                return Model.of(visible);
+            }
         });
         items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.resumeTask")) {
             private static final long serialVersionUID = 1L;
@@ -431,8 +435,20 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 String actionName = createStringResource("pageTasks.message.resumeAction").getString();
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null){
+                    return Model.of(Boolean.TRUE);
+                }
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
+                boolean visible = WebComponentUtil.canResumeTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase());
+                return Model.of(visible);
+            }
+
         });
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask")) {
+        items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.scheduleTask")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -448,10 +464,26 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             }
 
             @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_START_MENU_ITEM;
+            }
+
+            @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.runNowAction").getString();
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null){
+                    return Model.of(Boolean.TRUE);
+                }
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
+                return Model.of(WebComponentUtil.canRunNowTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase()));
+            }
+
         });
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask")) {
             private static final long serialVersionUID = 1L;
@@ -474,10 +506,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
         });
 
         InlineMenuItem reconcileWorkers = new InlineMenuItem(createStringResource("pageTasks.button.reconcileWorkers")) {
@@ -615,6 +643,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                 String actionName = createStringResource("pageTasks.message.deleteWorkState").getString();
                 return TaskTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null){
+                    return Model.of(Boolean.TRUE);
+                }
+                SelectableBean<TaskType> rowModelObj = rowModel.getObject();
+                return Model.of(WebComponentUtil.canSuspendTask(rowModelObj.getValue(), TaskTablePanel.this.getPageBase()));
+            }
+
         };
         items.add(deleteWorkState);
 
@@ -646,6 +685,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     //region Task-level actions
+    //TODO unify with TaskOperationUtils
     private void suspendTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
         List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
         if (selectedTasks == null) {
@@ -789,12 +829,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
         showResult(result);
 
-//        TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
-//        provider.clearCache();
-
         // refresh feedback and table
         refreshTable(TaskType.class, target);
-//        refreshTable(target);
     }
 
     private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -909,7 +945,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName) {
         if (action.getRowModel() == null) {
-            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, 1);
+            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
 //                    WebComponentUtil.getSelectedData(()).size());
         } else {
             String objectName = ((SelectableBean<TaskType>) (action.getRowModel().getObject())).getValue().getName().getOrig();

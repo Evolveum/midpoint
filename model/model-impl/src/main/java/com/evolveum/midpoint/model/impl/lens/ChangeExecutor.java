@@ -13,44 +13,46 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTE
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import org.apache.commons.lang.BooleanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNodeFactory;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -80,21 +82,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -139,8 +126,8 @@ public class ChangeExecutor {
     // ObjectAlreadyExistsException handling (TODO specify more exactly)
     public <O extends ObjectType> boolean executeChanges(LensContext<O> context, Task task,
             OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-                    SchemaException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException {
+            SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
 
@@ -353,7 +340,6 @@ public class ChangeExecutor {
 
                     ModelImplUtils.handleConnectorErrorCriticality(projCtx.getResource(), e, subResult);
 
-
                 } catch (ObjectAlreadyExistsException e) {
 
                     // This exception is quite special. We have to decide how bad this really is.
@@ -513,7 +499,7 @@ public class ChangeExecutor {
 
     private boolean shouldBeDeleted(ObjectDelta<ShadowType> accDelta, LensProjectionContext accCtx) {
         return (accDelta == null || accDelta.isEmpty())
-        && (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
+                && (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
                 || accCtx.getSynchronizationIntent() == SynchronizationIntent.DELETE);
     }
 
@@ -573,16 +559,23 @@ public class ChangeExecutor {
         PrismObject<O> objectNew = focusContext.getObjectNew();
         if (focusDelta.isAdd() && objectNew.getOid() == null) {
 
-            for (PropertyConstraintType propertyConstraintType : archetypePolicy
-                    .getPropertyConstraint()) {
-                if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
-                    ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
-                    PrismProperty<Object> prop = objectNew.findProperty(itemPath);
-                    String stringValue = prop.getRealValue().toString();
-                    focusContext.setOid(stringValue);
-                }
+            for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
+                processItemConstraint(focusContext, objectNew, itemConstraintType);
+            }
+            // Deprecated
+            for (ItemConstraintType itemConstraintType : archetypePolicy.getPropertyConstraint()) {
+                processItemConstraint(focusContext, objectNew, itemConstraintType);
             }
 
+        }
+    }
+
+    private <O extends ObjectType> void processItemConstraint(LensFocusContext<O> focusContext, PrismObject<O> objectNew, ItemConstraintType itemConstraintType) {
+        if (BooleanUtils.isTrue(itemConstraintType.isOidBound())) {
+            ItemPath itemPath = itemConstraintType.getPath().getItemPath();
+            PrismProperty<Object> prop = objectNew.findProperty(itemPath);
+            String stringValue = prop.getRealValue().toString();
+            focusContext.setOid(stringValue);
         }
     }
 
@@ -638,10 +631,10 @@ public class ChangeExecutor {
                 return;
             }
             LOGGER.error("Projection {} has null OID, this should not happen, context:\n{}", projCtx.toHumanReadableString(), projCtx.debugDump());
-            throw new IllegalStateException("Projection "+projCtx.toHumanReadableString()+" has null OID, this should not happen");
+            throw new IllegalStateException("Projection " + projCtx.toHumanReadableString() + " has null OID, this should not happen");
         }
 
-        if (linkShouldExist(projCtx, shadowAfterModification, result)) {
+        if (linkShouldExist(focusContext, projCtx, shadowAfterModification, result)) {
             // Link should exist
             PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
             if (objectCurrent != null) {
@@ -685,7 +678,11 @@ public class ChangeExecutor {
         }
     }
 
-    private boolean linkShouldExist(LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+    private <F extends FocusType> boolean linkShouldExist(LensFocusContext<F> focusContext, LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+        if (focusContext.isDelete()) {
+            // if we delete focus, link doesn't exist anymore, but be sure, that the situation is updated in shadow
+            return false;
+        }
         if (!projCtx.isShadowExistsInRepo()) {
             // Nothing to link to
             return false;
@@ -773,7 +770,7 @@ public class ChangeExecutor {
 
         String channel = focusContext.getLensContext().getChannel();
 
-        LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
+        LOGGER.debug("Unlinking shadow {} from focus {}", accountRef.getOid(), focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
         Collection<? extends ItemDelta> accountRefDeltas = prismContext.deltaFactory().reference().createModificationDeleteCollection(
                 FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
@@ -805,14 +802,15 @@ public class ChangeExecutor {
 
     private <F extends ObjectType> void updateSituationInShadow(Task task, SynchronizationSituationType newSituation,
             LensContext<?> context, LensFocusContext<F> focusContext, LensProjectionContext projectionCtx,
-            OperationResult parentResult)
-                    throws SchemaException {
+            OperationResult parentResult) throws SchemaException {
 
         String projectionOid = projectionCtx.getOid();
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_UPDATE_SITUATION_IN_SHADOW);
         result.addArbitraryObjectAsParam("situation", newSituation);
         result.addParam("accountRef", projectionOid);
+
+        projectionCtx.setSynchronizationSituationResolved(newSituation);
 
         PrismObject<ShadowType> currentShadow;
         GetOperationOptions getOptions = GetOperationOptions.createNoFetch();
@@ -863,7 +861,6 @@ public class ChangeExecutor {
             ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
             options.setDoNotDiscovery(true);
             provisioning.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
-            projectionCtx.setSynchronizationSituationResolved(newSituation);
             LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, newSituation);
         } catch (ObjectNotFoundException ex) {
             // if the object not found exception is thrown, it's ok..probably
@@ -881,19 +878,18 @@ public class ChangeExecutor {
         // if everything is OK, add result of the situation modification to the
         // parent result
         result.recordSuccess();
-
     }
 
     /**
      * @return Returns estimate of the object after modification. Or null if the object was deleted.
-     *         NOTE: this is only partially implemented (only for shadow delete).
+     * NOTE: this is only partially implemented (only for shadow delete).
      */
     private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeDelta(ObjectDelta<T> objectDelta,
             LensElementContext<T> objectContext, LensContext<F> context, ModelExecuteOptions options,
             ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult parentResult)
-                    throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
-                    CommunicationException, ConfigurationException, SecurityViolationException,
-                    PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
 
         if (objectDelta == null) {
             throw new IllegalArgumentException("Null change");
@@ -1050,7 +1046,7 @@ public class ChangeExecutor {
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Computing delta to execute from delta:\n{}\nGiven these executed deltas:\n{}",
-                    objectDelta.debugDump(1), LensObjectDeltaOperation.shorterDebugDump(objectContext.getExecutedDeltas(),1));
+                    objectDelta.debugDump(1), LensObjectDeltaOperation.shorterDebugDump(objectContext.getExecutedDeltas(), 1));
         }
         List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
         ObjectDelta<T> diffDelta = computeDiffDelta(executedDeltas, objectDelta);
@@ -1075,12 +1071,12 @@ public class ChangeExecutor {
      * and objectDelta is about to be executed; eliminates parts that have
      * already been done. It is meant as a kind of optimization (for MODIFY
      * deltas) and error avoidance (for ADD deltas).
-     *
+     * <p>
      * Explanation for ADD deltas: there are situations where an execution wave
      * is restarted - when unexpected AlreadyExistsException is reported from
      * provisioning. However, in such cases, duplicate ADD Focus deltas were
      * generated. So we (TEMPORARILY!) decided to filter them out here.
-     *
+     * <p>
      * Unfortunately, this mechanism is not well-defined, and seems to work more
      * "by accident" than "by design". It should be replaced with something more
      * serious. Perhaps by re-reading current focus state when repeating a wave?
@@ -1089,12 +1085,11 @@ public class ChangeExecutor {
      * deltas (and as far as I know, that is the only place where this problem
      * should occur). Nevertheless, for historical and safety reasons I keep
      * also the processing in this method.
-     *
+     * <p>
      * Anyway, currently it treats only three cases:
-     *   1) if the objectDelta is present in the list of executed deltas
-     *   2) if the objectDelta is ADD, and another ADD delta is there (then the difference is computed)
-     *   3) if objectDelta is MODIFY or DELETE and previous delta was MODIFY
-     *
+     * 1) if the objectDelta is present in the list of executed deltas
+     * 2) if the objectDelta is ADD, and another ADD delta is there (then the difference is computed)
+     * 3) if objectDelta is MODIFY or DELETE and previous delta was MODIFY
      */
     private <T extends ObjectType> ObjectDelta<T> computeDiffDelta(
             List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> objectDelta) {
@@ -1113,7 +1108,7 @@ public class ChangeExecutor {
         }
         if (lastRelated.getExecutionResult().isSuccess() && lastRelated.containsDelta(objectDelta)) {
             return null; // case 1 - exact match found with SUCCESS result,
-                            // let's skip the processing of our delta
+            // let's skip the processing of our delta
         }
         if (!objectDelta.isAdd()) {
             if (lastRelated.getObjectDelta().isDelete()) {
@@ -1125,7 +1120,7 @@ public class ChangeExecutor {
         // determine if we got case 2
         if (lastRelated.getObjectDelta().isDelete()) {
             return objectDelta; // we can (and should) apply the ADD delta as a
-                                // whole, because the object was deleted
+            // whole, because the object was deleted
         }
         // let us treat the most simple case here - meaning we have existing ADD
         // delta and nothing more
@@ -1179,7 +1174,7 @@ public class ChangeExecutor {
             }
             if (FocusType.class.isAssignableFrom(currentObjectClass)) {
                 return currentOdo; // we suppose there is only one delta of
-                                    // Focus class
+                // Focus class
             }
         }
         return null;
@@ -1271,7 +1266,7 @@ public class ChangeExecutor {
         if (principal == null) {
             return false;
         }
-        UserType loggedInUser = principal.getUser();
+        FocusType loggedInUser = principal.getFocus();
 
         if (!loggedInUser.getOid().equals(focusContext.getOid())) {
             return false;
@@ -1334,7 +1329,6 @@ public class ChangeExecutor {
             securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), ownerResolver, task, result);
 
-
             metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task, result);
 
             if (options == null) {
@@ -1357,7 +1351,7 @@ public class ChangeExecutor {
             } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
 
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
-                        (PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)change);
+                        (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) change);
 
                 oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions,
                         resource, task, result);
@@ -1390,7 +1384,6 @@ public class ChangeExecutor {
                 return null;
             }
             throw t;
-
 
         }
     }
@@ -1426,7 +1419,7 @@ public class ChangeExecutor {
                 taskManager.deleteNode(oid, result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
-                        (PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)change);
+                        (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) change);
                 try {
                     objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, context, objectContext,
                             provisioningOptions, resource, task, result);
@@ -1472,8 +1465,8 @@ public class ChangeExecutor {
     private <T extends ObjectType, F extends ObjectType> void executeModification(ObjectDelta<T> delta,
             LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
             ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
         Class<T> objectTypeClass = delta.getObjectTypeClass();
 
         // We need current object here. The current object is used to get data for id-only container delete deltas,
@@ -1503,7 +1496,7 @@ public class ChangeExecutor {
                 throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
-                        (PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)delta);
+                        (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) delta);
                 String oid = modifyProvisioningObject(objectTypeClass, delta.getOid(),
                         delta.getModifications(), context, objectContext, provisioningOptions, resource,
                         task, result);
@@ -1560,8 +1553,8 @@ public class ChangeExecutor {
     private <F extends ObjectType, T extends ObjectType> String addProvisioningObject(PrismObject<T> object,
             LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
-                    ObjectAlreadyExistsException, SchemaException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+            ObjectAlreadyExistsException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
         if (object.canRepresent(ShadowType.class)) {
             ShadowType shadow = (ShadowType) object.asObjectable();
@@ -1585,9 +1578,9 @@ public class ChangeExecutor {
     private <F extends ObjectType, T extends ObjectType> PrismObject<T> deleteProvisioningObject(
             Class<T> objectTypeClass, String oid, LensContext<F> context, LensElementContext<T> objectContext,
             ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
-                    throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-                    CommunicationException, ConfigurationException, SecurityViolationException,
-                    ExpressionEvaluationException, PolicyViolationException {
+            throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, PolicyViolationException {
 
         PrismObject<T> shadowToModify = null;
         OperationProvisioningScriptsType scripts = null;
@@ -1615,8 +1608,8 @@ public class ChangeExecutor {
             Class<T> objectTypeClass, String oid, Collection<? extends ItemDelta> modifications,
             LensContext<F> context, LensElementContext<T> objectContext, ProvisioningOperationOptions options,
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
-                    CommunicationException, SchemaException, ConfigurationException,
-                    SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+            CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
 
         PrismObject<T> shadowToModify = null;
         OperationProvisioningScriptsType scripts = null;
@@ -1649,8 +1642,8 @@ public class ChangeExecutor {
     private <F extends ObjectType, T extends ObjectType> OperationProvisioningScriptsType prepareScripts(
             PrismObject<T> changedObject, LensContext<F> context, LensElementContext<T> objectContext,
             ProvisioningOperationTypeType operation, ResourceType resource, Task task, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException,
-                    ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         if (resource == null) {
             LOGGER.warn("Resource does not exist. Skipping processing scripts.");
@@ -1707,7 +1700,7 @@ public class ChangeExecutor {
             ExpressionVariables variables, ExpressionProfile expressionProfile, LensContext<?> context,
             LensElementContext<?> objectContext, Task task,
             OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 
         if (resourceScripts != null) {
@@ -1734,7 +1727,7 @@ public class ChangeExecutor {
                     }
                 }
                 // Let's do the most expensive evaluation last
-                if (!evaluateScriptCondition(script, variables, expressionProfile, task, result)){
+                if (!evaluateScriptCondition(script, variables, expressionProfile, task, result)) {
                     continue;
                 }
                 for (ProvisioningScriptArgumentType argument : script.getArgument()) {
@@ -1767,21 +1760,21 @@ public class ChangeExecutor {
 
     private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,
             ExpressionVariables variables, LensContext<?> context,
-            LensElementContext<?> objectContext, Task task,
-            OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            LensElementContext<?> objectContext, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
-        final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
+        final QName fakeScriptArgumentName = new QName(SchemaConstants.NS_C, "arg");
 
         PrismPropertyDefinition<String> scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
-                FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
+                fakeScriptArgumentName, DOMUtil.XSD_STRING);
 
         String shortDesc = "Provisioning script argument expression";
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
                 .makeExpression(argument, scriptArgumentDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-        ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context,
+        ExpressionEnvironment<?, ?, ?> env = new ExpressionEnvironment<>(context,
                 objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
                 .evaluateExpressionInContext(expression, params, env, result);
@@ -1813,8 +1806,8 @@ public class ChangeExecutor {
     private <T extends ObjectType, F extends ObjectType> void executeReconciliationScript(
             LensProjectionContext projContext, LensContext<F> context, BeforeAfterType order, Task task,
             OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-                    ExpressionEvaluationException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ObjectAlreadyExistsException {
+            ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ObjectAlreadyExistsException {
 
         if (!projContext.isDoReconciliation()) {
             return;
@@ -1836,9 +1829,8 @@ public class ChangeExecutor {
 
     private <T extends ObjectType, F extends ObjectType> Object executeProvisioningScripts(LensContext<F> context, LensProjectionContext projContext,
             OperationProvisioningScriptsType scripts, ProvisioningOperationTypeType operation, BeforeAfterType order, ExpressionProfile expressionProfile, Task task, OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException,
-                    ExpressionEvaluationException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 
         ResourceType resource = projContext.getResource();
         if (resource == null) {
@@ -1892,6 +1884,5 @@ public class ChangeExecutor {
 
         return scriptResult;
     }
-
 
 }

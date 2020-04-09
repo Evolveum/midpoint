@@ -135,7 +135,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 
     }
 
-    private ObjectListType createObjectListType(Collection resultList) {
+    private <O extends ObjectType> ObjectListType createObjectListType(Collection resultList) {
         if (resultList == null) {
             return new ObjectListType();
         }
@@ -185,7 +185,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 
             VariablesMap parametersMap = getParamsMap(parameters);
             ObjectQuery q = reportService.parseQuery(report, query, parametersMap, task, operationResult);
-            Collection<PrismObject<? extends ObjectType>> resultList = reportService.searchObjects(q,
+            Collection<PrismObject<? extends ObjectType>> resultList = (Collection) reportService.searchObjects(q,
                     MiscSchemaUtil.optionsTypeToOptions(options, prismContext), task, operationResult);
 
             return createObjectListType(resultList);

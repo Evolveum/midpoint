@@ -43,41 +43,28 @@ public class PolicyRuleSuspendTaskExecutor {
             return;
         }
 
-        TaskType taskType = task.getUpdatedOrClonedTaskObject().asObjectable();
+        String id = task.getTaskTreeId(result);
+        if (id == null) {
+            LOGGER.trace("No persistent task context, no counting!");
+            return;
+        }
+
         for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-            CounterSpecification counterSpec = counterManager.getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
-            LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
-
-            int counter = 1;
-            if (counterSpec != null) {
-                counter = counterSpec.getCount();
-            }
-            counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
-
-            if (counterSpec != null) {
-                LOGGER.trace("Setting new count = {} to counter spec", counter);
-                counterSpec.setCount(counter);
+            // In theory we could count events also for other kinds of actions (not only SuspendTask)
+            if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
+                CounterSpecification counterSpec = counterManager.getCounterSpec(id, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+                LOGGER.trace("Created/found counter specification {} for:\n{}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
+                int countAfter = counterSpec.incrementAndGet();
+                if (isOverThreshold(policyRule.getPolicyThreshold(), countAfter)) {
+                    throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
+                }
             }
         }
-
-    }
-
-    private synchronized int checkEvaluatedPolicyRule(Task task, EvaluatedPolicyRule policyRule, int counter, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
-        if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
-            counter++;
-            LOGGER.trace("Suspend task action enabled for {}, checking threshold settings", DebugUtil.debugDumpLazily(policyRule));
-            PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
-            if (isOverThreshold(thresholdSettings, counter)) {
-                throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
-            }
-        }
-
-        return counter;
     }
 
     private boolean isOverThreshold(PolicyThresholdType thresholdSettings, int counter) throws SchemaException {
-        // TODO: better implementation that takes hight water mark into account
-        WaterMarkType lowWaterMark = thresholdSettings.getLowWaterMark();
+        // TODO: better implementation that takes high water mark into account
+        WaterMarkType lowWaterMark = thresholdSettings != null ? thresholdSettings.getLowWaterMark() : null;
         if (lowWaterMark == null) {
             LOGGER.trace("No low water mark defined.");
             return true;
@@ -86,7 +73,7 @@ public class PolicyRuleSuspendTaskExecutor {
         if (lowWaterCount == null) {
             throw new SchemaException("No count in low water mark in a policy rule");
         }
-        return (counter >= lowWaterCount);
+        return counter >= lowWaterCount;
     }
 }
 

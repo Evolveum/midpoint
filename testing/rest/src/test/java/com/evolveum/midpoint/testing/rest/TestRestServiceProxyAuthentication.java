@@ -6,41 +6,29 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ActiveProfiles;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-
-import static com.evolveum.midpoint.test.util.TestUtil.displayTestTitle;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author skublik
  */
 public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(TestRestServiceProxyAuthentication.class);
 
     // REST and end user authorization
     public static final File USER_EGOIST_FILE = new File(BASE_REPO_DIR, "user-egoist.xml");
@@ -76,48 +64,42 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
     @Test
     public void test001getUserSelfBySomebody() {
-        final String TEST_NAME = "test001getUserSelfBySomebody";
-        displayTestTitle(TEST_NAME);
-
         WebClient client = prepareClient(USER_SOMEBODY_OID);
         client.path("/self/");
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         AssertJUnit.assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        IntegrationTestTools.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
 
     @Test
     public void test002getUserSelfByEgoist() {
-        final String TEST_NAME = "test002getUserSelfByEgoist";
-        displayTestTitle(TEST_NAME);
-
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/self/");
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        IntegrationTestTools.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -128,21 +110,18 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test003getUserAdministratorByEgoist() {
-        final String TEST_NAME = "test003getUserAdministratorByEgoist";
-        displayTestTitle(TEST_NAME);
-
         WebClient client = prepareClient(USER_EGOIST_OID);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 403);
 
-        IntegrationTestTools.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -152,24 +131,21 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test004getUserSelfByHead() {
-        final String TEST_NAME = "test004getUserSelfByHead";
-        displayTestTitle(TEST_NAME);
-
         WebClient client = prepareClient(null);
         client.path("/self");
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 200);
         UserType userType = response.readEntity(UserType.class);
         assertNotNull("Returned entity in body must not be null.", userType);
-        LOGGER.info("Returned entity: {}", userType.asPrismObject().debugDump());
+        logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        IntegrationTestTools.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -180,21 +156,18 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
      */
     @Test
     public void test005getUserSelfByProxyHead() {
-        final String TEST_NAME = "test005getUserSelfByProxyHead";
-        displayTestTitle(TEST_NAME);
-
         WebClient client = prepareClient(USER_HEAD_OID);
         client.path("/self");
 
         getDummyAuditService().clear();
 
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Response response = client.get();
 
-        TestUtil.displayThen(TEST_NAME);
+        then();
         assertStatus(response, 403);
 
-        IntegrationTestTools.display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertFailedProxyLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -216,7 +189,7 @@ public class TestRestServiceProxyAuthentication extends RestServiceInitializer {
 
     private WebClient prepareClient(String proxyUserOid) {
         WebClient client = prepareClient(USER_PROXY_USERNAME, USER_PROXY_PASSWORD);
-        if (StringUtils.isNotBlank(proxyUserOid)){
+        if (StringUtils.isNotBlank(proxyUserOid)) {
             client.header("Switch-To-Principal", proxyUserOid);
         }
         return client;

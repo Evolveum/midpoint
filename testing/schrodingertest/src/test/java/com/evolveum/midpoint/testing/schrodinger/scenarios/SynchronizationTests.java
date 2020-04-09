@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,27 +8,25 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.user.UserProjectionsTab;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
-import com.evolveum.midpoint.schrodinger.page.task.EditTaskPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
-
 
 /**
  * Created by matus on 5/21/2018.
  */
-public class SynchronizationTests extends TestBase {
+public class SynchronizationTests extends AbstractSchrodingerTest {
 
     private static File csvTargetFile;
 
@@ -48,7 +46,7 @@ public class SynchronizationTests extends TestBase {
     private static final String DIRECTORY_CURRENT_TEST = "synchronizationTests";
 
     @Test(priority = 0)
-    public void setUpResourceAndSynchronizationTask() throws ConfigurationException, IOException {
+    public void setUpResourceAndSynchronizationTask() throws IOException {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
@@ -65,22 +63,28 @@ public class SynchronizationTests extends TestBase {
 
         refreshResourceSchema(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME);
         ListResourcesPage listResourcesPage = basicPage.listResources();
-        listResourcesPage
+        Selenide.sleep(2000);
+        ((TaskPage)listResourcesPage
                 .table()
                     .clickByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                         .clickAccountsTab()
                         .liveSyncTask()
                             .clickCreateNew()
-                                .basicTable()
-                                    .addAttributeValue("Task name","LiveSyncTest")
+                                .selectTabBasic()
+                                    .form()
+                                        .addAttributeValue("name","LiveSyncTest")
+                                        .selectOption("recurrence","Recurring")
+                                        .selectOption("executionStatus", "Runnable")
+                                        .and()
+                                    .and())
+                                .selectScheduleTab()
+                                    .form()
+                                        .addAttributeValue("interval", "5")
+                                        .and()
                             .and()
-                                .schedulingTable()
-                                    .clickCheckBox("Recurring task")
-                                    .addAttributeValue("Schedule interval (seconds)","5")
-                            .and()
-                                .clickSave()
+                                .clickSaveAndRun()
                                     .feedback()
-                                    .isSuccess();
+                                    .isInfo();
     }
 
 
@@ -152,7 +156,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabProjections()
                             .table()
-                                    .selectHeaderCheckBox()
+                                    .selectCheckboxByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .and()
                             .clickHeaderActionDropDown()
                                 .delete()
@@ -171,7 +175,7 @@ public class SynchronizationTests extends TestBase {
         LOG.info("File length after data copying, {}", csvTargetFile.length());
 
         ListUsersPage usersListPage = basicPage.listUsers();
-        UserProjectionsTab projectionsTab = usersListPage
+        ProjectionsTab projectionsTab = usersListPage
                 .table()
                     .search()
                         .byName()
@@ -316,8 +320,14 @@ public class SynchronizationTests extends TestBase {
     ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
             .table()
+                .search()
+                .byName()
+                .inputValue("LiveSyncTest")
+                .updateSearch()
+                .and()
                 .clickByName("LiveSyncTest")
-                .clickResume();
+                .clickResume()
+                .resumeStopRefreshing();
 
 
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
@@ -337,7 +347,6 @@ public class SynchronizationTests extends TestBase {
 
     @Test (priority = 8, dependsOnMethods = {RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE})
     public void resourceAccountCreatedWhenResourceUnreachableToBeLinked() throws IOException {
-
         ListUsersPage listUsersPage= basicPage.listUsers();
         Assert.assertTrue(
             listUsersPage
@@ -375,8 +384,14 @@ public class SynchronizationTests extends TestBase {
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
                 .table()
-                    .clickByName("LiveSyncTest")
-                    .clickResume();
+                .search()
+                .byName()
+                .inputValue("LiveSyncTest")
+                .updateSearch()
+                .and()
+                .clickByName("LiveSyncTest")
+                .clickResume()
+                .resumeStopRefreshing();
 
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
@@ -392,7 +407,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                             .selectTabProjections()
                                 .table()
-                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                        .currentTableContains(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
         );
     }
 }

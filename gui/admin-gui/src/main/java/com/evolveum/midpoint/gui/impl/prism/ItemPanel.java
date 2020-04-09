@@ -6,9 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismValue;
+
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -37,7 +41,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author katka
  *
  */
-public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWrapper> extends BasePanel<IW>{
+public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -70,6 +74,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     private void initLayout() {
 
+        //ugly hack TODO FIME - prism context is lost during srialization/deserialization.. find better way how to do it.
         if (getModelObject() != null) {
             getModelObject().revive(getPrismContext());
         }
@@ -103,7 +108,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                 GuiComponentFactory componentFactory = getPageBase().getRegistry()
                         .findValuePanelFactory(ItemPanel.this.getModelObject());
 
-                Component panel = createValuePanel(item, componentFactory, getVisibilityHandler());
+
+                Component panel = createValuePanel(item, componentFactory, getVisibilityHandler(), getEditabilityHandler());
 //                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
                 createButtons(item);
             }
@@ -122,7 +128,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
     // VALUE REGION
 
-     protected abstract Component createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
+     protected abstract Component createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory,
+             ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler);
 
      protected void createButtons(ListItem<VW> item) {
          WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
@@ -198,7 +205,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         }
 
       protected String getItemCssClass() {
-            return " col-md-offset-2 prism-value ";
+            return " col-sm-offset-0 col-md-offset-4 col-lg-offset-2 prism-value ";
         }
 
      protected void addValue(AjaxRequestTarget target) {
@@ -224,8 +231,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
                     break;
                 case DELETED:
                     valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
+                    getModelObject().getItem().add(valueToRemove.getNewValue());
                     break;
                 case NOT_CHANGED:
+                    getModelObject().getItem().remove(valueToRemove.getNewValue());
                     valueToRemove.setStatus(ValueStatus.DELETED);
                     break;
             }
@@ -242,9 +251,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         private int countUsableValues(List<VW> values) {
             int count = 0;
             for (VW value : values) {
-//                if (ValueStatus.DELETED.equals(value.getStatus())) {
-//                    continue;
-//                }
+                if (ValueStatus.DELETED.equals(value.getStatus())) {
+                    continue;
+                }
                 if (ValueStatus.ADDED.equals(value.getStatus())) {
                     continue;
                 }
@@ -275,35 +284,54 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
         }
 
 
-      private boolean isVisibleValue(IModel<VW> model) {
+        private boolean isVisibleValue(IModel<VW> model) {
             VW value = model.getObject();
             return !ValueStatus.DELETED.equals(value.getStatus());
         }
 
-     public ItemVisibilityHandler getVisibilityHandler() {
-         if (itemPanelSettings == null) {
-             return null;
-        }
-         return itemPanelSettings.getVisibilityHandler();
-    }
-
-    protected boolean isShowOnTopLevel() {
-         if (itemPanelSettings == null) {
-             return false;
-        }
-         return itemPanelSettings.isShowOnTopLevel();
-    }
-
-
-    protected boolean isHeaderVisible() {
-         if (itemPanelSettings == null) {
-             return true;
+        public ItemVisibilityHandler getVisibilityHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getVisibilityHandler();
         }
 
-         return itemPanelSettings.isHeaderVisible();
-    }
+        public ItemEditabilityHandler getEditabilityHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getEditabilityHandler();
+        }
+
+        public ItemMandatoryHandler getMandatoryHandler() {
+            if (itemPanelSettings == null) {
+                return null;
+            }
+            return itemPanelSettings.getMandatoryHandler();
+        }
+
+        protected boolean isShowOnTopLevel() {
+             if (itemPanelSettings == null) {
+                 return false;
+            }
+             return itemPanelSettings.isShowOnTopLevel();
+        }
+
+
+        protected boolean isHeaderVisible() {
+             if (itemPanelSettings == null) {
+                 return true;
+            }
+
+             return itemPanelSettings.isHeaderVisible();
+        }
 
     public ItemPanelSettings getSettings() {
          return itemPanelSettings;
+    }
+
+    @Override
+    public Collection<Component> getComponentsToUpdate() {
+        return Collections.singleton(this);
     }
 }

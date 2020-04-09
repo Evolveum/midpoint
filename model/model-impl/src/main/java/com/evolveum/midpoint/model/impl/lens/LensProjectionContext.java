@@ -406,10 +406,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean isAdd() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
             return true;
-        } else if (synchronizationPolicyDecision != null){
+        } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return ObjectDelta.isAdd(getPrimaryDelta()) || ObjectDelta.isAdd(getSecondaryDelta());
         }
-        return super.isAdd();
     }
 
     public boolean isModify() {
@@ -417,8 +418,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return true;
         } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return super.isModify();
         }
-        return super.isModify();
     }
 
     public boolean isDelete() {
@@ -426,11 +428,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return true;
         } else if (synchronizationPolicyDecision != null) {
             return false;
+        } else {
+            return ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(getPrimaryDelta()) || ObjectDelta.isDelete(getSecondaryDelta());
         }
-        if (syncDelta != null && syncDelta.isDelete()) {
-            return true;
-        }
-        return super.isDelete();
+    }
+
+    @Override
+    public ArchetypeType getArchetype() {
+        throw new UnsupportedOperationException("Archetypes are not supported for projections.");
     }
 
     public ResourceType getResource() {
@@ -539,8 +544,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return synchronizationSituationResolved;
     }
 
-    public void setSynchronizationSituationResolved(
-            SynchronizationSituationType synchronizationSituationResolved) {
+    void setSynchronizationSituationResolved(SynchronizationSituationType synchronizationSituationResolved) {
         this.synchronizationSituationResolved = synchronizationSituationResolved;
     }
 
@@ -1057,7 +1061,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
         super.copyValues(clone, lensContext);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
-        // these are not meant to be cloned and they are also not directly clonnable
+        // these are not meant to be cloned and they are also not directly cloneable
         clone.dependencies = this.dependencies;
         clone.doReconciliation = this.doReconciliation;
         clone.fullShadow = this.fullShadow;
@@ -1080,16 +1084,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (squeezedAttributes == null) {
             return null;
         }
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap
-        = new HashMap<>();
-        Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>() {
-            @Override
-            public ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>> original) {
-                return original.clone();
-            }
-        };
+        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> clonedMap = new HashMap<>();
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> entry: squeezedAttributes.entrySet()) {
-            clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
+            clonedMap.put(entry.getKey(), entry.getValue().clone(ItemValueWithOrigin::clone));
         }
         return clonedMap;
     }
@@ -1472,7 +1469,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
     }
 
-    public PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
+    PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
         if (ResourceType.class.equals(objectClass)) {
             if (resource != null && oid.equals(resource.getOid())) {
                 return PolyString.toPolyString(resource.getName());

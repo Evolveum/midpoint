@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.util.*;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -23,7 +24,7 @@ import java.util.Set;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SchemaTest {
+public class SchemaTest extends AbstractUnitTest {
 
     @Test
     public void generateSchemas() {

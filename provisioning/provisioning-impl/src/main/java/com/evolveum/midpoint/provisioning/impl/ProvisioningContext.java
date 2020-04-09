@@ -236,17 +236,29 @@ public class ProvisioningContext extends StateReporter {
     /**
      * Creates a context for a different object class on the same resource.
      */
-    public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
+    public ProvisioningContext spawn(QName objectClassQName, Task workerTask) {
+        ProvisioningContext child = spawn(objectClassQName);
+        child.setTask(workerTask);
+        return child;
+    }
+
+    public ProvisioningContext spawn(QName objectClassQName) {
         ProvisioningContext ctx = spawnSameResource();
         ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null, null, false);
         ctx.shadowCoordinates.setObjectClass(objectClassQName);
         return ctx;
     }
 
+    public ProvisioningContext spawn(PrismObject<ShadowType> shadow, Task workerTask) {
+        ProvisioningContext child = spawn(shadow);
+        child.setTask(workerTask);
+        return child;
+    }
+
     /**
      * Creates a context for a different object class on the same resource.
      */
-    public ProvisioningContext spawn(PrismObject<ShadowType> shadow) throws SchemaException {
+    public ProvisioningContext spawn(PrismObject<ShadowType> shadow) {
         ProvisioningContext ctx = spawnSameResource();
         ctx.setOriginalShadow(shadow);
         return ctx;

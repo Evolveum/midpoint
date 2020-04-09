@@ -55,7 +55,7 @@
             <class name="com.evolveum.midpoint.model.impl.security.TestPasswordAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestNonceAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestSecurityQuestionsAuthenticationEvaluator"/>
-            <class name="com.evolveum.midpoint.model.impl.security.TestUserProfileService"/>
+            <class name="com.evolveum.midpoint.model.impl.security.TestGuiProfiledPrincipalManager"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestCaseManagement"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestRelationRegistry"/>
             <class name="com.evolveum.midpoint.model.impl.misc.ShadowIntegrityCheckerTest"/>

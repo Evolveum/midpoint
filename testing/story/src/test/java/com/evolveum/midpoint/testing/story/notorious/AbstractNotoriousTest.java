@@ -35,8 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.CountingInspector;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -90,8 +88,6 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
     protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
     protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
-
     protected CountingInspector inspector;
 
     protected abstract String getNotoriousOid();
@@ -138,7 +134,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
             .roleType(ROLE_LEVEL_B_ROLETYPE);
     }
 
-    protected void fillNotorious(AbstractRoleType roleType) throws Exception {
+    protected void fillNotorious(AbstractRoleType roleType) {
         for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
             roleType.beginInducement()
                 .targetRef(generateRoleBOid(i), RoleType.COMPLEX_TYPE)
@@ -161,22 +157,16 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
         assertObjects(OrgType.class, getNumberOfExtraOrgs());
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
     }
 
     @Test
     public void test100AssignRa0ToJack() throws Exception {
-        final String TEST_NAME = "test100AssignRa0ToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -184,18 +174,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -210,28 +200,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test102RecomputeJack() throws Exception {
-        final String TEST_NAME = "test102RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 recompute in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -243,14 +230,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test104PreviewChangesJack() throws Exception {
-        final String TEST_NAME = "test104PreviewChangesJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        display("User before", assignmentSummary(userBefore));
+        displayValue("User before", assignmentSummary(userBefore));
 
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
@@ -259,18 +243,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 preview changes in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -283,28 +267,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test109UnassignRa0FromJack() throws Exception {
-        final String TEST_NAME = "test109UnassignRa0FromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -317,28 +298,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test110Assign5ARolesToJack() throws Exception {
-        final String TEST_NAME = "test110AssignAllARolesToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignJackARoles(5, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Assign 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 5);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -350,28 +328,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test112RecomputeJack() throws Exception {
-        final String TEST_NAME = "test112RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Recompute 5 A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 5);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -383,28 +358,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test119Unassign5ARolesFromJack() throws Exception {
-        final String TEST_NAME = "test119Unassign5ARolesFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignJackARoles(5, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + 5))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -417,28 +389,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test120AssignAllARolesToJack() throws Exception {
-        final String TEST_NAME = "test120AssignAllARolesToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Assign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -450,28 +419,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test122RecomputeJack() throws Exception {
-        final String TEST_NAME = "test122RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Recompute all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -483,14 +449,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test124PreviewChangesJack() throws Exception {
-        final String TEST_NAME = "test124PreviewChangesJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-        display("User before", assignmentSummary(userBefore));
+        displayValue("User before", assignmentSummary(userBefore));
 
         ObjectDelta<UserType> delta = userBefore.createModifyDelta();
         delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER, "123");
@@ -499,18 +462,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Preview changes (all A roles) in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, NUMBER_OF_LEVEL_A_ROLES);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -523,28 +486,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test129UnassignAllARolesFromJack() throws Exception {
-        final String TEST_NAME = "test129UnassignAllARolesFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignJackARoles(NUMBER_OF_LEVEL_A_ROLES, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Unassign all A roles in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -557,10 +517,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test130AssignRb0ToJack() throws Exception {
-        final String TEST_NAME = "test130AssignRb0ToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -568,18 +525,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Rb0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertRoleMembershipRef(userAfter, generateRoleBOid(0));
         assertNoNotoriousParentOrgRef(userAfter);
 
@@ -600,10 +557,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
      */
     @Test
     public void test132AssignRa0ToJack() throws Exception {
-        final String TEST_NAME = "test132AssignRa0ToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -611,18 +565,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -637,28 +591,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test134RecomputeJack() throws Exception {
-        final String TEST_NAME = "test134RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0+Rb0 recompute in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -672,10 +623,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test136UnassignRb0FromJack() throws Exception {
-        final String TEST_NAME = "test136UnassignRb0FromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -683,18 +631,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Rb0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -709,10 +657,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test138AssignRb0ToJackAgain() throws Exception {
-        final String TEST_NAME = "test138AssignRb0ToJackAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -720,18 +665,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Rb0 assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -746,28 +691,25 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test140RecomputeJackAgain() throws Exception {
-        final String TEST_NAME = "test140RecomputeJackAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0+Rb0 recompute again in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -781,10 +723,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test142RecomputeJackAlt() throws Exception {
-        final String TEST_NAME = "test142RecomputeJackAlt";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -792,18 +731,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0+Rb0 recompute again in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 1);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -817,10 +756,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test144UnassignRa0FromJack() throws Exception {
-        final String TEST_NAME = "test144UnassignRa0FromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -828,18 +764,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleAOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Ra0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertRoleMembershipRef(userAfter, generateRoleBOid(0));
         assertNoNotoriousParentOrgRef(userAfter);
 
@@ -854,10 +790,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test149UnassignRb0FromJack() throws Exception {
-        final String TEST_NAME = "test149UnassignRb0FromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -865,18 +798,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, generateRoleBOid(0), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Rb0 unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -896,10 +829,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
      */
     @Test
     public void test150AssignNotoriousDefaultToJack() throws Exception {
-        final String TEST_NAME = "test150AssignNotoriousDefaultToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -907,19 +837,19 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation=default assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertJackRoleAMembershipRef(userAfter, 0);
         assertNotoriousParentOrgRef(userAfter);
 
@@ -939,10 +869,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
      */
     @Test
     public void test152AssignNotoriousAltRelationToJack() throws Exception {
-        final String TEST_NAME = "test152AssignNotoriousAltRelationToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -950,19 +877,19 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -983,10 +910,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test154RecomputeJack() throws Exception {
-        final String TEST_NAME = "test154RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -994,18 +918,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -1030,10 +954,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test156RecomputeJackAlt() throws Exception {
-        final String TEST_NAME = "test156RecomputeJackAlt";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -1041,18 +962,18 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation="+getAltRelation().getLocalPart()+" unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
 
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
         assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
@@ -1073,10 +994,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test158UnassignNotoriousDefaultFromJack() throws Exception {
-        final String TEST_NAME = "test156UnassignNotoriousDefaultFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -1084,19 +1002,19 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation=default unassign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertTest158RoleMembershipRef(userAfter);
         assertNotoriousParentOrgRefRelations(userAfter, getAltRelation());
 
@@ -1115,10 +1033,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
     @Test
     public void test159UnassignNotoriousAltRelationFromJack() throws Exception {
-        final String TEST_NAME = "test159UnassignNotoriousAltRelationFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareTest();
@@ -1126,19 +1041,19 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
                 getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Notorious relation="+getAltRelation().getLocalPart()+" assign in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/(NUMBER_OF_LEVEL_B_ROLES + 2))+"ms per assigned role)");
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", assignmentSummary(userAfter));
+        displayValue("User after", assignmentSummary(userAfter));
         assertNoAssignments(userAfter);
         assertRoleMembershipRefs(userAfter, 0);
         assertNoNotoriousParentOrgRef(userAfter);
@@ -1232,7 +1147,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
                 InternalCounters.ROLE_EVALUATION_COUNT,
                 InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
                 InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
-        display("Inspector", inspector);
+        displayDumpable("Inspector", inspector);
     }
 
 

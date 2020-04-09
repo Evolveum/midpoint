@@ -37,11 +37,6 @@ public class MidPointConstants {
     public static final QName RA_DEFAULT = new QName(NS_RA, "default");
     public static final QName RA_AUXILIARY = new QName(NS_RA, "auxiliary");
 
-    @Deprecated
-    public static final QName RA_ACCOUNT = new QName(NS_RA, "account");
-    @Deprecated
-    public static final QName RA_ACCOUNT_TYPE = new QName(NS_RA, "accountType");
-
     public static final String NS_RI = NS_MIDPOINT_PUBLIC_PREFIX+"/resource/instance-3";
     public static final String PREFIX_NS_RI = "ri";
 

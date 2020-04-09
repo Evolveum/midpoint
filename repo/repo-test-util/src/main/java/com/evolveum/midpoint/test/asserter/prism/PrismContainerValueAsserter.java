@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicate;
+import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicateEvaluation;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -110,6 +112,16 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         T realValue = prop.getRealValue();
         assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
         assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+        return this;
+    }
+
+    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValueSatisfies(QName propName, AssertionPredicate<T> predicate) {
+        PrismProperty<T> prop = findProperty(propName);
+        T value = prop != null ? prop.getRealValue() : null;
+        AssertionPredicateEvaluation evaluation = predicate.evaluate(value);
+        if (evaluation.hasFailed()) {
+            fail("Property " + propName + " value of '" + value + "' does not satisfy predicate: " + evaluation.getFailureDescription());
+        }
         return this;
     }
 

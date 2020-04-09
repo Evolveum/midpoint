@@ -16,7 +16,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -237,10 +237,13 @@ public class SynchronizationExpressionsEvaluator {
             return false;
         }
 
-        // TODO evaluate condition here
-
         ObjectQuery q;
         try {
+            if (!satisfyCondition(currentShadow.asObjectable(), conditionalFilter, expressionProfile,
+                    resourceType, configurationType, "", task, result)) {
+                LOGGER.trace("Skipping evaluating correlation rule. Condition in {} not satisfied.", conditionalFilter);
+                return false;
+            }
             q = prismContext.getQueryConverter().createObjectQuery(focusType, conditionalFilter);
             q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, configurationType, q, expressionProfile, "Correlation expression", task, result);
             if (LOGGER.isDebugEnabled()) {
@@ -280,7 +283,6 @@ public class SynchronizationExpressionsEvaluator {
 
         try {
             for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
-
                 //TODO: can we expect that systemConfig and resource are always present?
                 if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), syncCtx.getExpressionProfile(), focus, syncCtx.getResource().asObjectable(),
                         syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), result)) {

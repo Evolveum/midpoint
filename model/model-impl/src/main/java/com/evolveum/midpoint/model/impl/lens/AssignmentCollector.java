@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,10 +24,6 @@ import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -48,7 +46,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author katka
@@ -73,23 +74,24 @@ public class AssignmentCollector {
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> assignmentHolder, PrismObject<SystemConfigurationType> systemConfiguration, boolean loginMode, Task task, OperationResult result) throws SchemaException {
+    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> assignmentHolder,
+            boolean loginMode, Task task, OperationResult result) throws SchemaException {
 
         LensContext<AH> lensContext = createAuthenticationLensContext(assignmentHolder, result);
 
         AH assignmentHolderType = assignmentHolder.asObjectable();
-        Collection<AssignmentType> forcedAssignments = null;
+        Collection<AssignmentType> forcedAssignments;
         try {
             forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(),
                     assignmentHolderType.getLifecycleState(), objectResolver, prismContext, task, result);
         } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
                 | ExpressionEvaluationException e1) {
             LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", assignmentHolderType.getLifecycleState(), e1);
+            forcedAssignments = null;
         }
         Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
 
         if (!assignmentHolderType.getAssignment().isEmpty() || forcedAssignments != null) {
-
             AssignmentEvaluator.Builder<AH> builder =
                     new AssignmentEvaluator.Builder<AH>()
                             .repository(repositoryService)
@@ -114,30 +116,33 @@ public class AssignmentCollector {
 
             AssignmentEvaluator<AH> assignmentEvaluator = builder.build();
 
-            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, assignmentHolderType.getAssignment(), false, assignmentEvaluator,task, result));
+            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, assignmentHolderType.getAssignment(),
+                    AssignmentOrigin.createInObject(), assignmentEvaluator,task, result));
 
-            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, forcedAssignments, true, assignmentEvaluator, task, result));
+            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, forcedAssignments,
+                    AssignmentOrigin.createVirtual(), assignmentEvaluator, task, result));
         }
 
         return evaluatedAssignments;
-
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH assignmentHolder, Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH assignmentHolder,
+            Collection<AssignmentType> assignments, AssignmentOrigin origin, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 
         List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
         RepositoryCache.enter(cacheConfigurationManager);
         try {
-            for (AssignmentType assignmentType: assignments) {
+            PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+                    .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+            for (AssignmentType assignmentType: emptyIfNull(assignments)) {
                 try {
-                    PrismContainerDefinition definition = assignmentType.asPrismContainerValue().getDefinition();
-                    if (definition == null) {
-                        // TODO: optimize
-                        definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-                    }
+                    //noinspection unchecked
+                    PrismContainerDefinition<AssignmentType> definition = defaultIfNull(
+                            assignmentType.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
                     ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi =
                             new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
-                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
+                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), origin, task, result);
                     evaluatedAssignments.add(assignment);
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",

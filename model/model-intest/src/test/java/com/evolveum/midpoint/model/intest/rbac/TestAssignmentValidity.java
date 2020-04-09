@@ -8,8 +8,6 @@ package com.evolveum.midpoint.model.intest.rbac;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -17,20 +15,17 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentValidity extends AbstractRbacTest {
 
@@ -40,7 +35,6 @@ public class TestAssignmentValidity extends AbstractRbacTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-//        InternalsConfig.setTestingPaths(TestingPaths.REVERSED);
     }
 
     /**
@@ -48,10 +42,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test100JackAssignRolePirateValidTo() throws Exception {
-        final String TEST_NAME = "test100JackAssignRolePirateValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -64,11 +55,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -90,20 +81,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test102Forward15min() throws Exception {
-        final String TEST_NAME = "test102Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -122,10 +110,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test104JackAssignRolePirateAgain() throws Exception {
-        final String TEST_NAME = "test104JackAssignRolePirateAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -134,11 +119,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -158,18 +143,15 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test106JackUnassignRolePirateValid() throws Exception {
-        final String TEST_NAME = "test106JackUnassignRolePirateValid";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -187,7 +169,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test109JackUnassignAll() throws Exception {
-        unassignAll("test109JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -197,10 +179,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test110JackAssignRolePirateValidToRaw() throws Exception {
-        final String TEST_NAME = "test110JackAssignRolePirateValidToRaw";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -213,12 +192,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, activationType, true, options, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -237,21 +216,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test111RecomputeJack() throws Exception {
-        final String TEST_NAME = "test111RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -271,20 +247,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test112Forward15min() throws Exception {
-        final String TEST_NAME = "test102Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -303,10 +276,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test114JackAssignRolePirateAgain() throws Exception {
-        final String TEST_NAME = "test114JackAssignRolePirateAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -315,11 +285,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -338,7 +308,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test119JackUnassignAll() throws Exception {
-        unassignAll("test119JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -347,10 +317,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test120JackAssignRoleSailorValidTo() throws Exception {
-        final String TEST_NAME = "test120JackAssignRoleSailorValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -363,11 +330,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -389,20 +356,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test122Forward15min() throws Exception {
-        final String TEST_NAME = "test122Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -421,10 +385,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test124JackAssignRoleSailorAgain() throws Exception {
-        final String TEST_NAME = "test124JackAssignRoleSailorAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -433,11 +394,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -456,7 +417,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test129JackUnassignAll() throws Exception {
-        unassignAll("test129JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -466,10 +427,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test130JackAssignRoleSailorValidToRaw() throws Exception {
-        final String TEST_NAME = "test130JackAssignRoleSailorValidToRaw";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -482,12 +440,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, activationType, true, options, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -506,21 +464,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test131RecomputeJack() throws Exception {
-        final String TEST_NAME = "test131RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -540,20 +495,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test132Forward15min() throws Exception {
-        final String TEST_NAME = "test132Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -572,10 +524,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test134JackAssignRoleSailorAgain() throws Exception {
-        final String TEST_NAME = "test134JackAssignRoleSailorAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -584,11 +533,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -607,7 +556,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test139JackUnassignAll() throws Exception {
-        unassignAll("test139JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -617,10 +566,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test140JackAssignRoleSailorValidToRaw() throws Exception {
-        final String TEST_NAME = "test140JackAssignRoleSailorValidToRaw";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -633,12 +579,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, activationType, true, options, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -658,18 +604,13 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test142Forward15min() throws Exception {
-        final String TEST_NAME = "test142Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         clockForward("PT15M");
         // do NOT recompute
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -687,10 +628,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test144JackAssignRoleSailorAgain() throws Exception {
-        final String TEST_NAME = "test144JackAssignRoleSailorAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -699,11 +637,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -722,7 +660,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test149JackUnassignAll() throws Exception {
-        unassignAll("test149JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -730,21 +668,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test150JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test150JackAssignRolePirate";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -766,10 +701,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test151JackAssignRoleSailorValidTo() throws Exception {
-        final String TEST_NAME = "test151JackAssignRoleSailorValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -780,11 +712,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidTo(jackPirateValidTo);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -808,20 +740,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test153Forward15min() throws Exception {
-        final String TEST_NAME = "test153Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -842,21 +771,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test154JackAssignRoleSailorAgain() throws Exception {
-        final String TEST_NAME = "test154JackAssignRoleSailorAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -873,7 +799,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test159JackUnassignAll() throws Exception {
-        unassignAll("test159JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -881,21 +807,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test160JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test160JackAssignRolePirate";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -916,10 +839,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test161JackAssignRoleSailorValidToRaw() throws Exception {
-        final String TEST_NAME = "test161JackAssignRoleSailorValidToRaw";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -932,12 +852,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         ModelExecuteOptions options = ModelExecuteOptions.createRaw();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, activationType, true, options, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -952,7 +872,6 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         assertRoleMembershipRef(userAfter, ROLE_PIRATE_OID); // SAILOR is not here, we are raw
         assertDelegatedRef(userAfter);
 
-
         assertJackDummyPirateAccount();
     }
 
@@ -962,10 +881,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test162RecomputeJack() throws Exception {
-        final String TEST_NAME = "test162RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -976,11 +892,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidTo(jackPirateValidTo);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1004,20 +920,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test163Forward15min() throws Exception {
-        final String TEST_NAME = "test163Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1038,21 +951,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test164JackAssignRoleSailorAgain() throws Exception {
-        final String TEST_NAME = "test164JackAssignRoleSailorAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1069,7 +979,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test169JackUnassignAll() throws Exception {
-        unassignAll("test169JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -1077,21 +987,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test170JackAssignRolePirate() throws Exception {
-        final String TEST_NAME = "test170JackAssignRolePirate";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1112,10 +1019,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test171JackAssignRoleWeakSingerValidTo() throws Exception {
-        final String TEST_NAME = "test171JackAssignRoleWeakSingerValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1126,11 +1030,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidTo(jackPirateValidTo);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1154,20 +1058,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test173Forward15min() throws Exception {
-        final String TEST_NAME = "test173Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1189,21 +1090,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test174JackAssignRoleSingerAgain() throws Exception {
-        final String TEST_NAME = "test174JackAssignRoleSingerAgain";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_WEAK_SINGER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1220,7 +1118,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test179JackUnassignAll() throws Exception {
-        unassignAll("test179JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -1229,10 +1127,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test180JackAssignRoleSailorValidToRaw() throws Exception {
-        final String TEST_NAME = "test180JackAssignRoleSailorValidToRaw";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1243,12 +1138,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidTo(jackPirateValidTo);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, activationType, true, ModelExecuteOptions.createRaw(), result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1267,21 +1162,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test182Forward15minAndAssignRaw() throws Exception {
-        final String TEST_NAME = "test142Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
                 task, null, null, true, ModelExecuteOptions.createRaw(), result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User jack after", userAfter);
@@ -1296,21 +1188,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test184RecomputeJack() throws Exception {
-        final String TEST_NAME = "test184RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1327,7 +1216,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test189JackUnassignAll() throws Exception {
-        unassignAll("test189JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -1335,10 +1224,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test200JackAssignCurrentPirateFutureSailor() throws Exception {
-        final String TEST_NAME = "test200JackAssignCurrentPirateFutureSailor";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1348,12 +1234,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidFrom(getTimestamp("P1M"));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1372,21 +1258,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test202RecomputeJack() throws Exception {
-        final String TEST_NAME = "test202RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1403,21 +1286,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test204ReconcileJack() throws Exception {
-        final String TEST_NAME = "test204ReconcileJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1431,20 +1311,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test209JackUnassignAll() throws Exception {
-        unassignAll("test209JackUnassignAll");
+        unassignAll();
     }
 
     /**
      * The same as test200-204 but with ROLE_STRONG_RICH_SAILOR
-     *
+     * <p>
      * Preparation for MID-4198 "Disabled assignments project value in certain cases"
      */
     @Test
     public void test210JackAssignCurrentPirateFutureRichSailor() throws Exception {
-        final String TEST_NAME = "test210JackAssignCurrentPirateFutureRichSailor";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1454,12 +1331,12 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidFrom(getTimestamp("P1M"));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1478,21 +1355,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test212RecomputeJack() throws Exception {
-        final String TEST_NAME = "test212RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1509,21 +1383,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test214ReconcileJack() throws Exception {
-        final String TEST_NAME = "test214ReconcileJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1537,7 +1408,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test219JackUnassignAll() throws Exception {
-        unassignAll("test219JackUnassignAll");
+        unassignAll();
     }
 
     /**
@@ -1545,13 +1416,10 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test220JackAssignFutureRichSailor() throws Exception {
-        final String TEST_NAME = "test220JackAssignFutureRichSailor";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        unassignAll(TEST_NAME);
+        unassignAll();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
@@ -1560,11 +1428,11 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         activationType.setValidFrom(getTimestamp("P1M"));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1580,7 +1448,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test229JackUnassignAll() throws Exception {
-        unassignAll("test229JackUnassignAll");
+        unassignAll();
         assertNoDummyAccount(USER_JACK_USERNAME);
     }
 
@@ -1589,10 +1457,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test230JackAssignRoleStrongRichSailorValidTo() throws Exception {
-        final String TEST_NAME = "test230JackAssignRoleStrongRichSailorValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1605,14 +1470,14 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // beware of the order: weapon is weak and is set differently by role (cutlass) and resource (from user extension: pistol, mouth)
         // the assert expects cutlass, so the pirate role assignment must go first
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_STRONG_RICH_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1631,23 +1496,19 @@ public class TestAssignmentValidity extends AbstractRbacTest {
     /**
      * Sailor assignment expires.
      */
-
     @Test
     public void test232Forward15min() throws Exception {
-        final String TEST_NAME = "test232Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1662,7 +1523,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test239JackUnassignAll() throws Exception {
-        unassignAll("test239JackUnassignAll");
+        unassignAll();
         assertNoDummyAccount(USER_JACK_USERNAME);
     }
 
@@ -1672,10 +1533,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test240JackAssignRoleRichSailorValidTo() throws Exception {
-        final String TEST_NAME = "test240JackAssignRoleRichSailorValidTo";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1688,14 +1546,14 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // beware of the order: weapon is weak and is set differently by role (cutlass) and resource (from user extension: pistol, mouth)
         // the assert expects cutlass, so the pirate role assignment must go first
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_RICH_SAILOR_OID, activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
@@ -1717,20 +1575,17 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test242Forward15min() throws Exception {
-        final String TEST_NAME = "test242Forward15min";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1745,19 +1600,16 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
     @Test
     public void test249JackUnassignAll() throws Exception {
-        unassignAll("test249JackUnassignAll");
+        unassignAll();
         assertNoDummyAccount(USER_JACK_USERNAME);
     }
 
     /**
-     *  MID-4198
+     * MID-4198
      */
     @Test
     public void test250JackAssignFocusExistsResource() throws Exception {
-        final String TEST_NAME = "test250JackAssignFocusExistsResource";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -1768,14 +1620,14 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(resourceDummyFocusExists, prismContext).activation(activation);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
                 .asObjectDeltaCast(USER_JACK_OID);
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1791,21 +1643,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test252RecomputeJack() throws Exception {
-        final String TEST_NAME = "test252RecomputeJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1821,21 +1670,18 @@ public class TestAssignmentValidity extends AbstractRbacTest {
      */
     @Test
     public void test254ReconcileJack() throws Exception {
-        final String TEST_NAME = "test254ReconcileJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task =  createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1845,7 +1691,6 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
         assertNoDummyAccount(RESOURCE_DUMMY_FOCUS_EXISTS_NAME, USER_JACK_USERNAME);
     }
-
 
     private void assertJackDummyPirateAccount() throws Exception {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
@@ -1923,21 +1768,19 @@ public class TestAssignmentValidity extends AbstractRbacTest {
                 "Jack Sparrow is the best pirate Caribbean has ever seen");
     }
 
-    private void unassignAll(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+    private void unassignAll() throws Exception {
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User jack before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAll(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1947,6 +1790,4 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     }
-
-
 }

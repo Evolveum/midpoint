@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import com.google.common.annotations.VisibleForTesting;
+
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -27,6 +29,7 @@ public interface Hacks {
 
     void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger);
 
+    @VisibleForTesting
     <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException;
 
     Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;

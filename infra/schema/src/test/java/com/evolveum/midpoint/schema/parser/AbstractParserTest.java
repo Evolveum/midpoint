@@ -7,36 +7,25 @@
 
 package com.evolveum.midpoint.schema.parser;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
-import org.xml.sax.SAXException;
+import static com.evolveum.midpoint.schema.TestConstants.COMMON_DIR_PATH;
 
 import java.io.File;
-import java.io.IOException;
 
-import static com.evolveum.midpoint.schema.TestConstants.COMMON_DIR_PATH;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.AbstractSchemaTest;
 
 /**
  * @author mederly
  */
-public abstract class AbstractParserTest {
+public abstract class AbstractParserTest extends AbstractSchemaTest {
 
     protected String language;
     protected boolean namespaces;
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @BeforeClass
     @Parameters({ "language", "namespaces" })
@@ -47,12 +36,8 @@ public abstract class AbstractParserTest {
     }
 
     protected File getFile(String baseName) {
-        return new File(COMMON_DIR_PATH + "/" + language + "/" + (namespaces ? "ns":"no-ns"),
+        return new File(COMMON_DIR_PATH + "/" + language + "/" + (namespaces ? "ns" : "no-ns"),
                 baseName + "." + language);
-    }
-
-    protected void displayTestTitle(String testName) {
-        PrismTestUtil.displayTestTitle(testName + " (" + language + ", " + (namespaces ? "with" : "no") + " namespaces)");
     }
 
     protected abstract File getFile();
@@ -60,5 +45,4 @@ public abstract class AbstractParserTest {
     protected PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
-
 }

@@ -36,5 +36,4 @@ public class FocusSetProjectionModal<T> extends ModalBox<T> {
 
         return this.getParent();
     }
-
 }

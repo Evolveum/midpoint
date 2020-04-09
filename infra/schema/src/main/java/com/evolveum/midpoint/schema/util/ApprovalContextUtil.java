@@ -249,10 +249,6 @@ public class ApprovalContextUtil {
         }
     }
 
-    public static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
-        return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : null;
-    }
-
     // we must be strict here; in case of suspicion, throw an exception
     @SuppressWarnings("unchecked")
     public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull CaseType aCase, @NotNull Class<T> clazz) {
@@ -328,7 +324,7 @@ public class ApprovalContextUtil {
 
     @NotNull
     private static List<ApprovalStageDefinitionType> getSortedStages(ApprovalSchemaType schema) {
-        List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
+        List<ApprovalStageDefinitionType> stages = new ArrayList<>(schema.getStage());
         stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
         return stages;
     }

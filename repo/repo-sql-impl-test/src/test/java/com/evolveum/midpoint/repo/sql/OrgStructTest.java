@@ -7,9 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
@@ -17,7 +35,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,24 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -89,8 +88,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
     private static final String SEARCH_ORG_OID_DEPTH1 = "00000000-8888-6666-0000-100000000001";
 
     private static final String MODIFY_USER_DELETE_REF_OID = "00000000-8888-6666-0000-100000000002";
-
-    private static final Trace LOGGER = TraceManager.getTrace(OrgStructTest.class);
 
     private String elaineOid;
     private static final String ELAINE_NAME = "elaine";
@@ -155,7 +152,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     /**
      * Tests for repo.matchObject() method
      */
-    private void testMonkeySubordinate() throws SchemaException, ObjectNotFoundException {
+    private void testMonkeySubordinate() throws SchemaException {
         assertSubordinate(false, ORG_F003_OID, ORG_F001_OID);
         assertSubordinate(true, ORG_F003_OID, ORG_F003_OID);
         assertSubordinate(true, ORG_F003_OID, ORG_F005_OID);
@@ -211,13 +208,13 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     private void assertSubordinate(boolean expected, String upperOrgOid, String... lowerObjectOids) throws SchemaException {
         Collection<String> lowerObjectOidCol = Arrays.asList(lowerObjectOids);
-        LOGGER.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
+        logger.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
         boolean actual = repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
         if (expected != actual) {
-            LOGGER.error("=======X {}: {}; expected={}, actual={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected, actual});
+            logger.error("=======X {}: {}; expected={}, actual={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected, actual});
             assertEquals("Wrong subordinate match: " + upperOrgOid + " to " + lowerObjectOidCol, expected, actual);
         } else {
-            LOGGER.debug("=======O {}: {}; got={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected});
+            logger.debug("=======O {}: {}; got={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected});
         }
     }
 
@@ -236,7 +233,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            LOGGER.info("==============CLOSURE TABLE==========");
+            logger.info("==============CLOSURE TABLE==========");
             // descendants of F007 - F007<0>, F009<1>, F008<2>, F0010<2>
             Criteria criteria = session.createCriteria(ROrgClosure.class)
                     .createCriteria("ancestor", "anc")
@@ -245,7 +242,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             List<ROrgClosure> orgClosure = criteria.list();
             for (ROrgClosure c : orgClosure) {
-                LOGGER.info("{}", c.getDescendant());
+                logger.info("{}", c.getDescendant());
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
@@ -265,7 +262,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             AssertJUnit.assertNotNull(users);
             AssertJUnit.assertEquals(1, users.size());
             UserType elaine1 = users.get(0).asObjectable();
-            LOGGER.info("--->elaine1<----");
+            logger.info("--->elaine1<----");
 
             AssertJUnit.assertEquals("Expected name elaine1, but got " + elaine1.getName().getOrig(), "elaine1", elaine1.getName().getOrig());
             AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine1.getParentOrgRef().size(), 2, elaine1.getParentOrgRef().size());
@@ -291,9 +288,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         try {
             orgClosure = getOrgClosureByDescendant(MODIFY_ORG_ADD_REF_OID, session);
 
-            LOGGER.info("before modify");
+            logger.info("before modify");
             for (ROrgClosure c : orgClosure) {
-                LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
             }
             AssertJUnit.assertEquals(3, orgClosure.size());
         } finally {
@@ -306,9 +303,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         try {
             orgClosure = getOrgClosureByDescendant(MODIFY_ORG_ADD_REF_OID, session);
 
-            LOGGER.info("after modify");
+            logger.info("after modify");
             for (ROrgClosure c : orgClosure) {
-                LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
             }
             AssertJUnit.assertEquals(4, orgClosure.size());
 
@@ -320,7 +317,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             for (String ancestorOid : ancestors) {
                 orgClosure = getOrgClosure(ancestorOid, MODIFY_ORG_ADD_REF_OID, session);
-                LOGGER.info("=> A: {}, D: {}", orgClosure.get(0).getAncestor(), orgClosure.get(0).getDescendant());
+                logger.info("=> A: {}, D: {}", orgClosure.get(0).getAncestor(), orgClosure.get(0).getDescendant());
 
                 AssertJUnit.assertEquals(1, orgClosure.size());
                 AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0).getAncestor().getOid());
@@ -360,9 +357,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         try {
             List<ROrgClosure> orgClosure = getOrgClosureByDescendant(MODIFY_ORG_INCORRECT_ADD_REF_OID, session);
 
-            LOGGER.info("after modify incorrect - closure");
+            logger.info("after modify incorrect - closure");
             for (ROrgClosure c : orgClosure) {
-                LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
+                logger.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
             }
             AssertJUnit.assertEquals(5, orgClosure.size());
 
@@ -398,7 +395,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            LOGGER.info("==>before modify - delete<==");
+            logger.info("==>before modify - delete<==");
             List<ROrgClosure> orgClosure = getOrgClosure(ORG_F003_OID, MODIFY_ORG_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(1, orgClosure.size());
 
@@ -409,7 +406,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.clear();
             session.beginTransaction();
 
-            LOGGER.info("==>after modify - delete<==");
+            logger.info("==>after modify - delete<==");
             orgClosure = getOrgClosure(ORG_F003_OID, MODIFY_ORG_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
         } finally {
@@ -428,7 +425,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            LOGGER.info("==>before modify - delete<==");
+            logger.info("==>before modify - delete<==");
             List<ROrgClosure> orgClosure = getOrgClosure(ORG_F012_OID, MODIFY_ORG_INCORRECT_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
 
@@ -439,7 +436,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.clear();
             session.beginTransaction();
 
-            LOGGER.info("==>after modify - delete<==");
+            logger.info("==>after modify - delete<==");
             orgClosure = getOrgClosure(ORG_F012_OID, MODIFY_ORG_INCORRECT_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
         } finally {
@@ -477,7 +474,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
         for (PrismObject<ObjectType> u : orgClosure) {
-            LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
+            logger.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
 
         AssertJUnit.assertEquals(7, orgClosure.size());
@@ -491,9 +488,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         try {
             List<ROrgClosure> orgClosure = getOrgClosure(SEARCH_ORG_OID_DEPTH1, SEARCH_ORG_OID_DEPTH1, session);
 
-            LOGGER.info("==============CLOSURE TABLE==========");
+            logger.info("==============CLOSURE TABLE==========");
             for (ROrgClosure o : orgClosure) {
-                LOGGER.info("=> A: {}, D: {}", o.getAncestor(), o.getDescendant());
+                logger.info("=> A: {}, D: {}", o.getAncestor(), o.getDescendant());
             }
             AssertJUnit.assertEquals(1, orgClosure.size());
             session.getTransaction().commit();
@@ -506,7 +503,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
             for (PrismObject<ObjectType> u : sOrgClosure) {
-                LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
+                logger.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
             }
             AssertJUnit.assertEquals(4, sOrgClosure.size());
         } finally {
@@ -527,7 +524,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<PrismObject<OrgType>> rootOrgs = repositoryService.searchObjects(OrgType.class, qSearch, null, parentResult);
 
         for (PrismObject<OrgType> ro : rootOrgs) {
-            LOGGER.info("ROOT  ========= {}", ObjectTypeUtil.toShortString(ro.asObjectable()));
+            logger.info("ROOT  ========= {}", ObjectTypeUtil.toShortString(ro.asObjectable()));
         }
         AssertJUnit.assertEquals(5, rootOrgs.size());
     }
@@ -545,9 +542,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, elaineOid, delta.getModifications(), opResult);
 
         UserType userElaine = repositoryService.getObject(UserType.class, elaineOid, null, opResult).asObjectable();
-        LOGGER.trace("elaine's og refs");
+        logger.trace("elaine's og refs");
         for (ObjectReferenceType ort : userElaine.getParentOrgRef()) {
-            LOGGER.trace("{}", ort);
+            logger.trace("{}", ort);
             if (ort.getOid().equals(MODIFY_USER_DELETE_REF_OID)) {
                 AssertJUnit.fail("expected that elain does not have reference on the org with oid:" + MODIFY_USER_DELETE_REF_OID);
             }
@@ -556,9 +553,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test011OrgFilter() throws Exception {
-        final String TEST_NAME = "test011OrgFilter";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createOperationResult();
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .isDirectChildOf(ORG_F001_OID)
@@ -574,9 +569,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test100ParentOrgRefFilterNullRelation() throws Exception {
-        final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createOperationResult();
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .item(ObjectType.F_PARENT_ORG_REF).ref(itemFactory().createReferenceValue(ORG_F001_OID))
@@ -591,9 +584,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test101ParentOrgRefFilterManagerRelation() throws Exception {
-        final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createOperationResult();
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(SchemaConstants.ORG_MANAGER);
@@ -610,9 +601,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test102ParentOrgRefFilterAnyRelation() throws Exception {
-        final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
-        TestUtil.displayTestTitle(TEST_NAME);
-        OperationResult opResult = new OperationResult(TEST_NAME);
+        OperationResult opResult = createOperationResult();
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
         refVal.setRelation(PrismConstants.Q_ANY);

@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +42,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 
 /**
  * @author katka
@@ -62,7 +61,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(HANDLER_URI, this);
-        taskManager.registerAdditionalHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
+        taskManager.registerDeprecatedHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
     }
 
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
@@ -77,7 +76,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         }
 
         TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
-        List<TaskPartitionDefinitionType> partitions = partitionsDefinition.getPartition();
+        List<TaskPartitionDefinitionType> partitions = new ArrayList<>(partitionsDefinition.getPartition());
         Comparator<TaskPartitionDefinitionType> comparator =
                 (partition1, partition2) -> {
 
@@ -104,7 +103,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         partitions.sort(comparator);
 
         Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
-        while(partitionsIterator.hasNext()) {
+        while (partitionsIterator.hasNext()) {
             TaskPartitionDefinitionType partition = partitionsIterator.next();
             TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
             LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
@@ -135,32 +134,6 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             }
 
         }
-
-//        for (TaskPartitionDefinitionType partition : partitions) {
-//            TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
-//            LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
-//            TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
-//            OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
-//            opResult.addSubresult(subHandlerOpResult);
-//            runResult = subHandlerResult;
-//            runResult.setProgress(task.getProgress());
-//
-//            if (!canContinue(task, subHandlerResult)) {
-//                break;
-//            }
-//
-//            if (subHandlerOpResult.isError()) {
-//                break;
-//            }
-//
-//            try {
-//                LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
-//                cleanupWorkState(task, runResult.getOperationResult());
-//            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-//                LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
-//                throw new IllegalStateException(e);
-//            }
-//        }
 
         runResult.setProgress(runResult.getProgress() + 1);
         opResult.computeStatusIfUnknown();
@@ -223,4 +196,8 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         return TaskCategory.UTIL;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
 }

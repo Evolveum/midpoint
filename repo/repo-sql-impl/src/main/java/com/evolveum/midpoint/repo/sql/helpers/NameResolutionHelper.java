@@ -103,11 +103,11 @@ public class NameResolutionHelper {
 
     @NotNull
     private List<? extends ItemPath> getPathsToResolve(Collection<SelectorOptions<GetOperationOptions>> options) {
-        final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
+        final UniformItemPath emptyPath = prismContext.emptyPath();
         List<UniformItemPath> rv = new ArrayList<>();
         for (SelectorOptions<GetOperationOptions> option : CollectionUtils.emptyIfNull(options)) {
             if (GetOperationOptions.isResolveNames(option.getOptions())) {
-                rv.add(option.getItemPath(EMPTY_PATH));
+                rv.add(option.getItemPath(emptyPath));
             }
         }
         return rv;

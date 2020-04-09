@@ -9,7 +9,7 @@ package com.evolveum.midpoint.wf.impl.assignments;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -19,13 +19,24 @@ import java.util.List;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
- * Shouldn't be used, as global policy rules for assignments are not implemented yet.
  *
- * @author mederly
  */
 public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval {
 
     private static final File SYSTEM_CONFIGURATION_GLOBAL_FILE = new File(TEST_RESOURCE_DIR, "system-configuration-global.xml");
+
+    // Role15 has its approver but there is also a global policy rule that prevents it from being assigned.
+    private static final TestResource ROLE15 = new TestResource(TEST_RESOURCE_DIR, "role-role15.xml", "00000001-d34d-b33f-f00d-000000000015");
+
+    private static final TestResource USER_LEAD15 = new TestResource(TEST_RESOURCE_DIR, "user-lead15.xml", "00000001-d34d-b33f-f00d-L00000000015");
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        repoAdd(ROLE15, initResult);
+        addAndRecomputeUser(USER_LEAD15.file, initTask, initResult);
+    }
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -36,11 +47,11 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
     @Override
     protected String getRoleOid(int number) {
         switch (number) {
-            case 1: return roleRole1Oid;
-            case 2: return roleRole2Oid;
-            case 3: return roleRole3Oid;
-            case 4: return roleRole4Oid;
-            case 10: return roleRole10Oid;
+            case 1: return ROLE1.oid;
+            case 2: return ROLE2.oid;
+            case 3: return ROLE3.oid;
+            case 4: return ROLE4.oid;
+            case 10: return ROLE10.oid;
             default: throw new IllegalArgumentException("Wrong role number: " + number);
         }
     }
@@ -63,14 +74,14 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
      */
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
+        Task task = getTestTask();
         task.setOwner(userAdministrator);
-        OperationResult result = getResult();
+        OperationResult result = getTestOperationResult();
 
         try {
-            assignRole(userJackOid, roleRole15Oid, task, result);
+            assignRole(userJackOid, ROLE15.oid, task, result);
+            fail("Unexpected success");
         } catch (PolicyViolationException e) {
-            // ok
             System.out.println("Got expected exception: " + e);
         }
         List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);

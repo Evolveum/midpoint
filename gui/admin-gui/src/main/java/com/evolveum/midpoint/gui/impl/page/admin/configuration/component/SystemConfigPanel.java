@@ -50,7 +50,7 @@ public class SystemConfigPanel extends BasePanel<PrismObjectWrapper<SystemConfig
 
     protected void initLayout() {
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> getBasicTabVisibity(itemWrapper));
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(this::getBasicTabVisibity);
             Panel panel = getPageBase().initItemPanel(ID_SYSTEM_CONFIG, SystemConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
             add(panel);
         } catch (SchemaException e) {

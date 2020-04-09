@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -50,9 +49,6 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 
     protected static final File TASK_LIVE_SYNC_DUMMY_BYZANTINE_FILE = new File(TEST_DIR, "task-dummy-byzantine-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_BYZANTINE_OID = "10000000-0000-0000-5555-55550000f904";
-
-    protected static final File TASK_RECON_DUMMY_BYZANTINE_FILE = new File(TEST_DIR, "task-dummy-byzantine-recon.xml");
-    protected static final String TASK_RECON_DUMMY_BYZANTINE_OID = "10000000-0000-0000-5656-56560000f904";
 
     protected static DummyResource dummyResourceByzantine;
     protected static DummyResourceContoller dummyResourceCtlByzantine;
@@ -108,31 +104,17 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
 
     @Test
     public void test100ImportLiveSyncTaskDummyByzantine() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyByzantine";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask(resourceDummyByzantine);
 
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-
+        then();
         waitForSyncTaskStart(resourceDummyByzantine);
     }
 
     // MID-2149
     @Test
     public void test110AddDummyByzantineAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyByzantineAccountMancomb";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractObjTemplateSyncTest.class.getName() + "." + TEST_NAME);
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -149,16 +131,16 @@ public abstract class AbstractObjTemplateSyncTest extends AbstractInitializedMod
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
 
         dummyResourceByzantine.addAccount(account);
 
         waitForSyncTaskNextRun(resourceDummyByzantine);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyByzantine);
         display("Account mancomb", accountMancomb);

@@ -11,11 +11,16 @@ import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Collection;
+import java.util.List;
 
 import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 
@@ -26,6 +31,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 public class AuthenticationChannelImpl implements AuthenticationChannel {
 
     private AuthenticationSequenceChannelType channel;
+    private String pathAfterLogout;
 
     public AuthenticationChannelImpl(AuthenticationSequenceChannelType channel) {
         Validate.notNull(channel, "Couldn't create authentication channel object, because channel is null");
@@ -39,6 +45,28 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
 
     protected AuthenticationSequenceChannelType getChannel() {
         return channel;
+    }
+
+    @Override
+    public void setPathAfterLogout(String pathAfterLogout) {
+        this.pathAfterLogout = pathAfterLogout;
+    }
+
+    @Override
+    public String getPathAfterLogout() {
+        if (StringUtils.isNotBlank(this.pathAfterLogout)) {
+            return pathAfterLogout;
+        }
+        return getPathDuringProccessing();
+    }
+
+    @Override
+    public boolean matchChannel(AuthenticationSequenceType sequence) {
+            if (sequence == null || sequence.getChannel() == null
+                    || !getChannelId().equals(sequence.getChannel().getChannelId())) {
+                return false;
+            }
+        return true;
     }
 
     public String getChannelId() {
@@ -80,5 +108,10 @@ public class AuthenticationChannelImpl implements AuthenticationChannel {
     @Override
     public boolean isSupportActivationByChannel() {
         return true;
+    }
+
+    @Override
+    public String getUrlSuffix() {
+        return this.channel.getUrlSuffix();
     }
 }

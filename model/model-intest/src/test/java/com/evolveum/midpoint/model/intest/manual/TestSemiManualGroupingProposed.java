@@ -10,7 +10,6 @@ package com.evolveum.midpoint.model.intest.manual;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
@@ -52,9 +51,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     private static final String USER_BIGMOUTH_NAME = "BIGMOUTH";
     private static final String USER_BIGMOUTH_FULLNAME = "Shouty Bigmouth";
 
-    private String userBigmouthOid;
     private String accountBigmouthOid;
-    private String bigmouthLastCaseOid;
 
     @Override
     protected File getResourceFile() {
@@ -75,31 +72,29 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 
     @Test
     public void test020ResourcesSanity() throws Exception {
-        final String TEST_NAME = "test020ResourcesSanity";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         SearchResultList<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, null, null, result);
-        display("Resources", resources.size() + ": " + resources);
+        displayValue("Resources", resources.size() + ": " + resources);
         assertEquals("Unexpected number of resources", 3, resources.size());
 
         ObjectQuery query = prismContext.queryFor(ResourceType.class)
             .item("extension","provisioning").eq("propagated")
             .build();
-        SearchResultList<PrismObject<ResourceType>> propagatedResources = repositoryService.searchObjects(ResourceType.class, query, null, result);
-        display("Propagated resources", propagatedResources.size() + ": " + propagatedResources);
+        SearchResultList<PrismObject<ResourceType>> propagatedResources =
+                repositoryService.searchObjects(ResourceType.class, query, null, result);
+        displayValue("Propagated resources", propagatedResources.size() + ": " + propagatedResources);
         assertEquals("Unexpected number of propagated resources", 1, propagatedResources.size());
     }
 
     @Override
     protected void assertNewPropagationTask() throws Exception {
-        OperationResult result = new OperationResult("assertNewPropagationTask");
+        OperationResult result = createOperationResult("assertNewPropagationTask");
         PrismObject<TaskType> propTask = repositoryService.getObject(TaskType.class, getPropagationTaskOid(), null, result);
         display("Propagation task (new)", propTask);
         SearchFilterType filterType = propTask.asObjectable().getObjectRef().getFilter();
-        display("Propagation task filter", filterType);
+        displayDumpable("Propagation task filter", filterType);
         assertFalse("Empty filter in propagation task",  FilterUtil.isFilterEmpty(filterType));
     }
 
@@ -107,7 +102,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
     protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
         super.assertFinishedPropagationTask(finishedTask, expectedStatus);
         SearchFilterType filterType = finishedTask.getObjectRefOrClone().getFilter();
-        display("Propagation task filter", filterType);
+        displayDumpable("Propagation task filter", filterType);
 
         assertEquals("Unexpected propagation task progress", 1, finishedTask.getProgress());
     }
@@ -119,24 +114,22 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
      */
     @Test
     public void test500AssignBigmouthRoleOne() throws Exception {
-        final String TEST_NAME = "test500AssignBigmouthRoleOne";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = createUser(USER_BIGMOUTH_NAME, USER_BIGMOUTH_FULLNAME, true);
-        userBigmouthOid = addObject(userBefore);
+        String userBigmouthOid = addObject(userBefore);
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userBigmouthOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
-        bigmouthLastCaseOid = assertInProgress(result);
+        assertInProgress(result);
 
         PrismObject<UserType> userAfter = getUser(userBigmouthOid);
         display("User after", userAfter);
@@ -168,7 +161,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
         assertShadowActivationAdministrativeStatusFromCache(shadowModel, ActivationStatusType.ENABLED);
         assertShadowExists(shadowModel, false);
         assertNoShadowPassword(shadowModel);
-        PendingOperationType pendingOperationType = assertSinglePendingOperation(shadowModel, null, null, executionStage);
+        assertSinglePendingOperation(shadowModel, null, null, executionStage);
     }
 
     /**
@@ -176,20 +169,18 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
      */
     @Test
     public void test502RunPropagation() throws Exception {
-        final String TEST_NAME = "test502RunPropagation";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         runPropagation();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PendingOperationExecutionStatusType executionStage = PendingOperationExecutionStatusType.EXECUTING;

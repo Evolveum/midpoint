@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,6 +25,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +81,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     protected PrismContainerValue<?> parent;
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
-    private transient Map<String,Object> userData = new HashMap<>();;
+    private transient Map<String,Object> userData = new HashMap<>();
 
     protected EquivalenceStrategy defaultEquivalenceStrategy;
 
@@ -149,11 +152,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     }
 
     @Override
-    public boolean hasCompleteDefinition() {
-        return getDefinition() != null;
-    }
-
-    @Override
     public ItemName getElementName() {
         return elementName;
     }
@@ -174,16 +172,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         checkMutable();
         checkDefinition(definition);
         this.definition = definition;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return getDefinition() == null ? null : getDefinition().getDisplayName();
-    }
-
-    @Override
-    public String getHelp() {
-        return getDefinition() == null ? null : getDefinition().getHelp();
     }
 
     public boolean isIncomplete() {
@@ -241,6 +229,38 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     public Object getRealValue() {
         V value = getValue();
         return value != null ? value.getRealValue() : null;
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X getRealValue(Class<X> type) {
+        if (getValue() == null) {
+            return null;
+        }
+        Object value = getValue().getRealValue();
+        if (value == null) {
+            return null;
+        }
+        if (type.isAssignableFrom(value.getClass())) {
+            //noinspection unchecked
+            return (X)value;
+        } else {
+            throw new ClassCastException("Cannot cast value of item "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
+        }
+    }
+
+    /**
+     * Type override, also for compatibility.
+     */
+    public <X> X[] getRealValuesArray(Class<X> type) {
+        //noinspection unchecked
+        X[] valuesArray = (X[]) Array.newInstance(type, getValues().size());
+        for (int j = 0; j < getValues().size(); ++j) {
+            Object value = getValues().get(j).getRealValue();
+            Array.set(valuesArray, j, value);
+        }
+        return valuesArray;
     }
 
     @NotNull
@@ -319,11 +339,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     @NotNull
     public List<V> getValues() {
         return values;
-    }
-
-    @Override
-    public V getAnyValue() {
-        return !values.isEmpty() ? values.get(0) : null;
     }
 
     @Override
@@ -444,10 +459,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return changed;
     }
 
-    public boolean add(@NotNull V newValue) throws SchemaException {
-        return add(newValue, true, getEqualsHashCodeStrategy());
-    }
-
     @Override
     public boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
         return add(newValue, true, equivalenceStrategy);
@@ -476,6 +487,15 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             }
             newValue.applyDefinition(definition, false);
         }
+        return values.add(newValue);
+    }
+
+    /**
+     * Adds a given value with no checks, no definition application, and so on.
+     * For internal use only.
+     */
+    @Experimental
+    public boolean addForced(@NotNull V newValue) {
         return values.add(newValue);
     }
 
@@ -572,23 +592,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
-    public ItemDelta<V,D> diff(Item<V,D> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
-    }
-
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
-        List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
-        if (itemDeltas.isEmpty()) {
-            return null;
-        }
-        if (itemDeltas.size() > 1) {
-            throw new UnsupportedOperationException("Item multi-delta diff is not supported yet");
-        }
-        return itemDeltas.get(0);
+        List<ItemDelta<V, D>> itemDeltas = new ArrayList<>();
+        diffInternal(other, itemDeltas, true, strategy);
+        return MiscUtil.extractSingleton(itemDeltas);
     }
 
-    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
+    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
             ParameterizedEquivalenceStrategy strategy) {
         ItemDelta delta = createDelta();
         if (other == null) {
@@ -612,7 +622,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
                 boolean found = false;
                 while (iterator.hasNext()) {
                     PrismValueImpl otherValue = (PrismValueImpl) iterator.next();
-                    if (thisValue.representsSameValue(otherValue, true)) {
+                    if (!rootValuesOnly && thisValue.representsSameValue(otherValue, true)) {
                         found = true;
                         // Matching IDs, look inside to figure out internal deltas
                         ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);
@@ -828,14 +838,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return false;
     }
 
-    public boolean isEmpty() {
-        return hasNoValues();
-    }
-
-    public boolean hasNoValues() {
-        return getValues().isEmpty();
-    }
-
     @Override
     public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
         return equivalenceStrategy.hashCode(this);
@@ -915,19 +917,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     @Override
     public boolean equals(Object obj) {
         return equals(obj, getEqualsHashCodeStrategy());
-    }
-
-    /**
-     * Returns true if this item is operational one that should be ignored
-     * for operational data-insensitive comparisons and hashCode functions.
-     */
-    public boolean isOperational() {
-        D def = getDefinition();
-        if (def != null) {
-            return def.isOperational();
-        } else {
-            return false;
-        }
     }
 
     @Override

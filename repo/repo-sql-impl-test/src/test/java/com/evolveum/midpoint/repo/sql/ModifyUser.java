@@ -13,7 +13,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -44,13 +42,6 @@ public class ModifyUser extends BaseSQLRepoTest {
     private String userBigOid;
     private String shadowOid;
 
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        super.beforeClass();
-
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void test010Add() throws Exception {
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
@@ -65,10 +56,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyUser() throws Exception {
-        final String TEST_NAME = "test020ModifyUser";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -77,11 +65,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -92,10 +80,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test021ModifyUserNoEmpNum() throws Exception {
-        final String TEST_NAME = "test021ModifyUserNoEmpNum";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002a.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -104,11 +89,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -119,10 +104,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test022ModifyUserEmptyEmpNum() throws Exception {
-        final String TEST_NAME = "test022ModifyUserEmptyEmpNum";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t002b.xml"), ObjectModificationType.COMPLEX_TYPE);
@@ -131,11 +113,11 @@ public class ModifyUser extends BaseSQLRepoTest {
         delta.setOid(userOid);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

@@ -147,7 +147,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -164,13 +163,17 @@
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-powershell</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -214,29 +217,23 @@
         </dependency>
     </dependencies>
 
-    <!-- surefire/failsafe only for profile conntest - see lower -->
-
-    <profiles>
-        <profile>
-            <id>conntest</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <runOrder>alphabetical</runOrder>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <runOrder>alphabetical</runOrder>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipConnTests}</skipTests>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

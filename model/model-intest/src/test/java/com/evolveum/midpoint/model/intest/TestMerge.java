@@ -24,13 +24,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMerge extends AbstractInitializedModelIntegrationTest {
@@ -70,9 +65,6 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
         display("Jack before", userJackBefore);
 
@@ -87,10 +79,10 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         guybrushDummyAccountCyanOid = assertAccount(userGuybrushBefore, RESOURCE_DUMMY_CYAN_OID);
         assertLinks(userGuybrushBefore, 2);
 
-        display("Jack DUMMY account", jackDummyAccountOid);
-        display("Jack RED account", jackDummyAccountRedOid);
-        display("Guybrush DUMMY account", guybrushDummyAccountOid);
-        display("Guybrush CYAN account", guybrushDummyAccountCyanOid);
+        displayValue("Jack DUMMY account", jackDummyAccountOid);
+        displayValue("Jack RED account", jackDummyAccountRedOid);
+        displayValue("Guybrush DUMMY account", guybrushDummyAccountOid);
+        displayValue("Guybrush CYAN account", guybrushDummyAccountCyanOid);
     }
 
     /**
@@ -98,10 +90,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100MergeJackGuybrushPreviewDelta() throws Exception {
-        final String TEST_NAME = "test100MergeJackGuybrushPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -111,17 +100,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> leftObjectdelta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(leftObjectdelta);
@@ -161,20 +150,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test102MergeJackGuybrushPreviewObject() throws Exception {
-        final String TEST_NAME = "test102MergeJackGuybrushPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -212,10 +198,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110MergeGuybrushJackPreviewDelta() throws Exception {
-        final String TEST_NAME = "test110MergeGuybrushJackPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
@@ -225,17 +208,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Jack before", userJackBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> delta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(delta);
@@ -272,20 +255,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test112MergeGuybrushJackPreviewObject() throws Exception {
-        final String TEST_NAME = "test112MergeGuybrushJackPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_GUYBRUSH_OID, USER_JACK_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -320,10 +300,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200MergeJackGuybrushExpressionPreviewDelta() throws Exception {
-        final String TEST_NAME = "test200MergeJackGuybrushExpressionPreviewDelta";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -333,17 +310,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> delta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(delta);
@@ -373,20 +350,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test202MergeJackGuybrushExpressionPreviewObject() throws Exception {
-        final String TEST_NAME = "test202MergeJackGuybrushExpressionPreviewObject";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> object =
                 modelInteractionService.mergeObjectsPreviewObject(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_EXPRESSION_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -424,10 +398,7 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test300MergeJackGuybrushPreviewDeltaDefaultSpecific() throws Exception {
-        final String TEST_NAME = "test300MergeJackGuybrushPreviewDeltaDefaultSpecific";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
@@ -437,17 +408,17 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
         display("Guybrush before", userGuybrushBefore);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         MergeDeltas<UserType> deltas =
                 modelInteractionService.mergeObjectsPreviewDeltas(UserType.class,
                         USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_SPECIFIC_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("Deltas", deltas);
+        displayDumpable("Deltas", deltas);
 
         ObjectDelta<UserType> leftObjectdelta = deltas.getLeftObjectDelta();
         PrismAsserts.assertIsModify(leftObjectdelta);
@@ -487,19 +458,16 @@ public class TestMerge extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test500MergeJackGuybrush() throws Exception {
-        final String TEST_NAME = "test500MergeJackGuybrush";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestMerge.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.mergeObjects(UserType.class,
                 USER_JACK_OID, USER_GUYBRUSH_OID, MERGE_CONFIG_DEFAULT_NAME, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 

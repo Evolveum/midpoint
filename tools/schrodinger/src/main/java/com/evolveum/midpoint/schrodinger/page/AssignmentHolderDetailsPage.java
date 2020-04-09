@@ -8,10 +8,11 @@ package com.evolveum.midpoint.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
-import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
+import com.evolveum.midpoint.schrodinger.component.common.TabPanel;
 import com.evolveum.midpoint.schrodinger.page.user.ProgressPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -32,6 +33,19 @@ public abstract class AssignmentHolderDetailsPage extends BasicPage {
     public ProgressPage clickSave() {
         $(Schrodinger.byDataId("save")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new ProgressPage();
+    }
+
+    public PreviewPage clickPreview() {
+        getPreviewButton().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return new PreviewPage();
+    }
+
+    public boolean isPreviewButtonVisible() {
+        return getPreviewButton().exists();
+    }
+
+    private SelenideElement getPreviewButton() {
+        return $(Schrodinger.byDataId("previewChanges"));
     }
 
     protected TabPanel findTabPanel() {

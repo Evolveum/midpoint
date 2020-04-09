@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,7 +33,6 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -147,24 +145,26 @@ public class BeanUnmarshaller {
         // only maps and primitives and heterogeneous lists after this point
 
         if (xnode instanceof PrimitiveXNodeImpl) {
+            //noinspection unchecked
             PrimitiveXNodeImpl<T> prim = (PrimitiveXNodeImpl) xnode;
             QName xsdType = XsdTypeMapper.getJavaToXsdMapping(beanClass);
             if (xsdType != null) {
                 return prim.getParsedValue(xsdType, beanClass);
             } else if (beanClass.isEnum()) {
                 return unmarshalEnumFromPrimitive(prim, beanClass, pc);
-            }
-            @SuppressWarnings("unchecked")
-            PrimitiveUnmarshaller<T> unmarshaller = specialPrimitiveUnmarshallers.get(beanClass);
-            if (unmarshaller != null) {
-                return unmarshaller.unmarshal(prim, beanClass, pc);
             } else {
-                return unmarshallPrimitive(prim, beanClass, pc);
+                @SuppressWarnings("unchecked")
+                PrimitiveUnmarshaller<T> unmarshaller = specialPrimitiveUnmarshallers.get(beanClass);
+                if (unmarshaller != null) {
+                    return unmarshaller.unmarshal(prim, beanClass, pc);
+                } else {
+                    return unmarshalPrimitiveOther(prim, beanClass, pc);
+                }
             }
         } else {
 
             if (beanClass.getPackage() == null || beanClass.getPackage().getName().equals("java.lang")) {
-                // We obviously have primitive data type, but we are asked to unmarshall from map xnode
+                // We obviously have primitive data type, but we are asked to unmarshal from map xnode
                 // NOTE: this may happen in XML when we have "empty" element, but it has some whitespace in it
                 //       such as those troublesome newlines. This also happens if there is "empty" element
                 //       but it contains an expression (so it is not PrimitiveXNode but MapXNode).
@@ -194,7 +194,7 @@ public class BeanUnmarshaller {
     /**
      * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
      */
-    private <T> T unmarshallPrimitive(PrimitiveXNodeImpl<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
+    private <T> T unmarshalPrimitiveOther(PrimitiveXNodeImpl<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
         if (prim.isEmpty()) {
             return instantiateWithSubtypeGuess(beanClass, emptySet());        // Special case. Just return empty object
         }
@@ -251,7 +251,11 @@ public class BeanUnmarshaller {
 
         if (Containerable.class.isAssignableFrom(beanClass)) {
             // This could have come from inside; note we MUST NOT parse this as PrismValue, because for objects we would lose oid/version
-            return prismContext.parserFor(mapOrList.toRootXNode()).type(beanClass).parseRealValue();
+            return prismContext
+                    .parserFor(mapOrList.toRootXNode())
+                    .context(pc)
+                    .type(beanClass)
+                    .parseRealValue();
         } else if (SearchFilterType.class.isAssignableFrom(beanClass)) {
             if (mapOrList instanceof MapXNodeImpl) {
                 T bean = (T) unmarshalSearchFilterType((MapXNodeImpl) mapOrList, (Class<? extends SearchFilterType>) beanClass, pc);
@@ -797,8 +801,8 @@ public class BeanUnmarshaller {
 
         private void computeParamTypeFromGetter(String propName, Class<?> getterReturnType) throws SchemaException {
             if (!Collection.class.isAssignableFrom(getterReturnType)) {
-                throw new SchemaException("Cannot find getter for field " + actualPropertyName + " in " + beanClass
-                        + " does not return collection, cannot use it to set value");
+                throw new SchemaException("Cannot find setter for field " + actualPropertyName + " in " + beanClass
+                        + ". The getter was found, but it does not return collection - so it cannot be used to set the value.");
             }
             // getter.genericReturnType = Collection<...>
             Type typeArgument = inspector.getTypeArgument(getter.getGenericReturnType(),
@@ -1011,7 +1015,10 @@ public class BeanUnmarshaller {
             RawType raw = new RawType(xsubnode, prismContext);
             // FIXME UGLY HACK: parse value if possible
             if (xsubnode.getTypeQName() != null) {
-                PrismValue value = prismContext.parserFor(xsubnode.toRootXNode()).parseItemValue();    // TODO what about objects? oid/version will be lost here
+                PrismValue value = prismContext
+                        .parserFor(xsubnode.toRootXNode())
+                        .context(pc)
+                        .parseItemValue();    // TODO what about objects? oid/version will be lost here
                 if (value != null && !value.isRaw()) {
                     raw = new RawType(value, xsubnode.getTypeQName(), prismContext);
                 }
@@ -1117,9 +1124,10 @@ public class BeanUnmarshaller {
             throws SchemaException {
         Object value;
         if (node.isParsed()) {
-            value = node.getValue();            // there can be e.g. PolyString there
+            value = node.getValue(); // there can be e.g. PolyString there
         } else {
-            value = ((PrimitiveXNodeImpl<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class);
+            //noinspection unchecked
+            value = node.getParsedValue(DOMUtil.XSD_STRING, String.class);
         }
         return toCorrectPolyStringClass(value, beanClass, node);
     }
@@ -1167,6 +1175,7 @@ public class BeanUnmarshaller {
             if (!(xLangEntryVal instanceof PrimitiveXNodeImpl)) {
                 throw new SchemaException("Polystring lang for key '"+key.getLocalPart()+"' is not primitive, it is "+xLangEntryVal);
             }
+            //noinspection unchecked
             String value = ((PrimitiveXNodeImpl<String>)xLangEntryVal).getParsedValue(DOMUtil.XSD_STRING, String.class);
             lang.put(key.getLocalPart(), value);
         }
@@ -1205,6 +1214,7 @@ public class BeanUnmarshaller {
     }
 
     private XmlAsStringType unmarshalXmlAsStringFromPrimitive(PrimitiveXNodeImpl node, Class<XmlAsStringType> beanClass, ParsingContext parsingContext) throws SchemaException {
+        //noinspection unchecked
         return new XmlAsStringType(((PrimitiveXNodeImpl<String>) node).getParsedValue(DOMUtil.XSD_STRING, String.class));
     }
 
@@ -1229,11 +1239,10 @@ public class BeanUnmarshaller {
         return new RawType(node, prismContext);
     }
 
-    private <T> T unmarshalEnumFromPrimitive(PrimitiveXNodeImpl prim, Class<T> beanClass, ParsingContext pc)
+    private <T> T unmarshalEnumFromPrimitive(PrimitiveXNodeImpl<?> prim, Class<T> beanClass, ParsingContext pc)
             throws SchemaException {
 
-        String primValue = (String) prim.getParsedValue(DOMUtil.XSD_STRING, String.class);
-        primValue = StringUtils.trim(primValue);
+        String primValue = StringUtils.trim(prim.getParsedValue(DOMUtil.XSD_STRING, String.class));
         if (StringUtils.isEmpty(primValue)) {
             return null;
         }

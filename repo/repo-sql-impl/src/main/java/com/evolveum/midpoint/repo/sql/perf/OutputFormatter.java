@@ -20,9 +20,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 class OutputFormatter {
 
     private static final Trace LOGGER = TraceManager.getTrace(OutputFormatter.class);
@@ -49,16 +46,16 @@ class OutputFormatter {
     static String getFormattedStatistics(List<OperationRecord> finishedOperations, Map<Long, OperationRecord> outstandingOperations) {
         StatEntry all = new StatEntry();
         StatEntry unfinished = new StatEntry();
-        final int MAX_ATTEMPTS = SqlBaseService.LOCKING_MAX_RETRIES + 1;
-        StatEntry[] perAttempts = new StatEntry[MAX_ATTEMPTS];
+        final int maxAttempts = SqlBaseService.LOCKING_MAX_RETRIES + 1;
+        StatEntry[] perAttempts = new StatEntry[maxAttempts];
 
-        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+        for (int i = 0; i < maxAttempts; i++) {
             perAttempts[i] = new StatEntry();
         }
 
         for (OperationRecord operation : finishedOperations) {
             all.process(operation);
-            if (operation.getAttempts() >= 1 && operation.getAttempts() <= MAX_ATTEMPTS) {
+            if (operation.getAttempts() >= 1 && operation.getAttempts() <= maxAttempts) {
                 perAttempts[operation.getAttempts() -1].process(operation);
             } else if (operation.getAttempts() < 0) {
                 unfinished.process(operation);
@@ -67,7 +64,7 @@ class OutputFormatter {
 
         StringBuilder retval = new StringBuilder();
         retval.append("Overall: ").append(all.dump()).append("\n");
-        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+        for (int i = 0; i < maxAttempts; i++) {
             retval.append(i + 1).append(" attempt(s): ").append(perAttempts[i].dump()).append("\n");
         }
         retval.append("Unfinished: ").append(unfinished.dump()).append("\n");

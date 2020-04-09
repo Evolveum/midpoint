@@ -7,26 +7,21 @@
 
 package com.evolveum.midpoint.testing.story;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- *
- */
-
-@SuppressWarnings("FieldCanBeLocal")
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPhotoAssignment extends AbstractStoryTest {
 
@@ -59,10 +54,7 @@ public class TestPhotoAssignment extends AbstractStoryTest {
 
     @Test
     public void test100AssignJoeCard() throws Exception {
-        final String TEST_NAME = "test100AssignJoeCard";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestPhotoAssignment.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assignService(USER_JOE.oid, SERVICE_CARD_10001.oid, task, result);

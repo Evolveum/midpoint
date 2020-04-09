@@ -35,7 +35,8 @@
                             <r:displayName ref="ri:description"/>
                             <r:descriptionAttribute ref="ri:description"/>
                             <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
-                            <r:accountType default="true"/>
+                            <r:kind>account</r:kind>
+                            <r:default/>
                         </xsd:appinfo>
                     </xsd:annotation>
                     <xsd:complexContent>

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -325,13 +326,30 @@ public class ModelObjectResolver implements ObjectResolver {
         return null;
     }
 
+    @Experimental
     @Override
-    public void resolveAllReferences(Collection<PrismContainerValue> pcvs, Object taskObject, OperationResult result) {
+    public void resolveAllReferences(Collection<PrismContainerValue<?>> pcvs, Object taskObject, OperationResult result) {
         Session session = openResolutionSession(null);
         Task task = (Task) taskObject;
-        Visitor visitor = (o) -> {
-            if (o instanceof PrismReferenceValue) {
-                resolveReference((PrismReferenceValue) o, "resolving object reference", session, task, result);
+        ConfigurableVisitor<?> visitor = new ConfigurableVisitor() {
+            @Override
+            public boolean shouldVisitEmbeddedObjects() {
+                // This is to avoid endless recursion when resolving cases: A parent case has references to its children
+                // whereas child cases have references to their parent. We could deal with this using SmartVisitable
+                // but that would be overkill for the basic use - it would resolve much more than needed. So we simply stop
+                // visiting embedded objects because in the basic use case we are simply not interested in them.
+                // See also MID-6171.
+                //
+                // Should we need this feature we will add an option or create a separate method
+                // e.g. "resolveAllReferencesDeeply".
+                return false;
+            }
+
+            @Override
+            public void visit(Visitable visitable) {
+                if (visitable instanceof PrismReferenceValue) {
+                    resolveReference((PrismReferenceValue) visitable, "resolving object reference", session, task, result);
+                }
             }
         };
         pcvs.forEach(pcv -> pcv.accept(visitor));

@@ -10,18 +10,14 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
@@ -32,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -84,11 +79,8 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test100ModifyUnitWorker() throws Exception {
-        final String TEST_NAME = "test100ModifyUnitWorker";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -104,6 +96,7 @@ public class TestAutoassign extends AbstractRbacTest {
                 .single()
                     .assertTargetOid(ROLE_UNIT_WORKER_OID)
                     .assertTargetType(RoleType.COMPLEX_TYPE)
+                    .assertOriginMappingName("autoassign-worker") // MID-5846
                     .end()
                 .end()
             .links()
@@ -118,11 +111,8 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test109ModifyUniNull() throws Exception {
-        final String TEST_NAME = "test109ModifyUniNull";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -147,11 +137,8 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test110ModifyUnitSleepwalker() throws Exception {
-        final String TEST_NAME = "test110ModifyUnitSleepwalker";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -169,11 +156,14 @@ public class TestAutoassign extends AbstractRbacTest {
                     .targetOid(ROLE_UNIT_SLEEPER_OID)
                 .find()
                     .assertTargetType(RoleType.COMPLEX_TYPE)
+                    .assertOriginMappingName("autoassign-sleeper") // MID-5846
                     .activation()
                         .assertValidTo(ROLE_SLEEPER_AUTOASSIGN_VALID_TO)
                         .end()
                     .end()
-                .assertRole(ROLE_UNIT_WALKER_OID)
+                .forRole(ROLE_UNIT_WALKER_OID)
+                    .assertOriginMappingName("autoassign-walker") // MID-5846
+                    .end()
                 .end()
             .links()
                 .single();
@@ -188,11 +178,8 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test112ModifyUnitSleeperToWorker() throws Exception {
-        final String TEST_NAME = "test112ModifyUnitSleeperToWorker";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = prismContext.deltaFactory().object().createModificationAddProperty(UserType.class,
@@ -225,11 +212,8 @@ public class TestAutoassign extends AbstractRbacTest {
      */
     @Test
     public void test114ModifyUnitAddSleeper() throws Exception {
-        final String TEST_NAME = "test114ModifyUnitAddSleeper";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN

@@ -18,6 +18,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,21 +46,13 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-/**
- * @author semancik
- *
- */
 public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredModelIntegrationTest {
 
     private static final int NUM_FUNCTIONAL_ORGS = 6;
     private static final int NUM_PROJECT_ORGS = 3;
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
     private static final int NUMBER_OF_IMPORTED_USERS = 5;
     private static final int NUMBER_OF_IMPORTED_ROLES = 15;
@@ -109,7 +102,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.trace("initSystem");
+        logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
         assumeConflictResolutionAction(getDefaultConflictResolutionAction());
@@ -204,6 +197,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 
+        // Archetypes
+        repoAddObjectFromFile(ARCHETYPE_TASK_RECONCILIATION_FILE, initResult);
+
         // User Templates
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_FILE, initResult);
@@ -289,6 +285,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         return RESOURCE_DUMMY_BLUE_FILE;
     }
 
+    @UnusedTestElement
     protected File getResourceDummyGreenFile() {
         return RESOURCE_DUMMY_GREEN_FILE;
     }
@@ -427,6 +424,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
     }
 
     protected Collection<ProgressListener> getCheckingProgressListenerCollection() {
-        return Collections.singleton((ProgressListener)checkingProgressListener);
+        return Collections.singleton(checkingProgressListener);
     }
 }

@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Date;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -30,19 +29,13 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIntegrationTest {
 
@@ -54,16 +47,12 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
     protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
 
-    protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
     protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
 
-    protected static String userWallyOid;
-
-    protected boolean allwaysCheckTimestamp = false;
     protected long timeBeforeSync;
 
     @Override
@@ -86,38 +75,18 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         return DEFAULT_TASK_WAIT_TIMEOUT;
     }
 
-    protected int getNumberOfExtraDummyUsers() {
-        return 0;
-    }
-
-
     @Test
     public void test100ImportLiveSyncTaskDummyEmerald() throws Exception {
-        final String TEST_NAME = "test100ImportLiveSyncTaskDummyEmerald";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importSyncTask(resourceDummyEmerald);
 
-        // THEN
-        TestUtil.displayThen(TEST_NAME);
-
+        then();
         waitForSyncTaskStart(resourceDummyEmerald);
     }
 
     @Test
     public void test110AddDummyEmeraldAccountMancomb() throws Exception {
-        final String TEST_NAME = "test110AddDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -134,16 +103,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
 
         dummyResourceEmerald.addAccount(account);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);
@@ -170,12 +139,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test120ModifyDummyEmeraldAccountMancombSeepbad() throws Exception {
-        final String TEST_NAME = "test120ModifyDummyEmeraldAccountMancombSeepbad";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -185,16 +149,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepbad");
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -225,12 +189,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test122ModifyDummyEmeraldAccountMancombSeepNULL() throws Exception {
-        final String TEST_NAME = "test122ModifyDummyEmeraldAccountMancombSeepNULL";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -240,16 +199,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb SeepNULL");
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -280,12 +239,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test124ModifyDummyEmeraldAccountMancombSeepevil() throws Exception {
-        final String TEST_NAME = "test124ModifyDummyEmeraldAccountMancombSeepevil";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -295,16 +249,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepevil");
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -335,12 +289,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test126ModifyDummyEmeraldAccountMancombTitlePirate() throws Exception {
-        final String TEST_NAME = "test126ModifyDummyEmeraldAccountMancombTitlePirate";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -350,16 +299,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -391,12 +340,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test127ModifyDummyEmeraldAccountMancombTitlePirateNull() throws Exception {
-        final String TEST_NAME = "test127ModifyDummyEmeraldAccountMancombTitlePirateNull";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -406,16 +350,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -447,12 +391,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test129ModifyDummyEmeraldAccountMancombSeepgood() throws Exception {
-        final String TEST_NAME = "test129ModifyDummyEmeraldAccountMancombSeepgood";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -462,16 +401,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountAfter);
@@ -500,7 +439,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         notificationManager.setDisabled(true);
     }
 
-
     @Test
     public void test180NoChange() throws Exception {
         // default = no op
@@ -512,12 +450,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
-        final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -533,16 +466,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Collections.<Object>singleton(10001));
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
-        display("Adding dummy account", account.debugDump());
+        displayValue("Adding dummy account", account.debugDump());
 
         dummyResourceEmerald.addAccount(account);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountPosixUser = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account posixuser", accountPosixUser);
@@ -570,12 +503,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
     @Test
     public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
-        final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -585,16 +513,16 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, 1002);
 
-        display("Modified dummy account", account.debugDump());
+        displayValue("Modified dummy account", account.debugDump());
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account posixuser", accountAfter);
@@ -619,7 +547,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         // TODO create and test inbounds for uid and gid numbers; also other attributes
     }
 
-
     protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
         waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
     }
@@ -628,7 +555,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
     }
 
-
     protected void rememberTimeBeforeSync() {
         timeBeforeSync = System.currentTimeMillis();
     }
@@ -636,11 +562,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
     protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
         ShadowType shadowType = shadow.asObjectable();
         SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
-        assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
+        assertEquals("Wrong situation in shadow " + shadow, expectedSituation, actualSituation);
         XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
-        assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
+        assert actualTimestampCal != null : "No synchronization timestamp in shadow " + shadow;
         long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
-        assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
+        assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow " + shadow;
         // TODO: assert sync description
     }
 

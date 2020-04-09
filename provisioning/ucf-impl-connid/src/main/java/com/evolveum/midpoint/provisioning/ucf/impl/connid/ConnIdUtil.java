@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
-import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -59,7 +56,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -68,7 +64,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
@@ -228,7 +223,7 @@ public class ConnIdUtil {
         }
 
         // Introspect the inner exceptions and look for known causes
-        knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
+        knownCause = lookForKnownCause(connIdException, connIdResult);
         if (knownCause != null) {
 //            LOGGER.error("LOOK FOR KNOWN EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
             connIdResult.recordFatalError(knownCause);
@@ -313,7 +308,7 @@ public class ConnIdUtil {
 
         } else if (connIdException instanceof RetryableException) {
             Exception newEx = new CommunicationException(createMessageFromAllExceptions(null, connIdException));
-            connIdResult.recordFatalError("Retryable errror: " + connIdException.getMessage(), newEx);
+            connIdResult.recordFatalError("Retryable error: " + connIdException.getMessage(), newEx);
             return newEx;
 
         } else if (connIdException instanceof ConnectorSecurityException) {
@@ -335,9 +330,7 @@ public class ConnIdUtil {
         return null;
     }
 
-    private static Exception lookForKnownCause(Throwable ex,
-            Throwable originalException, OperationResult parentResult) {
-
+    private static Exception lookForKnownCause(Throwable ex, OperationResult parentResult) {
         if (ex.getClass().getPackage().equals(SchemaException.class.getPackage())) {
             // Common midPoint exceptions, pass through
             // Those may get here from the inner calls of handle() methods from the connector.
@@ -378,7 +371,7 @@ public class ConnIdUtil {
             // This is thrown by LDAP connector and may be also throw by similar
             // connectors
             javax.naming.directory.InvalidAttributeValueException e = (javax.naming.directory.InvalidAttributeValueException) ex;
-            Exception newEx = null;
+            Exception newEx;
             if (e.getExplanation().contains("unique attribute conflict")){
                 newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions("Invalid attribute", ex));
             } else{
@@ -431,7 +424,7 @@ public class ConnIdUtil {
             return null;
         } else {
             // Otherwise go one level deeper ...
-            return lookForKnownCause(ex.getCause(), originalException,
+            return lookForKnownCause(ex.getCause(),
                     parentResult);
         }
     }
@@ -662,18 +655,15 @@ public class ConnIdUtil {
         if (ps == null) {
             return null;
         }
-        if (!protector.isEncrypted(ps)) {
+        if (!ps.isEncrypted()) {
             if (ps.getClearValue() == null) {
                 return null;
             }
-//            LOGGER.warn("Using cleartext value for {}", propertyName);
             return new GuardedString(ps.getClearValue().toCharArray());
         }
         try {
             return new GuardedString(protector.decryptString(ps).toCharArray());
         } catch (EncryptionException e) {
-//            LOGGER.error("Unable to decrypt value of element {}: {}",
-//                    new Object[] { propertyName, e.getMessage(), e });
             throw new SystemException("Unable to decrypt value of element " + propertyName + ": "
                     + e.getMessage(), e);
         }

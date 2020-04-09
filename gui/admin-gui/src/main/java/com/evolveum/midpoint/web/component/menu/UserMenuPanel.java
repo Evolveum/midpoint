@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -20,9 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -45,6 +44,7 @@ import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.springframework.security.saml.util.StringUtils.stripSlashes;
@@ -65,6 +65,7 @@ public class UserMenuPanel extends BasePanel {
     private static final String ID_LOGOUT_FORM = "logoutForm";
     private static final String ID_CSRF_FIELD = "csrfField";
     private static final String ID_USERNAME = "username";
+    private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_EDIT_PROFILE = "editProfile";
     private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
     private static final String ID_ICON_BOX = "menuIconBox";
@@ -83,9 +84,11 @@ public class UserMenuPanel extends BasePanel {
     private boolean isPasswordModelLoaded = false;
     private  byte[] jpegPhoto = null;
     private List<SecurityQuestionDefinitionType> securityPolicyQuestions = new ArrayList<>();
+    private PageBase pageBase;
 
-    public UserMenuPanel(String id) {
+    public UserMenuPanel(String id, PageBase pageBase) {
         super(id);
+        this.pageBase = pageBase;
         initLayout();
         if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
@@ -108,6 +111,11 @@ public class UserMenuPanel extends BasePanel {
                 return loadSecurityPolicyQuestionsModel();
             }
         };
+    }
+
+    @Override
+    public PageBase getPageBase() {
+        return pageBase;
     }
 
     private void initLayout() {
@@ -207,11 +215,14 @@ public class UserMenuPanel extends BasePanel {
         username.setRenderBodyOnly(true);
         add(username);
 
+        Label focusType = new Label(ID_FOCUS_TYPE, getPageBase().createStringResource("PageTemplate." + getFocusType()));
+        add(focusType);
+
         Form form = new Form(ID_LOGOUT_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
             public String getObject() {
-                return getUrlForLogout();
+                return SecurityUtils.getPathForLogoutWithContextPath(getRequest().getContextPath(), getAuthenticatedModule());
             }
         }));
         add(form);
@@ -268,22 +279,13 @@ public class UserMenuPanel extends BasePanel {
     }
 
     private ModuleAuthentication getAuthenticatedModule() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        ModuleAuthentication moduleAuthentication = SecurityUtils.getAuthenticatedModule();
 
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
-                if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
-                    return moduleAuthentication;
-                }
-            }
-        } else {
-            String message = "Unsuported type " + (authentication == null ? null : authentication.getClass().getName())
-                    + " of authenticacion for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+        if (moduleAuthentication == null) {
+            String message = "Unauthenticated request";
             throw new IllegalArgumentException(message);
         }
-        String message = "Unauthenticated request";
-        throw new IllegalArgumentException(message);
+        return moduleAuthentication;
     }
 
     private String getShortUserName() {
@@ -300,6 +302,21 @@ public class UserMenuPanel extends BasePanel {
         }
 
         return principal.toString();
+    }
+
+    private String getFocusType() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return "Unknown";
+        }
+        Object principal = authentication.getPrincipal();
+
+        if (principal == null || principal.equals("anonymousUser")) {
+            return "Unknown";
+        }
+
+        QName type = WebComponentUtil.classToQName(getPageBase().getPrismContext(), WebModelServiceUtils.getLoggedInFocus().getClass());
+        return type.getLocalPart();
     }
 
     private PasswordQuestionsDto loadModel(PageBase parentPage) {

@@ -7,18 +7,28 @@
 
 package com.evolveum.midpoint.notifications.impl;
 
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
+import com.evolveum.midpoint.notifications.impl.events.ResourceObjectEventImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,14 +36,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
 /**
- * @author mederly
+ * Converts provisioning events into notification events.
  */
 @Component
 public class AccountOperationListener implements ResourceOperationListener {
@@ -42,28 +46,17 @@ public class AccountOperationListener implements ResourceOperationListener {
 
     private static final String DOT_CLASS = AccountOperationListener.class.getName() + ".";
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
-    @Autowired
-    private ChangeNotificationDispatcher provisioningNotificationDispatcher;
-
-    @Autowired
-    private NotificationManager notificationManager;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationFunctionsImpl notificationsUtil;
+    @Autowired private PrismContext prismContext;
+    @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct
     public void init() {
         provisioningNotificationDispatcher.registerNotificationListener(this);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registered account operation notification listener.");
-        }
+        LOGGER.trace("Registered account operation notification listener.");
     }
 
     @Override
@@ -144,19 +137,18 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        ResourceObjectEvent request = createRequest(status, operationDescription, task, result);
+        ResourceObjectEventImpl request = createRequest(status, operationDescription, task, result);
         notificationManager.processEvent(request, task, result);
     }
 
-    private ResourceObjectEvent createRequest(OperationStatus status,
-                                              ResourceOperationDescription operationDescription,
-                                              Task task,
-                                              OperationResult result) {
+    @NotNull
+    private ResourceObjectEventImpl createRequest(OperationStatus status,
+            ResourceOperationDescription operationDescription,
+            Task task,
+            OperationResult result) {
 
-        ResourceObjectEvent event = new ResourceObjectEvent(lightweightIdentifierGenerator);
-        event.setAccountOperationDescription(operationDescription);
-        event.setOperationStatus(status);
-        event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
+        ResourceObjectEventImpl event = new ResourceObjectEventImpl(lightweightIdentifierGenerator,
+                operationDescription, status);
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
@@ -180,24 +172,23 @@ public class AccountOperationListener implements ResourceOperationListener {
         return event;
     }
 
-//    private boolean isRequestApplicable(ResourceObjectEvent request, NotificationConfigurationEntryType entry) {
-//
-//        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
-//        OperationStatus status = request.getOperationStatus();
-//        ChangeType type = opDescr.getObjectDelta().getChangeType();
-//        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
-//    }
-
     private PrismObject<UserType> findRequestee(String shadowOid, Task task, OperationResult result) {
         // This is (still) a temporary solution. We need to rework it eventually.
         if (task != null && task.getRequestee() != null) {
             return task.getRequestee();
         } else if (shadowOid != null) {
             try {
-                PrismObject<UserType> user = cacheRepositoryService.listAccountShadowOwner(shadowOid, result);
+                ObjectQuery query = prismContext.queryFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .ref(shadowOid)
+                        .build();
+                SearchResultList<PrismObject<UserType>> prismObjects =
+                        cacheRepositoryService.searchObjects(UserType.class, query, null, result);
+                PrismObject<UserType> user = MiscUtil.extractSingleton(prismObjects);
+
                 LOGGER.trace("listAccountShadowOwner for shadow {} yields {}", shadowOid, user);
                 return user;
-            } catch (ObjectNotFoundException e) {
+            } catch (SchemaException e) {
                 LOGGER.trace("There's a problem finding account {}", shadowOid, e);
                 return null;
             }

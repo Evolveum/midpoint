@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -1008,7 +1009,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                 Task task = createSimpleTask(OPERATION_DELETE_CAMPAIGNS);
                 ObjectDelta<AccessCertificationCampaignType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(
                         AccessCertificationCampaignType.class, itemToDelete.getOid());
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
+                getModelService().executeChanges(MiscUtil.createCollection(delta), null, task,
                         result);
             } catch (Exception ex) {
                 result.recordPartialError(createStringResource("PageCertCampaigns.message.deleteCampaignsPerformed.partialError").getString(), ex);

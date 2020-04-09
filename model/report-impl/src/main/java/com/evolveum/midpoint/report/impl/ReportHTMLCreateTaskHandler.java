@@ -12,8 +12,6 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -32,6 +30,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportService;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +48,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -78,7 +76,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
@@ -91,7 +88,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -108,7 +104,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
-import j2html.tags.DomContent;
 
 /**
  * @author skublik
@@ -117,7 +112,7 @@ import j2html.tags.DomContent;
 @Component
 public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
-    public static final String REPORT_HTML_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/html/create/handler-3";
+    static final String REPORT_HTML_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/html/create/handler-3";
     private static final Trace LOGGER = TraceManager.getTrace(ReportHTMLCreateTaskHandler.class);
 
     private static final String REPORT_CSS_STYLE_FILE_NAME = "dashboard-report-style.css";
@@ -305,9 +300,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
     @Override
     protected void initialize() {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Registering with taskManager as a handler for " + REPORT_HTML_CREATE_TASK_URI);
-        }
+        LOGGER.trace("Registering with taskManager as a handler for {}", REPORT_HTML_CREATE_TASK_URI);
         taskManager.registerHandler(REPORT_HTML_CREATE_TASK_URI, this);
     }
 
@@ -344,11 +337,13 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                     DashboardType dashboard = (DashboardType) modelService
                             .getObject(type, ref.getOid(), null, taskSearchDashboard, taskSearchDashboard.getResult())
                             .asObjectable();
-                    String style = "";
                     ClassLoader classLoader = getClass().getClassLoader();
                     InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
+                    if (in == null) {
+                        throw new IllegalStateException("Resource " + REPORT_CSS_STYLE_FILE_NAME + " couldn't be found");
+                    }
                     byte[] data = IOUtils.toByteArray(in);
-                    style = new String(data, Charset.defaultCharset());
+                    String style = new String(data, Charset.defaultCharset());
 
                     String reportFilePath = getDestinationFileName(parentReport);
                     FileUtils.writeByteArrayToFile(new File(reportFilePath), getBody(dashboard, style, task, result).getBytes());
@@ -386,7 +381,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
         widgetTable.with(createTHead("Widget.", getHeadsOfWidget()));
 
         ContainerTag widgetTBody = TagCreator.tbody();
-        List<ContainerTag> tableboxesFromWidgets = new ArrayList<ContainerTag>();
+        List<ContainerTag> tableboxesFromWidgets = new ArrayList<>();
         long startMillis = clock.currentTimeMillis();
         for (DashboardWidgetType widget : dashboard.getWidget()) {
             DashboardWidget widgetData = dashboardService.createWidgetData(widget, task, result);
@@ -425,8 +420,11 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
         if (widget == null) {
             throw new IllegalArgumentException("Widget in DashboardWidget is null");
         }
-        DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
         DashboardWidgetPresentationType presentation = widget.getPresentation();
+        DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
+        if (sourceType == null) {
+            throw new IllegalStateException("No source type specified in " + widget);
+        }
         switch (sourceType) {
         case OBJECT_COLLECTION:
             if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
@@ -438,10 +436,11 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                 }
                 ContainerTag table = createTable();
                 PrismObjectDefinition<ObjectType> def = values.get(0).getDefinition();
+                //noinspection unchecked
                 Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
                         .getCompileTimeClassForObjectType(collection.getType());
                 DisplayType display = null;
-                if(!useDefaulColumn(widget)) {
+                if(!useDefaultColumn(widget)) {
                     table = createTable(widget.getPresentation().getView(), values, def, type,
                             task, result);
                     display = widget.getPresentation().getView().getDisplay();
@@ -454,7 +453,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             break;
         case AUDIT_SEARCH:
             if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-                Map<String, Object> parameters = new HashMap<String, Object>();
+                Map<String, Object> parameters = new HashMap<>();
 
                 ObjectCollectionType collection = dashboardService.getObjectCollectionType(widget, task, result);
                 long startMillis = clock.currentTimeMillis();
@@ -467,7 +466,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
                 ContainerTag table = createTable();
                 DisplayType display = null;
-                if(!useDefaulColumn(widget)) {
+                if(!useDefaultColumn(widget)) {
                     table = createTable(widget.getPresentation().getView(), records, task, result);
                     display = widget.getPresentation().getView().getDisplay();
                 } else {
@@ -490,7 +489,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
         return null;
     }
 
-    private boolean useDefaulColumn(DashboardWidgetType widget) {
+    private boolean useDefaultColumn(DashboardWidgetType widget) {
         return widget.getPresentation() == null || widget.getPresentation().getView() == null
                 || widget.getPresentation().getView().getColumn() == null || widget.getPresentation().getView().getColumn().isEmpty();
     }
@@ -533,7 +532,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             object = record.getDeltas();
             break;
         case TASK_OID_COLUMN:
-            object = record.getTaskOID();
+            object = record.getTaskOid();
             break;
         case NODE_IDENTIFIER_COLUMN:
             object = record.getNodeIdentifier();
@@ -556,7 +555,6 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             break;
         }
         return evaluateExpression(expression, object, task, result);
-
     }
 
     private String getStringForColumnOfAuditRecord(String column, AuditEventRecord record, ItemPathType path) {
@@ -598,7 +596,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             }
             return sbDelta.toString();
         case TASK_OID_COLUMN:
-            return record.getTaskOID() == null ? "" : record.getTaskOID();
+            return record.getTaskOid() == null ? "" : record.getTaskOid();
         case NODE_IDENTIFIER_COLUMN:
             return record.getNodeIdentifier() == null ? "" : record.getNodeIdentifier();
         case ATTORNEY_COLUMN:
@@ -803,7 +801,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
-        List<GuiObjectColumnType> columns = ModelImplUtils.orderCustomColumns(view.getColumn());
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(view.getColumn());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
@@ -850,7 +848,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
-        List<GuiObjectColumnType> columns = ModelImplUtils.orderCustomColumns(view.getColumn());
+        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(view.getColumn());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
@@ -969,8 +967,8 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         if(def == null) {
             throw new IllegalArgumentException("Could'n find item for path " + path);
         }
-        String dispalyName = def.getDisplayName();
-        return getMessage(dispalyName);
+        String displayName = def.getDisplayName();
+        return getMessage(displayName);
     }
 
     private String getStyleForColumn(String column) {

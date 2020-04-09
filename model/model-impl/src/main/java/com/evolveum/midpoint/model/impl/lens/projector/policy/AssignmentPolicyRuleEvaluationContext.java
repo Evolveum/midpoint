@@ -15,14 +15,10 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
     @NotNull public final EvaluatedAssignmentImpl<AH> evaluatedAssignment;
@@ -90,10 +86,15 @@ public class AssignmentPolicyRuleEvaluationContext<AH extends AssignmentHolderTy
                 " in " + ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
     }
 
-    @SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     public AssignmentPolicyRuleEvaluationContext<AH> clone() {
         return new AssignmentPolicyRuleEvaluationContext<>(policyRule, evaluatedAssignment, inPlus, inZero, inMinus,
                 isDirect, lensContext, evaluatedAssignmentTriple, task, globalCtx);
+    }
+
+    @Override
+    public String toString() {
+        return "AssignmentPolicyRuleEvaluationContext{" + getShortDescription() + "}";
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,18 +6,14 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.text.ParseException;
 
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.util.GeneralizedTime;
-import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -28,8 +24,6 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -42,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLo
 
 /**
  * @author semancik
- *
  */
 public class TestOpenLdap extends AbstractLdapConnTest {
 
@@ -58,12 +51,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
     @Override
     public String getStartSystemCommand() {
-        return "sudo "+getScriptDirectoryName()+"/openldap-start";
+        return "sudo " + getScriptDirectoryName() + "/openldap-start";
     }
 
     @Override
     public String getStopSystemCommand() {
-        return "sudo "+getScriptDirectoryName()+"/openldap-stop";
+        return "sudo " + getScriptDirectoryName() + "/openldap-stop";
     }
 
     @Override
@@ -98,14 +91,13 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
     @Override
     protected String getPeopleLdapSuffix() {
-        return "ou=people,"+getLdapSuffix();
+        return "ou=people," + getLdapSuffix();
     }
 
     @Override
     protected String getGroupsLdapSuffix() {
-        return "ou=groups,"+getLdapSuffix();
+        return "ou=groups," + getLdapSuffix();
     }
-
 
     @Override
     protected String getLdapGroupObjectClass() {
@@ -138,44 +130,41 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
         ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
         assertNotNull("No lockout capability", lockoutCapability);
-        display("Lockout capability", lockoutCapability);
+        displayValue("Lockout capability", lockoutCapability);
     }
 
     @Override
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
-        OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
-        Task task = taskManager.getTask(syncTaskOid, result);
+        OperationResult result = createOperationResult();
+        Task task = taskManager.getTaskPlain(syncTaskOid, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-        assertNotNull("No sync token in "+task, syncTokenProperty);
+        assertNotNull("No sync token in " + task, syncTokenProperty);
         String syncToken = syncTokenProperty.getRealValue();
-        assertNotNull("No sync token in "+task, syncToken);
-        IntegrationTestTools.display("Sync token", syncToken);
+        assertNotNull("No sync token in " + task, syncToken);
+        displayValue("Sync token", syncToken);
 
         GeneralizedTime syncTokenGt;
         try {
             syncTokenGt = new GeneralizedTime(syncToken);
         } catch (ParseException e) {
-            throw new RuntimeException(e.getMessage(),e);
+            throw new RuntimeException(e.getMessage(), e);
         }
-        TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
+        TestUtil.assertBetween("Wrong time in sync token: " + syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
 
     }
 
     @Test
     public void test700CheckBarbossaLockoutStatus() throws Exception {
-        final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         display("Shadow (model)", shadow);
         ActivationType activation = shadow.asObjectable().getActivation();
         if (activation != null) {
@@ -190,18 +179,14 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
     @Test
     public void test702LockOutBarbossa() throws Exception {
-        final String TEST_NAME = "test702LockOutBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
-        display("LDAP Entry before", entry);
+        displayValue("LDAP Entry before", entry);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         for (int i = 0; i < 10; i++) {
-            LdapNetworkConnection conn;
             try {
-                conn = ldapConnect(null, entry.getDn().toString(), "this password is wrong");
+                ldapConnect(null, entry.getDn().toString(), "this password is wrong");
             } catch (SecurityException e) {
                 // Good bad attempt
                 continue;
@@ -210,10 +195,10 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         }
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP Entry after", entry);
+        displayValue("LDAP Entry after", entry);
 
         PrismObject<ShadowType> shadow = getShadowModel(accountBarbossaOid);
         display("Shadow (model)", shadow);
@@ -223,25 +208,21 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         assertEquals("Wrong lockout status", LockoutStatusType.LOCKED, lockoutStatus);
     }
 
-
     @Test
     public void test705UnlockBarbossaAccount() throws Exception {
-        final String TEST_NAME = "test705UnlockBarbossaAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountBarbossaOid, null,
                 SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         executeChanges(accountDelta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -257,7 +238,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         }
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        display("LDAP Entry", entry);
+        displayValue("LDAP Entry", entry);
         assertNoAttribute(entry, "pwdAccountLockedTime");
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);

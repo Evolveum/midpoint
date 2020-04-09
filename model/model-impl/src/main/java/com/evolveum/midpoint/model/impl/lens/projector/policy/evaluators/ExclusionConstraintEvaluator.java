@@ -61,8 +61,8 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
     @Autowired private LocalizationService localizationService;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
-            PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+    public <AH extends AssignmentHolderType> EvaluatedExclusionTrigger evaluate(@NotNull JAXBElement<ExclusionPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -129,7 +129,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
                             continue targetB;
                         }
                     }
-                    EvaluatedPolicyRuleTrigger rv =
+                    EvaluatedExclusionTrigger rv =
                             createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
                     result.addReturn("trigger", rv.toDiagShortcut());
                     return rv;

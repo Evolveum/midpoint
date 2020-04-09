@@ -19,7 +19,8 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <r:identifier ref="icfs:uid" />
-                <r:account/>
+                <r:resourceObject/>
+                <r:kind>account</r:kind>
                 <r:default/>
             </xsd:appinfo>
         </xsd:annotation>

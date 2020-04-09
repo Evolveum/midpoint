@@ -7,6 +7,26 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
+
+import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import javax.persistence.metamodel.Attribute;
+import javax.persistence.metamodel.ManagedType;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -39,25 +59,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.ManagedType;
-import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -128,7 +129,7 @@ public class ObjectDeltaUpdater {
         //noinspection unchecked
         RObject<T> object = session.byId(objectClass).getReference(oid);
 
-        ManagedType mainEntityType = entityRegistry.getJaxbMapping(type);
+        ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
 
         boolean shadowPendingOperationModified = false;
 
@@ -283,6 +284,7 @@ public class ObjectDeltaUpdater {
 
         return false;
     }
+
     @SuppressWarnings("Duplicates")
     private void handleWholeMetadata(Metadata<?> bean, ItemDelta delta) {
         PrismValue value = null;
@@ -576,7 +578,7 @@ public class ObjectDeltaUpdater {
 
     /**
      * Similar to DeltaUpdaterUtils.markNewValuesTransientAndAddToExisting but simpler.
-     *
+     * <p>
      * We rely on the fact that SAVE/UPDATE is now cascaded to extension items.
      */
     private static <T> void markNewValuesTransientAndAddToExistingNoFetchNoPersist(Collection<? extends RAnyValue<?>> dbCollection,
@@ -598,12 +600,12 @@ public class ObjectDeltaUpdater {
                 .collect(Collectors.toList());
 
         boolean collectionLoaded = dbCollection instanceof PersistentCollection &&
-            ((PersistentCollection) dbCollection).wasInitialized();
+                ((PersistentCollection) dbCollection).wasInitialized();
 
         // Note: as for 4.0 "no fetch" deletion is available only for ROExtString (MID-5558).
         boolean noFetchDeleteSupported =
                 Boolean.TRUE.equals(RepoModifyOptions.getUseNoFetchExtensionValuesDeletion(ctx.options)) &&
-                rValuesToDelete.stream().allMatch(rValue -> rValue instanceof ROExtString);
+                        rValuesToDelete.stream().allMatch(rValue -> rValue instanceof ROExtString);
 
         //System.out.println("Collection loaded = " + collectionLoaded + ", noFetchDeleteSupported = " + noFetchDeleteSupported + " for " + rValuesToDelete);
         if (!collectionLoaded && noFetchDeleteSupported) {
@@ -848,7 +850,7 @@ public class ObjectDeltaUpdater {
             return attribute;
         }
 
-        Attribute attributeOverride = entityRegistry.findAttributeOverride(typeValuePair.type, nameLocalPart);
+        Attribute<?, ?> attributeOverride = entityRegistry.findAttributeOverride(typeValuePair.type, nameLocalPart);
         if (attributeOverride != null) {
             return attributeOverride;
         }
@@ -962,7 +964,7 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleBasicOrEmbedded(Object bean, ItemDelta<?,?> delta, Attribute attribute) {
+    private void handleBasicOrEmbedded(Object bean, ItemDelta<?, ?> delta, Attribute attribute) {
         Class outputType = getRealOutputType(attribute);
 
         PrismValue prismValue;
@@ -997,7 +999,7 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private PrismValue getSingleValue(Attribute<?,?> attribute, Collection<? extends PrismValue> valuesToSet) {
+    private PrismValue getSingleValue(Attribute<?, ?> attribute, Collection<? extends PrismValue> valuesToSet) {
         Set<PrismValue> uniqueValues = new HashSet<>(valuesToSet);
         // This uniqueness check might be too strict: the values can be different from the point of default equality,
         // yet the final verdict (when applying the delta to prism structure) can be that they are equal.
@@ -1050,7 +1052,7 @@ public class ObjectDeltaUpdater {
     }
 
     private Collection<PrismEntityPair> processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
-                                                           ItemDelta delta, Object bean) {
+            ItemDelta delta, Object bean) {
         if (values == null) {
             return new ArrayList<>();
         }

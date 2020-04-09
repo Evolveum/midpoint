@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,8 +7,17 @@
 package com.evolveum.midpoint.testing.conntest;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -49,21 +58,38 @@ public class TestOpenDjDumber extends TestOpenDj {
         return false;
     }
 
+    @Override
+    protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException {
+        // TODO: assert timistamp
+    }
+
     /**
      * Test for additional search filter.
      * MID-4925
      */
     @Test
     @Override
-    public void test350SeachInvisibleAccount() throws Exception {
-        final String TEST_NAME = "test350SeachInvisibleAccount";
-        displayTestTitle(TEST_NAME);
-
+    public void test350SearchInvisibleAccount() throws Exception {
         // GIVEN
         createBilboEntry();
 
-        SearchResultList<PrismObject<ShadowType>> shadows = searchBilbo(TEST_NAME);
+        SearchResultList<PrismObject<ShadowType>> shadows = searchBilbo();
 
-        assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
+        assertEquals("Unexpected search result: " + shadows, 0, shadows.size());
+    }
+
+    @Test
+    public void test818DeleteAccountHtm() throws Exception {
+        // Nothing to do. This won't work with modifytimestamp sync.
+    }
+
+    @Test
+    public void test837RenameAccount() throws Exception {
+        // Nothing to do. This won't work with modifytimestamp sync.
+    }
+
+    @Test
+    public void test838DeleteAccountHtm() throws Exception {
+        // Nothing to do. This won't work with modifytimestamp sync.
     }
 }

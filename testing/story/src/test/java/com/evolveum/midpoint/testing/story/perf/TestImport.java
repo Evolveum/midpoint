@@ -16,6 +16,7 @@ import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.mysql.cj.jdbc.Driver;
@@ -37,6 +38,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  * This test is not meant to be run automatically.
  * It requires externally-configured MySQL database with the data to be imported.
  */
+@UnusedTestElement("not in suite, failing on spring init")
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml","classpath:ctx-interceptor.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImport extends AbstractStoryTest {
@@ -87,7 +89,7 @@ public class TestImport extends AbstractStoryTest {
         repoAddObjectFromFile(ORG_BASIC_FILE, OrgType.class, initResult);
 
         usersBefore = repositoryService.countObjects(UserType.class, null, null, initResult);
-        display("users before", usersBefore);
+        displayValue("users before", usersBefore);
 
         //InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
     }
@@ -109,9 +111,7 @@ public class TestImport extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -123,17 +123,15 @@ public class TestImport extends AbstractStoryTest {
 
     @Test
     public void test100RunImport() throws Exception {
-        final String TEST_NAME = "test100RunImport";
-        displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         importObjectFromFile(TASK_IMPORT_FILE, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         long lastProfilingStarted = 0;
         long start = System.currentTimeMillis();
         for (;;) {
@@ -164,10 +162,10 @@ public class TestImport extends AbstractStoryTest {
 
         PrismObject<TaskType> taskAfter = repositoryService.getObject(TaskType.class, TASK_IMPORT_OID, null, result);
         String taskXml = prismContext.xmlSerializer().serialize(taskAfter);
-        display("Task after", taskXml);
+        displayValue("Task after", taskXml);
 
         int usersAfter = repositoryService.countObjects(UserType.class, null, null, result);
-        display("users after", usersAfter);
+        displayValue("users after", usersAfter);
         assertEquals("Wrong # of users", usersBefore + USERS, usersAfter);
 
     }

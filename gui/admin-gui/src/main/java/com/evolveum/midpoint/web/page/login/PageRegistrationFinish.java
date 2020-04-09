@@ -88,7 +88,7 @@ public class PageRegistrationFinish extends PageRegistrationBase {
                 initLayout(result);
                 throw new RestartResponseException(PageSelfRegistration.class);
             }
-            UserType user = ((MidPointPrincipal)authentication.getPrincipal()).getUser();
+            FocusType user = ((MidPointPrincipal)authentication.getPrincipal()).getFocus();
             PrismObject<UserType> administrator = getAdministratorPrivileged(result);
 
             assignDefaultRoles(user.getOid(), administrator, result);

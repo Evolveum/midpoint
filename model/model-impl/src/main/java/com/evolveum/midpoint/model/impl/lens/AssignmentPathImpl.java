@@ -15,7 +15,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
+import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
@@ -276,4 +278,8 @@ public class AssignmentPathImpl implements AssignmentPath {
         return true;
     }
 
+    boolean containsDelegation(boolean evaluateOld, RelationRegistry relationRegistry) {
+        return segments.stream()
+                .anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment(evaluateOld), relationRegistry));
+    }
 }

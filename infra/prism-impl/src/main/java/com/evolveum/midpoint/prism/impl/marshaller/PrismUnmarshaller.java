@@ -131,7 +131,7 @@ public class PrismUnmarshaller {
         checkArgument(child instanceof MapXNodeImpl,
                 "Cannot parse object from element %s, we need Map", child.getClass());
         ItemDefinition<?> itemDef = checkSchemaNotNull(itemInfo.getItemDefinition(),
-                "Cannot parse obect from element %s, there is no definition for that element", itemInfo.getItemName());
+                "Cannot parse object from element %s, there is no definition for that element", itemInfo.getItemName());
         checkSchema(itemDef instanceof PrismObjectDefinition,
                 "Cannot parse object from element %s the element does not define an object, it is defined as %s", itemInfo.getItemName(), itemInfo.getItemDefinition());
         return (PrismObject<O>) parseItemInternal(child, itemInfo.getItemName(), itemDef, pc);
@@ -438,7 +438,18 @@ public class PrismUnmarshaller {
         } else if (node instanceof MapXNodeImpl || node instanceof PrimitiveXNodeImpl || node.isHeterogeneousList()) {
             PrismPropertyValue<T> pval = parsePropertyValue(node, itemDefinition, pc);
             if (pval != null) {
-                property.add(pval);
+                try {
+                    property.add(pval);
+                } catch (SchemaException e) {
+                    if (pc.isCompat()) {
+                        // Most probably the "apply definition" call while adding the value failed. This occurs for raw
+                        // values with (somewhat) incorrect definitions being added. Overall, this is more a hack than serious
+                        // solution, because we sometimes want to add static-schema-less property values. TODO investigate this.
+                        ((PrismPropertyImpl<T>) property).addForced(pval);
+                    } else {
+                        throw e;
+                    }
+                }
             }
         } else if (node instanceof SchemaXNodeImpl) {
             SchemaDefinitionType schemaDefType = beanUnmarshaller.unmarshalSchemaDefinitionType((SchemaXNodeImpl) node);
@@ -496,7 +507,7 @@ public class PrismUnmarshaller {
                     return null;
                 }
             }
-            PrismPropertyValue<T> ppv = new PrismPropertyValueImpl<>(realValue);
+            PrismPropertyValueImpl<T> ppv = new PrismPropertyValueImpl<>(realValue);
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {

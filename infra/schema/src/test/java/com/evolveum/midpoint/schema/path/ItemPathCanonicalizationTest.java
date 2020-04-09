@@ -7,45 +7,25 @@
 
 package com.evolveum.midpoint.schema.path;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import javax.xml.namespace.QName;
+
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Containerable;
-
 import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import java.io.IOException;
-
-import javax.xml.namespace.QName;
-
-import org.xml.sax.SAXException;
-
-public class ItemPathCanonicalizationTest {
-
-    public ItemPathCanonicalizationTest() {
-    }
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
+public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
 
     @Test
     public void testCanonicalizationEmpty() {
@@ -138,7 +118,7 @@ public class ItemPathCanonicalizationTest {
 
     // from IntegrationTestTools
     private static final String NS_RESOURCE_DUMMY_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";
-    private static final QName RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME = new QName(NS_RESOURCE_DUMMY_CONFIGURATION ,"uselessString");
+    private static final QName RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME = new QName(NS_RESOURCE_DUMMY_CONFIGURATION, "uselessString");
 
     @Test
     public void testCanonicalizationLong() {
@@ -149,15 +129,14 @@ public class ItemPathCanonicalizationTest {
                 "\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties\\" + ICF + "/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector#uselessString");
     }
 
-
     private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
         CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, clazz, getPrismContext());
         System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
         for (int i = 0; i < representations.length; i++) {
             String c = canonicalItemPath.allUpToIncluding(i).asString();
-            assertEquals("Wrong string representation of length " + (i+1), representations[i], c);
+            assertEquals("Wrong string representation of length " + (i + 1), representations[i], c);
         }
-        assertEquals("Wrong string representation ", representations[representations.length-1], canonicalItemPath.asString());
+        assertEquals("Wrong string representation ", representations[representations.length - 1], canonicalItemPath.asString());
     }
 
 }

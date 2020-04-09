@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -132,7 +133,7 @@ public class InitialDataImport extends DataImport{
         ObjectDelta delta = DeltaFactory.Object.createAddDelta(object);
         try {
             LOGGER.info("Starting initial import of file {}.", file.getName());
-            model.executeChanges(WebComponentUtil.createDeltaCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
+            model.executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.createIsImport(), task, result);
             result.recordSuccess();
             LOGGER.info("Created {} as part of initial import", object);
             return true;
@@ -162,7 +163,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private void cleanup() throws IOException {
-        Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp/initial-objects");
+        Path destDir = Paths.get(configuration.getMidpointHome(), "tmp/initial-objects");
         FileUtils.deleteDirectory(destDir.toFile());
     }
 
@@ -179,8 +180,7 @@ public class InitialDataImport extends DataImport{
         env.put("create", "false");
         try (FileSystem zipfs = FileSystems.newFileSystem(src, env)) {
             Path pathInZipfile = zipfs.getPath("/WEB-INF/classes/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
 
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
@@ -221,8 +221,7 @@ public class InitialDataImport extends DataImport{
         LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
         try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
             Path pathInZipfile = zipfs.getPath("/initial-objects");
-            //TODO: use some well defined directory, e.g. midPoint home
-            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            final Path destDir = Paths.get(configuration.getMidpointHome(), "tmp");
             Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
 
                 @Override
@@ -249,7 +248,7 @@ public class InitialDataImport extends DataImport{
     }
 
     private File setupInitialObjectsTmpFolder() {
-        File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
+        File tmpDir = new File(configuration.getMidpointHome(), "tmp");
         if (!tmpDir.mkdir()) {
             LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists",
                     configuration.getMidpointHome()+"/tmp");

@@ -17,9 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
 import org.apache.commons.io.FileUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,14 +27,11 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -52,11 +46,6 @@ public class TestSemiManual extends AbstractManualResourceTest {
 
     private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "semi-manual.csv");
     private static final File CSV_TARGET_FILE = new File("target/semi-manual.csv");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
-
-    protected static final String ATTR_DISABLED = "disabled";
-    protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -79,7 +68,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
     }
 
     protected PrismObject<ResourceType> addResource(OperationResult result)
-            throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         PrismObject<ResourceType> resource = prismContext.parseObject(getResourceFile());
         fillInConnectorRef(resource, MANUAL_CONNECTOR_TYPE, result);
         fillInAdditionalConnectorRef(resource, "csv", CSV_CONNECTOR_TYPE, result);
@@ -102,7 +91,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
 
     @Override
     protected void backingStoreAddWill() throws IOException {
-        appendToCsv(new String[]{ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD_OLD});
+        appendToCsv(new String[] { ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_FULLNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", "false", ACCOUNT_WILL_PASSWORD_OLD });
     }
 
     @Override
@@ -113,7 +102,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
         } else {
             disabled = "true";
         }
-        replaceInCsv(new String[]{ACCOUNT_WILL_USERNAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, password});
+        replaceInCsv(new String[] { ACCOUNT_WILL_USERNAME, newFullName, ACCOUNT_WILL_DESCRIPTION_MANUAL, "", disabled, password });
     }
 
     private void appendToCsv(String[] data) throws IOException {
@@ -126,7 +115,7 @@ public class TestSemiManual extends AbstractManualResourceTest {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             String[] cols = line.split(",");
-            if (cols[0].matches("\""+data[0]+"\"")) {
+            if (cols[0].matches("\"" + data[0] + "\"")) {
                 lines.set(i, formatCsvLine(data));
             }
         }
@@ -134,13 +123,13 @@ public class TestSemiManual extends AbstractManualResourceTest {
     }
 
     private String formatCsvLine(String[] data) {
-        return Arrays.stream(data).map(s -> "\""+s+"\"").collect(Collectors.joining(","));
+        return Arrays.stream(data).map(s -> "\"" + s + "\"").collect(Collectors.joining(","));
     }
 
     @Override
     protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
         // CSV password is readable
         PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-        assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+        assertNotNull("No password value property in " + shadow + ": " + passValProp, passValProp);
     }
 }

@@ -16,10 +16,14 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -40,15 +44,10 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -381,6 +380,7 @@ public class ContextLoader {
             if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
                 object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid,
                         SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+                setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded via provisioning");
             } else {
 
@@ -390,6 +390,7 @@ public class ContextLoader {
                 Collection<SelectorOptions<GetOperationOptions>> options =
                         SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
+                setLoadedFocusInTrace(object, trace);
                 result.addReturnComment("Loaded from repository");
             }
 
@@ -407,6 +408,12 @@ public class ContextLoader {
                 trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
             }
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private <O extends ObjectType> void setLoadedFocusInTrace(PrismObject<O> object, FocusLoadedTraceType trace) {
+        if (trace != null) {
+            trace.setFocusLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(object, prismContext));
         }
     }
 
@@ -1336,7 +1343,10 @@ public class ContextLoader {
         //Determine refined schema and password policies for account type
         RefinedObjectClassDefinition structuralObjectClassDef = projContext.getStructuralObjectClassDefinition();
         if (structuralObjectClassDef != null) {
-            loadProjectionSecurityPolicy(context, projContext, task, result);
+            LOGGER.trace("Finishing loading of projection context: security policy");
+            SecurityPolicyType projectionSecurityPolicy = securityHelper.locateProjectionSecurityPolicy(projContext.getStructuralObjectClassDefinition(), task, result);
+            LOGGER.trace("Located security policy for: {},\n {}", projContext, projectionSecurityPolicy);
+            projContext.setProjectionSecurityPolicy(projectionSecurityPolicy);
         } else {
             LOGGER.trace("No structural object class definition, skipping determining security policy");
         }
@@ -1352,51 +1362,6 @@ public class ContextLoader {
 
         setPrimaryDeltaOldValue(projContext);
     }
-
-    private <F extends ObjectType> void loadProjectionSecurityPolicy(LensContext<F> context,
-            LensProjectionContext projContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        LOGGER.trace("Finishing loading of projection context: security policy");
-        ObjectReferenceType securityPolicyRef = projContext.getStructuralObjectClassDefinition().getSecurityPolicyRef();
-        if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
-            LOGGER.trace("Security policy not defined for the projection context.");
-            loadProjectionLegacyPasswordPolicy(context, projContext, task, result);
-            return;
-        }
-        LOGGER.trace("Loading security policy {} for projection context: {}", securityPolicyRef, projContext);
-        PrismObject<SecurityPolicyType> securityPolicy = cacheRepositoryService.getObject(SecurityPolicyType.class, securityPolicyRef.getOid(), null, result);
-        if (securityPolicy == null) {
-            LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
-            return;
-        }
-        LOGGER.trace("Found legacy password policy: {}", securityPolicy);
-        projContext.setProjectionSecurityPolicy(securityPolicy.asObjectable());
-    }
-
-
-    private <F extends ObjectType> void loadProjectionLegacyPasswordPolicy(LensContext<F> context,
-            LensProjectionContext projContext, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        ObjectReferenceType passwordPolicyRef = projContext.getStructuralObjectClassDefinition().getPasswordPolicy();
-        if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
-            LOGGER.trace("Legacy password policy not defined for the projection context.");
-            return;
-        }
-        LOGGER.trace("Loading legacy password policy {} for projection context: {}", passwordPolicyRef, projContext);
-        PrismObject<ValuePolicyType> passwordPolicy = cacheRepositoryService.getObject(
-                    ValuePolicyType.class, passwordPolicyRef.getOid(), null, result);
-        if (passwordPolicy == null) {
-            LOGGER.debug("Legacy password policy {} defined for the projection does not exist", passwordPolicyRef);
-            return;
-        }
-        ObjectReferenceType dummyPasswordPolicyRef = new ObjectReferenceType();
-        dummyPasswordPolicyRef.asReferenceValue().setObject(passwordPolicy);
-        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
-        securityPolicy.asObjectable()
-            .beginCredentials()
-                .beginPassword()
-                    .valuePolicyRef(dummyPasswordPolicyRef);
-        projContext.setProjectionSecurityPolicy(securityPolicy.asObjectable());
-    }
-
 
     private <F extends ObjectType> boolean needToReload(LensContext<F> context,
             LensProjectionContext projContext) {
@@ -1454,6 +1419,9 @@ public class ContextLoader {
             trace = new FullShadowLoadedTraceType(prismContext);
             if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
                 trace.setInputLensContextText(context.debugDump());
+                ResourceType resource = projCtx.getResource();
+                PolyStringType name = resource != null ? resource.getName() : null;
+                trace.setResourceName(name != null ? name : PolyStringType.fromOrig(projCtx.getResourceOid()));
             }
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
             result.addTrace(trace);
@@ -1491,6 +1459,9 @@ public class ContextLoader {
                 PrismObject<ShadowType> objectCurrent = provisioningService
                         .getObject(ShadowType.class, projCtx.getOid(), options, task, result);
                 Validate.notNull(objectCurrent.getOid());
+                if (trace != null) {
+                    trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, prismContext));
+                }
                 // TODO: use setLoadedObject() instead?
                 projCtx.setObjectCurrent(objectCurrent);
                 projCtx.determineFullShadowFlag(objectCurrent);

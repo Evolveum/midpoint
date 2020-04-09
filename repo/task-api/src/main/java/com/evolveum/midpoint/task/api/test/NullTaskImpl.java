@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -164,12 +165,12 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public PrismObject<UserType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner() {
         return null;
     }
 
     @Override
-    public void setOwner(PrismObject<UserType> owner) {
+    public void setOwner(PrismObject<? extends FocusType> owner) {
         throw new UnsupportedOperationException();
     }
 
@@ -621,11 +622,6 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void pushWaitForTasksHandlerUri() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Long getCompletionTimestamp() {
         throw new UnsupportedOperationException();
     }
@@ -693,7 +689,8 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
+            SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
     }
 
     @Override
@@ -849,6 +846,16 @@ public class NullTaskImpl implements Task {
     @Override
     public Collection<? extends AssignmentType> getAssignments() {
         return null;
+    }
+
+    @Override
+    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getTaskTreeId(OperationResult result) throws SchemaException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

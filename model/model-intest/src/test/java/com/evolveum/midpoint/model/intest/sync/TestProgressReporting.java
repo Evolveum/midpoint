@@ -62,8 +62,6 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        setAutoTaskManagementEnabled(true);
-
         interruptedSyncResource = new DummyInterruptedSyncResource();
         interruptedSyncResource.init(dummyResourceCollection, initTask, initResult);
 
@@ -84,8 +82,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     }
 
     private void executeReconciliation(TestResource reconciliationTask, String accountPrefix, int workers) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         for (int i = 0; i < USERS; i++) {
@@ -104,13 +102,13 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
-        display("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
+        displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         TaskProgressExtract progress1 = TaskProgressExtract.fromTask(rootAfterSuspension1.asObjectable());
-        display("Progress after suspension", progress1);
+        displayDumpable("Progress after suspension", progress1);
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(reconciliationTask.oid, result);
@@ -124,10 +122,10 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, reconciliationTask.oid, getSubtasks, result);
-        display("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
+        displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         TaskProgressExtract progress2 = TaskProgressExtract.fromTask(rootAfterSuspension2.asObjectable());
-        display("Progress after second suspension", progress2);
+        displayDumpable("Progress after second suspension", progress2);
 
         // THEN
 
@@ -164,8 +162,8 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
     }
 
     private void executeRecomputation(TestResource recomputationTask, String rolePrefix, int workers) throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         System.out.println("Importing roles.");
@@ -191,13 +189,13 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         Collection<SelectorOptions<GetOperationOptions>> getSubtasks = getOperationOptionsBuilder()
-                .item(TaskType.F_SUBTASK).retrieve()
+                .item(TaskType.F_SUBTASK_REF).retrieve()
                 .build();
         PrismObject<TaskType> rootAfterSuspension1 = taskManager.getObject(TaskType.class, recomputationTask.oid, getSubtasks, result);
-        display("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
+        displayValue("Tree after suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension1.asObjectable()));
 
         TaskProgressExtract progress1 = TaskProgressExtract.fromTask(rootAfterSuspension1.asObjectable());
-        display("Progress after suspension", progress1);
+        displayDumpable("Progress after suspension", progress1);
 
         System.out.println("Resuming task tree.");
         taskManager.resumeTaskTree(recomputationTask.oid, result);
@@ -211,10 +209,10 @@ public class TestProgressReporting extends AbstractInitializedModelIntegrationTe
 
         System.out.println("Task tree suspended.");
         PrismObject<TaskType> rootAfterSuspension2 = taskManager.getObject(TaskType.class, recomputationTask.oid, getSubtasks, result);
-        display("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
+        displayValue("Tree after second suspension", TaskDebugUtil.dumpTaskTree(rootAfterSuspension2.asObjectable()));
 
         TaskProgressExtract progress2 = TaskProgressExtract.fromTask(rootAfterSuspension2.asObjectable());
-        display("Progress after second suspension", progress2);
+        displayDumpable("Progress after second suspension", progress2);
 
         // THEN
 

@@ -1043,6 +1043,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
     }
 
+    public void recordNotApplicable() {
+        recordStatus(OperationResultStatus.NOT_APPLICABLE, (String) null);
+    }
+
     public boolean isMinor() {
         return importance == MINOR;
     }
@@ -1909,8 +1913,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
 
         if (status == OperationResultStatus.UNKNOWN) {
-            LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
-            throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
+            IllegalStateException illegalStateException = new IllegalStateException("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN");
+            LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump(), illegalStateException);
+            throw illegalStateException;
         }
         if (subresults == null) {
             return;
@@ -2104,16 +2109,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
     }
 
-    @Deprecated // use asynchronous operation reference
+    // use asynchronous operation reference
+    @Deprecated // TODO remove in 4.2
     public String getBackgroundTaskOid() {
         return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
-    }
-
-    @Deprecated
-    @Override
-    public OperationResult setMinor(boolean value) {
-        this.importance = value ? MINOR : NORMAL;
-        return this;
     }
 
     @Override

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
@@ -60,12 +61,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
     protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
             OperationResult opResult) {
 
-        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
-        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
-                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
-            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
-        }
-        ExecuteScriptType executeScriptRequestTemplate = executeScriptProperty.getRealValue();
+        ExecuteScriptType executeScriptRequestTemplate = getExecuteScriptRequest(coordinatorTask);
+
         if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
             LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
         }
@@ -82,7 +79,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
                     LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
                     LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
                     result.computeStatus();
-                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
+                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException |
+                        ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
                 }
@@ -93,8 +91,23 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
         return handler;
     }
 
+    static ExecuteScriptType getExecuteScriptRequest(RunningTask coordinatorTask) {
+        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
+        if (executeScriptProperty != null && executeScriptProperty.getValue().getValue() != null &&
+                executeScriptProperty.getValue().getValue().getScriptingExpression() != null) {
+            return executeScriptProperty.getValue().getValue();
+        } else {
+            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
+        }
+    }
+
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.BULK_ACTIONS;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value();
     }
 }

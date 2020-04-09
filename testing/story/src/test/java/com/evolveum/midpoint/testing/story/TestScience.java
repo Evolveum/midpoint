@@ -39,12 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- *
- * @author Katarina Valalikova
- *
- */
-
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScience  extends AbstractStoryTest {
@@ -56,9 +50,6 @@ public class TestScience  extends AbstractStoryTest {
 
     private static final File ROLE_STATISTICS_FILE = new File(TEST_DIR, "role-statistics.xml");
     private static final String ROLE_STATISTICS_OID = "23d90f70-1924-419e-9beb-78a8bde6d261";
-
-    private static final File ROLE_MATH_FILE = new File(TEST_DIR, "role-math.xml");
-    private static final String ROLE_MATH_OID = "";
 
     private static final File GROUP_STATS_USERS_LDIF_FILE = new File(TEST_DIR, "group-stats.ldif");
 
@@ -105,7 +96,7 @@ public class TestScience  extends AbstractStoryTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -152,9 +143,7 @@ public class TestScience  extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultStats = modelService.testResource(RESOURCE_DUMMY_STATS_OID, task);
         TestUtil.assertSuccess(testResultStats);
@@ -171,20 +160,18 @@ public class TestScience  extends AbstractStoryTest {
 
     @Test
     public void test100JackAssignRoleStatistics() throws Exception {
-        final String TEST_NAME = "test100JackAssignRoleStatistics";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_STATISTICS_OID, task, result);
 
         // WHEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
@@ -220,9 +207,7 @@ public class TestScience  extends AbstractStoryTest {
 
     @Test
     public void test101UnassignRoleStats() throws Exception{
-        final String TEST_NAME = "test101UnassignRoleStats";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
 
@@ -272,9 +257,7 @@ public class TestScience  extends AbstractStoryTest {
 
     @Test
     public void test102AssignRoleStats() throws Exception{
-        final String TEST_NAME = "test102AssignRoleStats";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
 
@@ -320,9 +303,7 @@ public class TestScience  extends AbstractStoryTest {
 
     @Test
     public void test200DelteUserJack() throws Exception {
-        final String TEST_NAME = "test200DelteUserJack";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult result = task.getResult();
 

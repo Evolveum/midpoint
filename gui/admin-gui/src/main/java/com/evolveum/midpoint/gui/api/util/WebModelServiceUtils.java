@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -27,8 +29,8 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -183,15 +185,18 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
-            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
                     operationalTask, parentResult);
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
+                delta.setOid(deltaOperation.getObjectDelta().getOid());
+            }
             parentResult.recordInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
-            pageBase.showResult(parentResult);
             return delta.getOid();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -490,7 +495,7 @@ public class WebModelServiceUtils {
             ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
             delta.setOid(oid);
 
-            page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntDeleteObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
@@ -520,7 +525,7 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+        save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
 
@@ -542,6 +547,9 @@ public class WebModelServiceUtils {
 
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
+            if (ex instanceof CommonException) {
+                subResult.setUserFriendlyMessage(((CommonException) ex).getUserFriendlyMessage());
+            }
             subResult.recordFatalError(ex.getMessage());
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
         } finally {
@@ -566,7 +574,16 @@ public class WebModelServiceUtils {
         return objectDelta;
     }
 
-    public static String getLoggedInUserOid() {
+    public static FocusType getLoggedInFocus() {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        Validate.notNull(principal, "No principal");
+        if (principal.getFocus() == null) {
+            throw new IllegalArgumentException("No focus in principal: " + principal);
+        }
+        return principal.getFocus();
+    }
+
+    public static String getLoggedInFocusOid() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
@@ -575,87 +592,91 @@ public class WebModelServiceUtils {
         return principal.getOid();
     }
 
-    public static Locale getLocale() {
-        return getLocale(null);
-    }
+//    public static Locale getLocale() {
+//        return getLocale(null);
+//    }
 
-    public static Locale getLocale(UserType user) {
+    public static <F extends FocusType> Locale getLocale() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        Locale locale = null;
-        if (principal != null) {
-            if (user == null) {
-                PrismObject<UserType> userPrismObject = principal.getUser().asPrismObject();
-                user = userPrismObject == null ? null : userPrismObject.asObjectable();
-            }
-            if (user != null && user.getPreferredLanguage() != null &&
-                    !user.getPreferredLanguage().trim().equals("")) {
-                try {
-                    locale = LocaleUtils.toLocale(user.getPreferredLanguage());
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-            }
-            if (locale != null && MidPointApplication.containsLocale(locale)) {
-                return locale;
-            } else {
-                String userLocale = user != null ? user.getLocale() : null;
-                try {
-                    locale = userLocale == null ? null : LocaleUtils.toLocale(userLocale);
-                } catch (Exception ex) {
-                    LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-                }
-                if (locale != null && MidPointApplication.containsLocale(locale)) {
-                    return locale;
-                } else {
-                    //session in tests is null
-                        if (ThreadContext.getSession() == null) {
-                            return MidPointApplication.getDefaultLocale();
-                        }
-
-                        locale = Session.get().getLocale();
-                    if (locale == null || !MidPointApplication.containsLocale(locale)) {
-                        //default locale for web application
-                        return MidPointApplication.getDefaultLocale();
-                    }
-                    return locale;
-                }
-            }
+        if (principal == null) {
+            return MidPointApplication.getDefaultLocale();
         }
+
+        Locale locale = null;
+
+        F focus = (F) principal.getFocus();
+        if (focus == null) {
+            return MidPointApplication.getDefaultLocale();
+        }
+//        if (principal != null) {
+////            if (focus == null) {
+//                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
+//               FocusType focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
+////            }
+        String prefLang = focus.getPreferredLanguage();
+        if (StringUtils.isBlank(prefLang)) {
+            prefLang = focus.getLocale();
+        }
+
+        try {
+            locale = LocaleUtils.toLocale(prefLang);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+        }
+
+        if (locale == null) {
+            if (ThreadContext.getSession() == null) {
+                return MidPointApplication.getDefaultLocale();
+            }
+
+            locale = Session.get().getLocale();
+        }
+
+        if (MidPointApplication.containsLocale(locale)) {
+            return locale;
+        }
+
         return MidPointApplication.getDefaultLocale();
     }
 
+//    public static TimeZone getTimezone() {
+//        return getTimezone(null);
+//    }
+
     public static TimeZone getTimezone() {
-        return getTimezone(null);
-    }
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
 
-    public static TimeZone getTimezone(UserType user) {
-        MidPointUserProfilePrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal != null && user == null) {
-            user = principal.getUser();
+        if (principal == null) {
+            return null;
         }
+
+        FocusType focus = principal.getFocus();
+
         String timeZone;
-
-        if (user != null && StringUtils.isNotEmpty(user.getTimezone())) {
-            timeZone = user.getTimezone();
+        if (focus == null || StringUtils.isEmpty(focus.getTimezone())) {
+            timeZone = principal.getCompiledGuiProfile().getDefaultTimezone();
         } else {
-            timeZone = principal != null && principal.getCompiledUserProfile() != null ?
-                    principal.getCompiledUserProfile().getDefaultTimezone() : "";
+            timeZone = focus.getTimezone();
         }
+
+        if (timeZone == null) {
+            return null;
+        }
+
         try {
-            if (timeZone != null) {
-                return TimeZone.getTimeZone(timeZone);
-            }
+            return TimeZone.getTimeZone(timeZone);
         } catch (Exception ex){
             LOGGER.debug("Error occurred while getting user time zone, " + ex.getMessage());
+            return null;
         }
-        return null;
+
     }
 
-    public static Task createSimpleTask(String operation, PrismObject<UserType> owner, TaskManager manager) {
+    public static Task createSimpleTask(String operation, PrismObject<? extends FocusType> owner, TaskManager manager) {
         return createSimpleTask(operation, null, owner, manager);
     }
 
-    public static Task createSimpleTask(String operation, String channel, PrismObject<UserType> owner, TaskManager manager) {
+    public static Task createSimpleTask(String operation, String channel, PrismObject<? extends FocusType> owner, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
 
         if (owner == null) {
@@ -663,7 +684,7 @@ public class WebModelServiceUtils {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                owner = user.getUser().asPrismObject();
+                owner = user.getFocus().asPrismObject();
             }
         }
 
@@ -735,9 +756,9 @@ public class WebModelServiceUtils {
 
         ModelInteractionService mInteractionService = pageBase.getModelInteractionService();
 
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
-            adminGuiConfig = mInteractionService.getCompiledUserProfile(task, result);
+            adminGuiConfig = mInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
         } catch (Exception e) {
@@ -755,9 +776,9 @@ public class WebModelServiceUtils {
     }
 
     public static boolean isEnableExperimentalFeature(ModelInteractionService modelInteractionService, Task task, OperationResult result) {
-        CompiledUserProfile adminGuiConfig = null;
+        CompiledGuiProfile adminGuiConfig = null;
         try {
-            adminGuiConfig = modelInteractionService.getCompiledUserProfile(task, result);
+            adminGuiConfig = modelInteractionService.getCompiledGuiProfile(task, result);
             result.recomputeStatus();
             result.recordSuccessIfUnknown();
         } catch (Exception e) {
@@ -800,12 +821,12 @@ public class WebModelServiceUtils {
     public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
         MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
         if (midpointPrincipal != null) {
-            UserType user = midpointPrincipal.getUser();
+            FocusType focus = midpointPrincipal.getFocus();
             Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
             OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
             RegistrationsPolicyType registrationPolicyType;
             try {
-                registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
+                registrationPolicyType = modelInteractionService.getFlowPolicy(focus.asPrismObject(), task, parentResult);
                 if (registrationPolicyType == null) {
                     return false;
                 }
@@ -814,7 +835,7 @@ public class WebModelServiceUtils {
                     return false;
                 }
                 String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
-                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
+                if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(focus.getLifecycleState())) {
                     return true;
                 }
             } catch (CommonException e) {

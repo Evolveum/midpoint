@@ -6,16 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,16 +26,11 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
-import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * @author lazyman
@@ -88,8 +82,8 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
     }
 
     @Override
-    protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-        return new OrgSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    protected FocusSummaryPanel<OrgType> createSummaryPanel(IModel<OrgType> summaryModel) {
+        return new OrgSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     @Override
@@ -142,6 +136,15 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
                     }
 
                 };
+            }
+
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                if (isSelfProfile()){
+                    return false;
+                } else {
+                    return super.getOptionsPanelVisibility();
+                }
             }
 
 

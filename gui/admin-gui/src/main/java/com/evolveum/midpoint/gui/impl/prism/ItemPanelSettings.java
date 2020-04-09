@@ -11,8 +11,10 @@ import java.io.Serializable;
 public class ItemPanelSettings implements Serializable {
 
     private ItemVisibilityHandler visibilityHandler;
+    private ItemEditabilityHandler editabilityHandler = wrapper -> true;
     private boolean showOnTopLevel;
     private boolean headerVisible = true;
+    private ItemMandatoryHandler mandatoryHandler;
 
 
     public ItemVisibilityHandler getVisibilityHandler() {
@@ -21,6 +23,14 @@ public class ItemPanelSettings implements Serializable {
 
     void setVisibilityHandler(ItemVisibilityHandler visibilityHandler) {
         this.visibilityHandler = visibilityHandler;
+    }
+
+    public ItemEditabilityHandler getEditabilityHandler() {
+        return editabilityHandler;
+    }
+
+    public void setEditabilityHandler(ItemEditabilityHandler editabilityHandler) {
+        this.editabilityHandler = editabilityHandler;
     }
 
     public boolean isShowOnTopLevel() {
@@ -39,7 +49,12 @@ public class ItemPanelSettings implements Serializable {
         this.headerVisible = headerVisible;
     }
 
+    public ItemMandatoryHandler getMandatoryHandler() {
+        return mandatoryHandler;
+    }
 
-
+    public void setMandatoryHandler(ItemMandatoryHandler mandatoryHandler) {
+        this.mandatoryHandler = mandatoryHandler;
+    }
 }
 

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.gui.api.GuiFeature;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
@@ -21,14 +21,14 @@ public class FeatureVisibleEnableBehaviour extends VisibleEnableBehaviour {
 
     UserInterfaceElementVisibilityType visibility;
 
-    public FeatureVisibleEnableBehaviour(GuiFeature feature, CompiledUserProfile userProfile) {
+    public FeatureVisibleEnableBehaviour(GuiFeature feature, CompiledGuiProfile userProfile) {
         super();
         visibility = userProfile.getFeatureVisibility(feature.getUri());
     }
 
     @Override
     public boolean isVisible() {
-        return CompiledUserProfile.isVisible(visibility, this::isVisibleAutomatic);
+        return CompiledGuiProfile.isVisible(visibility, this::isVisibleAutomatic);
     }
 
     /**

@@ -7,6 +7,25 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -31,26 +50,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-
-import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -81,9 +81,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     static final String ASYNC_CONNECTOR_TYPE = "AsyncUpdateConnector";
 
-    @SuppressWarnings("unused")
-    private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
-
     private static final String ATTR_TEST = "test";
     private static final String ATTR_MEMBER_OF = "memberOf";
 
@@ -93,11 +90,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
     protected TracingProfileType getTestMethodTracingProfile() {
         return createModelAndProvisioningLoggingTracingProfile()
                 .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
-
-    @Override
-    protected boolean isAutoTaskManagementEnabled() {
-        return true;
     }
 
     @Override
@@ -112,8 +104,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         resource = addResourceFromFile(getResourceFile(), getConnectorTypes(), false, initResult);
 
         InternalsConfig.setSanityChecks(true);
-
-        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
     }
 
     @NotNull
@@ -123,7 +113,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test000Sanity() throws Exception {
-        OperationResult result = getResult();
+        OperationResult result = getTestOperationResult();
         assertNotNull("Resource is null", resource);
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
@@ -141,8 +131,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test003Connection() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
         ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID,
@@ -172,7 +162,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
         String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
-        display("Resource XML", resourceXml);
+        displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No caching metadata", cachingMetadata);
@@ -188,13 +178,13 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test004Configuration() throws Exception {
-        OperationResult result = getResult();
+        OperationResult result = getTestOperationResult();
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, null, result);
 
         PrismContainer<Containerable> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
         assertNotNull("No configuration container", configurationContainer);
-        PrismContainerDefinition confContDef = configurationContainer.getDefinition();
+        PrismContainerDefinition<?> confContDef = configurationContainer.getDefinition();
         assertNotNull("No configuration container definition", confContDef);
     }
 
@@ -209,7 +199,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource.asObjectable(), prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
@@ -228,8 +218,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test100ListeningForShadowAdd() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -243,7 +233,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -260,8 +250,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test110ListeningForValueAdd() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_110);
 
@@ -273,7 +263,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -298,8 +288,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test112ListeningForValueAddMore() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_112);
 
@@ -311,7 +301,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -336,8 +326,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test // MID-5832
     public void test115ListeningForValueDelete() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_115);
 
@@ -349,7 +339,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -374,8 +364,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test // MID-5832
     public void test117ListeningForValueReplace() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_117);
 
@@ -387,7 +377,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -412,8 +402,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test120ListeningForShadowReplace() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_120);
 
@@ -425,7 +415,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -439,8 +429,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test125ListeningForNotificationOnly() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         if (!hasReadCapability()) {
             System.out.println("Skipping this test because there's no real read capability");
@@ -457,7 +447,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -473,8 +463,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Test
     public void test130ListeningForShadowDelete() throws Exception {
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         prepareMessage(CHANGE_130);
 
@@ -484,7 +474,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         provisioningService.processAsynchronousUpdates(coords, task, result);
 
         ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        display("The change", lastChange);
+        displayDumpable("The change", lastChange);
 
         PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
         assertNotNull("Old shadow missing", oldShadow);
@@ -524,7 +514,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     @Contract("false,_,_ -> !null")
     private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            throws SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadowRepo = findAccountShadowByUsername("banderson", resource, result);
         assertNotNull("No Anderson shadow in repo", shadowRepo);
@@ -541,13 +531,13 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
             return assertShadow(shadow, "after")
                     .assertKind(ShadowKindType.ACCOUNT)
                     .attributes()
-                        .assertSize(getNumberOfAccountAttributes())
-                        .primaryIdentifier()
-                            .assertRealValues("banderson")
-                        .end()
-                        .secondaryIdentifier()
-                            .assertRealValues("banderson")
-                        .end()
+                    .assertSize(getNumberOfAccountAttributes())
+                    .primaryIdentifier()
+                    .assertRealValues("banderson")
+                    .end()
+                    .secondaryIdentifier()
+                    .assertRealValues("banderson")
+                    .end()
                     .end();
         } catch (ObjectNotFoundException e) {
             if (!dead) {

@@ -7,16 +7,22 @@
 
 package com.evolveum.midpoint.init;
 
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
 
-import java.io.File;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -27,13 +33,25 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
     private static final String EXTENSION_DIR = "extensionDir";
     private MidpointConfiguration configuration;
 
-    // This is a hack to facilitate having separate extension schema directories for individual tests.
-    // It would be better to declare it as instance attribute but then it's not easy to set it up
-    // in TestNG tests (before midPoint is started).
+    /**
+     * This is a hack to facilitate having separate extension schema directories for individual tests.
+     * It would be better to declare it as instance attribute but then it's not easy to set it up
+     * in TestNG tests (before midPoint is started).
+     */
     private static String extensionDirOverride;
+
+    /**
+     * Another hack used to "turn off" specific extension files in individual tests.
+     */
+    @NotNull
+    private static Collection<String> extensionFilesToIgnore = Collections.emptyList();
 
     public static void setExtensionDirOverride(String extensionDirOverride) {
         ConfigurablePrismContextFactory.extensionDirOverride = extensionDirOverride;
+    }
+
+    public static void setExtensionFilesToIgnore(@NotNull Collection<String> extensionFilesToIgnore) {
+        ConfigurablePrismContextFactory.extensionFilesToIgnore = extensionFilesToIgnore;
     }
 
     ConfigurablePrismContextFactory() {
@@ -66,12 +84,12 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
 
         if (StringUtils.isEmpty(extensionDir)) {
             if (StringUtils.isNotEmpty(configuration.getMidpointHome())) {
-                extensionDir = configuration.getMidpointHome() + "/schema";
+                extensionDir = Paths.get(configuration.getMidpointHome(), "schema").toString();
             }
         }
 
         if (StringUtils.isNotEmpty(extensionDir)) {
-            LOGGER.info("Loading extension schemas from folder '{}'.", new Object[]{extensionDir});
+            LOGGER.info("Loading extension schemas from folder '{}'.", extensionDir);
         } else {
             LOGGER.warn("Not loading extension schemas, extensionDir or even midpoint.home is not defined.");
             return;
@@ -80,12 +98,11 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
         try {
             File file = new File(extensionDir);
             if (!file.exists() || !file.isDirectory()) {
-                LOGGER.warn("Extension dir '{}' does not exist, or is not a directory, skipping extension loading.",
-                        new Object[]{extensionDir});
+                LOGGER.warn("Extension dir '{}' does not exist, or is not a directory, skipping extension loading.", extensionDir);
                 return;
             }
 
-            schemaRegistry.registerPrismSchemasFromDirectory(file);
+            schemaRegistry.registerPrismSchemasFromDirectory(file, extensionFilesToIgnore);
         } catch (Exception ex) {
             throw new SchemaException(ex.getMessage(), ex);
         }

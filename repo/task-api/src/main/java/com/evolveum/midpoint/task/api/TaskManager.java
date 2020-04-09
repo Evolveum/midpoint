@@ -218,7 +218,7 @@ public interface TaskManager {
     /**
      * Creates new transient, running task instance.
      *
-     * This is fact creates usual "synchronous" task.
+     * This in fact creates usual "synchronous" task.
      *
      * This is useful for normal day-to-day tasks that are either
      * synchronous or start as a synchronous and are switched to
@@ -253,23 +253,30 @@ public interface TaskManager {
      *
      * Works only on persistent tasks.
      *
+     * Gets the task simply by fetching it from repository. No attempts to augment it with the live data nor Quartz scheduling
+     * information nor subtasks is done. TODO can we use options (noFetch? raw?) to achieve this?
+     *
      * @param taskOid OID of the persistent task.
      * @return Task instance
      * @throws SchemaException error dealing with resource schema
      * @throws ObjectNotFoundException wrong OID format, etc.
      */
     @NotNull
-    Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    Task getTaskPlain(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    /**
+     * Gets the task simply by fetching it from repository. No attempts to augment it with the live data nor Quartz scheduling
+     * information nor subtasks is done. TODO can we use options (noFetch? raw?) to achieve this?
+     */
+    @NotNull
+    Task getTaskPlain(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    /**
+     * Gets the task (as in getTaskPlain) but with its operation result.
+     */
     @NotNull
     Task getTaskWithResult(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-    /**
-     * BEWARE: This method does not obey taskManager-related options, e.g. retrieve(F_SUBTASK). If you need to apply them,
-     * use getTaskObject instead. See MID-5374.
-     */
-    @NotNull
-    Task getTask(String taskOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Returns a task with a given identifier.
@@ -686,12 +693,26 @@ public interface TaskManager {
     /**
      * Gets a list of all task categories.
      */
+    @Deprecated // Remove in 4.2
     List<String> getAllTaskCategories();
 
     /**
      * Returns a default handler URI for a given task category.
      */
+    @Deprecated // Remove in 4.2
     String getHandlerUriForCategory(String category);
+
+    /**
+     * Returns all registered handler URIs.
+     *
+     * @param nonDeprecatedOnly If true, only non-deprecated handler URIs are returned.
+     */
+    Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly);
+
+    /**
+     * Returns all registered handler URIs for given archetype.
+     */
+    Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly);
 
     /**
      * Validates a cron expression for scheduling tasks - without context of any given task.
@@ -714,6 +735,11 @@ public interface TaskManager {
      * matching a given task category.
      */
     void registerAdditionalHandlerUri(String uri, TaskHandler handler);
+
+    /**
+     * Registers additional (deprecated) handler URI for a given handler.
+     */
+    void registerDeprecatedHandlerUri(String uri, TaskHandler handler);
 
     void registerTaskDeletionListener(TaskDeletionListener listener);
 
@@ -785,7 +811,7 @@ public interface TaskManager {
     void setGlobalTracingOverride(@NotNull Collection<TracingRootType> roots, @NotNull TracingProfileType profile);
 
     // EXPERIMENTAL
-    void removeGlobalTracingOverride();
+    void unsetGlobalTracingOverride();
 
     /**
      * @return true if we consider this node to be "up" (alive). This is determined by looking at operational state

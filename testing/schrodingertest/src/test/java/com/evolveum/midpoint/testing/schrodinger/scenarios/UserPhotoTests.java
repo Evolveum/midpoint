@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -8,7 +8,7 @@ package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -18,7 +18,7 @@ import java.io.File;
 /**
  * Created by matus on 5/11/2018.
  */
-public class UserPhotoTests extends TestBase {
+public class UserPhotoTests extends AbstractSchrodingerTest {
 
     private static final String TEST_USER_LEO_NAME= "leonardo";
     private static final File PHOTO_SOURCE_FILE_LARGE = new File("./src/test/resources/images/leonardo_large_nc.jpg");

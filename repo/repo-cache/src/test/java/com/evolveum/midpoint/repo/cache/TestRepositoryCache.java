@@ -6,6 +6,24 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.PostConstruct;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -16,6 +34,8 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -25,28 +45,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
-import static org.testng.AssertJUnit.assertEquals;
-
-/**
- *
- */
-@SuppressWarnings("SameParameterValue") @ContextConfiguration(locations = {"classpath:ctx-repo-cache-test.xml" })
-public class TestRepositoryCache extends AbstractTestNGSpringContextTests {
+@SuppressWarnings("SameParameterValue")
+@ContextConfiguration(locations = { "classpath:ctx-repo-cache-test.xml" })
+public class TestRepositoryCache extends AbstractSpringTest implements InfraTestMixin {
 
     private static final String CLASS_DOT = TestRepositoryCache.class.getName() + ".";
 
@@ -104,18 +106,18 @@ public class TestRepositoryCache extends AbstractTestNGSpringContextTests {
         String oid = repositoryCache.addObject(object, null, result);
 
         PrismObject<T> object1 = repositoryCache.getObject(objectClass, oid, null, result);
-        display("1st object retrieved", object1);
+        displayDumpable("1st object retrieved", object1);
         assertEquals("Wrong object1", object, object1);
         object1.asObjectable().setDescription("garbage");
 
         PrismObject<T> object2 = repositoryCache.getObject(objectClass, oid, null, result);
-        display("2nd object retrieved", object2);
+        displayDumpable("2nd object retrieved", object2);
         assertEquals("Wrong object2", object, object2);
         object2.asObjectable().setDescription("total garbage");
 
         PrismObject<T> object3 = repositoryCache.getObject(objectClass, oid, null, result);
         assertEquals("Wrong object3", object, object3);
-        display("3rd object retrieved", object3);
+        displayDumpable("3rd object retrieved", object3);
 
         dumpStatistics();
         assertAddOperations(1);
@@ -211,7 +213,7 @@ public class TestRepositoryCache extends AbstractTestNGSpringContextTests {
             ObjectNotFoundException {
         SearchResultList<PrismObject<T>> existingObjects = repositoryCache.searchObjects(objectClass, null, null, result);
         for (PrismObject<T> existingObject : existingObjects) {
-            System.out.println("Deleting " + existingObject);
+            display("Deleting " + existingObject);
             repositoryCache.deleteObject(objectClass, existingObject.getOid(), result);
         }
     }
@@ -236,7 +238,7 @@ public class TestRepositoryCache extends AbstractTestNGSpringContextTests {
 
     private void dumpStatistics() {
         PerformanceInformation performanceInformation = repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
-        display("Repository statistics", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        displayValue("Repository statistics", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
     }
 
     private void clearStatistics() {

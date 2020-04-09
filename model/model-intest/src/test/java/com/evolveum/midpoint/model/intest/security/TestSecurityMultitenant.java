@@ -211,13 +211,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
         assertSearch(RoleType.class, null, getNumberOfRoles());
 
@@ -240,19 +238,17 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test010ImportOrgstruct() throws Exception {
-        final String TEST_NAME = "test010ImportOrgstruct";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         importObjectsFromFileNotRaw(ORG_MULTITENANT_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         dumpOrgTree();
@@ -377,15 +373,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test100AutzLetoRead() throws Exception {
-        final String TEST_NAME = "test100AutzLetoRead";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertGetAllow(UserType.class, USER_LETO_ATREIDES_OID);
@@ -409,7 +403,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertSearch(OrgType.class, null, ORG_ATREIDES_OID, ORG_CALADAN_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -419,15 +413,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test102AutzLetoAdd() throws Exception {
-        final String TEST_NAME = "test102AutzLetoAdd";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertAddAllow(USER_DUNCAN_FILE);
@@ -439,7 +431,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddDeny(USER_DMURR_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         login(USER_ADMINISTRATOR_USERNAME);
 
@@ -464,15 +456,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test104AutzLetoModify() throws Exception {
-        final String TEST_NAME = "test104AutzLetoModify";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertModifyAllow(UserType.class, USER_PAUL_ATREIDES_OID, UserType.F_LOCALITY, createPolyString("Arrakis"));
@@ -484,7 +474,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertModifyDeny(UserType.class, USER_EDRIC_OID, UserType.F_LOCALITY, createPolyString("Whatever"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -496,15 +486,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test106AutzLetoAddResourceTask() throws Exception {
-        final String TEST_NAME = "test106AutzLetoAddResourceTask";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertAddDummyResourceAllow(RESOURCE_DUMMY_CASTLE_CALADAN_FILE);
@@ -516,7 +504,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddDummyResourceDeny(RESOURCE_DUMMY_JUNCTION_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         login(USER_ADMINISTRATOR_USERNAME);
 
@@ -530,7 +518,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddAllow(resource, null);
     }
 
-    private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
         resource.asObjectable()
             .connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);
@@ -542,15 +530,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test109AutzLetoDelete() throws Exception {
-        final String TEST_NAME = "test109AutzLetoDelete";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertDeleteAllow(UserType.class, USER_DUNCAN_OID);
@@ -562,7 +548,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteDeny(UserType.class, USER_DMURR_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -572,15 +558,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test110AutzLetoAddOrgs() throws Exception {
-        final String TEST_NAME = "test110AutzLetoAddOrgs";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertAddAllow(ORG_ARRAKIS_FILE);
@@ -593,7 +577,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddDeny(ORG_JUNCTION_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         login(USER_ADMINISTRATOR_USERNAME);
 
@@ -627,15 +611,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test112AutzLetoProtectTenant() throws Exception {
-        final String TEST_NAME = "test112AutzLetoProtectTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Matching tenant
         assertAddDeny(ORG_ATREIDES_SUBTENANT_FILE);
@@ -686,7 +668,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteDeny(OrgType.class, ORG_GUILD_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -697,15 +679,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test114AutzLetoKeepWithinTenant() throws Exception {
-        final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAddAllow(ROLE_ATREIDES_GUARD_FILE);
 
@@ -750,7 +730,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 (task, result) -> unassignOrg(OrgType.class, ORG_CASTLE_CALADAN_OID, ORG_CALADAN_OID, task, result));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -760,15 +740,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test116AutzLetoProtectTenantAdminRole() throws Exception {
-        final String TEST_NAME = "test114AutzLetoKeepWithinTenant";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_LETO_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAddDeny(ROLE_ATREIDES_HACKER_FILE);
 
@@ -808,7 +786,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                         RoleType.F_POLICY_EXCEPTION, task, result, policyException));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -818,8 +796,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test118AutzLetoBusinessRoles() throws Exception {
-        final String TEST_NAME = "test118AutzLetoBusinessRoles";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -828,7 +804,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertAddAllow(ROLE_ATREIDES_GUARD_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertAddAllow(ROLE_ATREIDES_SWORDMASTER_FILE);
 
@@ -847,7 +823,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertDeleteAllow(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -858,8 +834,6 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test120AutzPaulEndUser() throws Exception {
-        final String TEST_NAME = "test120AutzPaulEndUser";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -868,7 +842,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         login(USER_PAUL_ATREIDES_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Requestable role
         assertAllow("assign guard to paul",
@@ -887,15 +861,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 (task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_CORRINO_EMPEROR_OID, task, result));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
 
     @Test
     public void test122AutzDuncanRoleManager() throws Exception {
-        final String TEST_NAME = "test122AutzDuncanRoleManager";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
@@ -905,7 +877,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         login(USER_DUNCAN_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertDeny("assign guard to paul",
                 (task, result) -> assignRole(USER_PAUL_ATREIDES_OID, ROLE_ATREIDES_GUARD_OID, task, result));
@@ -929,7 +901,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
                 (task, result) -> induceOrg(RoleType.class, ROLE_ATREIDES_SWORDMASTER_OID, ORG_CALADAN_OID, task, result));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }
@@ -944,15 +916,13 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
      */
     @Test
     public void test130AutzEdricRead() throws Exception {
-        final String TEST_NAME = "test120AutzEdricRead";
-        displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
 
         login(USER_EDRIC_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         // Wrong tenant
         assertGetDeny(UserType.class, USER_LETO_ATREIDES_OID);
@@ -970,7 +940,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertSearch(OrgType.class, null, 0);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertGlobalStateUntouched();
     }

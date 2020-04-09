@@ -117,11 +117,11 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test100ParallelApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> assignDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
@@ -130,9 +130,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userJackOid);
         executeChanges(assignDelta, createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
-        assertNotAssignedRole(userJackOid, roleRole51aOid, task, result);
-        assertNotAssignedRole(userJackOid, roleRole52aOid, task, result);
-        assertNotAssignedRole(userJackOid, roleRole53aOid, task, result);
+        assertNotAssignedRole(userJackOid, roleRole51aOid, result);
+        assertNotAssignedRole(userJackOid, roleRole52aOid, result);
+        assertNotAssignedRole(userJackOid, roleRole53aOid, result);
 
         display("Task after operation", task);
 
@@ -165,8 +165,8 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test110ParallelApprovalsAdd() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         if (listener != null) {
             taskManager.unregisterTaskListener(listener);
@@ -175,7 +175,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         UserType alice = prismContext.createObjectable(UserType.class)
                 .name("alice")
                 .assignment(ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext))
@@ -220,11 +220,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test120ParallelApprovalsInTwoOperations() throws Exception {
         login(userAdministrator);
 
-        String testName = getTestNameShort();
-
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -236,7 +234,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> assignDelta1 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
@@ -250,9 +248,9 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
                 .asObjectDeltaCast(userBobOid);
         executeChanges(assignDelta2, createExecuteImmediatelyAfterApproval(), task2, result2); // should start approval processes
-        assertNotAssignedRole(userBobOid, roleRole51aOid, task0, result0);
-        assertNotAssignedRole(userBobOid, roleRole52aOid, task0, result0);
-        assertNotAssignedRole(userBobOid, roleRole53aOid, task0, result0);
+        assertNotAssignedRole(userBobOid, roleRole51aOid, result0);
+        assertNotAssignedRole(userBobOid, roleRole52aOid, result0);
+        assertNotAssignedRole(userBobOid, roleRole53aOid, result0);
 
         display("Task1 after operation", task1);
         display("Task2 after operation", task2);
@@ -286,12 +284,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
     public void test130ParallelApprovalsInThreeSummarizingOperations() throws Exception {
         login(userAdministrator);
 
-        String testName = getTestNameShort();
-
-        Task task0 = createTask(testName);
-        Task task1 = createTask(testName);
-        Task task2 = createTask(testName);
-        Task task3 = createTask(testName);
+        Task task0 = createPlainTask("task0");
+        Task task1 = createPlainTask("task1");
+        Task task2 = createPlainTask("task2");
+        Task task3 = createPlainTask("task3");
         OperationResult result0 = task0.getResult();
         OperationResult result1 = task1.getResult();
         OperationResult result2 = task2.getResult();
@@ -304,14 +300,14 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
         taskManager.registerTaskListener(listener);
 
         // WHEN
-        displayWhen();
+        when();
         // three separate approval contexts, "summarizing" as the deltas are executed after all approvals
         assignRole(userChuckOid, roleRole51aOid, task1, result1);
         assignRole(userChuckOid, roleRole52aOid, task2, result2);
         assignRole(userChuckOid, roleRole53aOid, task3, result3);
-        assertNotAssignedRole(userChuckOid, roleRole51aOid, task0, result0);
-        assertNotAssignedRole(userChuckOid, roleRole52aOid, task0, result0);
-        assertNotAssignedRole(userChuckOid, roleRole53aOid, task0, result0);
+        assertNotAssignedRole(userChuckOid, roleRole51aOid, result0);
+        assertNotAssignedRole(userChuckOid, roleRole52aOid, result0);
+        assertNotAssignedRole(userChuckOid, roleRole53aOid, result0);
 
         display("Task1 after operation", task1);
         display("Task2 after operation", task2);

@@ -7,24 +7,20 @@
 
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.testng.annotations.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 
-/**
- * @author mederly
- */
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 @SuppressWarnings("Duplicates")
 public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalProcessorTest {
 
@@ -35,10 +31,6 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 
     @Test
     public void testParseObjectsIteratively_2_Wrong() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_2_Wrong";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -73,15 +65,12 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
         System.out.println("Parsed objects (standard way):");
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
-        assertFalse("Nodes are not different", nodesStandard.equals(nodes));
+        assertThat(nodesStandard).withFailMessage("Nodes are not different")
+                .isNotEqualTo(nodes);
     }
 
     @Test
     public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_2_Wrong_2";
-
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createParser();
 
@@ -107,16 +96,11 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
 
     @Test
     public void testParseObjectsIteratively_9_listSingle() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_9_listSingle";
-
-        standardTest(TEST_NAME, OBJECTS_9_LIST_SINGLE, 1);
+        standardTest(OBJECTS_9_LIST_SINGLE, 1);
     }
 
     @Test
     public void testParseObjectsIteratively_10_listOfLists() throws Exception {
-        final String TEST_NAME = "testParseObjectsIteratively_10_listOfLists";
-
-        standardTest(TEST_NAME, OBJECTS_10_LIST_OF_LISTS, 3);
+        standardTest(OBJECTS_10_LIST_OF_LISTS, 3);
     }
-
 }

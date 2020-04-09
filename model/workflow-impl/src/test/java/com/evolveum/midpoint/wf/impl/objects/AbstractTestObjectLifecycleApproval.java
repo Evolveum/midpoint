@@ -6,6 +6,23 @@
  */
 package com.evolveum.midpoint.wf.impl.objects;
 
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -16,42 +33,21 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 /**
  * Testing approvals of role lifecycle: create/modify/delete role.
- *
+ * <p>
  * Subclasses provide specializations regarding ways how rules and/or approvers are attached to roles.
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTestPolicy {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(AbstractTestObjectLifecycleApproval.class);
 
     static final File TEST_RESOURCE_DIR = new File("src/test/resources/objects");
 
@@ -93,8 +89,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
     public void test010CreateRolePirate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         RoleType pirate = new RoleType(prismContext);
         pirate.setName(PolyStringType.fromOrig("pirate"));
@@ -110,8 +106,8 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         PrismReferenceValue pirateOwner = getPrismContext().itemFactory().createReferenceValue(rolePirateOid, RoleType.COMPLEX_TYPE);
         pirateOwner.setRelation(SchemaConstants.ORG_OWNER);
         executeChanges(prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
-                .asObjectDelta(USER_PIRATE_OWNER_OID),
+                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(pirateOwner, prismContext))
+                        .asObjectDelta(USER_PIRATE_OWNER_OID),
                 null, task, result);
         PrismObject<RoleType> pirateAfter = getRole(rolePirateOid);
         display("Pirate role", pirateAfter);
@@ -135,15 +131,14 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         ObjectDelta<RoleType> descriptionDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("Bloody pirate")
                 .asObjectDelta(rolePirateOid);
-        ObjectDelta<RoleType> delta0 = prismContext.deltaFactory().object()
+        prismContext.deltaFactory().object()
                 .createModifyDelta(rolePirateOid, Collections.emptyList(), RoleType.class);
-        //noinspection UnnecessaryLocalVariable
-        ObjectDelta<RoleType> delta1 = descriptionDelta;
         ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role \"pirate\"");
         ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
-        modifyObject(descriptionDelta, delta0, delta1, false, true, USER_PIRATE_OWNER_OID,
+        modifyObject(descriptionDelta, false, true, USER_PIRATE_OWNER_OID,
                 Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem),
-                () -> {},
+                () -> {
+                },
                 () -> assertNull("Description is modified", getRoleSimple(rolePirateOid).getDescription()),
                 () -> assertEquals("Description was NOT modified", "Bloody pirate", getRoleSimple(rolePirateOid).getDescription()));
 
@@ -164,21 +159,17 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
 
         ExpectedTask expectedTask = new ExpectedTask(null, "Deleting role \"pirate\"");
         ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(USER_PIRATE_OWNER_OID, null, expectedTask);
-        deleteObject(RoleType.class, rolePirateOid, false, true, USER_PIRATE_OWNER_OID,
+        deleteObject(RoleType.class, rolePirateOid, false, true,
                 Collections.singletonList(expectedTask), Collections.singletonList(expectedWorkItem));
     }
 
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
-
-    private void createObject(ObjectType object, boolean immediate, boolean approve, String assigneeOid) throws Exception {
+    private void createObject(
+            ObjectType object, boolean immediate, boolean approve, String assigneeOid)
+            throws Exception {
         //noinspection unchecked
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta((PrismObject) object.asPrismObject());
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 //noinspection unchecked
@@ -199,7 +190,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
                     assertNoObject(object);
                     ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + object.getName().getOrig() + "\"");
                     ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(assigneeOid, null, expectedTask);
-                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                             null,
                             Collections.singletonList(expectedTask),
                             Collections.singletonList(expectedWorkItem));
@@ -232,15 +223,13 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         }, 1);
     }
 
-    public <T extends ObjectType> void modifyObject(ObjectDelta<T> objectDelta,
-            ObjectDelta<T> expectedDelta0, ObjectDelta<T> expectedDelta1,
-            boolean immediate, boolean approve,
-            String assigneeOid,
+    public <T extends ObjectType> void modifyObject(
+            ObjectDelta<T> objectDelta, boolean immediate, boolean approve, String assigneeOid,
             List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems,
-            Runnable assertDelta0Executed,
-            Runnable assertDelta1NotExecuted, Runnable assertDelta1Executed) throws Exception {
+            Runnable assertDelta0Executed, Runnable assertDelta1NotExecuted, Runnable assertDelta1Executed)
+            throws Exception {
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 Class<T> clazz = objectDelta.getObjectTypeClass();
@@ -260,20 +249,20 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
                     //                    ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
                     //                    assertDeltasEqual("Wrong delta left as primary focus delta.", expectedDelta0, realDelta0);
                     assertDelta1NotExecuted.run();
-                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                             objectDelta.getOid(), expectedTasks, expectedWorkItems);
                 }
             }
 
             @Override
-            protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
+            protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
                 assertDelta0Executed.run();
                 assertDelta1NotExecuted.run();
             }
 
             @Override
             protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
-                    Task opTask, OperationResult result) throws Exception {
+                    Task opTask, OperationResult result) {
                 assertDelta0Executed.run();
                 if (approve) {
                     assertDelta1Executed.run();
@@ -294,12 +283,11 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
         }, 1);
     }
 
-    public <T extends ObjectType> void deleteObject(Class<T> clazz, String objectOid,
-            boolean immediate, boolean approve,
-            String assigneeOid,
+    public <T extends ObjectType> void deleteObject(
+            Class<T> clazz, String objectOid, boolean immediate, boolean approve,
             List<ExpectedTask> expectedTasks, List<ExpectedWorkItem> expectedWorkItems) throws Exception {
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<T> lensContext = createLensContext(clazz);
@@ -318,19 +306,19 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
                     //                    ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
                     //                    ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
                     //                    assertTrue("Delta0 is not empty: " + realDelta0.debugDump(), realDelta0.isEmpty());
-                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                    assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                             objectOid, expectedTasks, expectedWorkItems);
                 }
             }
 
             @Override
-            protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
+            protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
                 assertObjectExists(clazz, objectOid);
             }
 
             @Override
             protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
-                    Task opTask, OperationResult result) throws Exception {
+                    Task opTask, OperationResult result) {
                 if (approve) {
                     assertObjectDoesntExist(clazz, objectOid);
                 } else {
@@ -344,7 +332,7 @@ public abstract class AbstractTestObjectLifecycleApproval extends AbstractWfTest
             }
 
             @Override
-            protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+            protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) {
                 return approve;
             }
         }, 1);

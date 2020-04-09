@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidpointProviderManager;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
@@ -21,16 +22,19 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
@@ -54,6 +58,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     @Autowired
     private AuthChannelRegistryImpl authChannelRegistry;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
 //    private SecurityFilterChain authenticatedFilter;
     private AuthenticationsPolicyType authenticationPolicy;
@@ -102,15 +109,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
 
-        getPreLogoutFilter().doFilter(request, response);
-
-//        //authenticated request
-//        if (mpAuthentication != null && mpAuthentication.isAuthenticated()) {
-//            internalProcessing(httpRequest, response, chain);
-//            return;
-//        }
-
-        //load security policy with authentication
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
         PrismObject<SecurityPolicyType> authPolicy = null;
@@ -143,21 +141,29 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationSequenceType sequence;
         // permitAll pages (login, select ID for saml ...) during processing of modules
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
-          sequence = mpAuthentication.getSequence();
+            sequence = mpAuthentication.getSequence();
         } else {
             sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy);
         }
 
+
         if (mpAuthentication != null && !mpAuthentication.getSequence().equals(sequence) && mpAuthentication.isAuthenticated()
-                 && ((sequence != null && sequence.getChannel() != null
-                && mpAuthentication.getAuthenticationChannel().getChannelId().equals(sequence.getChannel().getChannelId()))
-        || mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest)))) {
-            sequence = mpAuthentication.getSequence();
+            && (((sequence != null && sequence.getChannel() != null && mpAuthentication.getAuthenticationChannel().matchChannel(sequence)))
+                || mpAuthentication.getAuthenticationChannel().getChannelId().equals(SecurityUtils.findChannelByRequest(httpRequest)))) {
+                if (SecurityUtils.isBasePathForSequence(httpRequest, sequence)) {
+                    mpAuthentication.getAuthenticationChannel().setPathAfterLogout(((HttpServletRequest) request).getServletPath());
+                    ModuleAuthentication authenticatedModule = SecurityUtils.getAuthenticatedModule();
+                    authenticatedModule.setInternalLogout(true);
+                }
+                sequence = mpAuthentication.getSequence();
+
         }
 
         if (sequence == null) {
             throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + authPolicy.getOid());
         }
+
+        getPreLogoutFilter().doFilter(request, response);
 
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
 
@@ -165,6 +171,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         //change sequence of authentication during another sequence
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
+            ((MidpointProviderManager)authenticationManager).getProviders().clear();
             authModules = SecurityUtils.buildModuleFilters(authModuleRegistry, sequence, httpRequest, authenticationsPolicy.getModules(),
                     credentialsPolicy, sharedObjects, authenticationChannel);
         } else {

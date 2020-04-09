@@ -39,8 +39,8 @@ public class TestValidityRecomputeTaskPartitioned extends TestValidityRecomputeT
     protected void assertLastScanTimestamp(String taskOid, XMLGregorianCalendar startCal, XMLGregorianCalendar endCal)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult(TestValidityRecomputeTaskPartitioned.class.getName() + ".assertLastScanTimestamp");
-        Task master = taskManager.getTask(taskOid, result);
+        OperationResult result = createOperationResult("assertLastScanTimestamp");
+        Task master = taskManager.getTaskPlain(taskOid, result);
         for (Task subtask : master.listSubtasks(result)) {
             super.assertLastScanTimestamp(subtask.getOid(), startCal, endCal);
         }

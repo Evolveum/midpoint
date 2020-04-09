@@ -11,6 +11,8 @@ import java.util.Collections;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,10 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @Component
@@ -49,14 +47,9 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 
     public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
 
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ModelService model;
+    @Autowired private TaskManager taskManager;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ModelService model;
 
     private static final Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
 
@@ -123,5 +116,10 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.EXECUTE_CHANGES;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

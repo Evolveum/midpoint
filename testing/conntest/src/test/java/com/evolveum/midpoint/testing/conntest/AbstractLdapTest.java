@@ -6,44 +6,18 @@ package com.evolveum.midpoint.testing.conntest;
  * and European Union Public License. See LICENSE file for details.
  */
 
+import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.LDAP_CONNECTOR_TYPE;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
@@ -56,33 +30,31 @@ import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
-import org.apache.directory.api.ldap.model.message.BindRequest;
-import org.apache.directory.api.ldap.model.message.BindRequestImpl;
-import org.apache.directory.api.ldap.model.message.BindResponse;
-import org.apache.directory.api.ldap.model.message.Response;
-import org.apache.directory.api.ldap.model.message.ResultCodeEnum;
-import org.apache.directory.api.ldap.model.message.SearchRequest;
-import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
-import org.apache.directory.api.ldap.model.message.SearchResultEntry;
-import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.message.*;
 import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Dn;
 import org.apache.directory.api.ldap.model.name.Rdn;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -94,40 +66,19 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.Lsof;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 /**
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-conntest-test-main.xml" })
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractLdapTest.class);
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -155,12 +106,12 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     // Barbossa after rename
     protected static final String USER_CPTBARBOSSA_USERNAME = "cptbarbossa";
 
-    protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
+    protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
     protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
     protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
     protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 
-    protected static final File USER_LECHUCK_FILE = new File (COMMON_DIR, "user-lechuck.xml");
+    protected static final File USER_LECHUCK_FILE = new File(COMMON_DIR, "user-lechuck.xml");
     protected static final String USER_LECHUCK_OID = "0201583e-ffca-11e5-a949-affff1aa5a60";
     protected static final String USER_LECHUCK_USERNAME = "lechuck";
     protected static final String USER_LECHUCK_FULL_NAME = "LeChuck";
@@ -170,7 +121,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected static final QName ASSOCIATION_GROUP_NAME = new QName(MidPointConstants.NS_RI, "group");
 
-    @Autowired(required = true)
+    @Autowired
     protected MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired
@@ -200,7 +151,6 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
         stopCommand = getStopSystemCommand();
     }
-
 
     public abstract String getStartSystemCommand();
 
@@ -270,11 +220,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected String getPeopleLdapSuffix() {
-        return "ou=People,"+getLdapSuffix();
+        return "ou=People," + getLdapSuffix();
     }
 
     protected String getGroupsLdapSuffix() {
-        return "ou=groups,"+getLdapSuffix();
+        return "ou=groups," + getLdapSuffix();
     }
 
     public String getPrimaryIdentifierAttributeName() {
@@ -282,7 +232,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     public QName getPrimaryIdentifierAttributeQName() {
-        return new QName(MidPointConstants.NS_RI,getPrimaryIdentifierAttributeName());
+        return new QName(MidPointConstants.NS_RI, getPrimaryIdentifierAttributeName());
     }
 
     protected abstract String getLdapGroupObjectClass();
@@ -321,7 +271,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return new QName(MidPointConstants.NS_RI, "group");
     }
 
-    protected String getLdapConnectorClassName() { return LDAP_CONNECTOR_TYPE; }
+    protected String getLdapConnectorClassName() {
+        return LDAP_CONNECTOR_TYPE;
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -338,6 +290,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         modelService.postInit(initResult);
 
+        // TODO what now? config is unused
         // to get profiling facilities (until better API is available)
 //        LoggingConfigurationManager.configure(
 //                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
@@ -379,40 +332,33 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-
     @Test
     public void test010Connection() throws Exception {
-        final String TEST_NAME = "test010Connection";
-        displayTestTitle(TEST_NAME);
+        Task task = getTestTask();
 
-        Task task = createTask(TEST_NAME);
+        OperationResult testResult = provisioningService.testResource(getResourceOid(), task);
 
-        OperationResult    testResult = provisioningService.testResource(getResourceOid(), task);
-
-        display("Test connection result",testResult);
-        TestUtil.assertSuccess("Test connection failed",testResult);
+        display("Test connection result", testResult);
+        TestUtil.assertSuccess("Test connection failed", testResult);
 
         if (isAssertOpenFiles()) {
             // Set lsof baseline only after the first connection.
             // We will have more reasonable number here.
             lsof.rememberBaseline();
-            display("lsof baseline", lsof);
+            displayDumpable("lsof baseline", lsof);
         }
     }
 
     @Test
     public void test020Schema() throws Exception {
-        final String TEST_NAME = "test020Schema";
-        displayTestTitle(TEST_NAME);
-
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        display("Resource schema", resourceSchema);
+        displayDumpable("Resource schema", resourceSchema);
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
         accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(getAccountObjectClass());
-        assertNotNull("No definition for object class "+getAccountObjectClass(), accountObjectClassDefinition);
-        display("Account object class def", accountObjectClassDefinition);
+        assertNotNull("No definition for object class " + getAccountObjectClass(), accountObjectClassDefinition);
+        displayDumpable("Account object class def", accountObjectClassDefinition);
 
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 1, 1);
@@ -442,9 +388,6 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     @Test
     public void test030Capabilities() throws Exception {
-        final String TEST_NAME = "test030Capabilities";
-        displayTestTitle(TEST_NAME);
-
         CapabilitiesType capabilities = resourceType.getCapabilities();
         display("Resource capabilities", capabilities);
         assertNotNull("Null capabilities", capabilities);
@@ -480,12 +423,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected <C extends CapabilityType> void assertCapability(List<Object> capabilities, Class<C> capabilityClass) {
         C capability = CapabilityUtil.getCapability(capabilities, capabilityClass);
-        assertNotNull("No "+capabilityClass.getSimpleName()+" capability", capability);
-        assertTrue("Capability "+capabilityClass.getSimpleName()+" is disabled", CapabilityUtil.isCapabilityEnabled(capability));
+        assertNotNull("No " + capabilityClass.getSimpleName() + " capability", capability);
+        assertTrue("Capability " + capabilityClass.getSimpleName() + " is disabled", CapabilityUtil.isCapabilityEnabled(capability));
     }
 
-
-    protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
+    protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) {
         ResourceAttributeDefinition<T> ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
                 .itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
@@ -498,20 +440,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return query;
     }
 
-    protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return doSearch(TEST_NAME, query, null, expectedSize, task, result);
+    protected SearchResultList<PrismObject<ShadowType>> doSearch(ObjectQuery query, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return doSearch(query, null, expectedSize, task, result);
     }
 
-    protected SearchResultList<PrismObject<ShadowType>> doSearch(final String TEST_NAME, ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>(expectedSize);
+    protected SearchResultList<PrismObject<ShadowType>> doSearch(ObjectQuery query, GetOperationOptions rootOptions, int expectedSize, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        final List<PrismObject<ShadowType>> foundObjects = new ArrayList<>(expectedSize);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
             @Override
             public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-//                LOGGER.trace("Found {}", object);
                 String name = object.asObjectable().getName().getOrig();
-                for(PrismObject<ShadowType> foundShadow: foundObjects) {
+                for (PrismObject<ShadowType> foundShadow : foundObjects) {
                     if (!allowDuplicateSearchResults() && foundShadow.asObjectable().getName().getOrig().equals(name)) {
-                        AssertJUnit.fail("Duplicate name "+name);
+                        AssertJUnit.fail("Duplicate name " + name);
                     }
                 }
                 foundObjects.add(object);
@@ -528,8 +469,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        display("Searching shadows, options="+options+", query", query);
+        when();
+        displayDumpable("Searching shadows, options=" + options + ", query", query);
         SearchResultMetadata searchResultMetadata = modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
 
         // THEN
@@ -539,19 +480,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         if (expectedSize != foundObjects.size()) {
             if (foundObjects.size() < 10) {
                 display("Found objects", foundObjects);
-                AssertJUnit.fail("Unexpected number of accounts. Expected "+expectedSize+", found "+foundObjects.size()+": "+foundObjects);
+                AssertJUnit.fail("Unexpected number of accounts. Expected " + expectedSize + ", found " + foundObjects.size() + ": " + foundObjects);
             } else {
-                AssertJUnit.fail("Unexpected number of accounts. Expected "+expectedSize+", found "+foundObjects.size()+" (too many to display)");
+                AssertJUnit.fail("Unexpected number of accounts. Expected " + expectedSize + ", found " + foundObjects.size() + " (too many to display)");
             }
         }
 
-        SearchResultList<PrismObject<ShadowType>> resultList = new SearchResultList<>(foundObjects, searchResultMetadata);
-
-        return resultList;
+        return new SearchResultList<>(foundObjects, searchResultMetadata);
     }
 
     protected Entry getLdapAccountByUid(String uid) throws LdapException, IOException, CursorException {
-        return searchLdapAccount("(uid="+uid+")");
+        return searchLdapAccount("(uid=" + uid + ")");
     }
 
     protected Entry getLdapAccountByCn(String cn) throws LdapException, IOException, CursorException {
@@ -559,7 +498,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected Entry getLdapAccountByCn(UserLdapConnectionConfig config, String cn) throws LdapException, IOException, CursorException {
-        return searchLdapAccount(config, "(cn="+cn+")");
+        return searchLdapAccount(config, "(cn=" + cn + ")");
     }
 
     protected Entry searchLdapAccount(String filter) throws LdapException, IOException, CursorException {
@@ -571,10 +510,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         List<Entry> entries = ldapSearch(config, connection, filter);
         ldapDisconnect(connection);
 
-        assertEquals("Unexpected number of entries for "+filter+": "+entries, 1, entries.size());
-        Entry entry = entries.get(0);
+        assertEquals("Unexpected number of entries for " + filter + ": " + entries, 1, entries.size());
 
-        return entry;
+        return entries.get(0);
     }
 
     protected Entry assertLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
@@ -585,13 +523,12 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected Entry getLdapGroupByName(String name) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect();
-        List<Entry> entries = ldapSearch(connection, "(&(cn="+name+")(objectClass="+getLdapGroupObjectClass()+"))");
+        List<Entry> entries = ldapSearch(connection, "(&(cn=" + name + ")(objectClass=" + getLdapGroupObjectClass() + "))");
         ldapDisconnect(connection);
 
-        assertEquals("Unexpected number of entries for group cn="+name+": "+entries, 1, entries.size());
-        Entry entry = entries.get(0);
+        assertEquals("Unexpected number of entries for group cn=" + name + ": " + entries, 1, entries.size());
 
-        return entry;
+        return entries.get(0);
     }
 
     protected Entry assertLdapGroup(String cn) throws LdapException, IOException, CursorException {
@@ -602,9 +539,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected void assertNoLdapGroup(String cn) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect();
-        List<Entry> entries = ldapSearch(connection, "(&(cn="+cn+")(objectClass="+getLdapGroupObjectClass()+"))");
+        List<Entry> entries = ldapSearch(connection, "(&(cn=" + cn + ")(objectClass=" + getLdapGroupObjectClass() + "))");
         ldapDisconnect(connection);
-        assertEquals("Unexpected LDAP group "+cn+": "+entries, 0, entries.size());
+        assertEquals("Unexpected LDAP group " + cn + ": " + entries, 0, entries.size());
     }
 
     protected void assertAttribute(Entry entry, String attrName, String expectedValue) throws LdapInvalidAttributeValueException {
@@ -614,18 +551,18 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             if (expectedValue == null) {
                 return;
             } else {
-                AssertJUnit.fail("No attribute "+attrName+" in "+dn+", expected: "+expectedValue);
+                AssertJUnit.fail("No attribute " + attrName + " in " + dn + ", expected: " + expectedValue);
             }
         } else {
-            assertEquals("Wrong attribute "+attrName+" in "+dn, expectedValue, ldapAttribute.getString());
+            assertEquals("Wrong attribute " + attrName + " in " + dn, expectedValue, ldapAttribute.getString());
         }
     }
 
-    protected void assertNoAttribute(Entry entry, String attrName) throws LdapInvalidAttributeValueException {
+    protected void assertNoAttribute(Entry entry, String attrName) {
         String dn = entry.getDn().toString();
         Attribute ldapAttribute = entry.get(attrName);
         if (ldapAttribute != null) {
-                AssertJUnit.fail("Unexpected attribute "+attrName+" in "+dn+": "+ldapAttribute);
+            AssertJUnit.fail("Unexpected attribute " + attrName + " in " + dn + ": " + ldapAttribute);
         }
     }
 
@@ -633,14 +570,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertAttributeContains(entry, attrName, expectedValue, null);
     }
 
-    protected void assertAttributeContains(Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule) throws LdapInvalidAttributeValueException, SchemaException {
+    protected void assertAttributeContains(
+            Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule)
+            throws SchemaException {
         String dn = entry.getDn().toString();
         Attribute ldapAttribute = entry.get(attrName);
         if (ldapAttribute == null) {
             if (expectedValue == null) {
                 return;
             } else {
-                AssertJUnit.fail("No attribute "+attrName+" in "+dn+", expected: "+expectedValue);
+                AssertJUnit.fail("No attribute " + attrName + " in " + dn + ", expected: " + expectedValue);
             }
         } else {
             List<String> vals = new ArrayList<>();
@@ -658,7 +597,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
                 }
                 vals.add(value.getString());
             }
-            AssertJUnit.fail("Wrong attribute "+attrName+" in "+dn+" expected to contain value " + expectedValue + " but it has values " + vals);
+            AssertJUnit.fail("Wrong attribute " + attrName + " in " + dn + " expected to contain value " + expectedValue + " but it has values " + vals);
         }
     }
 
@@ -666,22 +605,18 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertAttributeNotContains(entry, attrName, expectedValue, null);
     }
 
-    protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule) throws LdapInvalidAttributeValueException, SchemaException {
+    protected void assertAttributeNotContains(Entry entry, String attrName, String expectedValue, MatchingRule<String> matchingRule) throws SchemaException {
         String dn = entry.getDn().toString();
         Attribute ldapAttribute = entry.get(attrName);
-        if (ldapAttribute == null) {
-            return;
-        } else {
-            Iterator<Value<?>> iterator = ldapAttribute.iterator();
-            while (iterator.hasNext()) {
-                Value<?> value = iterator.next();
+        if (ldapAttribute != null) {
+            for (Value<?> value : ldapAttribute) {
                 if (matchingRule == null) {
                     if (expectedValue.equals(value.getString())) {
-                        AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+                        AssertJUnit.fail("Attribute " + attrName + " in " + dn + " contains value " + expectedValue + ", but it should not have it");
                     }
                 } else {
                     if (matchingRule.match(expectedValue, value.getString())) {
-                        AssertJUnit.fail("Attribute "+attrName+" in "+dn+" contains value " + expectedValue + ", but it should not have it");
+                        AssertJUnit.fail("Attribute " + attrName + " in " + dn + " contains value " + expectedValue + ", but it should not have it");
                     }
                 }
             }
@@ -695,7 +630,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return entry;
     }
 
-    protected Entry getLdapEntry(LdapNetworkConnection connection, String dn) throws LdapException, IOException, CursorException {
+    protected Entry getLdapEntry(LdapNetworkConnection connection, String dn) throws LdapException, CursorException {
         List<Entry> entries = ldapSearch(connection, dn, "(objectclass=*)", SearchScope.OBJECT, "*");
         if (entries.isEmpty()) {
             return null;
@@ -705,15 +640,15 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
         LdapNetworkConnection connection = ldapConnect();
-        List<Entry> entries = ldapSearch(connection, "(uid="+uid+")");
+        List<Entry> entries = ldapSearch(connection, "(uid=" + uid + ")");
         ldapDisconnect(connection);
 
-        assertEquals("Unexpected number of entries for uid="+uid+": "+entries, 0, entries.size());
+        assertEquals("Unexpected number of entries for uid=" + uid + ": " + entries, 0, entries.size());
     }
 
     protected void assertNoEntry(String dn) throws LdapException, IOException, CursorException {
         Entry entry = getLdapEntry(dn);
-        assertNull("Expected no entry "+dn+", but found "+entry, entry);
+        assertNull("Expected no entry " + dn + ", but found " + entry, entry);
     }
 
     protected void assertLdapGroupMember(Entry accountEntry, String groupName) throws LdapException, IOException, CursorException, SchemaException {
@@ -747,8 +682,8 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected List<Entry> ldapSearch(LdapNetworkConnection connection, String baseDn, String filter, SearchScope scope, String... attributes) throws LdapException, CursorException {
-        LOGGER.trace("LDAP search base={}, filter={}, scope={}, attributes={}",
-                new Object[]{baseDn, filter, scope, attributes});
+        logger.trace("LDAP search base={}, filter={}, scope={}, attributes={}",
+                baseDn, filter, scope, attributes);
 
         SearchRequest searchRequest = new SearchRequestImpl();
         searchRequest.setBase(new Dn(baseDn));
@@ -757,21 +692,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         searchRequest.addAttributes(attributes);
         searchRequest.ignoreReferrals();
 
-        List<Entry> entries = new ArrayList<Entry>();
+        List<Entry> entries = new ArrayList<>();
         try {
             SearchCursor searchCursor = connection.search(searchRequest);
             while (searchCursor.next()) {
                 Response response = searchCursor.get();
                 if (response instanceof SearchResultEntry) {
-                    Entry entry = ((SearchResultEntry)response).getEntry();
+                    Entry entry = ((SearchResultEntry) response).getEntry();
                     entries.add(entry);
                 }
             }
             searchCursor.close();
         } catch (IOException e) {
-            throw new IllegalStateException("IO Error: "+e.getMessage(), e);
+            throw new IllegalStateException("IO Error: " + e.getMessage(), e);
         } catch (CursorLdapReferralException e) {
-            throw new IllegalStateException("Got referral to: "+e.getReferralInfo(), e);
+            throw new IllegalStateException("Got referral to: " + e.getReferralInfo(), e);
         }
         return entries;
     }
@@ -795,18 +730,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         int foundEntries = 0;
         while (cursor.next()) {
             Entry entryFound = cursor.get();
-            LOGGER.trace("Search-after-auth found: {}", entryFound);
+            logger.trace("Search-after-auth found: {}", entryFound);
             foundEntries++;
         }
         cursor.close();
-        LOGGER.debug("Search-after-auth found {} entries", foundEntries);
+        logger.debug("Search-after-auth found {} entries", foundEntries);
         ldapDisconnect(conn);
         if (foundEntries != 1) {
-            throw new SecurityException("Cannot read my own entry ("+entry.getDn()+")");
+            throw new SecurityException("Cannot read my own entry (" + entry.getDn() + ")");
         }
     }
 
-    protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {
+    protected Entry addLdapAccount(String uid, String cn, String givenName, String sn)
+            throws LdapException, IOException {
         Entry entry = createAccountEntry(uid, cn, givenName, sn);
         addLdapEntry(entry);
         return entry;
@@ -816,9 +752,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         LdapNetworkConnection connection = ldapConnect();
         try {
             connection.add(entry);
-            display("Added LDAP account:\n"+entry);
+            display("Added LDAP account:\n" + entry);
         } catch (Exception e) {
-            display("Error adding entry:\n"+entry+"\nError: "+e.getMessage());
+            display("Error adding entry:\n" + entry + "\nError: " + e.getMessage());
             ldapDisconnect(connection);
             throw e;
         }
@@ -835,17 +771,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return entry;
     }
 
-    protected Entry addLdapGroup(String cn, String description, String... memberDns) throws LdapException, IOException, CursorException {
+    protected Entry addLdapGroup(String cn, String description, String... memberDns)
+            throws LdapException, IOException {
         LdapNetworkConnection connection = ldapConnect();
         Entry entry = createGroupEntry(cn, description, memberDns);
-        LOGGER.trace("Adding LDAP entry:\n{}", entry);
+        logger.trace("Adding LDAP entry:\n{}", entry);
         connection.add(entry);
-        display("Added LDAP group:"+entry);
+        display("Added LDAP group:" + entry);
         ldapDisconnect(connection);
         return entry;
     }
 
-    protected Entry createGroupEntry(String cn, String description, String... memberDns) throws LdapException {
+    protected Entry createGroupEntry(String cn, String description, String... memberDns)
+            throws LdapException {
         Entry entry = new DefaultEntry(toGroupDn(cn),
                 "objectclass", getLdapGroupObjectClass(),
                 "cn", cn,
@@ -859,7 +797,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     protected void deleteLdapEntry(String dn) throws LdapException, IOException {
         LdapNetworkConnection connection = ldapConnect();
         connection.delete(dn);
-        display("Deleted LDAP entry: "+dn);
+        display("Deleted LDAP entry: " + dn);
         ldapDisconnect(connection);
     }
 
@@ -878,7 +816,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         Entry entry = getLdapEntry(connection, dn);
         if (entry != null) {
             connection.delete(dn);
-            display("Cleaning up LDAP entry: "+dn);
+            display("Cleaning up LDAP entry: " + dn);
         }
         ldapDisconnect(connection);
     }
@@ -888,19 +826,19 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected String toAccountDn(String username) {
-        return "uid="+username+","+getPeopleLdapSuffix();
+        return "uid=" + username + "," + getPeopleLdapSuffix();
     }
 
     protected Rdn toAccountRdn(String username, String fullName) {
         try {
             return new Rdn(new Ava("uid", username));
         } catch (LdapInvalidDnException e) {
-            throw new IllegalStateException(e.getMessage(),e);
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
     protected String toGroupDn(String cn) {
-        return "cn="+cn+","+getGroupsLdapSuffix();
+        return "cn=" + cn + "," + getGroupsLdapSuffix();
     }
 
     protected String getAttributeAsString(Entry entry, String primaryIdentifierAttributeName) throws LdapInvalidAttributeValueException {
@@ -945,19 +883,18 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
             config.setBindDn(getLdapBindDn());
             config.setBindPassword(getLdapBindPassword());
         }
-        LOGGER.trace("LDAP connect to {}:{} as {}",
+        logger.trace("LDAP connect to {}:{} as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
 
         if (useSsl()) {
             config.setUseSsl(true);
             TrustManager trustManager = new X509TrustManager() {
-                public void checkClientTrusted(X509Certificate[] chain, String authType)
-                        throws CertificateException {
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
 
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
                 }
-                public void checkServerTrusted(X509Certificate[] chain, String authType)
-                        throws CertificateException {
-                }
+
                 public X509Certificate[] getAcceptedIssuers() {
                     return new X509Certificate[0];
                 }
@@ -970,9 +907,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         LdapNetworkConnection connection = new LdapNetworkConnection(config);
         boolean connected = connection.connect();
         if (!connected) {
-            AssertJUnit.fail("Cannot connect to LDAP server "+config.getLdapHost()+":"+config.getLdapPort());
+            AssertJUnit.fail("Cannot connect to LDAP server " + config.getLdapHost() + ":" + config.getLdapPort());
         }
-        LOGGER.trace("LDAP connected to {}:{}, executing bind as {}",
+        logger.trace("LDAP connected to {}:{}, executing bind as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
         BindRequest bindRequest = new BindRequestImpl();
         bindRequest.setDn(new Dn(config.getBindDn()));
@@ -981,15 +918,15 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         BindResponse bindResponse = connection.bind(bindRequest);
         if (bindResponse.getLdapResult().getResultCode() != ResultCodeEnum.SUCCESS) {
             ldapDisconnect(connection);
-            throw new SecurityException("Bind as "+config.getBindDn()+" failed: "+bindResponse.getLdapResult().getDiagnosticMessage()+" ("+bindResponse.getLdapResult().getResultCode()+")");
+            throw new SecurityException("Bind as " + config.getBindDn() + " failed: " + bindResponse.getLdapResult().getDiagnosticMessage() + " (" + bindResponse.getLdapResult().getResultCode() + ")");
         }
-        LOGGER.trace("LDAP connected to {}:{}, bound as {}",
+        logger.trace("LDAP connected to {}:{}, bound as {}",
                 config.getLdapHost(), config.getLdapPort(), config.getBindDn());
         return connection;
     }
 
     protected void ldapDisconnect(LdapNetworkConnection connection) throws IOException {
-        LOGGER.trace("LDAP disconnect {}", connection);
+        logger.trace("LDAP disconnect {}", connection);
         connection.close();
     }
 
@@ -997,20 +934,17 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         assertShadowCommon(shadow, null, dn, resourceType, getAccountObjectClass(), ciMatchingRule, false);
     }
 
-    protected void assertAccountRepoShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
-        assertShadowCommon(shadow, null, dnMatchingRule.normalize(dn), resourceType, getAccountObjectClass(), ciMatchingRule, false);
-    }
-
     protected void assertGroupShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
         assertShadowCommon(shadow, null, dn, resourceType, getGroupObjectClass(), ciMatchingRule, false, true);
     }
 
     protected long roundTsDown(long ts) {
-        return (((long)(ts/1000))*1000);
+        return (ts / 1000 * 1000);
     }
 
+    // TODO: for 10000 it produces 10001? I don't understand it (Virgo)
     protected long roundTsUp(long ts) {
-        return (((long)(ts/1000))*1000)+1;
+        return (ts / 1000 * 1000) + 1;
     }
 
     protected void assertStableSystem() throws NumberFormatException, IOException, InterruptedException {
@@ -1052,7 +986,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     private ConnectorOperationalStatus findLdapConnectorStat(List<ConnectorOperationalStatus> stats) {
-        for (ConnectorOperationalStatus stat: stats) {
+        for (ConnectorOperationalStatus stat : stats) {
             if (stat.getConnectorClassName().equals(getLdapConnectorClassName())) {
                 return stat;
             }

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -61,7 +63,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
         if (ctx == null) {
             throw new IllegalStateException("No lens context");
         }

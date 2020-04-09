@@ -12,8 +12,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -32,8 +30,6 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummyPrioritiesAndReadReplaceLegacyUpdate extends TestDummyPrioritiesAndReadReplace {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyPrioritiesAndReadReplaceLegacyUpdate.class);
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-legacy-update.xml");
 

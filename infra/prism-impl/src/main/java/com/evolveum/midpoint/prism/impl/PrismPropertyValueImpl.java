@@ -33,6 +33,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +87,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     /**
-     * Private constructor just for clonning.
+     * Private constructor just for cloning.
      */
     private PrismPropertyValueImpl(OriginType type, Objectable source) {
         super(type,source);
@@ -587,12 +589,19 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             // (displaying the aux information in user-visible context). But for e.g. deltas we need this information.
             PolyString ps = (PolyString) this.value;
             StringBuilder sb = new StringBuilder();
-            sb.append(ps.getOrig());
-            if (ps.getTranslation() != null) {
-                sb.append(" (has translation key)");
+            if (MapUtils.isNotEmpty(ps.getLang()) || ps.getTranslation() != null && StringUtils.isNotEmpty(ps.getTranslation().getKey())){
+                sb.append("orig=" + ps.getOrig());
+            } else {
+                sb.append(ps.getOrig());
             }
-            if (ps.getLang() != null) {
-                sb.append(" (").append(ps.getLang().size()).append(" lang map entry/entries)");
+            if (ps.getTranslation() != null) {
+                sb.append(", translation.key=" + ps.getTranslation().getKey());
+            }
+            if (MapUtils.isNotEmpty(ps.getLang())) {
+                sb.append("; lang:");
+                ps.getLang().keySet().forEach(langKey -> {
+                    sb.append(" " + langKey + "=" + ps.getLang().get(langKey) + ",");
+                });
             }
             return sb.toString();
         } else {

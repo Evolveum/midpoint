@@ -74,7 +74,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
 
     @Override
     protected ResourceAttributeWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent,
-            ResourceAttribute<T> childContainer, ItemStatus status) {
+            ResourceAttribute<T> childContainer, ItemStatus status, WrapperContext ctx) {
         registry.registerWrapperPanel(new QName("ResourceAttributeDefinition"), ResourceAttributeDefinitionPanel.class);
         ResourceAttributeWrapper<T> propertyWrapper = new ResourceAttributeWrapperImpl<>(parent, childContainer, status);
         return propertyWrapper;

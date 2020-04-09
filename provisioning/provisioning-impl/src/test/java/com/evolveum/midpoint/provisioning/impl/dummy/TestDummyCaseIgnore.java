@@ -89,18 +89,14 @@ public class TestDummyCaseIgnore extends TestDummy {
 
     @Test
     public void test175SearchUidCase() throws Exception {
-        final String TEST_NAME = "test175SearchUidCase";
-        TestUtil.displayTestTitle(TEST_NAME);
-        testSeachIterativeSingleAttrFilter(TEST_NAME,
+        testSeachIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", null, true,
                 transformNameFromResource("Will"));
     }
 
     @Test
     public void test176SearchUidCaseNoFetch() throws Exception {
-        final String TEST_NAME = "test176SearchUidCaseNoFetch";
-        TestUtil.displayTestTitle(TEST_NAME);
-        testSeachIterativeSingleAttrFilter(TEST_NAME,
+        testSeachIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource("Will"));
     }
@@ -110,10 +106,7 @@ public class TestDummyCaseIgnore extends TestDummy {
      */
     @Test
     public void test280EntitleAccountWillPiratesAlreadyThere() throws Exception {
-        final String TEST_NAME = "test280EntitleAccountWillPiratesAlreadyThere";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup groupPirates = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
@@ -124,7 +117,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -151,11 +144,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
     @Test
     public void test282DetitleAccountWillPirates() throws Exception {
-        final String TEST_NAME = "test282DetitleAccountWillPirates";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -163,7 +152,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -192,10 +181,7 @@ public class TestDummyCaseIgnore extends TestDummy {
      */
     @Test
     public void test285EntitleAccountWillPiratesAlreadyThereCaseIgnore() throws Exception {
-        final String TEST_NAME = "test285EntitleAccountWillPiratesAlreadyThereCaseIgnore";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup groupPirates = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
@@ -206,7 +192,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -233,11 +219,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 
     @Test
     public void test289DetitleAccountWillPirates() throws Exception {
-        final String TEST_NAME = "test289DetitleAccountWillPirates";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -245,7 +227,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                 GROUP_PIRATES_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -273,11 +255,9 @@ public class TestDummyCaseIgnore extends TestDummy {
 
     @Test
     public void test511AddProtectedAccountCaseIgnore() throws Exception {
-        final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        testAddProtectedAccount(TEST_NAME, "xaxa");
-        testAddProtectedAccount(TEST_NAME, "somebody-ADM");
-        testAddProtectedAccount(TEST_NAME, "everybody-AdM");
+        testAddProtectedAccount("xaxa");
+        testAddProtectedAccount("somebody-ADM");
+        testAddProtectedAccount("everybody-AdM");
     }
 }

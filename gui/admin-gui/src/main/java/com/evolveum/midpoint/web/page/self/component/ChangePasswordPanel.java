@@ -112,7 +112,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
             public boolean isVisible() {
                 return oldPasswordVisible;
-            };
+            }
         });
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new PropertyModel<>(model, MyPasswordsDto.F_PASSWORD));
@@ -146,8 +146,18 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         };
 
         accountContainer.add(help);
+        accountContainer.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return shouldShowPasswordPropagation();
+            }
+        });
 
         add(accountContainer);
+    }
+
+    protected boolean shouldShowPasswordPropagation() {
+        return true;
     }
 
     private List<IColumn<PasswordAccountDto, String>> initColumns() {

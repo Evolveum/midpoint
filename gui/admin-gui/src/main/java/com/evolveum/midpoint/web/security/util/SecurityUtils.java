@@ -50,6 +50,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -64,6 +65,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 import static org.springframework.security.saml.util.StringUtils.stripStartingSlashes;
 
 /**
@@ -74,8 +76,9 @@ public class SecurityUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityUtils.class);
     private static final String PROXY_USER_OID_HEADER = "Switch-To-Principal";
+    public static final String DEFAULT_LOGOUT_PATH = "/logout";
 
-    public static MidPointUserProfilePrincipal getPrincipalUser() {
+    public static GuiProfiledPrincipal getPrincipalUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         return getPrincipalUser(authentication);
@@ -92,7 +95,7 @@ public class SecurityUtils {
         LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
-    public static MidPointUserProfilePrincipal getPrincipalUser(Authentication authentication) {
+    public static GuiProfiledPrincipal getPrincipalUser(Authentication authentication) {
         if (authentication == null) {
             LOGGER.trace("Authentication not available in security context.");
             return null;
@@ -102,15 +105,15 @@ public class SecurityUtils {
         if (principal == null) {
             return null;
         }
-        if (principal instanceof MidPointUserProfilePrincipal) {
-            return (MidPointUserProfilePrincipal) principal;
+        if (principal instanceof GuiProfiledPrincipal) {
+            return (GuiProfiledPrincipal) principal;
         }
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
             // silently ignore to avoid filling the logs
             return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
-                principal, principal.getClass(), MidPointUserProfilePrincipal.class.getName());
+                principal, principal.getClass(), GuiProfiledPrincipal.class.getName());
         return null;
     }
 
@@ -193,22 +196,7 @@ public class SecurityUtils {
             return specificSequence;
         }
 
-//        if (partsOfLocalPath.length < 2) {
-//            String usedChannel;
-//            if (partsOfLocalPath.length == 1 && MY_MAP.containsKey(partsOfLocalPath[0])) {
-//                usedChannel = MY_MAP.get(partsOfLocalPath[0]);
-//            } else {
-//                usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
-//            }
-//
-//            AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
-//            return sequence;
-//        }
         if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
-//            if (partsOfLocalPath[1].equals("default")) {
-//                AuthenticationSequenceType sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
-//                return  sequence;
-//            }
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
@@ -216,7 +204,7 @@ public class SecurityUtils {
             }
             return sequence;
         }
-        String usedChannel = findChannelByPath(localePath);
+        String usedChannel = searchChannelByPath(localePath);
 
         if (usedChannel == null) {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
@@ -227,7 +215,7 @@ public class SecurityUtils {
 
     }
 
-    public static String findChannelByPath(String localePath) {
+    public static String searchChannelByPath(String localePath) {
         for (String prefix : LOCAL_PATH_AND_CHANNEL.keySet()) {
             if (stripStartingSlashes(localePath).startsWith(prefix)) {
                 return LOCAL_PATH_AND_CHANNEL.get(prefix);
@@ -236,14 +224,23 @@ public class SecurityUtils {
         return null;
     }
 
+    public static String searchPathByChannel(String searchchannel) {
+        for (Map.Entry<String, String> entry : LOCAL_PATH_AND_CHANNEL.entrySet()) {
+            if (entry.getValue().equals(searchchannel)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
     public static String findChannelByRequest(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        return findChannelByPath(localePath);
+        return searchChannelByPath(localePath);
     }
 
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        String channel = findChannelByPath(localePath);
+        String channel = searchChannelByPath(localePath);
         if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
@@ -336,7 +333,7 @@ public class SecurityUtils {
     private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
                                                             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-        String channel = findChannelByPath(localePath);
+        String channel = searchChannelByPath(localePath);
         if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
@@ -373,6 +370,7 @@ public class SecurityUtils {
         modules.addAll(authenticationModulesType.getOidc());
         modules.addAll(authenticationModulesType.getSecurityQuestionsForm());
         modules.addAll(authenticationModulesType.getSmsNonce());
+        modules.addAll(authenticationModulesType.getLdap());
 
         for (AbstractAuthenticationModuleType module: modules) {
             if (module.getName().equals(name)) {
@@ -583,5 +581,46 @@ public class SecurityUtils {
             }
         }
         return false;
+    }
+
+    public static String getPathForLogoutWithContextPath(String contextPath, @NotNull ModuleAuthentication moduleAuthentication) {
+        return "/" + stripSlashes(contextPath) + getPathForLogout(moduleAuthentication);
+    }
+
+    public static String getPathForLogout(@NotNull ModuleAuthentication moduleAuthentication) {
+        return "/" + stripSlashes(moduleAuthentication.getPrefix()) + DEFAULT_LOGOUT_PATH;
+    }
+
+     public static ModuleAuthentication getAuthenticatedModule() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+            for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
+                if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
+                    return moduleAuthentication;
+                }
+            }
+        } else {
+            String message = "Unsupported type " + (authentication == null ? null : authentication.getClass().getName())
+                    + " of authentication for MidpointLogoutRedirectFilter, supported is only MidpointAuthentication";
+            throw new IllegalArgumentException(message);
+        }
+        return null;
+    }
+
+    public static boolean isBasePathForSequence(HttpServletRequest httpRequest, AuthenticationSequenceType sequence) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        if (!localePath.startsWith(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH)) {
+            return false;
+        }
+        String defaultPrefix = ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH;
+        int startIndex = localePath.indexOf(defaultPrefix) + defaultPrefix.length();
+        localePath = localePath.substring(startIndex);
+        if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null
+            || !stripSlashes(localePath).equals(stripSlashes(sequence.getChannel().getUrlSuffix()))) {
+            return false;
+        }
+        return true;
     }
 }

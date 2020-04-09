@@ -11,12 +11,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import java.io.Serializable;
 import java.util.List;
 
-/**
- *  @author shood
- * */
 public class ReportDeleteDialogDto implements Serializable{
 
-    public static enum Operation{
+    public enum Operation{
         DELETE_SINGLE, DELETE_SELECTED, DELETE_ALL
     }
 

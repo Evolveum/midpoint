@@ -6,30 +6,52 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.gui.api.component.*;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.AjaxSelfUpdatingTimerBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
@@ -43,7 +65,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -52,13 +74,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -76,25 +91,24 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
  * @author semancik
  */
 public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageAdmin
-        implements ProgressReportingAwarePage {
+        implements ProgressReportingAwarePage, Refreshable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageAdminObjectDetails.class.getName() + ".";
 
-    public static final String PARAM_RETURN_PAGE = "returnPage";
-
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
-    private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "loadParentOrgs";
-    private static final String OPERATION_LOAD_GUI_CONFIGURATION = DOT_CLASS + "loadGuiConfiguration";
     protected static final String OPERATION_SAVE = DOT_CLASS + "save";
     protected static final String OPERATION_PREVIEW_CHANGES = DOT_CLASS + "previewChanges";
     protected static final String OPERATION_SEND_TO_SUBMIT = DOT_CLASS + "sendToSubmit";
     protected static final String OPERATION_LOAD_ARCHETYPE_REF = DOT_CLASS + "loadArchetypeRef";
-    protected static final String OPERATION_EXECUTE_CHANGES = DOT_CLASS + "executeChangesTask";
+    protected static final String OPERATION_EXECUTE_ARCHETYPE_CHANGES = DOT_CLASS + "executeArchetypeChanges";
+    protected static final String OPERATION_LOAD_FILTERED_ARCHETYPES = DOT_CLASS + "loadFilteredArchetypes";
+    protected static final String OPERATION_LOAD_PARENT_ORG = DOT_CLASS + "loadParentOrgs";
 
     protected static final String ID_SUMMARY_PANEL = "summaryPanel";
     protected static final String ID_MAIN_PANEL = "mainPanel";
     private static final String ID_PROGRESS_PANEL = "progressPanel";
+    private static final String ID_BUTTONS = "buttons";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAdminObjectDetails.class);
 
@@ -113,6 +127,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     private boolean editingFocus = false;             //before we got isOidParameterExists status depending only on oid parameter existence
                                                     //we should set editingFocus=true not only when oid parameter exists but also
                                                     //when object is given as a constructor parameter
+
+    // TODO put this into correct place
+    protected boolean previewRequested;
+
+    public boolean isPreviewRequested() {
+        return previewRequested;
+    }
 
     public boolean isEditingFocus() {
         return editingFocus;
@@ -140,6 +161,9 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @Override
     protected IModel<String> createPageTitleModel() {
+        if (PageAdminObjectDetails.this instanceof PageSystemConfiguration){
+            return super.createPageTitleModel();
+        }
         String simpleName = getObjectSimpleName();
         String lokalizedSimpleName = new StringResourceModel("ObjectType." + simpleName).setDefaultValue(simpleName).getString();
         if (isAdd()) {
@@ -161,16 +185,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             DisplayType displayType = WebComponentUtil
                     .getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
             if (displayType == null){
-                ObjectReferenceType archetypeReference = null;
-                if (assignmentHolderObj.getAssignment() != null){
-                    for (AssignmentType assignment : assignmentHolderObj.getAssignment()){
-                        if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
-                                && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)){
-                            archetypeReference = assignment.getTargetRef();
-                            break;
-                        }
-                    }
-                }
+                ObjectReferenceType archetypeReference = getObjectArchetypeRef();
                 if (archetypeReference != null){
                     OperationResult result = new OperationResult(OPERATION_LOAD_ARCHETYPE_REF);
                     Task task = createSimpleTask(OPERATION_LOAD_ARCHETYPE_REF);
@@ -191,7 +206,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return getCompileTimeClass().getSimpleName();
     }
 
-    private boolean isAdd() {
+    public boolean isAdd() {
         return !isOidParameterExists() && !editingFocus;
     }
 
@@ -243,7 +258,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public void initialize(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
         initializeModel(objectToEdit, isNewObject, isReadonly);
-//        initLayout();
     }
 
     protected void initializeModel(final PrismObject<O> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -255,7 +269,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             @Override
             protected PrismObjectWrapper<O> load() {
                 PrismObjectWrapper<O> wrapper = loadObjectWrapper(objectToEdit, isReadonly);
-//                wrapper.sort();
                 return wrapper;
             }
         };
@@ -268,6 +281,24 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 return loadOrgWrappers();
             }
         };
+    }
+
+    private ObjectReferenceType getObjectArchetypeRef() {
+        ObjectReferenceType archetypeReference = null;
+        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
+                && getObjectWrapper().getObject().asObjectable() instanceof AssignmentHolderType) {
+            AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
+            if (assignmentHolderObj.getAssignment() != null) {
+                for (AssignmentType assignment : assignmentHolderObj.getAssignment()) {
+                    if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null
+                            && QNameUtil.match(assignment.getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                        archetypeReference = assignment.getTargetRef();
+                        break;
+                    }
+                }
+            }
+        }
+        return archetypeReference;
     }
 
     protected List<FocusSubwrapperDto<OrgType>> loadOrgWrappers() {
@@ -285,6 +316,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected void initLayout() {
         initLayoutSummaryPanel();
+        initOperationalButtonsPanel();
 
         mainPanel = createMainPanel(ID_MAIN_PANEL);
         mainPanel.setOutputMarkupId(true);
@@ -294,15 +326,32 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         add(progressPanel);
     }
 
-    protected abstract ObjectSummaryPanel<O> createSummaryPanel();
+    protected abstract ObjectSummaryPanel<O> createSummaryPanel(IModel<O> summaryModel);
 
     protected void initLayoutSummaryPanel() {
 
-        ObjectSummaryPanel<O> summaryPanel = createSummaryPanel();
+        ObjectSummaryPanel<O> summaryPanel = createSummaryPanel(loadModelForSummaryPanel());
         summaryPanel.setOutputMarkupId(true);
 
         setSummaryPanelVisibility(summaryPanel);
         add(summaryPanel);
+    }
+
+    private IModel<O> loadModelForSummaryPanel() {
+        return new LoadableModel<O>(true) {
+
+            @Override
+            protected O load() {
+                PrismObjectWrapper<O> wrapper =  getObjectWrapper();
+                if (wrapper == null) {
+                    return null;
+                }
+
+                PrismObject<O> object =  wrapper.getObject();
+                loadParentOrgs(object);
+                return object.asObjectable();
+            }
+        };
     }
 
     protected void setSummaryPanelVisibility(ObjectSummaryPanel<O> summaryPanel){
@@ -314,6 +363,239 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 return isOidParameterExists() || editingFocus;
             }
         });
+    }
+
+    private void initOperationalButtonsPanel(){
+        OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                initOperationalButtons(repeatingView);
+            }
+        };
+
+        opButtonPanel.setOutputMarkupId(true);
+        opButtonPanel.add(new VisibleBehaviour(() -> isEditingFocus() && opButtonPanel.buttonsExist()));
+
+        AjaxSelfUpdatingTimerBehavior behavior = new AjaxSelfUpdatingTimerBehavior(Duration.milliseconds(getRefreshInterval())) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onPostProcessTarget(AjaxRequestTarget target) {
+                refresh(target);
+            }
+
+            @Override
+            protected boolean shouldTrigger() {
+                return isRefreshEnabled();
+            }
+        };
+
+        opButtonPanel.add(behavior);
+
+        add(opButtonPanel);
+    }
+
+    public boolean isRefreshEnabled() {
+        return false;
+   }
+
+   public void refresh(AjaxRequestTarget target) {
+        refresh(target, true);
+   }
+
+    public void refresh(AjaxRequestTarget target, boolean soft) {
+
+        if (!isAdd()) {
+            getObjectModel().reset();
+        }
+        target.add(getSummaryPanel());
+        target.add(getOperationalButtonsPanel());
+        target.add(getFeedbackPanel());
+
+        if (soft) {
+            for (Component component : getMainPanel().getTabbedPanel()) {
+                if (component instanceof RefreshableTabPanel) {
+                    for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
+                        target.add(c);
+                    }
+                }
+            }
+        } else {
+            target.add(getMainPanel().getTabbedPanel());
+        }
+    }
+
+   public int getRefreshInterval() {
+        return 30;
+   }
+
+    protected void initOperationalButtons(RepeatingView repeatingView){
+        if (getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
+            AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    changeArchetypeButtonClicked(target);
+                }
+            };
+            changeArchetype.add(new VisibleBehaviour(() -> getObjectArchetypeRef() != null));
+            changeArchetype.add(AttributeAppender.append("class", "btn-default"));
+            repeatingView.add(changeArchetype);
+        }
+    }
+
+    protected OperationalButtonsPanel getOperationalButtonsPanel(){
+        return (OperationalButtonsPanel) get(ID_BUTTONS);
+    }
+
+    private void changeArchetypeButtonClicked(AjaxRequestTarget target){
+
+        AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
+                super.addPerformed(target, newAssignmentsList);
+                try {
+                    PrismContainerWrapper<AssignmentType> assignmentsWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
+                    ((List<AssignmentType>) newAssignmentsList).forEach(assignment -> {
+                        PrismContainerValue<AssignmentType> newAssignment = assignmentsWrapper.getItem().createNewValue();
+                        assignmentsWrapper.getValues().forEach(assignmentValue -> {
+                            if (assignmentValue.getRealValue().getTargetRef() != null
+                            && assignmentValue.getRealValue().getTargetRef().getType() != null
+                            && QNameUtil.match(assignmentValue.getRealValue().getTargetRef().getType(), ArchetypeType.COMPLEX_TYPE)){
+                                assignmentValue.setStatus(ValueStatus.DELETED);
+                            }
+                        });
+                        AssignmentType assignmentType = newAssignment.asContainerable();
+                        assignmentType.setTargetRef(assignment.getTargetRef());
+                        WebPrismUtil.createNewValueWrapper(assignmentsWrapper, newAssignment, PageAdminObjectDetails.this, target);
+                        OperationResult result = new OperationResult(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+                        Task task = createSimpleTask(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
+                        try {
+                            ObjectDelta<O> archetypeDelta = getObjectWrapper().getObjectDelta();
+                            if (!archetypeDelta.isEmpty()) {
+                                archetypeDelta.revive(getPrismContext());
+                                getModelService().executeChanges(MiscUtil.createCollection(archetypeDelta), null, task, result);
+                                result.computeStatus();
+                            }
+                        } catch (Exception e) {
+                            LOGGER.error("Cannot save archetype assignment changes: {}", e.getMessage());
+                        }
+                        showResult(result);
+                    });
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+                }
+                target.add(PageAdminObjectDetails.this.getFeedbackPanel());
+                refresh(target);
+            }
+
+            @Override
+            protected List<ITab> createAssignmentTabs() {
+                List<ITab> tabs = new ArrayList<>();
+
+                tabs.add(new PanelTab(getPageBase().createStringResource("ObjectTypes.ARCHETYPE"),
+                        new VisibleBehaviour(() -> true)) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusTypeAssignmentPopupTabPanel<ArchetypeType>(panelId, ObjectTypes.ARCHETYPE) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                                PrismContainerWrapper<AssignmentType> assignmentsWrapper = null;
+                                try {
+                                    assignmentsWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
+                                } catch (SchemaException e) {
+                                    LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+                                }
+                                return assignmentsWrapper;
+                            }
+
+                            @Override
+                            protected List<QName> getSupportedRelations() {
+                                return Collections.singletonList(SchemaConstants.ORG_DEFAULT);
+                            }
+
+                            @Override
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ArchetypeType>> rowModel) {
+                                target.add(getObjectListPanel());
+                                tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ArchetypeType>> rowModel){
+                                if (rowModel == null){
+                                    return Model.of(false);
+                                }
+                                List selectedObjects = getSelectedObjectsList();
+                                return Model.of(selectedObjects == null || selectedObjects.size() == 0
+                                        || (rowModel.getObject() != null && rowModel.getObject().isSelected()));
+                            }
+
+
+                            @Override
+                            protected ObjectTypes getObjectType() {
+                                return ObjectTypes.ARCHETYPE;
+                            }
+
+                            @Override
+                            protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
+                                super.addFilterToContentQuery(query);
+                                if (query == null) {
+                                    query = getPrismContext().queryFactory().createQuery();
+                                }
+                                List<String> archetypeOidsList = getArchetypeOidsListToAssign();
+                                ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
+                                        .id(archetypeOidsList.toArray(new String[0]))
+                                        .buildFilter();
+                                query.addFilter(filter);
+                                return query;
+                            }
+                        };
+                    }
+                });
+                return tabs;
+            }
+        };
+
+        changeArchetypePopup.setOutputMarkupPlaceholderTag(true);
+        showMainPopup(changeArchetypePopup, target);
+
+    }
+
+    private List<String> getArchetypeOidsListToAssign(){
+        List<String> archetypeOidsList = getFilteredArchetypeOidsList();
+
+        ObjectReferenceType archetypeRef = getObjectArchetypeRef();
+        if (archetypeRef != null && StringUtils.isNotEmpty(archetypeRef.getOid())){
+            if (archetypeOidsList.contains(archetypeRef.getOid())){
+                archetypeOidsList.remove(archetypeRef.getOid());
+            }
+        }
+        return archetypeOidsList;
+    }
+
+    private List<String> getFilteredArchetypeOidsList(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_FILTERED_ARCHETYPES);
+        PrismObject obj = getObjectWrapper().getObject();
+        List<String> oidsList = new ArrayList<>();
+        try {
+            List<ArchetypeType> filteredArchetypes = getModelInteractionService().getFilteredArchetypesByHolderType(obj, result);
+            if (filteredArchetypes != null){
+                filteredArchetypes.forEach(archetype -> oidsList.add(archetype.getOid()));
+            }
+        } catch (SchemaException ex){
+            result.recordPartialError(ex.getLocalizedMessage());
+            LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
+        }
+        return oidsList;
     }
 
     protected abstract AbstractObjectMainPanel<O> createMainPanel(String id);
@@ -359,7 +641,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     object = (PrismObject<O>) focusType.asPrismObject();
                 } else {
                     LOGGER.trace("Loading object: New object (supplied): {}", objectToEdit);
-                    object = objectToEdit;
+                    object = objectToEdit.clone();
                 }
             } else {
 
@@ -422,66 +704,47 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
         return getOperationOptionsBuilder()
-                .item(UserType.F_JPEG_PHOTO).retrieve()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
                 .build();
     }
 
-//    private void loadParentOrgs(PrismObjectWrapper<O> wrapper, Task task, OperationResult result) {
-//        OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_PARENT_ORGS);
-//        PrismObject<O> focus = wrapper.getObject();
-//        // Load parent organizations (full objects). There are used in the
-//        // summary panel and also in the main form.
-//        // Do it here explicitly instead of using resolve option to have ability
-//        // to better handle (ignore) errors.
-//        for (ObjectReferenceType parentOrgRef : focus.asObjectable().getParentOrgRef()) {
-//
-//            PrismObject<OrgType> parentOrg = null;
-//            try {
-//
-//                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
-//                        subResult);
-//                LOGGER.trace("Loaded parent org with result {}",
-//                        new Object[] { subResult.getLastSubresult() });
-//            } catch (AuthorizationException e) {
-//                // This can happen if the user has permission to read parentOrgRef but it does not have
-//                // the permission to read target org
-//                // It is OK to just ignore it.
-//                subResult.muteLastSubresultError();
-//                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
-//            } catch (Exception ex) {
-//                subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
-//                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
-//            }
-//
-//            if (parentOrg != null) {
-//                wrapper.getParentOrgs().add(parentOrg);
-//            }
-//        }
-//        subResult.computeStatus();
-//    }
+    private void loadParentOrgs(PrismObject<O> object) {
+        Task task = createSimpleTask(OPERATION_LOAD_PARENT_ORG);
+        OperationResult subResult = task.getResult();
+        // Load parent organizations (full objects). There are used in the
+        // summary panel and also in the main form.
+        // Do it here explicitly instead of using resolve option to have ability
+        // to better handle (ignore) errors.
+        for (ObjectReferenceType parentOrgRef : object.asObjectable().getParentOrgRef()) {
 
-    protected abstract Class<? extends Page> getRestartResponsePage();
+            PrismObject<OrgType> parentOrg = null;
+            try {
 
-    public Object findParam(String param, String oid, OperationResult result) {
+                parentOrg = getModelService().getObject(OrgType.class, parentOrgRef.getOid(), null, task,
+                        subResult);
+                LOGGER.trace("Loaded parent org with result {}",
+                        new Object[] { subResult.getLastSubresult() });
+            } catch (AuthorizationException e) {
+                // This can happen if the user has permission to read parentOrgRef but it does not have
+                // the permission to read target org
+                // It is OK to just ignore it.
+                subResult.muteLastSubresultError();
+                LOGGER.debug("User {} does not have permission to read parent org unit {} (ignoring error)", task.getOwner().getName(), parentOrgRef.getOid());
+            } catch (Exception ex) {
+                subResult.recordWarning(createStringResource("PageAdminObjectDetails.message.loadParentOrgs.warning", parentOrgRef.getOid()).getString(), ex);
+                LOGGER.warn("Cannot load parent org {}: {}", parentOrgRef.getOid(), ex.getMessage(), ex);
+            }
 
-        Object object = null;
-
-        for (OperationResult subResult : result.getSubresults()) {
-            if (subResult != null && subResult.getParams() != null) {
-                if (subResult.getParams().get(param) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID) != null
-                        && subResult.getParams().get(OperationResult.PARAM_OID).equals(oid)) {
-                    return subResult.getParams().get(param);
-                }
-                object = findParam(param, oid, subResult);
-
+            if (parentOrg != null) {
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(parentOrg, getPrismContext());
+                ref.asReferenceValue().setObject(parentOrg);
+                object.asObjectable().getParentOrgRef().add(ref);
             }
         }
-        return object;
+        subResult.computeStatus();
     }
 
-    // TODO put this into correct place
-    protected boolean previewRequested;
+    protected abstract Class<? extends Page> getRestartResponsePage();
 
     /**
      * This will be called from the main form when save button is pressed.
@@ -554,12 +817,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
 
-                        final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                        final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                         final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -608,7 +871,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -618,13 +881,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -772,14 +1035,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public List<ObjectFormType> getObjectFormTypes() {
-        Task task = createSimpleTask(OPERATION_LOAD_GUI_CONFIGURATION);
-        OperationResult result = task.getResult();
-        CompiledUserProfile adminGuiConfiguration;
-        try {
-            adminGuiConfiguration = getModelInteractionService().getCompiledUserProfile(task, result);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-            throw new SystemException("Cannot load GUI configuration: "+e.getMessage(), e);
-        }
+        CompiledGuiProfile adminGuiConfiguration = getCompiledGuiProfile();
         ObjectFormsType objectFormsType = adminGuiConfiguration.getObjectForms();
         if (objectFormsType == null) {
             return null;
@@ -811,8 +1067,75 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public boolean isForcedPreview() {
-        GuiObjectDetailsPageType objectDetails = getCompiledUserProfile().findObjectDetailsConfiguration(getCompileTimeClass());
+        GuiObjectDetailsPageType objectDetails = getCompiledGuiProfile().findObjectDetailsConfiguration(getCompileTimeClass());
         return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
     }
 
+    //TODO moved from PageAdminFocus.. maybe we need PageAssignmentHolderDetails?
+    @Override
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+
+        if (previewRequested) {
+            finishPreviewProcessing(target, result);
+            return;
+        }
+        if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+            Session.get().setLocale(WebModelServiceUtils.getLocale());
+            LOGGER.debug("Using {} as locale", getLocale());
+            WebSession.get().getClientInfo().getProperties().
+                    setTimeZone(WebModelServiceUtils.getTimezone());
+            LOGGER.debug("Using {} as time zone", WebSession.get().getClientInfo().getProperties().getTimeZone());
+        }
+        boolean focusAddAttempted = getDelta() != null && getDelta().isAdd();
+        boolean focusAddSucceeded = focusAddAttempted && StringUtils.isNotEmpty(getDelta().getOid());
+
+        // we don't want to allow resuming editing if a new focal object was created (on second 'save' there would be a conflict with itself)
+        // and also in case of partial errors, like those related to projections (many deltas would be already executed, and this could cause problems on second 'save').
+        boolean canContinueEditing = !focusAddSucceeded && result.isFatalError();
+
+        boolean canExitPage;
+        if (returningFromAsync) {
+            canExitPage = getProgressPanel().isAllSuccess() || result.isInProgress() || result.isHandledError(); // if there's at least a warning in the progress table, we would like to keep the table open
+        } else {
+            canExitPage = !canContinueEditing;                            // no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
+        }
+
+        if (!isKeepDisplayingResults() && canExitPage) {
+            showResult(result);
+            redirectBack();
+        } else {
+            if (returningFromAsync) {
+                getProgressPanel().showBackButton(target);
+                getProgressPanel().hideAbortButton(target);
+            }
+            showResult(result);
+            target.add(getFeedbackPanel());
+
+            if (canContinueEditing) {
+                getProgressPanel().hideBackButton(target);
+                getProgressPanel().showContinueEditingButton(target);
+            }
+        }
+    }
+
+    private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
+        getMainPanel().setVisible(true);
+        getProgressPanel().hide();
+        getProgressPanel().hideAbortButton(target);
+        getProgressPanel().hideBackButton(target);
+        getProgressPanel().hideContinueEditingButton(target);
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+
+        Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap = new LinkedHashMap<>();
+        modelContextMap.put(getObjectWrapper().getObject(), getProgressPanel().getPreviewResult());
+
+        processAdditionalFocalObjectsForPreview(modelContextMap);
+
+        navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+    }
+
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap){
+    }
 }

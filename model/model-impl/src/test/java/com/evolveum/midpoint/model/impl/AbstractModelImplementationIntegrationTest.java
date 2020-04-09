@@ -6,6 +6,17 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -21,26 +32,18 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * An enhancement of AbstractModelIntegrationTest (i.e. model-api-level test) that contains various useful
@@ -64,8 +67,8 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return new LensContext<>(UserType.class, prismContext, provisioningService);
     }
 
-    protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(LensContext<O> context, PrismObject<O> focus)
-            throws SchemaException, ObjectNotFoundException {
+    protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(
+            LensContext<O> context, PrismObject<O> focus) {
         LensFocusContext<O> focusContext = context.getOrCreateFocusContext();
         focusContext.setLoadedObject(focus);
         return focusContext;
@@ -83,14 +86,14 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return fillContextWithFocus(context, UserType.class, userOid, result);
     }
 
-
-    protected <O extends ObjectType> void fillContextWithFocus(LensContext<O> context, File file) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
+    @UnusedTestElement
+    protected <O extends ObjectType> void fillContextWithFocus(LensContext<O> context, File file)
+            throws SchemaException, IOException {
         PrismObject<O> user = PrismTestUtil.parseObject(file);
         fillContextWithFocus(context, user);
     }
 
-    protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType> context, OperationResult result) throws SchemaException {
+    protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType> context) throws SchemaException {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createEmptyAddDelta(UserType.class, null
                 );
@@ -98,14 +101,14 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         focusContext.setPrimaryDelta(userDelta);
     }
 
-    protected void fillContextWithAddUserDelta(LensContext<UserType> context, PrismObject<UserType> user) throws SchemaException, EncryptionException {
+    protected void fillContextWithAddUserDelta(LensContext<UserType> context, PrismObject<UserType> user) throws EncryptionException {
         CryptoUtil.encryptValues(protector, user);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         focusContext.setPrimaryDelta(userDelta);
     }
 
-    protected <F extends FocusType> void fillContextWithAddDelta(LensContext<F> context, PrismObject<F> object) throws SchemaException, EncryptionException {
+    protected <F extends FocusType> void fillContextWithAddDelta(LensContext<F> context, PrismObject<F> object) throws EncryptionException {
         CryptoUtil.encryptValues(protector, object);
         ObjectDelta<F> addDelta = DeltaFactory.Object.createAddDelta(object);
         LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
@@ -119,15 +122,17 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         return fillContextWithAccount(context, account, task, result);
     }
 
-    protected LensProjectionContext fillContextWithAccountFromFile(LensContext<UserType> context, File file, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException, ExpressionEvaluationException {
+    protected LensProjectionContext fillContextWithAccountFromFile(
+            LensContext<UserType> context, File file, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, IOException, SchemaException {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         provisioningService.applyDefinition(account, task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 
     protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, PrismObject<ShadowType> account, Task task, OperationResult result) throws SchemaException,
-        ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ShadowType accountType = account.asObjectable();
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
@@ -145,7 +150,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 
     protected <O extends ObjectType> ObjectDelta<O> addFocusModificationToContext(
             LensContext<O> context, File file)
-            throws JAXBException, SchemaException, IOException {
+            throws SchemaException, IOException {
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
                 file, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
@@ -166,26 +171,20 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, focusContext
-                .getObjectOld().getOid(), propertyPath, propertyValues);
+                        .getObjectOld().getOid(), propertyPath, propertyValues);
         focusContext.addPrimaryDelta(userDelta);
         return userDelta;
     }
 
     protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
-            LensContext<UserType> context, String filename) throws JAXBException, SchemaException,
-            IOException {
-        return addModificationToContextAddProjection(context, UserType.class, new File(filename));
-    }
-
-    protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
-            LensContext<UserType> context, File file) throws JAXBException, SchemaException,
-            IOException {
+            LensContext<UserType> context, File file)
+            throws SchemaException, IOException {
         return addModificationToContextAddProjection(context, UserType.class, file);
     }
 
     protected <F extends FocusType> ObjectDelta<F> addModificationToContextAddProjection(
-            LensContext<F> context, Class<F> focusType, File file) throws JAXBException, SchemaException,
-            IOException {
+            LensContext<F> context, Class<F> focusType, File file)
+            throws SchemaException, IOException {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         account.trim();
         account.checkConsistence();
@@ -197,8 +196,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     }
 
     protected ObjectDelta<ShadowType> addModificationToContextDeleteAccount(
-            LensContext<UserType> context, String accountOid) throws SchemaException,
-            FileNotFoundException {
+            LensContext<UserType> context, String accountOid) throws SchemaException {
         LensProjectionContext accountCtx = context.findProjectionContextByOid(accountOid);
         ObjectDelta<ShadowType> deleteAccountDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
                 accountOid);
@@ -259,7 +257,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
         RefinedObjectClassDefinition refinedAccountDefinition = accCtx.getCompositeObjectClassDefinition();
         RefinedAttributeDefinition attrDef = refinedAccountDefinition.findAttributeDefinition(attrQName);
-        assertNotNull("No definition of attribute "+attrQName+" in account def "+refinedAccountDefinition, attrDef);
+        assertNotNull("No definition of attribute " + attrQName + " in account def " + refinedAccountDefinition, attrDef);
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object()
                 .createEmptyModifyDelta(ShadowType.class, accountOid);
         PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(attrPath, attrDef);
@@ -293,23 +291,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         assertTrue("User primary delta is not empty", userPrimaryDelta.isEmpty());
     }
 
-    protected void assertUserPrimaryDelta(LensContext<UserType> context) {
-        LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-        assertNotNull("User primary delta is null", userPrimaryDelta);
-        assertFalse("User primary delta is empty", userPrimaryDelta.isEmpty());
-    }
-
-    protected void assertNoUserSecondaryDelta(LensContext<UserType> context) throws SchemaException {
-        LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-        if (userSecondaryDelta == null) {
-            return;
-        }
-        assertTrue("User secondary delta is not empty", userSecondaryDelta.isEmpty());
-    }
-
-    protected void assertUserSecondaryDelta(LensContext<UserType> context) throws SchemaException {
+    protected void assertUserSecondaryDelta(LensContext<UserType> context) {
         LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
         assertNotNull("User secondary delta is null", userSecondaryDelta);
@@ -317,25 +299,25 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     }
 
     @NotNull
-    protected LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid, QName relation,
-            Consumer<AssignmentType> modificationBlock, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, JAXBException, ConfigurationException {
+    protected LensContext<UserType> createContextForRoleAssignment(String userOid, String roleOid,
+            QName relation, Consumer<AssignmentType> modificationBlock, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         return createContextForAssignment(UserType.class, userOid, RoleType.class, roleOid, relation, modificationBlock, result);
     }
 
     @NotNull
-    protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass, String focusOid,
-            Class<? extends FocusType> targetClass, String targetOid, QName relation,
-            Consumer<AssignmentType> modificationBlock, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, JAXBException, ConfigurationException {
+    protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass,
+            String focusOid, Class<? extends FocusType> targetClass, String targetOid,
+            QName relation, Consumer<AssignmentType> modificationBlock, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         LensContext<F> context = createLensContext(focusClass);
         fillContextWithFocus(context, focusClass, focusOid, result);
         QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);
-        assertNotNull("Unknown target class "+targetClass, targetType);
+        assertNotNull("Unknown target class " + targetClass, targetType);
         addFocusDeltaToContext(context, createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation,
                 modificationBlock, true));
         context.recompute();
-        display("Input context", context);
+        displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
         return context;
     }

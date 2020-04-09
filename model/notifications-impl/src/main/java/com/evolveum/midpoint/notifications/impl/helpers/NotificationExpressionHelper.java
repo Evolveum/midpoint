@@ -8,8 +8,9 @@
 package com.evolveum.midpoint.notifications.impl.helpers;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationFunctions;
+import com.evolveum.midpoint.notifications.impl.events.BaseEventImpl;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
@@ -40,9 +41,6 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-/**
- * @author mederly
- */
 @Component
 public class NotificationExpressionHelper {
 
@@ -166,7 +164,7 @@ public class NotificationExpressionHelper {
     public ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
         ExpressionVariables expressionVariables = new ExpressionVariables();
         VariablesMap variables = new VariablesMap();
-        event.createExpressionVariables(variables, result);
+        ((BaseEventImpl) event).createExpressionVariables(variables, result);
         variables.put(ExpressionConstants.VAR_TEXT_FORMATTER, textFormatter, TextFormatter.class);
         variables.put(ExpressionConstants.VAR_NOTIFICATION_FUNCTIONS, notificationsUtil, NotificationFunctions.class);
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);

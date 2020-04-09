@@ -7,43 +7,38 @@
 
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static org.testng.AssertJUnit.*;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class TestExtraSchema {
+public class TestExtraSchema extends AbstractPrismTest {
 
     public static final String NS_USER_2_EXT = "http://example.com/xml/ns/user-2-extension";
 
-    private static final ItemName USER_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_EXT,"UserExtensionType");
-    private static final ItemName USER_2_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_2_EXT,"User2ExtensionType");
+    private static final ItemName USER_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_EXT, "UserExtensionType");
+    private static final ItemName USER_2_EXTENSION_TYPE_QNAME = new ItemName(NS_USER_2_EXT, "User2ExtensionType");
 
     private static final ItemName USER_EXT_2_ELEMENT = new ItemName(NS_USER_2_EXT, "ext2");
 
@@ -53,8 +48,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testExtraSchema() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testExtraSchema ]===");
-
         Document dataDoc = DOMUtil.parseFile(new File(COMMON_DIR_PATH, "root-foo.xml"));
 
         PrismContext context = constructPrismContext();
@@ -67,9 +60,7 @@ public class TestExtraSchema {
 
         Validator validator = javaxSchema.newValidator();
         DOMResult validationResult = new DOMResult();
-        validator.validate(new DOMSource(dataDoc),validationResult);
-//        System.out.println("Validation result:");
-//        System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+        validator.validate(new DOMSource(dataDoc), validationResult);
     }
 
     /**
@@ -78,8 +69,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testUserExtensionSchemaLoad() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaLoad ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
@@ -98,14 +87,13 @@ public class TestExtraSchema {
         System.out.println("Parsed user ext schema:");
         System.out.println(schema.debugDump());
 
-        ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinition(USER_EXTENSION_TYPE_QNAME);
+        ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinitionByType(USER_EXTENSION_TYPE_QNAME);
         assertEquals("Extension type ref does not match", USER_TYPE_QNAME, userExtComplexType.getExtensionForType());
 
     }
 
     @Test
     public void testUserExtensionSchemaParseUser() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaParseUser ]===");
         Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE_XML);
 
         PrismContext context = constructPrismContext();
@@ -127,16 +115,11 @@ public class TestExtraSchema {
         assertNotNull(javaxSchema);
         Validator validator = javaxSchema.newValidator();
         DOMResult validationResult = new DOMResult();
-        validator.validate(new DOMSource(dataDoc),validationResult);
-//        System.out.println("Validation result:");
-//        System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
-
+        validator.validate(new DOMSource(dataDoc), validationResult);
     }
 
     @Test
     public void testUserExtensionSchemaSchemaRegistry() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testUserExtensionSchemaAsObjectSchema ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
@@ -163,9 +146,9 @@ public class TestExtraSchema {
         System.out.println(extDef.debugDump());
 
         assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
-        assertTrue("Wrong extension type "+extDef.getTypeName(),
+        assertTrue("Wrong extension type " + extDef.getTypeName(),
                 USER_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()) || USER_2_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()));
-        assertEquals("Wrong extension displayOrder", (Integer)1000, extDef.getDisplayOrder());
+        assertEquals("Wrong extension displayOrder", (Integer) 1000, extDef.getDisplayOrder());
 
         PrismPropertyDefinition barPropDef = extDef.findPropertyDefinition(USER_EXT_BAR_ELEMENT);
         assertNotNull("No 'bar' definition in user extension", barPropDef);
@@ -197,8 +180,8 @@ public class TestExtraSchema {
     }
 
     private void assertDefinitionOrder(List<? extends ItemDefinition> definitions, QName elementName, int i) {
-        assertEquals("Wrong definition, expected that "+PrettyPrinter.prettyPrint(elementName)+" definition will be at index " +
-                i + " but there was a "+definitions.get(i).getItemName()+" instead", elementName, definitions.get(i).getItemName());
+        assertEquals("Wrong definition, expected that " + PrettyPrinter.prettyPrint(elementName) + " definition will be at index " +
+                i + " but there was a " + definitions.get(i).getItemName() + " instead", elementName, definitions.get(i).getItemName());
     }
 
     /**
@@ -207,8 +190,6 @@ public class TestExtraSchema {
      */
     @Test
     public void testTypeOverride() throws SAXException, IOException, SchemaException {
-        System.out.println("===[ testTypeOverride ]===");
-
         PrismContext context = constructPrismContext();
         SchemaRegistryImpl reg = (SchemaRegistryImpl) context.getSchemaRegistry();
         reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
@@ -218,7 +199,7 @@ public class TestExtraSchema {
         System.out.println("Parsed root schema:");
         System.out.println(schema.debugDump());
 
-        PrismContainerDefinition rootContDef = schema.findContainerDefinitionByElementName(new QName(NS_ROOT,"root"));
+        PrismContainerDefinition rootContDef = schema.findContainerDefinitionByElementName(new QName(NS_ROOT, "root"));
         assertNotNull("Not <root> definition", rootContDef);
         PrismContainerDefinition extensionContDef = rootContDef.findContainerDefinition(new ItemName(NS_FOO, "extension"));
         assertNotNull("Not <extension> definition", extensionContDef);

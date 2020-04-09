@@ -8,6 +8,8 @@ package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.ValueSelector;
 
 /**
  * @author semancik
@@ -42,6 +44,20 @@ public class PrismContainerAsserter<C extends Containerable, RA> extends PrismIt
     public PrismItemAsserter<PrismContainer<C>, RA> assertIncomplete() {
         super.assertIncomplete();
         return this;
+    }
+
+    public PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> value(int index) {
+        PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> asserter =
+                new PrismContainerValueAsserter<>(getItem().getValues().get(index), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> value(ValueSelector<PrismContainerValue<C>> selector) {
+        PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> asserter =
+                new PrismContainerValueAsserter<>(getItem().getAnyValue(selector), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 
     protected String desc() {

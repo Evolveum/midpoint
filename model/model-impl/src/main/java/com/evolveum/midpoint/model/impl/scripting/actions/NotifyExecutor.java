@@ -13,16 +13,14 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
-import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,13 +32,11 @@ import javax.annotation.PostConstruct;
 @Component
 public class NotifyExecutor extends BaseActionExecutor {
 
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
-
     @Autowired(required = false)                            // During some tests this might be unavailable
     private NotificationManager notificationManager;
 
-    private static final Trace LOGGER = TraceManager.getTrace(NotifyExecutor.class);
+    @Autowired(required = false)
+    private CustomEventFactory customEventFactory;
 
     private static final String NAME = "notify";
     private static final String PARAM_SUBTYPE = "subtype";
@@ -80,10 +76,13 @@ public class NotifyExecutor extends BaseActionExecutor {
         if (notificationManager == null) {
             throw new IllegalStateException("Notification manager is unavailable");
         }
+        if (customEventFactory == null) {
+            throw new IllegalStateException("Custom event factory is unavailable");
+        }
 
         int eventCount = 0;
         if (forWholeInput) {
-            Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, input.getData(), operation, status, context.getChannel());
+            CustomEvent event = customEventFactory.createEvent(subtype, handler, input.getData(), operation, status, context.getChannel());
             notificationManager.processEvent(event, context.getTask(), globalResult);
             eventCount++;
         } else {
@@ -91,7 +90,7 @@ public class NotifyExecutor extends BaseActionExecutor {
                 PrismValue value = item.getValue();
                 OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
                 context.checkTaskStop();
-                Event event = new CustomEvent(lightweightIdentifierGenerator, subtype, handler, value, operation, status, context.getChannel());
+                CustomEvent event = customEventFactory.createEvent(subtype, handler, value, operation, status, context.getChannel());
                 notificationManager.processEvent(event, context.getTask(), result);
                 eventCount++;
                 operationsHelper.trimAndCloneResult(result, globalResult, context);

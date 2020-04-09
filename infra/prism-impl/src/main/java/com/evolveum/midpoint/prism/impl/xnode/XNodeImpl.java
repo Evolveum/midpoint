@@ -198,11 +198,6 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         setMaxOccurs(xnode.getMaxOccurs());
     }
 
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     public abstract String getDesc();
 
     protected String dumpSuffix() {

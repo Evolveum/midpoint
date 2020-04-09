@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,6 @@ import java.util.Collection;
  * The purpose of this task is to detect and optionally fix anomalies in repository objects.
  *
  * However, currently its only function is to display information about objects size.
- *
- * @author Pavol Mederly
  */
 @Component
 public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ObjectIntegrityCheckResultHandler> {
@@ -101,5 +100,10 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

@@ -6,36 +6,41 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PageDescriptor(url = "/admin/case", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
@@ -49,7 +54,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCase.class);
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
-    private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
+    private static final String OPERATION_LOAD_CONNECTED_TASK = DOT_CLASS + "loadConnectedTask";
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
 
@@ -63,7 +68,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
     public PageCase(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
-        initialize(null, true, true);
+        initialize(null, false, true);
     }
 
 
@@ -77,7 +82,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected List<ITab> createTabs(final PageAdminObjectDetails<CaseType> parentPage) {
                 List<ITab> tabs = super.createTabs(parentPage);
 
-                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)
+                if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value())
                         && CaseTypeUtil.approvalSchemaExists(getObject() != null ? getObject().asObjectable() : null)) {
                     tabs.add(0,
                             new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
@@ -90,7 +95,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                     return new ApprovalCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
                                 }
                             });
-                } else if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
+                } else if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
                     tabs.add(0,
                             new PanelTab(parentPage.createStringResource("PageCase.operationRequestTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {
@@ -103,10 +108,21 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 }
 
                             });
-                } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
-                    //todo manual case tab
+                } else if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_MANUAL_CASE.value())) {
+                    tabs.add(0,
+                            new PanelTab(parentPage.createStringResource("PageCase.manualOperationDetailsTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_MANUAL_OPERATION_DETAILS_URL, true, parentPage)) {
+
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new ManualCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
+
+                            });
                 }
-                if (!matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
+                if (!WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())) {
 
                     tabs.add(
                             new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
@@ -125,7 +141,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 }
                             });
                 }
-                if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)){
+                if (WebComponentUtil.hasArchetypeAssignment(getCase(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())){
                     tabs.add(
                             new CountablePanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_CHILD_CASES_URL, false, parentPage)) {
@@ -182,13 +198,36 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     }
 
     @Override
-    protected ObjectSummaryPanel<CaseType> createSummaryPanel() {
-        return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    protected ObjectSummaryPanel<CaseType> createSummaryPanel(IModel<CaseType> summaryModel) {
+        return new CaseSummaryPanel(ID_SUMMARY_PANEL, CaseType.class, summaryModel, this);
+    }
+
+    protected void initOperationalButtons(RepeatingView repeatingView){
+        OperationResult result = new OperationResult(OPERATION_LOAD_CONNECTED_TASK);
+        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF)
+                .ref(getObjectWrapper().getOid())
+                .build();
+        List<PrismObject<TaskType>> connectedTasks = WebModelServiceUtils.searchObjects(TaskType.class, query, result, PageCase.this);
+        final ObjectReferenceType taskRef = new ObjectReferenceType();
+        if (CollectionUtils.isNotEmpty(connectedTasks)) {
+            taskRef.setOid(connectedTasks.get(0).getOid());
+            taskRef.setType(TaskType.COMPLEX_TYPE);
+        }
+        if (StringUtils.isNotEmpty(taskRef.getOid())) {
+            AjaxButton navigateToTask = new AjaxButton(repeatingView.newChildId(), createStringResource("PageCase.navigateToTask")) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(taskRef, PageCase.this, false);
+                }
+            };
+            navigateToTask.add(AttributeAppender.append("class", "btn-default"));
+            repeatingView.add(navigateToTask);
+        }
     }
 
     @Override
-    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
-
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
     }
 
     @Override
@@ -211,20 +250,6 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         return PageCases.class;
     }
 
-    private boolean matchCaseType(SystemObjectsType archetypeType){
-        CaseType caseObject = getObjectWrapper().getObject().asObjectable();
-        if (caseObject == null || caseObject.getAssignment() == null){
-            return false;
-        }
-        for (AssignmentType assignment : caseObject.getAssignment()){
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef != null && archetypeType.value().equals(targetRef.getOid())){
-                return true;
-            }
-        }
-        return false;
-    }
-
    private int countWorkItems(){
         List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
         return workItemsList == null ? 0 : workItemsList.size();
@@ -241,5 +266,9 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     private int countEvents(){
         List<CaseEventType> eventsList = getObjectModel().getObject().getObject().asObjectable().getEvent();
         return eventsList == null ? 0 : eventsList.size();
+    }
+
+    private CaseType getCase() {
+        return getObjectWrapper().getObject().asObjectable();
     }
 }

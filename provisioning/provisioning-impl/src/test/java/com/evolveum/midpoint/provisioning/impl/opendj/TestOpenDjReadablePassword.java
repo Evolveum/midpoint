@@ -17,8 +17,6 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -36,8 +34,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class TestOpenDjReadablePassword extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_READABLE_PASSWORD_FILE = new File(TEST_DIR, "resource-opendj-readable-password.xml");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjReadablePassword.class);
 
     @Override
     protected File getResourceOpenDjFile() {

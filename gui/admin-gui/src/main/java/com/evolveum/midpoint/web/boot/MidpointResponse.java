@@ -28,35 +28,45 @@ public class MidpointResponse extends Response {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointResponse.class);
 
-    private String servletPath;
+    private String contextPath;
     private SystemObjectCache systemObjectCache;
 
     public MidpointResponse(String servletPath, SystemObjectCache systemObjectCache) {
         this(OutputBuffer.DEFAULT_BUFFER_SIZE, servletPath, systemObjectCache);
     }
 
-    public MidpointResponse(int outputBufferSize, String servletPath, SystemObjectCache systemObjectCache) {
+    public MidpointResponse(int outputBufferSize, String contextPath, SystemObjectCache systemObjectCache) {
         super(outputBufferSize);
 
-        this.servletPath = servletPath;
+        this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
     }
 
     @Override
     public void setHeader(String name, String value) {
-        String publicUrlPrefix = getPublicUrlPrefix();
-        if ("Location".equals(name) && publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
-            if (value.startsWith(".")) {
-                value = publicUrlPrefix + value.substring(1);
-            } else if (StringUtils.isBlank(servletPath)) {
-                if (value.startsWith("/")) {
-                    value = publicUrlPrefix + value;
-                } else {
-                    String partAfterSchema = value.substring(value.indexOf("://") + 3);
-                    value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
+        if ("Location".equals(name)) {
+            String publicUrlPrefix = getPublicUrlPrefix();
+            if (publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
+                if (value.startsWith(".")) {
+                    value = publicUrlPrefix + value.substring(1);
+                } else if (StringUtils.isBlank(contextPath)) {
+                    if (value.startsWith("/")) {
+                        value = publicUrlPrefix + value;
+                    } else {
+                        String partAfterSchema = value.substring(value.indexOf("://") + 3);
+                        value = publicUrlPrefix + partAfterSchema.substring(partAfterSchema.indexOf("/"));
+                    }
+                } else if (value.contains(contextPath + "/")) {
+                    if (value.startsWith(contextPath)) {
+                        value = publicUrlPrefix + value.substring(contextPath.length());
+                    } else if (value.startsWith("/")){
+                        value = publicUrlPrefix + value;
+                    } else {
+                        String partAfterHostname = value.substring(value.indexOf("://") + 3);
+                        partAfterHostname = partAfterHostname.substring(partAfterHostname.indexOf("/"));
+                        value = publicUrlPrefix + partAfterHostname.substring(partAfterHostname.indexOf(contextPath) + contextPath.length());
+                    }
                 }
-            } else if (value.contains(servletPath + "/")) {
-                value = publicUrlPrefix + value.substring(value.indexOf(servletPath) + servletPath.length());
             }
         }
         super.setHeader(name, value);
@@ -65,7 +75,7 @@ public class MidpointResponse extends Response {
     private String getPublicUrlPrefix() {
         try {
             PrismObject<SystemConfigurationType> systemConfig = systemObjectCache.getSystemConfiguration(new OperationResult("load system configuration"));
-            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable());
+            return SystemConfigurationTypeUtil.getPublicHttpUrlPattern(systemConfig.asObjectable(), getRequest().getServerName());
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load system configuration", e);
             return null;

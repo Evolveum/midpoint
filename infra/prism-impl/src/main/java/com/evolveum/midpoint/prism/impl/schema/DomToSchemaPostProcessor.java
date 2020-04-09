@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * Parser for DOM-represented XSD, creates midPoint Schema representation.
@@ -124,7 +123,7 @@ class DomToSchemaPostProcessor {
     }
 
     private ComplexTypeDefinition getOrProcessComplexType(QName typeName) throws SchemaException {
-        ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeName);
+        ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinitionByType(typeName);
         if (complexTypeDefinition != null) {
             return complexTypeDefinition;
         }
@@ -148,8 +147,7 @@ class DomToSchemaPostProcessor {
         SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
         MutableComplexTypeDefinition ctd = definitionFactory.createComplexTypeDefinition(complexType, prismContext, complexType.getAnnotation());
 
-        ComplexTypeDefinition existingComplexTypeDefinition = schema
-                .findComplexTypeDefinition(ctd.getTypeName());
+        ComplexTypeDefinition existingComplexTypeDefinition = schema.findComplexTypeDefinitionByType(ctd.getTypeName());
         if (existingComplexTypeDefinition != null) {
             // We already have this in schema. So avoid redundant work and
             // infinite loops;
@@ -390,7 +388,7 @@ class DomToSchemaPostProcessor {
                             complexTypeDefinition = getOrProcessComplexType(typeFromAnnotation);
                         } else {
                             complexTypeDefinition = prismContext.getSchemaRegistry()
-                                    .findComplexTypeDefinition(typeFromAnnotation);
+                                    .findComplexTypeDefinitionByType(typeFromAnnotation);
                         }
                         if (complexTypeDefinition == null) {
                             throw new SchemaException(

@@ -11,15 +11,19 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
 import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
 import com.evolveum.midpoint.schrodinger.component.report.AuditRecordTable;
+import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static com.codeborne.selenide.Selenide.*;
 
@@ -27,7 +31,16 @@ import static com.codeborne.selenide.Selenide.*;
  * @author skublik
  */
 
-public class AbstractLoginPageTest extends TestBase {
+public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
+
+    protected static final File MAIL_NONCE_VALUE_POLICY = new File("src/test/resources/configuration/objects/valuepolicies/mail-nonce.xml");
+    protected static final File USER_WITHOUT_SUPERUSER = new File("src/test/resources/configuration/objects/users/user-without-superuser.xml");
+    protected static final File SYSTEM_CONFIG_WITH_NOTIFICATION = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-notification.xml");
+    protected static final File CREATE_NAME_OBJECT_TEMPLATE = new File("src/test/resources/configuration/objects/objecttemplate/create-name-after-self-reg.xml");
+    protected static final File NOTIFICATION_FILE = new File("./target/notification.txt");
+
+    protected static final String NAME_OF_ENABLED_USER = "enabled_user";
+    protected static final String MAIL_OF_ENABLED_USER = "enabled_user@evolveum.com";
 
     private static final File ENABLED_USER = new File("src/test/resources/configuration/objects/users/enabled-user.xml");
     private static final File DISABLED_USER = new File("src/test/resources/configuration/objects/users/disabled-user.xml");
@@ -35,15 +48,35 @@ public class AbstractLoginPageTest extends TestBase {
 
     @BeforeClass
     @Override
-    public void beforeClass() throws IOException {
+    public void beforeClass() throws IOException{
         super.beforeClass();
         importObject(ENABLED_USER, true);
         importObject(DISABLED_USER, true);
         importObject(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
+        importObject(MAIL_NONCE_VALUE_POLICY, true);
+        importObject(getSecurityPolicyMailNonceResetPass(), true);
+        importObject(USER_WITHOUT_SUPERUSER, true);
+        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
+        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
+        basicPage.infrastructure();
+        SystemPage systemPage = new SystemPage();
+        PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
+        infrastructureForm.showEmptyAttributes("Infrastructure");
+        infrastructureForm.addAttributeValue("publicHttpUrlPattern", getConfiguration().getBaseUrl());
+        File notificationFile = NOTIFICATION_FILE;
+        try {
+            notificationFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        NotificationsTab notificationTab = systemPage.notificationsTab();
+        notificationTab.setRedirectToFile(notificationFile.getAbsolutePath());
+        systemPage.save();
+        Assert.assertTrue(systemPage.feedback().isSuccess());
     }
 
     @Test
-    public void loginLockoutUser() {
+    public void test001loginLockoutUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         open("/login");
         for (int i = 0; i < 4; i++) {
@@ -53,13 +86,13 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void loginDisabledUser() {
+    public void test002loginDisabledUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         unsuccessfulLogin("disabled_user", "5ecr3t");
     }
 
     @Test
-    public void loginEnabledUserWithoutAuthorizationsUser() {
+    public void test003loginEnabledUserWithoutAuthorizationsUser() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         unsuccessfulLogin("enabled_user_without_authorizations", "5ecr3t");
     }
@@ -73,7 +106,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingSuccessfulLogin() {
+    public void test010auditingSuccessfulLogin() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
@@ -89,7 +122,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingFailLogin() {
+    public void test011auditingFailLogin() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("bad_administrator", "5ecr3t");
@@ -103,7 +136,7 @@ public class AbstractLoginPageTest extends TestBase {
     }
 
     @Test
-    public void auditingSuccessfulLogout() {
+    public void test012auditingSuccessfulLogout() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
@@ -116,4 +149,13 @@ public class AbstractLoginPageTest extends TestBase {
         auditRecordsTable.checkEventType(2, "Terminate session");
         auditRecordsTable.checkOutcome(2, "Success");
     }
+
+    protected String readLastNotification() throws IOException {
+        String separator = "============================================";
+        byte[] encoded = Files.readAllBytes(Paths.get(NOTIFICATION_FILE.getAbsolutePath()));
+        String notifications = new String(encoded, Charset.defaultCharset());
+        return notifications.substring(notifications.lastIndexOf(separator) + separator.length(), notifications.length()-1);
+    }
+
+    protected abstract File getSecurityPolicyMailNonceResetPass();
 }

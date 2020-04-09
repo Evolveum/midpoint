@@ -41,12 +41,12 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
 
     private int backgroundProcessorDelay;
 
-    private String servletPath;
+    private String contextPath;
 
     private SystemObjectCache systemObjectCache;
 
-    public MidPointTomcatServletWebServerFactory(String servletPath, SystemObjectCache systemObjectCache){
-        this.servletPath = servletPath;
+    public MidPointTomcatServletWebServerFactory(String contextPath, SystemObjectCache systemObjectCache){
+        this.contextPath = contextPath;
         this.systemObjectCache = systemObjectCache;
     }
 
@@ -94,9 +94,9 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
                 if (protocolHandler instanceof AbstractAjpProtocol<?>) {
                     int packetSize = ((AbstractAjpProtocol<?>) protocolHandler).getPacketSize();
                     return new MidpointResponse(packetSize - org.apache.coyote.ajp.Constants.SEND_HEAD_LEN,
-                            servletPath, systemObjectCache);
+                            contextPath, systemObjectCache);
                 } else {
-                    return new MidpointResponse(servletPath, systemObjectCache);
+                    return new MidpointResponse(contextPath, systemObjectCache);
                 }
             }
         };

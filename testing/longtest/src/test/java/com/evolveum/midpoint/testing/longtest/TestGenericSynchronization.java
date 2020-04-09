@@ -14,8 +14,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.IOUtils;
@@ -42,8 +40,6 @@ import java.nio.charset.StandardCharsets;
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestGenericSynchronization extends AbstractModelIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestGenericSynchronization.class);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -169,7 +165,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private void logCreateEntry(Entry entry) {
         if (logCreateEntry ) {
             System.out.println("Creating LDAP entry: " + entry.getDN());
-            LOGGER.trace("Creating LDAP entry: {}", entry.getDN());
+            logger.trace("Creating LDAP entry: {}", entry.getDN());
         }
     }
 
@@ -203,10 +199,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
     @Test
     public void test100TreeImport() throws Exception {
-        final String TEST_NAME = "test100TreeImport";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
         OperationResult result = task.getResult();
 
@@ -215,25 +208,22 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
                 new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
         waitForTaskFinish(task, true, 20000 + (ldapdUserCount + ldapOrgCount) * 2000);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-        display("Users", userCount);
+        displayValue("Users", userCount);
         AssertJUnit.assertEquals("Unexpected number of users", ldapdUserCount, userCount);
     }
 
     @Test
-    public void test200MoveRootChild() throws Exception {
-        final String TEST_NAME = "test200MoveRootChild";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
+    public void test200MoveRootChild() {
         //todo move one child of one root to root position
     }
 }

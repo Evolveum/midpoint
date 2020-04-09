@@ -144,7 +144,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 
             public boolean isVisible() {
                 return getResetPasswordPolicy().getResetMethod() == ResetMethod.SECURITY_QUESTIONS;
-            };
+            }
         });
 
         WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
@@ -161,7 +161,7 @@ public class PageForgotPassword extends PageRegistrationBase {
             public boolean isVisible() {
                 ResetMethod resetMethod = getResetPasswordPolicy().getResetMethod();
                 return resetMethod == ResetMethod.SECURITY_QUESTIONS || resetMethod == ResetMethod.MAIL;
-            };
+            }
         });
 
     }
@@ -331,7 +331,7 @@ public class PageForgotPassword extends PageRegistrationBase {
         List<EqualFilter> filters = new ArrayList<>();
         QueryFactory queryFactory = getPrismContext().queryFactory();
         for (ItemPath path : filledItems) {
-            PrismProperty property = user.findProperty(path);
+            PrismProperty<?> property = user.findProperty(path);
             EqualFilter filter = queryFactory.createEqual(path, property.getDefinition(), null);
             filter.setValue(property.getAnyValue().clone());
             filters.add(filter);

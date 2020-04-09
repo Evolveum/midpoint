@@ -26,6 +26,7 @@ public class TextAreaPanel<T> extends InputPanel {
             protected boolean shouldTrimInput() {
                 return false;
             }
+
         };
         text.add(AttributeModifier.append("style", "max-width: 100%"));
 

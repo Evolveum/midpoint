@@ -6,48 +6,34 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultHandlingStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.MAJOR;
-import static org.testng.AssertJUnit.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultHandlingStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
  * @author mederly
- *
  */
-public class TestOperationResult {
+public class TestOperationResult extends AbstractSchemaTest {
 
     private static final String LOCAL_1 = "local1";
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void testCleanup() throws Exception {
-        System.out.println("===[ testCleanup ]===");
-
-        // GIVEN (checks also conversions during result construction)
-
+        given("checks also conversions during result construction");
         OperationResult root = new OperationResult("dummy");
         checkResultConversion(root, true);
 
@@ -67,14 +53,14 @@ public class TestOperationResult {
         sub13.recordSuccess();
         checkResultConversion(root, true);
 
-        // WHEN
+        when();
         System.out.println("Before cleanup:\n" + root.debugDump());
         sub1.computeStatus();
         sub1.cleanupResult();
         root.computeStatus();
         root.cleanupResult();
 
-        // THEN
+        then();
         System.out.println("After cleanup (normal):\n" + root.debugDump());
         assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus());        // because of sub2
         assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());            // because of sub12
@@ -104,10 +90,7 @@ public class TestOperationResult {
 
     @Test
     public void testSummarizeByHiding() throws Exception {
-        System.out.println("===[ testSummarizeByHiding ]===");
-
         // GIVEN
-
         OperationResult root = new OperationResult("dummy");
         OperationResult level1 = root.createSubresult("level1");
         for (int i = 1; i <= 30; i++) {
@@ -137,8 +120,6 @@ public class TestOperationResult {
 
     @Test
     public void testExplicitSummarization() throws Exception {
-        System.out.println("===[ testExplicitSummarization ]===");
-
         // GIVEN
 
         OperationResult root = new OperationResult("dummy");
@@ -172,8 +153,6 @@ public class TestOperationResult {
 
     @Test
     public void testIncrementalSummarization() throws Exception {
-        System.out.println("===[ testIncrementalSummarization ]===");
-
         OperationResult root = new OperationResult("dummy");
         int b = 0;
         for (int a = 1; a <= 30; a++) {
@@ -215,8 +194,8 @@ public class TestOperationResult {
                 assertEquals("Wrong operation in summary for B", "operationB", sumB.getOperation());
                 assertEquals("Wrong status in summary for A", OperationResultStatus.SUCCESS, sumA.getStatus());
                 assertEquals("Wrong status in summary for B", OperationResultStatus.WARNING, sumB.getStatus());
-                assertEquals("Wrong hidden records count in summary for A", a-expectedA, sumA.getHiddenRecordsCount());
-                assertEquals("Wrong hidden records count in summary for B", b-expectedB, sumB.getHiddenRecordsCount());
+                assertEquals("Wrong hidden records count in summary for A", a - expectedA, sumA.getHiddenRecordsCount());
+                assertEquals("Wrong hidden records count in summary for B", b - expectedB, sumB.getHiddenRecordsCount());
             }
         }
 
@@ -226,7 +205,7 @@ public class TestOperationResult {
     private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {
         // WHEN
         OperationResultType resultType = result.createOperationResultType();
-        String serialized = getPrismContext().serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+        String serialized = getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
         System.out.println("Converted OperationResultType\n" + serialized);
         OperationResult resultRoundTrip = OperationResult.createOperationResult(resultType);
         OperationResultType resultTypeRoundTrip = resultRoundTrip.createOperationResultType();

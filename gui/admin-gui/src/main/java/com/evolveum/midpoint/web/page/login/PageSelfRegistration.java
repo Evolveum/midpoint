@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -37,12 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -323,22 +318,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
     @Override
     protected void submitRegistration(AjaxRequestTarget target) {
 
-        OperationResult result = runPrivileged(new Producer<OperationResult>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public OperationResult run() {
-
-                Task task = createAnonymousTask(OPERATION_SAVE_USER);
-                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-                OperationResult result = new OperationResult(OPERATION_SAVE_USER);
-                saveUser(task, result);
-                result.computeStatus();
-                return result;
-            }
-
-        });
+        OperationResult result = new OperationResult(OPERATION_SAVE_USER);
+        saveUser(result);
+        result.computeStatus();
 
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             getSession()
@@ -363,8 +345,14 @@ public class PageSelfRegistration extends PageAbstractFlow {
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());
 
         } else {
+            String message;
+            if (result.getUserFriendlyMessage() != null) {
+                message = WebModelServiceUtils.translateMessage(result, this);
+            } else {
+                message = result.getMessage();
+            }
             getSession().error(
-                    createStringResource("PageSelfRegistration.registration.error", result.getMessage())
+                    createStringResource("PageSelfRegistration.registration.error", message)
                             .getString());
             // removePassword(target);
             updateCaptcha(target);
@@ -384,21 +372,29 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     }
 
-    private void saveUser(Task task, OperationResult result) {
-
-        ObjectDelta<UserType> userDelta;
+    private void saveUser(OperationResult result) {
         try {
-            userDelta = prepareUserDelta(task, result);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            result.recordFatalError(getString("PageSelfRegistration.message.saveUser.fatalError", e.getMessage()), e);
-            return;
+            PrismObject<UserType> administrator = getAdministratorPrivileged(result);
+
+            runAsChecked(() -> {
+                ObjectDelta<UserType> userDelta;
+                Task task = createSimpleTask(OPERATION_SAVE_USER);
+                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+                try {
+                    userDelta = prepareUserDelta(task, result);
+                    userDelta.setPrismContext(getPrismContext());
+                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                    result.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
+                    return result;
+                }
+                WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task, PageSelfRegistration.this);
+                return result;
+            }, administrator);
+        } catch (CommonException|RuntimeException e) {
+            result.recordFatalError(getString("PageSelfRegistration.message.saveUser.fatalError"), e);
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        userDelta.setPrismContext(getPrismContext());
-
-        WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task,
-                PageSelfRegistration.this);
-        result.computeStatus();
-
     }
 
     private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {

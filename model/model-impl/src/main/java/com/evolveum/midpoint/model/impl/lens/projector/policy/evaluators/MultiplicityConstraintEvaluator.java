@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedMultiplicityTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -67,8 +67,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-            PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
+    public <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger evaluate(@NotNull JAXBElement<MultiplicityPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .setMinor()
@@ -90,7 +90,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
     }
 
     // TODO shouldn't we return all triggers?
-    private <F extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluateForObject(
+    private <F extends AssignmentHolderType> EvaluatedMultiplicityTrigger evaluateForObject(
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             ObjectPolicyRuleEvaluationContext<F> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<? extends ObjectType> target = ctx.focusContext.getObjectAny();
@@ -152,7 +152,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         }
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluateForAssignment(
+    private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger evaluateForAssignment(
             JAXBElement<MultiplicityPolicyConstraintType> constraint,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (!ctx.isDirect) {
@@ -170,7 +170,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         return null;
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<MultiplicityPolicyConstraintType> checkAssigneeConstraints(JAXBElement<MultiplicityPolicyConstraintType> constraint,
+    private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger checkAssigneeConstraints(JAXBElement<MultiplicityPolicyConstraintType> constraint,
             LensContext<AH> context, EvaluatedAssignment<AH> assignment, PlusMinusZero plusMinus,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<?> target = assignment.getTarget();
@@ -189,8 +189,8 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
             throw new AssertionError("!isMin and !isMax");
         }
         // TODO cache repository call results
+        Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
         if (isMin) {
-            Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
             if (requiredMultiplicity <= 0) {
                 return null;            // unbounded or 0
             }
@@ -207,7 +207,6 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
                 return null;
             }
         } else {
-            Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
             if (requiredMultiplicity < 0) {
                 return null;            // unbounded
             }

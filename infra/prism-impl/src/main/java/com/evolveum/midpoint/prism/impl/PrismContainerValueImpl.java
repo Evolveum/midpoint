@@ -10,8 +10,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1035,7 +1037,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     private <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
-        JaxbDomHack jaxbDomHack = definition.getPrismContext().getJaxbDomHack();
+        JaxbDomHack jaxbDomHack = ((PrismContextImpl) definition.getPrismContext()).getJaxbDomHack();
         return jaxbDomHack.parseRawElement(element, definition);
     }
 
@@ -1056,7 +1058,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 }
             }
             // The "delete" delta will also result from the following diff
-            ((ItemImpl) thisItem).diffInternal(otherItem, deltas, strategy);
+            ((ItemImpl) thisItem).diffInternal(otherItem, deltas, false, strategy);
         }
 
         other.getItems();
@@ -1156,20 +1158,54 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             }
         }
         replaceComplexTypeDefinition(definitionToUse);
+
         // we need to continue even if CTD is null or 'any' - e.g. to resolve definitions within object extension
-        for (Item item : items.values()) {
-            if (item.getDefinition() != null && !force) {
-                // Item has a definition already, no need to apply it
-                continue;
-            }
-            ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), complexTypeDefinition);
-            if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
-                // We will not apply the null definition here. The item has a dynamic definition that we don't
-                // want to destroy as it cannot be reconstructed later.
+        applyDefinitionToItems(force);
+    }
+
+    private void applyDefinitionToItems(boolean force) throws SchemaException {
+        // We change items during this operation, so we need to create a copy of them.
+        ArrayList<Item<?, ?>> existingItems = new ArrayList<>(items.values());
+
+        for (Item item : existingItems) {
+            if (item.getDefinition() == null || force) {
+                ItemDefinition<?> itemDefinition = determineItemDefinition(item.getElementName(), complexTypeDefinition);
+                if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
+                    // We will not apply the null definition here. The item has a dynamic definition that we don't
+                    // want to destroy as it cannot be reconstructed later.
+                } else if (item instanceof PrismProperty && itemDefinition instanceof PrismContainerDefinition) {
+                    // Special case: we parsed something as (raw) property but later we found out it's in fact a container!
+                    // (It could be also a reference but this will be implemented later.)
+                    parseRawPropertyAsContainer((PrismProperty<?>) item, (PrismContainerDefinition<?>) itemDefinition);
+                } else {
+                    //noinspection unchecked
+                    item.applyDefinition(itemDefinition, force);
+                }
             } else {
-                item.applyDefinition(itemDefinition, force);
+                // Item has a definition already, no need to apply it
             }
         }
+    }
+
+    private <C1 extends Containerable> void parseRawPropertyAsContainer(PrismProperty<?> property,
+            PrismContainerDefinition<C1> containerDefinition) throws SchemaException {
+        PrismContainer<C1> container = containerDefinition.instantiate();
+        for (PrismPropertyValue<?> value : property.getValues()) {
+            XNode rawElement = value.getRawElement();
+            if (rawElement == null) {
+                throw new IllegalStateException("Couldn't apply container definition (" + containerDefinition
+                        + ") to a non-raw property value: " + value);
+            } else {
+                RootXNodeImpl rootXnode = new RootXNodeImpl(containerDefinition.getItemName(), rawElement);
+                PrismValue parsedValue = prismContext.parserFor(rootXnode).definition(containerDefinition).parseItemValue();
+                if (parsedValue instanceof PrismContainerValue) {
+                    //noinspection unchecked
+                    container.add((PrismContainerValue<C1>) parsedValue);
+                }
+            }
+        }
+        remove(property);
+        add(container);
     }
 
     /**
@@ -1314,7 +1350,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         ID oldItemDefFromContainer = oldContainerDef.findLocalItemDefinition(itemName);
         ID oldItemDef = item.getDefinition();
         ID clonedItemDef;
-        if (oldItemDefFromContainer == oldItemDef) {
+        if (oldItemDef == null || oldItemDefFromContainer == oldItemDef) {
             clonedItemDef = clonedContainerDef.findItemDefinition(itemName);
         } else {
             //noinspection unchecked
@@ -1459,31 +1495,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     @Override
     public String toHumanReadableString() {
         return "id="+id+": "+items.size()+" items";
-    }
-
-    // copies the definition from original to aClone (created outside of this method)
-    // it has to (artifically) create a parent PrismContainer to hold the definition
-    //
-    // without having a definition, such containers cannot be serialized using
-    // PrismJaxbProcessor.marshalContainerableToString (without definition, there is
-    // no information on corresponding element name)
-    //
-    // todo review usefulness and appropriateness of this method and its placement
-    @Deprecated
-    public static void copyDefinition(Containerable aClone, Containerable original, PrismContext prismContext) {
-        try {
-            Validate.notNull(original.asPrismContainerValue().getParent(), "original PrismContainerValue has no parent");
-
-            ComplexTypeDefinition definition = original.asPrismContainerValue().getComplexTypeDefinition();
-            Validate.notNull(definition, "original PrismContainer definition is null");
-
-            PrismContainer<?> aCloneParent = prismContext.getSchemaRegistry()
-                    .findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) definition.getCompileTimeClass())
-                    .instantiate();
-            aCloneParent.add(aClone.asPrismContainerValue());
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected SchemaException when copying definition from original object to its clone", e);
-        }
     }
 
     @Override
@@ -1636,7 +1647,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         for (QName itemName : itemNames) {
             Item<?, ?> item = findItemByQName(itemName);
             ItemPath itemPath = item.getPath().removeIds();
-            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(keep, itemPath)) {
+            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(keep, itemPath)
+                && !ItemPathCollectionsUtil.containsSubpathOrEquivalent(keep, itemPath)) {
+                System.out.println("Removing " + itemPath + " because not in " + keep);
                 removeItem(ItemName.fromQName(itemName), Item.class);
             } else {
                 if (item instanceof PrismContainer) {

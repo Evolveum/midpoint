@@ -44,6 +44,7 @@
              <icfcldap:operationalAttributes>createTimestamp</icfcldap:operationalAttributes>
              <icfcldap:usePermissiveModify>never</icfcldap:usePermissiveModify>
              <icfcldap:additionalSearchFilter>(!(roomNumber=invisible))</icfcldap:additionalSearchFilter>
+            <icfcldap:synchronizationStrategy>modifyTimestamp</icfcldap:synchronizationStrategy>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>

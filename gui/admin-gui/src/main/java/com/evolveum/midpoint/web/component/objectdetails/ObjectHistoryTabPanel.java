@@ -202,7 +202,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                         PrismContext context = getPageBase().getPrismContext();
                         String xml = "";
                         try {
-                            xml = context.serializerFor(PrismContext.LANG_XML).serialize(object);
+                            xml = context.xmlSerializer().serialize(object);
                         } catch (Exception ex) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't serialize object", ex);
                         }

@@ -53,7 +53,6 @@ public class PrismTestUtil {
 
     private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
     private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
-    private static final String LOG_MESSAGE_PREFIX = "";
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
@@ -117,15 +116,9 @@ public class PrismTestUtil {
         return getPrismContext().parseObject(xmlString);
     }
 
-    @Deprecated
-    public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
-        return getPrismContext().parserFor(element).parse();
-    }
-
     public static <T extends Objectable> T parseObjectable(File file, Class<T> clazz) throws SchemaException, IOException {
         return (T) parseObject(file).asObjectable();
     }
-
 
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
         return getPrismContext().parserFor(file).parseObjects();
@@ -136,11 +129,11 @@ public class PrismTestUtil {
     // ==========================
 
     public static String serializeObjectToString(PrismObject<? extends Objectable> object, String language) throws SchemaException {
-        return getPrismContext().serializeObjectToString(object, language);
+        return getPrismContext().serializerFor(language).serialize(object);
     }
 
     public static String serializeObjectToString(PrismObject<? extends Objectable> object) throws SchemaException {
-        return getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
+        return getPrismContext().xmlSerializer().serialize(object);
     }
 
     public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
@@ -203,21 +196,6 @@ public class PrismTestUtil {
         return new PolyStringType(createPolyString(orig, norm));
     }
 
-    public static void displayTestTitle(String testName) {
-        System.out.println("\n\n===[ "+testName+" ]===\n");
-        LOGGER.info("===[ {} ]===",testName);
-    }
-
-    public static void displayWhen(String testName) {
-        System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
-        LOGGER.info("---[ {} WHEN ]---",testName);
-    }
-
-    public static void displayThen(String testName) {
-        System.out.println("\n\n---[ "+testName+" THEN ]---\n");
-        LOGGER.info("---[ {} THEN ]---",testName);
-    }
-
     public static SearchFilterType unmarshalFilter(File file) throws Exception {
         return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
     }
@@ -227,13 +205,6 @@ public class PrismTestUtil {
             throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
         }
         return ((LogicalFilter) filter).getConditions().get(index);
-    }
-
-    public static void display(String title, String value) {
-        System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-        System.out.println(value);
-        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-                + value);
     }
 
     public static void display(String title, DebugDumpable dumpable) {

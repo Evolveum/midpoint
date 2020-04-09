@@ -11,37 +11,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -49,19 +25,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.ExistsFilter;
-import com.evolveum.midpoint.prism.query.FilterCreationUtil;
-import com.evolveum.midpoint.prism.query.FullTextFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.LogicalFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.query.UndefinedFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -83,31 +47,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
 public class ExpressionUtil {
 
@@ -203,10 +152,15 @@ public class ExpressionUtil {
     }
 
     // TODO: do we need this?
-    public static Object resolvePathGetValue(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
-            TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        TypedValue typedValue = resolvePathGetTypedValue(path, variables, normalizeValuesToDelete, defaultContext, objectResolver, prismContext, shortDesc, task, result);
+    public static Object resolvePathGetValue(
+            ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+            TypedValue defaultContext, ObjectResolver objectResolver, PrismContext prismContext,
+            String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        TypedValue typedValue = resolvePathGetTypedValue(
+                path, variables, normalizeValuesToDelete, defaultContext,
+                objectResolver, prismContext, shortDesc, task, result);
         if (typedValue == null) {
             return null;
         }
@@ -273,7 +227,7 @@ public class ExpressionUtil {
             ((Item) valueToConvert).setPrismContext(prismContext);                // TODO - or revive? Or make sure prismContext is set here?
         }
         if (valueToConvert instanceof ObjectReferenceType) {
-            ObjectReferenceType reference = ((ObjectReferenceType)valueToConvert).clone();
+            ObjectReferenceType reference = ((ObjectReferenceType) valueToConvert).clone();
             OperationResult subResult = new OperationResult("Resolve reference");
             try {
                 convertedTypeValue = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalTypedValue, objectResolver, variableName,
@@ -281,9 +235,9 @@ public class ExpressionUtil {
                 valueToConvert = convertedTypeValue.getValue();
             } catch (SchemaException e) {
                 result.addSubresult(subResult);
-                throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
+                throw new ExpressionSyntaxException("Schema error during variable " + variableName + " resolution in " + contextDescription + ": " + e.getMessage(), e);
             } catch (ObjectNotFoundException e) {
-                if(ObjectVariableModeType.OBJECT.equals(objectVariableModeType)) {
+                if (ObjectVariableModeType.OBJECT.equals(objectVariableModeType)) {
                     result.addSubresult(subResult);
                     throw e;
                 }
@@ -292,10 +246,10 @@ public class ExpressionUtil {
                 throw e;
             }
 
-            if(ObjectVariableModeType.PRISM_REFERENCE.equals(objectVariableModeType)){
+            if (ObjectVariableModeType.PRISM_REFERENCE.equals(objectVariableModeType)) {
                 PrismReferenceValue value = reference.asReferenceValue();
-                if(valueToConvert instanceof PrismObject) {
-                    value.setObject((PrismObject)valueToConvert);
+                if (valueToConvert instanceof PrismObject) {
+                    value.setObject((PrismObject) valueToConvert);
                 }
                 convertedTypeValue = (TypedValue<T>) new TypedValue(value, value.getDefinition());
                 valueToConvert = convertedTypeValue.getValue();
@@ -303,11 +257,11 @@ public class ExpressionUtil {
 
         }
         if (valueToConvert instanceof PrismObject<?>) {
-            convertedTypeValue.setValue(((PrismObject<?>)valueToConvert).asObjectable());
+            convertedTypeValue.setValue(((PrismObject<?>) valueToConvert).asObjectable());
             return convertedTypeValue;
         }
         if (valueToConvert instanceof PrismContainerValue<?>) {
-            PrismContainerValue<?> cval = ((PrismContainerValue<?>)valueToConvert);
+            PrismContainerValue<?> cval = ((PrismContainerValue<?>) valueToConvert);
             Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
@@ -318,7 +272,7 @@ public class ExpressionUtil {
             return convertedTypeValue;
         }
         if (valueToConvert instanceof PrismPropertyValue<?>) {
-            convertedTypeValue.setValue(((PrismPropertyValue<?>)valueToConvert).getValue());
+            convertedTypeValue.setValue(((PrismPropertyValue<?>) valueToConvert).getValue());
             return convertedTypeValue;
         }
         if (valueToConvert instanceof PrismReferenceValue) {
@@ -328,7 +282,7 @@ public class ExpressionUtil {
             }
         }
         if (valueToConvert instanceof PrismProperty<?>) {
-            PrismProperty<?> prop = (PrismProperty<?>)valueToConvert;
+            PrismProperty<?> prop = (PrismProperty<?>) valueToConvert;
             PrismPropertyDefinition<?> def = prop.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -343,7 +297,7 @@ public class ExpressionUtil {
             }
         }
         if (valueToConvert instanceof PrismReference) {
-            PrismReference ref = (PrismReference)valueToConvert;
+            PrismReference ref = (PrismReference) valueToConvert;
             PrismReferenceDefinition def = ref.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
@@ -357,7 +311,7 @@ public class ExpressionUtil {
             }
         }
         if (valueToConvert instanceof PrismContainer<?>) {
-            PrismContainer<?> container = (PrismContainer<?>)valueToConvert;
+            PrismContainer<?> container = (PrismContainer<?>) valueToConvert;
             PrismContainerDefinition<?> def = container.getDefinition();
             Class<?> containerCompileTimeClass = container.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
@@ -393,7 +347,7 @@ public class ExpressionUtil {
 
     static TypedValue<PrismObject<?>> resolveReference(TypedValue<ObjectReferenceType> refAndDef, ObjectResolver objectResolver,
             String varDesc, String contextDescription, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
         if (ref.getOid() == null) {
             throw new SchemaException(
@@ -433,7 +387,7 @@ public class ExpressionUtil {
 
     public static <ID extends ItemDefinition> ID resolveDefinitionPath(@NotNull ItemPath path,
             ExpressionVariables variables, PrismContainerDefinition<?> defaultContext, String shortDesc)
-                    throws SchemaException {
+            throws SchemaException {
         while (!path.isEmpty() && !path.startsWithName() && !path.startsWithVariable()) {
             path = path.rest();
         }
@@ -512,7 +466,7 @@ public class ExpressionUtil {
     public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, PrismContext prismContext, String shortDesc, Task task,
             OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (origQuery == null) {
             return null;
         }
@@ -526,7 +480,7 @@ public class ExpressionUtil {
     public static ObjectFilter evaluateFilterExpressions(ObjectFilter origFilter,
             ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (origFilter == null) {
             return null;
         }
@@ -554,7 +508,7 @@ public class ExpressionUtil {
     private static ObjectFilter evaluateFilterExpressionsInternal(ObjectFilter filter,
             ExpressionVariables variables, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, PrismContext prismContext,
             String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (filter == null) {
             return null;
         }
@@ -564,7 +518,7 @@ public class ExpressionUtil {
             if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
                 LOGGER.debug("No valueExpression in filter in {}. Returning original filter", shortDesc);
                 InOidFilter inOidFilter = (InOidFilter) filter;
-                if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()){
+                if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()) {
                     return filter.clone();
                 }
                 return FilterCreationUtil.createNone(prismContext);
@@ -702,7 +656,7 @@ public class ExpressionUtil {
         } else if (filter instanceof TypeFilter) {
             TypeFilter evaluatedFilter = ((TypeFilter) filter).cloneEmpty();
             ObjectFilter evaluatedSubFilter = evaluateFilterExpressionsInternal(((TypeFilter) filter).getFilter(), variables,
-                        expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
+                    expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
             evaluatedFilter.setFilter(evaluatedSubFilter);
             return evaluatedFilter;
         } else if (filter instanceof OrgFilter) {
@@ -762,10 +716,10 @@ public class ExpressionUtil {
                 }
 
             case ERROR:
-                throw new ExpressionEvaluationException("Expression "+valueExpression+" evaluated to no value");
+                throw new ExpressionEvaluationException("Expression " + valueExpression + " evaluated to no value");
 
             default:
-                throw new IllegalArgumentException("Unknown value "+queryInterpretationOfNoValue+" in queryInterpretationOfNoValue in "+valueExpression);
+                throw new IllegalArgumentException("Unknown value " + queryInterpretationOfNoValue + " in queryInterpretationOfNoValue in " + valueExpression);
 
         }
 
@@ -774,7 +728,7 @@ public class ExpressionUtil {
     private static <V extends PrismValue> V evaluateExpression(ExpressionVariables variables,
             PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ObjectFilter filter,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-                    throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         // TODO refactor after new query engine is implemented
         ItemDefinition outputDefinition = null;
@@ -798,7 +752,7 @@ public class ExpressionUtil {
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
             ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
                 shortDesc, task, parentResult);
@@ -814,7 +768,7 @@ public class ExpressionUtil {
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(
             ExpressionVariables variables, D outputDefinition, ExpressionType expressionType, ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult parentResult)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         return evaluateExpression(null, variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc, task, parentResult);
     }
@@ -838,7 +792,7 @@ public class ExpressionUtil {
     public static Collection<String> evaluateStringExpression(ExpressionVariables variables,
             PrismContext prismContext, ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
             String shortDesc, Task task, OperationResult parentResult)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         MutablePrismPropertyDefinition<String> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
@@ -866,7 +820,7 @@ public class ExpressionUtil {
     public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables,
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
-                    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
@@ -968,27 +922,27 @@ public class ExpressionUtil {
         // For other scripts we do it just before the execution, to catch all
         // possible places where scripts can be executed.
 
-        PrismObject<UserType> oldActor = (PrismObject<UserType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
+        PrismObject<? extends FocusType> oldActor = (PrismObject<? extends FocusType>) scriptVariables.get(ExpressionConstants.VAR_ACTOR);
         if (oldActor != null) {
             return;
         }
 
-        PrismObject<UserType> actor = null;
+        PrismObject<? extends FocusType> actor = null;
         try {
             if (securityContextManager != null) {
                 if (!securityContextManager.isAuthenticated()) {
                     // This is most likely evaluation of role
                     // condition before
                     // the authentication is complete.
-                    PrismObjectDefinition<UserType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+                    PrismObjectDefinition<? extends FocusType> actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
                     scriptVariables.addVariableDefinition(ExpressionConstants.VAR_ACTOR, null, actorDef);
                     return;
                 }
                 MidPointPrincipal principal = securityContextManager.getPrincipal();
                 if (principal != null) {
-                    UserType principalUser = principal.getUser();
-                    if (principalUser != null) {
-                        actor = principalUser.asPrismObject();
+                    FocusType principalFocus = principal.getFocus();
+                    if (principalFocus != null) {
+                        actor = principalFocus.asPrismObject();
                     }
                 }
             }
@@ -999,7 +953,7 @@ public class ExpressionUtil {
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Couldn't get principal information - the 'actor' variable is set to null", e);
         }
-        PrismObjectDefinition<UserType> actorDef;
+        PrismObjectDefinition<? extends FocusType> actorDef;
         if (actor == null) {
             actorDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         } else {
@@ -1058,10 +1012,10 @@ public class ExpressionUtil {
         if (val == null) {
             return true;
         }
-        if (val instanceof String && ((String)val).isEmpty()) {
+        if (val instanceof String && ((String) val).isEmpty()) {
             return true;
         }
-        if (val instanceof PolyString && ((PolyString)val).isEmpty()) {
+        if (val instanceof PolyString && ((PolyString) val).isEmpty()) {
             return true;
         }
         return false;
@@ -1096,7 +1050,7 @@ public class ExpressionUtil {
                 return (V) ((PrismContainerValue) value);
 
             } else {
-                throw new ExpressionEvaluationException("Expected Containerable or PrismContainerValue as expression output, got "+value.getClass());
+                throw new ExpressionEvaluationException("Expected Containerable or PrismContainerValue as expression output, got " + value.getClass());
             }
 
         } else {
@@ -1104,7 +1058,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> createCondition(
+    public static Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createCondition(
             ExpressionType conditionExpressionType,
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
@@ -1140,7 +1094,7 @@ public class ExpressionUtil {
     /**
      * Used in cases when we do not have a definition.
      */
-    public static  ItemDefinition determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
+    public static ItemDefinition determineDefinitionFromValueClass(PrismContext prismContext, String name, Class<?> valueClass, QName typeQName) {
         if (valueClass == null) {
             return null;
         }
@@ -1165,14 +1119,14 @@ public class ExpressionUtil {
     /**
      * Works only for simple evaluators that do not have any profile settings.
      */
-    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?,?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?, ?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
         ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
         if (profile == null) {
             return; // no restrictions
         }
         if (profile.getDecision() != AccessDecision.ALLOW) {
-            throw new SecurityViolationException("Access to evaluator "+evaluator.shortDebugDump()+
-                    " not allowed (expression profile: "+context.getExpressionProfile().getIdentifier()+") in "+context.getContextDescription());
+            throw new SecurityViolationException("Access to evaluator " + evaluator.shortDebugDump() +
+                    " not allowed (expression profile: " + context.getExpressionProfile().getIdentifier() + ") in " + context.getContextDescription());
         }
     }
 

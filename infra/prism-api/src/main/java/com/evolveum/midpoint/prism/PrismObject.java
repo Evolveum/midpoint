@@ -141,21 +141,11 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     @Override
     PrismContainerValue<?> getParent();
 
-    @NotNull
-    @Override
-    ItemPath getPath();
-
-    @Override
-    boolean equals(Object obj);
-
     /**
      * this method ignores some part of the object during comparison (e.g. source demarcation in values)
      * These methods compare the "meaningful" parts of the objects.
      */
     boolean equivalent(Object obj);
-
-    @Override
-    String toString();
 
     /**
      * Returns short string representing identity of this object.
@@ -177,13 +167,6 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
      * Return display name intended for business users of midPoint
      */
     String getBusinessDisplayName();
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
-            ConsistencyCheckScope scope);
-
-    @Override
-    void freeze();
 
     PrismObject<O> cloneIfImmutable();
 

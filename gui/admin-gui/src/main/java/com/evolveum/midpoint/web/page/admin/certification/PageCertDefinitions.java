@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -246,7 +247,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     getPrismContext().deltaFactory().object()
                             .createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
                             );
-            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+            getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
         } catch (Exception ex) {
             result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign definition", ex);

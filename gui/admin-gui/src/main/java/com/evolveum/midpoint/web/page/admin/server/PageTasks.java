@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -37,6 +38,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -47,7 +49,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/tasks2", matchUrlForSecurity = "/admin/tasks2")
+                @Url(mountUrl = "/admin/tasks", matchUrlForSecurity = "/admin/tasks")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
@@ -57,6 +59,7 @@ import java.util.List;
                         label = "PageTasks.auth.tasks.label",
                         description = "PageTasks.auth.tasks.description")})
 public class PageTasks extends PageAdmin {
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_TABLE = "table";
 
@@ -73,14 +76,22 @@ public class PageTasks extends PageAdmin {
     }
 
     public PageTasks(PageParameters params) {
+        this(null, params);
+    }
+
+    public PageTasks(ObjectQuery predefinedQuery, PageParameters params) {
         super(params);
 
         TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (query == null) {
                     query = getPrismContext().queryFactory().createQuery();
+                }
+                if (predefinedQuery != null){
+                    query.addFilter(predefinedQuery.getFilter());
                 }
                 query.addFilter(getPrismContext().queryFor(TaskType.class)
                         .item(TaskType.F_PARENT)
@@ -101,6 +112,7 @@ public class PageTasks extends PageAdmin {
 
     private Collection<? extends IColumn<SelectableBean<TaskType>, String>> addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
         columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
+            private static final long serialVersionUID = 1L;
             @Override
             public IModel<ObjectReferenceType> extractDataModel(IModel<SelectableBean<TaskType>> rowModel) {
                 SelectableBean<TaskType> bean = rowModel.getObject();
@@ -110,12 +122,14 @@ public class PageTasks extends PageAdmin {
         });
         columns.add(3, new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), SelectableBeanImpl.F_VALUE + "." + TaskType.F_NODE_AS_OBSERVED.getLocalPart()));
         columns.add(4, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.currentRunTime"), TaskType.F_COMPLETION_TIMESTAMP.getLocalPart()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(final Item<ICellPopulator<SelectableBean<TaskType>>> item, final String componentId,
                                      final IModel<SelectableBean<TaskType>> rowModel) {
 
                 DateLabelComponent dateLabel = new DateLabelComponent(componentId, new IModel<Date>() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public Date getObject() {
@@ -151,6 +165,7 @@ public class PageTasks extends PageAdmin {
             }
         });
         columns.add(5, new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.scheduledToRunAgain")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> item, String componentId,
@@ -166,12 +181,12 @@ public class PageTasks extends PageAdmin {
         return columns;
     }
 
-
     private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
         List<QName> propertiesToGet = new ArrayList<>();
         propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
         propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
         propertiesToGet.add(TaskType.F_NEXT_RETRY_TIMESTAMP);
+        propertiesToGet.add(TaskType.F_SUBTASK_REF);
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();

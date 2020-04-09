@@ -29,6 +29,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 
 import com.evolveum.midpoint.prism.*;
 
@@ -66,6 +67,8 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -301,6 +304,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+        registerPrismSchemasFromDirectory(directory, emptyList());
+    }
+
+    public void registerPrismSchemasFromDirectory(File directory, @NotNull Collection<String> extensionFilesToIgnore)
+            throws FileNotFoundException, SchemaException {
         File[] fileArray = directory.listFiles();
         if (fileArray != null) {
             List<File> files = Arrays.asList(fileArray);
@@ -308,8 +316,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             // This is useful in tests but may come handy also during customization
             Collections.sort(files);
             for (File file: files) {
-                if (file.getName().startsWith(".")) {
+                String name = file.getName();
+                if (name.startsWith(".")) {
                     // skip dotfiles. this will skip SVN data and similar things
+                    continue;
+                }
+                if (extensionFilesToIgnore.contains(name)) {
                     continue;
                 }
                 if (file.isDirectory()) {
@@ -528,7 +540,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         for (Entry<QName,ComplexTypeDefinition> entry: extensionSchemas.entrySet()) {
             QName typeQName = entry.getKey();
             ComplexTypeDefinition extensionCtd = entry.getValue();
-            ComplexTypeDefinition primaryCtd = findComplexTypeDefinition(typeQName);
+            ComplexTypeDefinition primaryCtd = findComplexTypeDefinitionByType(typeQName);
             PrismContainerDefinition extensionContainer = primaryCtd.findContainerDefinition(
                     new ItemName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
             if (extensionContainer == null) {
@@ -576,6 +588,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     @Override
+    public Validator getJavaxSchemaValidator() {
+        Validator validator = javaxSchema.newValidator();
+        validator.setResourceResolver(entityResolver);
+        return validator;
+    }
+
+    @Override
     public Collection<Package> getCompileTimePackages() {
         Collection<Package> compileTimePackages = new ArrayList<>(schemaDescriptions.size());
         for (SchemaDescription desc : schemaDescriptions) {
@@ -586,11 +605,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return compileTimePackages;
     }
     //endregion
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
 
     @Override
     public String debugDump(int indent) {
@@ -682,7 +696,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             @NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {
         PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
         if (schema == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return schema.findItemDefinitionsByCompileTimeClass(compileTimeClass, definitionClass);
     }
@@ -750,7 +764,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
         PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
         if (schema == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
         return schema.findTypeDefinitionsByType(typeName, definitionClass);
     }
@@ -1041,15 +1055,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return rv;
     }
 
-    /**
-     * Looks for a top-level definition for the specified element name (in all schemas).
-     */
-    @Override
-    @Deprecated
-    public ItemDefinition resolveGlobalItemDefinition(QName elementQName, PrismContainerDefinition<?> containerDefinition) {
-        return resolveGlobalItemDefinition(elementQName, containerDefinition != null ? containerDefinition.getComplexTypeDefinition() : null);
-    }
-
     @Override
     public ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition) {
         if (QNameUtil.noNamespace(itemName)) {
@@ -1278,14 +1283,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         }
     }
 
-    //endregion
-
-    //region Deprecated misc things
-    @Override
-    @Deprecated
-    public <T extends Objectable> PrismObject<T> instantiate(Class<T> compileTimeClass) throws SchemaException {
-        return prismContext.createObject(compileTimeClass);
-    }
     //endregion
 
     //region TODO categorize

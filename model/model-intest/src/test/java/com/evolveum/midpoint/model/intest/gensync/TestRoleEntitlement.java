@@ -6,31 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -38,21 +18,42 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Generic synchronization test. We create role and assign a resource to it.
  * Entitlement (group) should be created.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
@@ -60,10 +61,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test050GetRolePirate() throws Exception {
-        final String TEST_NAME = "test050GetRolePirate";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -78,20 +76,18 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     }
 
     protected void assertRolePirate(PrismObject<RoleType> role) {
-        assertObjectSanity(role);
-        assertEquals("Wrong "+role+" OID (prism)", ROLE_PIRATE_OID, role.getOid());
+        new PrismObjectAsserter<>(role)
+                .assertSanity();
+        assertEquals("Wrong " + role + " OID (prism)", ROLE_PIRATE_OID, role.getOid());
         RoleType roleType = role.asObjectable();
-        assertEquals("Wrong "+role+" OID (jaxb)", ROLE_PIRATE_OID, roleType.getOid());
-        PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", "Pirate", roleType.getName());
+        assertEquals("Wrong " + role + " OID (jaxb)", ROLE_PIRATE_OID, roleType.getOid());
+        PrismAsserts.assertEqualsPolyString("Wrong " + role + " name", "Pirate", roleType.getName());
     }
 
     @Test
     public void test100ModifyRoleAddEntitlement() throws Exception {
-        final String TEST_NAME = "test100ModifyRoleAddEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -109,14 +105,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         prepareNotifications();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         assertSuccess(result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         // Check accountRef
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
@@ -138,7 +132,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, GROUP_PIRATE_DUMMY_DESCRIPTION);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -154,11 +148,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test101GetGroup() throws Exception {
-        final String TEST_NAME = "test101GetGroup";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -168,7 +159,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyGroup.replaceAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty Pirates");
 
         // WHEN
-        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, null , task, result);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, null, task, result);
 
         // THEN
         display("Group shadow (model)", shadow);
@@ -184,24 +175,21 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test102GetGroupNoFetch() throws Exception {
-        final String TEST_NAME = "test102GetGroupNoFetch";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 
         // WHEN
-        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options , task, result);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options, task, result);
 
         display("Account", shadow);
-        display("Account def", shadow.getDefinition());
+        displayDumpable("Account def", shadow.getDefinition());
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
@@ -210,23 +198,20 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test103GetGroupRaw() throws Exception {
-        final String TEST_NAME = "test103GetGroupRaw";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
         // WHEN
-        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options , task, result);
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options, task, result);
 
         display("Account", shadow);
-        display("Account def", shadow.getDefinition());
+        displayDumpable("Account def", shadow.getDefinition());
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
@@ -235,11 +220,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test108ModifyRoleAddEntitlementAgain() throws Exception {
-        final String TEST_NAME = "test108ModifyRoleAddEntitlementAgain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -251,7 +233,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         linkRefVal.setObject(group);
         ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
         roleDelta.addModification(groupDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(roleDelta);
 
         dummyAuditService.clear();
 
@@ -263,16 +245,14 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
             // THEN
             assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
         } catch (SchemaException e) {
-            // This is expected
-            e.printStackTrace();
-            // THEN
+            displayExpectedException(e);
             String message = e.getMessage();
             assertMessageContains(message, "already contains entitlement");
             assertMessageContains(message, "group");
         }
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -282,11 +262,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test110GetRoleResolveEntitlement() throws Exception {
-        final String TEST_NAME = "test110GetRoleResolveEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -311,11 +288,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test111GetRoleResolveEntitlement() throws Exception {
-        final String TEST_NAME = "test111GetRoleResolveEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -344,18 +318,15 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test112GetRoleResolveEntitlementNoFetch() throws Exception {
-        final String TEST_NAME = "test112GetRoleResolveEntitlementNoFetch";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                 .item(UserType.F_LINK_REF)
-                        .resolve()
-                        .noFetch()
+                .resolve()
+                .noFetch()
                 .build();
 
         // WHEN
@@ -373,14 +344,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         TestUtil.assertSuccess("getObject result", result);
     }
 
-
     @Test
     public void test119ModifyRoleDeleteEntitlement() throws Exception {
-        final String TEST_NAME = "test119ModifyRoleDeleteEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -391,16 +358,16 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
         roleDelta.addModification(linkDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(roleDelta);
 
         prepareNotifications();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
 
@@ -410,7 +377,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         // Check is shadow is gone
         try {
-            PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+            repositoryService.getObject(ShadowType.class, groupOid, null, result);
             AssertJUnit.fail("Shadow " + groupOid + " still exists");
         } catch (ObjectNotFoundException e) {
             // This is OK
@@ -419,8 +386,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         // Check if dummy resource account is gone
         assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
 
-     // Check audit
-        display("Audit", dummyAuditService);
+        // Check audit
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -434,27 +401,21 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test120AddEntitlement() throws Exception {
-        final String TEST_NAME = "test120AddEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
         ObjectDelta<ShadowType> groupDelta = DeltaFactory.Object.createAddDelta(group);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = executeChanges(groupDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         groupOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, group);
         assertNotNull("No account OID in resulting delta", groupOid);
@@ -476,7 +437,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -489,11 +450,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test121ModifyRoleLinkEntitlement() throws Exception {
-        final String TEST_NAME = "test121ModifyRoleLinkEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -505,11 +463,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         roleDelta.addModification(linkDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -528,7 +486,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -539,14 +497,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         dummyAuditService.assertExecutionSuccess();
     }
 
-
     @Test
     public void test128ModifyRoleUnlinkEntitlement() throws Exception {
-        final String TEST_NAME = "test128ModifyRoleUnlinkEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -582,7 +536,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -595,11 +549,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test129DeleteEntitlement() throws Exception {
-        final String TEST_NAME = "test129DeleteEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -624,7 +575,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -637,11 +588,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test131ModifyRoleAssignEntitlement() throws Exception {
-        final String TEST_NAME = "test131ModifyRoleAssignEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
@@ -650,11 +598,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(assignmentDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess("executeChanges result", result);
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
@@ -682,7 +630,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -699,11 +647,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test132ModifyEntitlement() throws Exception {
-        final String TEST_NAME = "test132ModifyEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
@@ -726,7 +671,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         display("Role after change execution", role);
         assertEquals("Wrong role description", ROLE_PIRATE_DESCRIPTION, role.asObjectable().getDescription());
         // reflected by inbound
-        PrismAsserts.assertPropertyValue(role,ROLE_EXTENSION_COST_CENTER_PATH, "MELEE123");
+        PrismAsserts.assertPropertyValue(role, ROLE_EXTENSION_COST_CENTER_PATH, "MELEE123");
         assertLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 
@@ -750,7 +695,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
@@ -764,11 +709,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test139ModifyRoleUnassignEntitlement() throws Exception {
-        final String TEST_NAME = "test139ModifyRoleUnassignEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
@@ -798,7 +740,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -814,11 +756,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test151ModifyRoleAssignEntitlementRelativeEnforcement() throws Exception {
-        final String TEST_NAME = "test151ModifyRoleAssignEntitlementRelativeEnforcement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -826,15 +765,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 ShadowKindType.ENTITLEMENT, "group", true);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(assignmentDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
@@ -858,7 +794,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -875,12 +811,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test158ModifyRoleUnassignEntitlementRelativeEnforcement() throws Exception {
-        final String TEST_NAME = "test158ModifyRoleUnassignEntitlementRelativeEnforcement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -908,7 +840,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -926,11 +858,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test160ModifyRolePropertyAndAssignEntitlement() throws Exception {
-        final String TEST_NAME = "test160ModifyRolePropertyAndAssignEntitlement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -939,15 +868,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         roleDelta.addModificationReplaceProperty(RoleType.F_DESCRIPTION, "Band of Bloodthirsty Bashers");
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
@@ -971,7 +897,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -988,11 +914,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test161ModifyRole() throws Exception {
-        final String TEST_NAME = "test161ModifyRole";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1000,15 +923,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 ROLE_PIRATE_OID, RoleType.F_DESCRIPTION, ROLE_PIRATE_DESCRIPTION);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
@@ -1018,13 +938,11 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         // Check shadow
         PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
         assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
-//        assertEnableTimestampShadow(shadow, startTime, endTime);
 
         // Check group
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
         display("Entitlement shadow after", shadowModel);
         assertDummyGroupShadowModel(shadowModel, groupOid, GROUP_PIRATE_DUMMY_NAME);
-//        assertEnableTimestampShadow(shadowModel, startTime, endTime);
 
         // Check group in dummy resource
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, ROLE_PIRATE_DESCRIPTION);
@@ -1032,7 +950,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1045,11 +963,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
     @Test
     public void test180RenameRole() throws Exception {
-        final String TEST_NAME = "test180RenameRole";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.FULL);
 
@@ -1057,15 +972,12 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 ROLE_PIRATE_OID, RoleType.F_NAME, PrismTestUtil.createPolyString("Privateers"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
         display("Role after change execution", role);
@@ -1091,8 +1003,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         // Just to be on a safe side, this is uppercase
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
-     // Check audit
-        display("Audit", dummyAuditService);
+        // Check audit
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1108,11 +1020,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test199DeleteRole() throws Exception {
-        final String TEST_NAME = "test199DeleteRole";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -1128,7 +1037,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         TestUtil.assertSuccess("executeChanges result", result);
 
         try {
-            PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
+            getRole(ROLE_PIRATE_OID);
             AssertJUnit.fail("Privateers are still alive!");
         } catch (ObjectNotFoundException ex) {
             // This is OK
@@ -1144,8 +1053,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
-     // Check audit
-        display("Audit", dummyAuditService);
+        // Check audit
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1163,27 +1072,21 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test200AddRoleSwashbuckler() throws Exception {
-        final String TEST_NAME = "test200AddRoleSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
         PrismObject<RoleType> role = parseObject(ROLE_SWASHBUCKLER_FILE);
         ObjectDelta<RoleType> roleDelta = DeltaFactory.Object.createAddDelta(role);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(roleDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 
         assertNotNull("No account OID in resulting delta", groupOid);
         // Check linkRef (should be none)
@@ -1210,15 +1113,15 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_SWASHBUCKLER_DUMMY_NAME, ROLE_SWASHBUCKLER_DESCRIPTION);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, RoleType.class);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertHasDelta(0, ChangeType.MODIFY, RoleType.class); // link
-        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.assertExecutionDeltas(1, 1);
         dummyAuditService.assertHasDelta(1, ChangeType.MODIFY, RoleType.class); // inbound
         dummyAuditService.assertTarget(ROLE_SWASHBUCKLER_OID);
         dummyAuditService.assertExecutionSuccess();
@@ -1229,33 +1132,30 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
      */
     @Test
     public void test210ModifyRoleSwashbucklerRiskLevel() throws Exception {
-        final String TEST_NAME = "test210ModifyRoleSwashbucklerRiskLevel";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
         assertRoleBefore(ROLE_SWASHBUCKLER_OID)
-            .extension()
+                .extension()
                 .assertItems(PIRACY_COST_CENTER);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyObjectReplaceProperty(RoleType.class, ROLE_SWASHBUCKLER_OID, RoleType.F_RISK_LEVEL, task, result, "99");
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRoleAfter(ROLE_SWASHBUCKLER_OID)
-            .assertRiskLevel("99")
-            .extension()
+                .assertRiskLevel("99")
+                .extension()
                 .assertItems(PIRACY_COST_CENTER, PIRACY_RISK_VECTOR)
                 .containerSingle(PIRACY_RISK_VECTOR)
-                    .assertPropertyEquals(PIRACY_RISK_VECTOR_RISK, "X")
-                    .assertPropertyEquals(PIRACY_RISK_VECTOR_VALUE, 99);
+                .assertPropertyEquals(PIRACY_RISK_VECTOR_RISK, "X")
+                .assertPropertyEquals(PIRACY_RISK_VECTOR_VALUE, 99);
     }
 
     private void prepareTest(AssignmentPolicyEnforcementType enforcement) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

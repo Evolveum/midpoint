@@ -79,9 +79,17 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         if (componentFactory == null) {
-            PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler()) {
+            ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                    .visibilityHandler(visibilityHandler)
+                    .editabilityHandler(editabilityHandler)
+                    .showOnTopLevel(isShowOnTopLevel())
+                    .mandatoryHandler(getMandatoryHandler())
+                    .build();
+            PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(),
+                    settings) {
 
                 @Override
                 protected void removePerformed(PrismContainerValueWrapper containerValueWrapper, AjaxRequestTarget target) throws SchemaException {

@@ -6,31 +6,27 @@
  */
 package com.evolveum.midpoint.model.impl.misc;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
 
-import java.io.File;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-/**
- * @author mederly
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegrationTest {
 
@@ -65,11 +61,8 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
 
     @Test
     public void test100FixDuplicatesWithDifferentObjectClasses() throws Exception {
-        final String TEST_NAME = "test100FixDuplicatesWithDifferentObjectClasses";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         login(userAdministrator);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -82,11 +75,11 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
         repoAddObjectFromFile(TASK_SHADOW_INTEGRITY_CHECK_FILE, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskCloseOrSuspend(TASK_SHADOW_INTEGRITY_CHECK_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<TaskType> taskAfter = getTask(TASK_SHADOW_INTEGRITY_CHECK_OID);
         display("task after", taskAfter);
 
@@ -99,6 +92,4 @@ public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegration
                 .filter(o -> "intent1".equals(o.asObjectable().getIntent())).findFirst().orElse(null);
         assertNotNull("intent1 shadow was removed", intent1);
     }
-
-
 }

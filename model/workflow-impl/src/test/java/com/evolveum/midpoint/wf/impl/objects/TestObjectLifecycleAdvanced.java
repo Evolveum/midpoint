@@ -6,6 +6,19 @@
  */
 package com.evolveum.midpoint.wf.impl.objects;
 
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
@@ -19,38 +32,20 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Testing approvals of various triggered object-level constraints.
  * In a way it's an extension of role lifecycle tests.
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(TestObjectLifecycleAdvanced.class);
 
     private static final File TEST_OBJECT_RESOURCE_DIR = new File("src/test/resources/objects-advanced");
 
@@ -87,79 +82,78 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test010CreateRoleEmployee() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         PrismObject<RoleType> employee = prismContext.parseObject(ROLE_EMPLOYEE_FILE);
-        executeTest(null, new TestDetails() {
-                    @Override
-                    protected LensContext createModelContext(OperationResult result) throws Exception {
-                        LensContext<RoleType> lensContext = createLensContext(RoleType.class);
-                        addFocusDeltaToContext(lensContext, DeltaFactory.Object.createAddDelta(employee));
-                        return lensContext;
-                    }
+        executeTest(new TestDetails() {
+            @Override
+            protected LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<RoleType> lensContext = createLensContext(RoleType.class);
+                addFocusDeltaToContext(lensContext, DeltaFactory.Object.createAddDelta(employee));
+                return lensContext;
+            }
 
-                    @Override
-                    protected void afterFirstClockworkRun(CaseType rootCase,
-                            CaseType case0, List<CaseType> subcases,
-                            List<CaseWorkItemType> workItems,
-                            Task opTask, OperationResult result) throws Exception {
+            @Override
+            protected void afterFirstClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    List<CaseWorkItemType> workItems,
+                    Task opTask, OperationResult result) throws Exception {
 //                        ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
 //                        ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
 //                        assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
-                        assertNoObject(employee);
-                        ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
-                        ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-                        assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
-                                null,
-                                Collections.singletonList(expectedTask),
-                                Collections.singletonList(expectedWorkItem));
+                assertNoObject(employee);
+                ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
+                ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
+                assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
+                        null,
+                        Collections.singletonList(expectedTask),
+                        Collections.singletonList(expectedWorkItem));
 
-                        CaseType subcase = subcases.get(0);
-                        ApprovalContextType wfc = subcase.getApprovalContext();
-                        assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
-                        SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
-                        assertEquals(1, attachedRule.getStageMin().intValue());
-                        assertEquals(1, attachedRule.getStageMax().intValue());
-                        assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
-                        EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
-                        assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
+                CaseType subcase = subcases.get(0);
+                ApprovalContextType wfc = subcase.getApprovalContext();
+                assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+                SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
+                assertEquals(1, attachedRule.getStageMin().intValue());
+                assertEquals(1, attachedRule.getStageMax().intValue());
+                assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
+                EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
+                assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
 
-                        CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
-                        assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
-                    }
+                CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
+                assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
+            }
 
-                    @Override
-                    protected void afterCase0Finishes(CaseType rootCase, Task opTask,
-                            OperationResult result) throws Exception {
-                        assertNoObject(employee);
-                    }
+            @Override
+            protected void afterCase0Finishes(CaseType rootCase, Task opTask,
+                    OperationResult result) throws Exception {
+                assertNoObject(employee);
+            }
 
-                    @Override
-                    protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
-                            Task opTask, OperationResult result) {
-                        new PrismObjectAsserter<>(employee).assertSanity();
-                    }
+            @Override
+            protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+                    Task opTask, OperationResult result) {
+                new PrismObjectAsserter<>(employee).assertSanity();
+            }
 
-                    @Override
-                    protected boolean executeImmediately() {
-                        return false;
-                    }
+            @Override
+            protected boolean executeImmediately() {
+                return false;
+            }
 
-                    @Override
-                    protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
-                        login(getUser(userEmployeeOwnerOid));
-                        return true;
-                    }
-                }, 1);
-
+            @Override
+            protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+                login(getUser(userEmployeeOwnerOid));
+                return true;
+            }
+        }, 1);
 
         roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
         PrismReferenceValue employeeOwner = getPrismContext().itemFactory().createReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
         executeChanges(prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
-                .asObjectDelta(userEmployeeOwnerOid),
+                        .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
+                        .asObjectDelta(userEmployeeOwnerOid),
                 null, task, result);
         display("Employee role", getRole(roleEmployeeOid));
         display("Employee owner", getUser(userEmployeeOwnerOid));
@@ -169,10 +163,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test020ActivateIncompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-        @SuppressWarnings({ "raw"})
+        @SuppressWarnings({ "raw" })
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
                 .asObjectDelta(roleEmployeeOid);
@@ -203,10 +197,10 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test030ActivateIncompleteRoleAgain() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
-        @SuppressWarnings({ "raw"})
+        @SuppressWarnings({ "raw" })
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
                 .item(RoleType.F_DESCRIPTION).replace("hi")
@@ -235,29 +229,24 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
     public void test040AddApprover() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userEmployeeOwnerOid, roleEmployeeOid, SchemaConstants.ORG_APPROVER, task, result);
         result.computeStatus();
         assertSuccess(result);
     }
 
-
     @Test
     public void test045ActivateCompleteRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
-
-        @SuppressWarnings({ "raw"})
         ObjectDelta<RoleType> activateRoleDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
                 .item(RoleType.F_DESCRIPTION).replace("hi")
                 .asObjectDelta(roleEmployeeOid);
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -272,7 +261,7 @@ public class TestObjectLifecycleAdvanced extends AbstractWfTestPolicy {
                     Task opTask, OperationResult result) throws Exception {
                 ExpectedTask expectedTask = new ExpectedTask(null, "Matching state: after operation (\"active lifecycleState\")");
                 ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-                assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+                assertWfContextAfterClockworkRun(rootCase, subcases, workItems,
                         null,
                         Collections.singletonList(expectedTask),
                         Collections.singletonList(expectedWorkItem));

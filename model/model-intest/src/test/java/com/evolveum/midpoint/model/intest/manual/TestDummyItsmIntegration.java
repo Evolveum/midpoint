@@ -31,8 +31,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -55,8 +53,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyItsmIntegration.class);
-
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.model.intest.manual/DummyItsmIntegrationConnector";
 
     protected static final File RESOURCE_DUMMY_ITSM_FILE = new File(TEST_DIR, "resource-dummy-itsm.xml");
@@ -75,7 +71,6 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     protected static final QName ATTR_DESCRIPTION_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DESCRIPTION);
 
     protected PrismObject<ResourceType> resource;
-    protected ResourceType resourceType;
 
     private String jackLastTicketIdentifier;
 
@@ -97,11 +92,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
-        OperationResult result = new OperationResult(TestDummyItsmIntegration.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = getTestOperationResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_ITSM_OID,
                 null, result).asObjectable();
@@ -120,18 +111,16 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test012TestConnection() throws Exception {
-        final String TEST_NAME = "test012TestConnection";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ITSM_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("Test result", testResult);
         TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
@@ -149,18 +138,16 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test100AssignAccountToJack() throws Exception {
-        final String TEST_NAME = "test100AssignAccountToJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -179,20 +166,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test102CloseTicketAndRecomputeJack() throws Exception {
-        final String TEST_NAME = "test102CloseTicketAndRecomputeJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -201,23 +186,21 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         display("Repo shadow", shadowRepo);
-        PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+        assertSinglePendingOperation(shadowRepo, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
     }
 
     @Test
     public void test104UnassignAccountFromJack() throws Exception {
-        final String TEST_NAME = "test104UnassignAccountFromJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -237,10 +220,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test108CloseTicketAndRecomputeJack() throws Exception {
-        final String TEST_NAME = "test108CloseTicketAndRecomputeJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
@@ -248,11 +229,11 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         dumpItsm();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -274,20 +255,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test109LetItExpire() throws Exception {
-        final String TEST_NAME = "test109LetItExpire";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT3H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -299,20 +278,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test110AssignItsmAccountToJackCommunicationError() throws Exception {
-        final String TEST_NAME = "test110AssignItsmAccountToJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         DummyItsm.getInstance().clearFailureClass();
         assertInProgress(result);
 
@@ -335,10 +312,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test111ReconcileJackFixed() throws Exception {
-        final String TEST_NAME = "test111ReconcileJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Give consistency a time re-try operation again.
@@ -350,12 +325,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -380,21 +355,19 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test112CloseTicketAndRecomputeJackCommunicationError() throws Exception {
-        final String TEST_NAME = "test112CloseTicketAndRecomputeJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         DummyItsm.getInstance().clearFailureClass();
         assertPartialError(result);
 
@@ -418,20 +391,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test113RecomputeJackFixed() throws Exception {
-        final String TEST_NAME = "test113RecomputeJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().clearFailureClass();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -453,20 +424,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test114UnassignAccountFromJackCommunicationError() throws Exception {
-        final String TEST_NAME = "test114UnassignAccountFromJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         DummyItsm.getInstance().clearFailureClass();
         assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
@@ -506,10 +475,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test115ReconcileJackFixed() throws Exception {
-        final String TEST_NAME = "test115ReconcileJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Give consistency a time re-try operation again.
@@ -520,12 +487,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastTicketIdentifier = assertInProgress(result);
 
@@ -551,21 +518,19 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test117CloseTicketAndRecomputeJackCommunicationError() throws Exception {
-        final String TEST_NAME = "test117CloseTicketAndRecomputeJackCommunicationError";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeDummyTicket(jackLastTicketIdentifier);
         DummyItsm.getInstance().setFailureClass(CommunicationException.class);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         DummyItsm.getInstance().clearFailureClass();
         assertPartialError(result);
 
@@ -589,10 +554,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 
     @Test
     public void test118RecomputeJackFixed() throws Exception {
-        final String TEST_NAME = "test118RecomputeJackFixed";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyItsm.getInstance().clearFailureClass();
@@ -601,12 +564,12 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
         display("Repo shadow before", shadowRepoBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // This in fact should be a call to reconcile, not refresh directly (TODO: MID-4542)
         provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -631,20 +594,18 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
      */
     @Test
     public void test119LetItExpire() throws Exception {
-        final String TEST_NAME = "test119LetItExpire";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT3H");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
@@ -668,7 +629,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     }
 
     private void dumpItsm() {
-        display("ITSM", DummyItsm.getInstance());
+        displayDumpable("ITSM", DummyItsm.getInstance());
     }
 
 }

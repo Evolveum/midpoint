@@ -6,23 +6,10 @@
  */
 package com.evolveum.midpoint.report.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,58 +17,40 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.expression.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @Component
@@ -99,7 +68,6 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private FunctionLibrary logFunctionLibrary;
     @Autowired private FunctionLibrary basicFunctionLibrary;
     @Autowired private FunctionLibrary midpointFunctionLibrary;
-    @Autowired private LocalizationService localizationService;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ArchetypeManager archetypeManager;
@@ -145,8 +113,9 @@ public class ReportServiceImpl implements ReportService {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("report query (parsed):\n{}", parsedQuery.debugDump(1));
             }
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            // TODO Auto-generated catch block
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
+                | CommunicationException | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Cannot convert query, reason: {}", e.getMessage());
             throw e;
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
@@ -156,7 +125,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+    public <O extends ObjectType> Collection<PrismObject<O>> searchObjects(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         // List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
@@ -168,9 +137,13 @@ public class ReportServiceImpl implements ReportService {
 
         TypeFilter typeFilter = (TypeFilter) query.getFilter();
         QName type = typeFilter.getType();
-        Class clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+        Class<O> clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
         if (clazz == null) {
-            clazz = prismContext.getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
+            PrismObjectDefinition<O> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
+            if (objectDef == null) {
+                throw new SchemaException("Undefined object type used in query, type: " + type);
+            }
+            clazz = objectDef.getCompileTimeClass();
         }
 
         ObjectQuery queryForSearch = prismContext.queryFactory().createQuery(typeFilter.getFilter());
@@ -186,7 +159,7 @@ public class ReportServiceImpl implements ReportService {
             getOptions.setNoFetch(Boolean.TRUE);
         }
         options = SelectorOptions.createCollection(getOptions);
-        List<PrismObject<? extends ObjectType>> results;
+        List<PrismObject<O>> results;
         try {
             results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
             return results;

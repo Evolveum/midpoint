@@ -51,7 +51,7 @@
                          <ra:identifier>tns:username</ra:identifier>
                          <ra:displayNameAttribute>tns:username</ra:displayNameAttribute>
                          <ra:namingAttribute>tns:username</ra:namingAttribute>
-                         <ra:account/>
+                         <ra:kind>account</ra:kind>
                          <ra:default/>
                       </xsd:appinfo>
                    </xsd:annotation>

@@ -7,6 +7,31 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeSuite;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -32,45 +57,19 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.AssertJUnit;
-import org.testng.annotations.*;
-import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
-/**
- * @author lazyman
- */
-public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
-
-    private static final Trace LOGGER = TraceManager.getTrace(BaseSQLRepoTest.class);
+public class BaseSQLRepoTest extends AbstractSpringTest
+        implements InfraTestMixin {
 
     static final File FOLDER_BASE = new File("./src/test/resources");
 
@@ -93,9 +92,11 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     static final ItemName ATTR_MANAGER = new ItemName(NS_RI, "manager");
 
     @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
+
     @Autowired
     @Qualifier("sqlRepositoryServiceImpl")
     protected SqlRepositoryServiceImpl sqlRepositoryService;
+
     @Autowired protected RepositoryService repositoryService;
     @Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;
@@ -107,12 +108,10 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired protected Protector protector;
     @Autowired protected TestQueryListener queryListener;
 
-    private static Set<Class> initializedClasses = new HashSet<>();
-
     protected boolean verbose = false;
 
     @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
+    public void prismContextForTestSuite() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
@@ -127,35 +126,16 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         this.factory = factory;
     }
 
-    private boolean isSystemInitialized() {
-        return initializedClasses.contains(this.getClass());
-    }
+    private volatile boolean initSystemExecuted = false;
 
-    private void setSystemInitialized() {
-        initializedClasses.add(this.getClass());
-    }
-
-    @BeforeClass
-    public void beforeClass() throws Exception {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
-    }
-
-    @AfterClass
-    public void afterClass() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
-    }
-
-    @BeforeMethod
-    public void beforeMethod(Method method) throws Exception {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
-
-        if (!isSystemInitialized()) {
-            initSystem();
-            setSystemInitialized();
+    @PostConstruct
+    public void beforeMethod() throws Exception {
+        if (initSystemExecuted) {
+            logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
+            return;
         }
+        initSystemExecuted = true;
+        initSystem();
     }
 
     @AfterMethod
@@ -168,11 +148,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
             }
         } catch (Exception ex) {
             //it's ok
-            LOGGER.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
+            logger.debug("after test method, checking for potential open session, exception occurred: " + ex.getMessage());
         }
-
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName(), method.getName()});
     }
 
     protected boolean isH2() {
@@ -221,15 +198,6 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         return object;
     }
 
-    OperationResult createResult(String testName) {
-        return new OperationResult(testName);
-    }
-
-    // TODO: merge with similar methods in AbstractIntegrationTest
-    protected <O extends ObjectType> void display(String message, PrismObject<O> object) {
-        System.out.println("\n"+message+"\n"+object.debugDump(1));
-    }
-
     protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
         return prismContext.deltaFor(objectClass);
     }
@@ -249,8 +217,10 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     @NotNull
     ObjectReference createRepoRef(QName type, String oid) {
-        return RObjectReference
-                .copyFromJAXB(createRef(type, oid, SchemaConstants.ORG_DEFAULT), new RObjectReference(), relationRegistry);
+        return RObjectReference.copyFromJAXB(
+                createRef(type, oid, SchemaConstants.ORG_DEFAULT),
+                new RObjectReference(),
+                relationRegistry);
     }
 
     ObjectReferenceType createRef(QName type, String oid) {
@@ -326,8 +296,16 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         SearchResultList<PrismObject<UserType>> found = repositoryService
                 .searchObjects(UserType.class, query, null, result);
         if (verbose) {
-            PrismTestUtil.display("Found", found);
+            displayValue("Found", found);
         }
         assertEquals("Wrong # of objects found", expectedCount, found.size());
+    }
+
+    protected void displayValue(String title, DebugDumpable value) {
+        displayDumpable(title, value);
+    }
+
+    public void displayValue(String title, Object value) {
+        PrismTestUtil.display(title, value);
     }
 }

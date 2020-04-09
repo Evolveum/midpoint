@@ -204,7 +204,7 @@ public class PartitioningTaskHandler implements TaskHandler {
         }
         List<Task> subtasks = new ArrayList<>(subtaskOids.size());
         for (String subtaskOid : subtaskOids) {
-            subtasks.add(taskManager.getTask(subtaskOid, opResult));
+            subtasks.add(taskManager.getTaskPlain(subtaskOid, opResult));
         }
         for (int i = 1; i <= count; i++) {
             Task subtask = subtasks.get(i - 1);
@@ -344,5 +344,10 @@ public class PartitioningTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(); // todo
     }
 }

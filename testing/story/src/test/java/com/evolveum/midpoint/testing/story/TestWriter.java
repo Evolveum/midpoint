@@ -6,7 +6,13 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
+import java.io.File;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -15,20 +21,13 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
 
 /**
  * Test with a resource that can only write. It cannot read the accounts. It has to cache the values.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestWriter extends AbstractStoryTest {
 
@@ -41,28 +40,21 @@ public class TestWriter extends AbstractStoryTest {
     private static final String USER_JACK_FULL_NAME_CAPTAIN = "Captain Jack Sparrow";
     private static final String USER_JACK_LOCALITY = "Seven seas";
 
-    private DummyResourceContoller writerDummyController;
-    private DummyResource writerDummy;
-    private PrismObject<ResourceType> resourceWriter;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        writerDummyController = DummyResourceContoller.create(RESOURCE_WRITER_DUMMY_NAME);
+        DummyResourceContoller writerDummyController = DummyResourceContoller.create(RESOURCE_WRITER_DUMMY_NAME);
         writerDummyController.extendSchemaPirate();
-        writerDummy = writerDummyController.getDummyResource();
         dummyResourceCollection.initDummyResource(RESOURCE_WRITER_DUMMY_NAME, writerDummyController);
 
-        resourceWriter = importAndGetObjectFromFile(ResourceType.class, RESOURCE_WRITER_FILE, RESOURCE_WRITER_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceWriter = importAndGetObjectFromFile(ResourceType.class, RESOURCE_WRITER_FILE, RESOURCE_WRITER_OID, initTask, initResult);
         writerDummyController.setResource(resourceWriter);
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultWriter = modelService.testResource(RESOURCE_WRITER_OID, task);
         TestUtil.assertSuccess(testResultWriter);
@@ -70,21 +62,18 @@ public class TestWriter extends AbstractStoryTest {
 
     @Test
     public void test100AssignJackDummyAccount() throws Exception {
-        final String TEST_NAME = "test100AssignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, createPolyString(USER_JACK_LOCALITY));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_WRITER_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)
@@ -96,19 +85,16 @@ public class TestWriter extends AbstractStoryTest {
      */
     @Test
     public void test110ModifyCaptainJack() throws Exception {
-        final String TEST_NAME = "test110ModifyCaptainJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME_CAPTAIN));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_WRITER_DUMMY_NAME, USER_JACK_USERNAME)

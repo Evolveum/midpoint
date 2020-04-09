@@ -18,7 +18,7 @@
     <artifactId>test-ng</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Infrastructure - testing support tools</name>
+    <name>midPoint Tools - testing utils (lvl 1)</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
@@ -28,6 +28,22 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
         </dependency>
     </dependencies>
 </project>

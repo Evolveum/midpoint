@@ -6,30 +6,32 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.io.Serializable;
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.ShortDumpable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
 public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable {
     private static final long serialVersionUID = 1L;
@@ -72,30 +74,10 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 
     public static <T> Collection<SelectorOptions<T>> createCollection(T options, UniformItemPath... paths) {
         Collection<SelectorOptions<T>> optionsCollection = new ArrayList<>(paths.length);
-        for (UniformItemPath path: paths) {
+        for (UniformItemPath path : paths) {
             optionsCollection.add(create(path, options));
         }
         return optionsCollection;
-    }
-
-    // modifies existing options collection, or creates a new collection
-    // if options for given path exist, reuses them; or creates new ones instead
-    @Deprecated // use GetOperationOptionsBuilder
-    public static <T> Collection<SelectorOptions<T>> set(Collection<SelectorOptions<T>> options, UniformItemPath path,
-            Supplier<T> constructor, Consumer<T> setter) {
-        if (options == null) {
-            options = new ArrayList<>();
-        }
-        Collection<T> optionsForPath = findOptionsForPath(options, path);
-        T option;
-        if (optionsForPath.isEmpty()) {
-            option = constructor.get();
-            options.add(SelectorOptions.create(path, option));
-        } else {
-            option = optionsForPath.iterator().next();
-        }
-        setter.accept(option);
-        return options;
     }
     //endregion
 
@@ -128,7 +110,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         if (options == null) {
             return null;
         }
-        for (SelectorOptions<T> oooption: options) {
+        for (SelectorOptions<T> oooption : options) {
             if (oooption.isRoot()) {
                 return oooption.getOptions();
             }
@@ -156,7 +138,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     @NotNull
     public static <T> Collection<T> findOptionsForPath(Collection<SelectorOptions<T>> options, @NotNull UniformItemPath path) {
         Collection<T> rv = new ArrayList<>();
-        for (SelectorOptions<T> oooption: CollectionUtils.emptyIfNull(options)) {
+        for (SelectorOptions<T> oooption : CollectionUtils.emptyIfNull(options)) {
             if (path.equivalent(oooption.getItemPathOrNull())) {
                 rv.add(oooption.getOptions());
             }
@@ -173,7 +155,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     private static final Set<ItemPath> PATHS_NOT_RETURNED_BY_DEFAULT = new HashSet<>(Arrays.asList(
             ItemPath.create(UserType.F_JPEG_PHOTO),
             ItemPath.create(TaskType.F_RESULT),
-            ItemPath.create(TaskType.F_SUBTASK),
+            ItemPath.create(TaskType.F_SUBTASK_REF),
             ItemPath.create(TaskType.F_NODE_AS_OBSERVED),
             ItemPath.create(TaskType.F_NEXT_RUN_START_TIMESTAMP),
             ItemPath.create(TaskType.F_NEXT_RETRY_TIMESTAMP),
@@ -229,12 +211,12 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     public static <T> Map<T, Collection<UniformItemPath>> extractOptionValues(Collection<SelectorOptions<GetOperationOptions>> options,
             Function<GetOperationOptions, T> supplier, PrismContext prismContext) {
         Map<T, Collection<UniformItemPath>> rv = new HashMap<>();
-        final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
+        final UniformItemPath emptyPath = prismContext.emptyPath();
         for (SelectorOptions<GetOperationOptions> selectorOption : CollectionUtils.emptyIfNull(options)) {
             T value = supplier.apply(selectorOption.getOptions());
             if (value != null) {
                 Collection<UniformItemPath> itemPaths = rv.computeIfAbsent(value, t -> new HashSet<>());
-                itemPaths.add(selectorOption.getItemPath(EMPTY_PATH));
+                itemPaths.add(selectorOption.getItemPath(emptyPath));
             }
         }
         return rv;
@@ -245,8 +227,8 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
     //region hashCode, equals, toString
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         SelectorOptions<?> that = (SelectorOptions<?>) o;
         return Objects.equals(selector, that.selector) && Objects.equals(options, that.options);
     }
@@ -280,7 +262,7 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         if (options == null) {
             sb.append("null");
         } else if (options instanceof ShortDumpable) {
-            ((ShortDumpable)options).shortDump(sb);
+            ((ShortDumpable) options).shortDump(sb);
         } else {
             sb.append(options);
         }

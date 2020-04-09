@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
+import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationItem;
 
 /**
  * @author semancik
@@ -17,7 +17,7 @@ public class DummyItsmIntegrationConnectorConfiguration {
     private String uselessString;
     private String[] uselessArray;
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public String getUselessString() {
         return uselessString;
     }
@@ -26,7 +26,7 @@ public class DummyItsmIntegrationConnectorConfiguration {
         this.uselessString = uselessString;
     }
 
-    @ConfigurationProperty
+    @ConfigurationItem
     public String[] getUselessArray() {
         return uselessArray;
     }

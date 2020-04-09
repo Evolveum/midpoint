@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.task;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -80,4 +82,8 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
         return ResourceType.class;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
+    }
 }

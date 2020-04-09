@@ -11,6 +11,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -38,6 +47,9 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
     private static final String ID_COUNTER_COUNT_LABEL = "counterCount";
     private static final String ID_RESET_THRESHOLD_COUNTER = "resetThresholdCounter";
 
+    private static final String DOT_CLASS = InternalsCountersPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTaskByIdentifier";
+
 
     public InternalsCountersPanel(String id) {
         super(id);
@@ -58,7 +70,7 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
             @Override
             protected void populateItem(ListItem<CounterSpecification> item) {
                 CounterSpecification counter = item.getModelObject();
-                Label task = new Label(ID_COUNTER_TASK_LABEL, counter.getTaskName());
+                Label task = new Label(ID_COUNTER_TASK_LABEL, createLabelModel(counter));
                 item.add(task);
 
                 Label policyRule = new Label(ID_COUNTER_POLICY_RULE_LABEL, counter.getPolicyRuleName());
@@ -73,14 +85,14 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        ConfirmationPanel confirmPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("InternalsCountersPanel.reset.confirm.message", counter.getTaskName(), counter.getPolicyRuleName())) {
+                        ConfirmationPanel confirmPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(), createStringResource("InternalsCountersPanel.reset.confirm.message", counter.getOid(), counter.getPolicyRuleName())) {
 
                             private static final long serialVersionUID = 1L;
 
                             public void yesPerformed(AjaxRequestTarget target) {
                                 getPageBase().getCounterManager().removeCounter(counter);
                                 target.add(InternalsCountersPanel.this);
-                            };
+                            }
                         };
                         getPageBase().showMainPopup(confirmPanel, target);
                         target.add(InternalsCountersPanel.this);
@@ -116,6 +128,27 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 
         };
         add(countersTable);
+    }
+
+    private IModel<String> createLabelModel(CounterSpecification counter) {
+        return () -> {
+            Task operationTask = getPageBase().createSimpleTask(OPERATION_LOAD_TASK);
+            OperationResult parentResult = operationTask.getResult();
+            PrismObject<TaskType> taskPrism = null;
+            try {
+                taskPrism  = getPageBase().getTaskService().getTaskByIdentifier(counter.getOid(), null, operationTask, parentResult);
+            } catch (SchemaException | CommunicationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
+                parentResult.recordPartialError("Failed to load task with identifier: " + counter.getOid() + ". Reason: " + e.getMessage());
+            }
+
+            parentResult.computeStatusIfUnknown();
+            getPageBase().showResult(parentResult, false);
+
+            if (taskPrism == null) {
+                return counter.getOid();
+            }
+            return WebComponentUtil.getName(taskPrism) + "(" + counter.getOid() + ")";
+        };
     }
 
     private IModel<List<CounterSpecification>> createThresholdCounterModel() {

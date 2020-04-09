@@ -344,7 +344,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     @Override
-    @Deprecated
+    @Deprecated // Remove in 4.4
     public ObjectReferenceType getPasswordPolicy() {
         return structuralObjectClassDefinition.getPasswordPolicy();
     }
@@ -713,11 +713,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
             return false;
         }
         return true;
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

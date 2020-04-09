@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.AttributeModifier;
@@ -73,7 +74,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
 
         return createInputPanel(item, factory);
 
@@ -161,9 +163,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                 }
 
             });
+            feedback.setFilter(new ComponentFeedbackMessageFilter(inputPanel.getValidatableComponent()));
+        } else {
+            feedback.setFilter(new ComponentFeedbackMessageFilter(component));
         }
-
-         feedback.setFilter(new ComponentFeedbackMessageFilter(component));
 
         if (component instanceof InputPanel) {
             InputPanel inputPanel = (InputPanel) component;
@@ -172,7 +175,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
             for (FormComponent<T> formComponent : formComponents) {
                 IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
                 formComponent.setLabel(label);
-                formComponent.setRequired(modelObject.isMandatory());
+                formComponent.setRequired(getMandatoryHandler() == null ? modelObject.isMandatory() : getMandatoryHandler().isMandatory(modelObject));
 
                 if (formComponent instanceof TextField) {
                     formComponent.add(new AttributeModifier("size", "42"));
@@ -194,6 +197,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                     }
 
                 });
+                formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
+                        getEditabilityHandler().isEditable(getModelObject())));
             }
 
 

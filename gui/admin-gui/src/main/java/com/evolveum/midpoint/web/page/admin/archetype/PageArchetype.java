@@ -18,7 +18,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -83,9 +82,8 @@ public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
     }
 
     @Override
-    protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel() {
-        IModel<PrismObjectValueWrapper<ArchetypeType>> valueModel = new PropertyModel<PrismObjectValueWrapper<ArchetypeType>>(getObjectModel(), "value");
-        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, new ItemRealValueModel<ArchetypeType>(valueModel), this);
+    protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel(IModel<ArchetypeType> summaryModel) {
+        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
 
     }
 

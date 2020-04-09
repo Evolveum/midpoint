@@ -10,6 +10,7 @@ package com.evolveum.midpoint.prism.impl.lex.dom;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -51,18 +52,28 @@ class DomLessValueParser<T> implements ValueParser<T>, Serializable {
             if (ItemPathType.COMPLEX_TYPE.equals(typeName)) {
                 //noinspection unchecked
                 return (T) new ItemPathType(ItemPathHolder.parseFromString(textContent, visibleNamespaceDeclarations));
-            } else if (XmlTypeConverter.canConvert(typeName)) { // todo optimize redundant calls to canConvert/toJavaValue
-                //noinspection unchecked
-                return (T) XmlTypeConverter.toJavaValue(textContent, visibleNamespaceDeclarations, typeName);
-            } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
-                //noinspection unchecked
-                return (T) textContent;                // if parsing primitive as xsd:anyType, we can safely parse it as string
             } else {
-                throw new SchemaException("Cannot convert element/attribute '" + textContent + "' to " + typeName);
+                Class<?> javaType = XsdTypeMapper.getXsdToJavaMapping(typeName);
+                if (javaType != null) {
+                    //noinspection unchecked
+                    return (T) XmlTypeConverter.toJavaValue(textContent, visibleNamespaceDeclarations, javaType);
+                } else if (DOMUtil.XSD_ANYTYPE.equals(typeName)) {
+                    //noinspection unchecked
+                    return (T) textContent;                // if parsing primitive as xsd:anyType, we can safely parse it as string
+                } else {
+                    throw new SchemaException("Cannot convert element/attribute '" + textContent + "' to " + typeName);
+                }
             }
         } catch (IllegalArgumentException e) {
             return DomLexicalProcessor.processIllegalArgumentException(textContent, typeName, e, mode);        // primitive way of ensuring compatibility mode
         }
+    }
+
+    @Override
+    public boolean canParseAs(QName typeName) {
+        return ItemPathType.COMPLEX_TYPE.equals(typeName) ||
+                XmlTypeConverter.canConvert(typeName) ||
+                DOMUtil.XSD_ANYTYPE.equals(typeName);
     }
 
     @Override

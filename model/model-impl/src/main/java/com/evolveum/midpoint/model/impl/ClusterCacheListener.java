@@ -58,12 +58,18 @@ public class ClusterCacheListener implements CacheListener {
 
         // Regular cache invalidation can be skipped for nodes not checking in. Cache entries will expire on such nodes
         // eventually. (We can revisit this design decision if needed.)
-        clusterExecutionHelper.execute((client, result1) -> {
+        clusterExecutionHelper.execute((client, node, result1) -> {
             client.path(ClusterRestService.EVENT_INVALIDATION +
                     ObjectTypes.getRestTypeFromClass(type) + (oid != null ? "/" + oid : ""));
             Response response = client.post(null);
-            LOGGER.info("Cluster-wide cache clearance finished with status {}, {}", response.getStatusInfo().getStatusCode(),
-                    response.getStatusInfo().getReasonPhrase());
+            Response.StatusType statusInfo = response.getStatusInfo();
+            if (statusInfo.getFamily() != Response.Status.Family.SUCCESSFUL) {
+                LOGGER.warn("Cluster-wide cache clearance finished on {} with status {}, {}", node.getNodeIdentifier(),
+                        statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+            } else {
+                LOGGER.debug("Cluster-wide cache clearance finished on {} with status {}, {}", node.getNodeIdentifier(),
+                        statusInfo.getStatusCode(), statusInfo.getReasonPhrase());
+            }
             response.close();
         }, null, "cache invalidation", result);
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
@@ -47,7 +48,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O> {
+public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O>, Cloneable {
 
     private static final long serialVersionUID = 1649567559396392861L;
 
@@ -86,12 +87,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     @NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
-    /**
-     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
-     * context.
-     * If set to null then the decision is left to "the engine". Null is also a typical value
-     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
-     */
     private SynchronizationIntent synchronizationIntent;
 
     private transient boolean isFresh = false;
@@ -259,11 +254,36 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
+        modifyOrCreatePrimaryDelta(
+                delta -> delta.swallow(itemDelta),
+                () -> {
+                    ObjectDelta<O> newPrimaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+                    newPrimaryDelta.setOid(oid);
+                    newPrimaryDelta.addModification(itemDelta);
+                    return newPrimaryDelta;
+                });
+    }
+
+    @FunctionalInterface
+    private interface DeltaModifier<O extends Objectable> {
+        void modify(ObjectDelta<O> delta) throws SchemaException;
+    }
+
+    @FunctionalInterface
+    private interface DeltaCreator<O extends Objectable> {
+        ObjectDelta<O> create() throws SchemaException;
+    }
+
+    private void modifyOrCreatePrimaryDelta(DeltaModifier<O> modifier, DeltaCreator<O> creator) throws SchemaException {
         if (primaryDelta == null) {
-            primaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-            primaryDelta.setOid(oid);
+            primaryDelta = creator.create();
+        } else if (!primaryDelta.isImmutable()) {
+            modifier.modify(primaryDelta);
+        } else {
+            primaryDelta = primaryDelta.clone();
+            modifier.modify(primaryDelta);
+            primaryDelta.freeze();
         }
-        primaryDelta.swallow(itemDelta);
     }
 
     public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
@@ -314,45 +334,21 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingAssignmentPolicyStateModifications.computeIfAbsent(spec, k -> new ArrayList<>()).add(modification);
     }
 
-    public boolean isAdd() {
-        if (ObjectDelta.isAdd(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isAdd(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
-
     public boolean isModify() {
-        if (ObjectDelta.isModify(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isModify(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
-    }
-
-    public boolean isDelete() {
-        if (ObjectDelta.isDelete(getPrimaryDelta())) {
-            return true;
-        }
-        if (ObjectDelta.isDelete(getSecondaryDelta())) {
-            return true;
-        }
-        return false;
+        // TODO I'm not sure why isModify checks both primary and secondary deltas for focus context, while
+        //  isAdd and isDelete care only for the primary delta.
+        return ObjectDelta.isModify(getPrimaryDelta()) || ObjectDelta.isModify(getSecondaryDelta());
     }
 
     @NotNull
     public SimpleOperationName getOperation() {
         if (isAdd()) {
             return SimpleOperationName.ADD;
-        }
-        if (isDelete()) {
+        } else if (isDelete()) {
             return SimpleOperationName.DELETE;
+        } else {
+            return SimpleOperationName.MODIFY;
         }
-        return SimpleOperationName.MODIFY;
     }
 
     @NotNull
@@ -814,7 +810,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     @Override
     public boolean isOfType(Class<?> aClass) {
-        if (objectTypeClass != null && aClass.isAssignableFrom(objectTypeClass)) {
+        if (aClass.isAssignableFrom(objectTypeClass)) {
             return true;
         }
         PrismObject<O> object = getObjectAny();

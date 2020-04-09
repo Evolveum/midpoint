@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -93,7 +93,7 @@ public class PolyStringAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public PolyStringAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, polystring);
+        PrismTestUtil.display(message, polystring);
         return this;
     }
 }

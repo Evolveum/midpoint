@@ -16,7 +16,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,16 +61,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -187,6 +181,9 @@ public class ProjectionCredentialsProcessor {
 
         MappingInitializer<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> initializer =
             (builder) -> {
+                builder.mappingKind(MappingKindType.OUTBOUND)
+                        .implicitSourcePath(SchemaConstants.PATH_PASSWORD_VALUE)
+                        .implicitTargetPath(SchemaConstants.PATH_PASSWORD_VALUE);
                 builder.defaultTargetDefinition(projPasswordPropertyDefinition);
                 builder.defaultSource(new Source<>(focusPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
                 builder.valuePolicyResolver(stringPolicyResolver);
@@ -258,7 +255,7 @@ public class ProjectionCredentialsProcessor {
 
 
         mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingTypes,
-                SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
+                SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
                 now, MappingTimeEval.CURRENT, evaluateWeak, "password mapping", task, result);
 
     }
@@ -300,18 +297,8 @@ public class ProjectionCredentialsProcessor {
 
     private boolean getEvaluateWeak(LensProjectionContext projCtx) {
         CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
-        if (credentialsCapabilityType != null) {
-            PasswordCapabilityType passwordCapabilityType = credentialsCapabilityType.getPassword();
-            if (passwordCapabilityType != null) {
-                if (passwordCapabilityType.isEnabled() != Boolean.FALSE) {
-                    Boolean readable = passwordCapabilityType.isReadable();
-                    if (readable != null && readable) {
-                        // If we have readable password then we can evaluate the weak mappings
-                        // normally (even if the reads return incomplete values).
-                        return true;
-                    }
-                }
-            }
+        if (CapabilityUtil.isPasswordReadable(credentialsCapabilityType)) {
+            return true;
         }
         // Password not readable. Therefore evaluate weak mappings only during add operaitons.
         // We do not know whether there is a password already set on the resource. And we do not

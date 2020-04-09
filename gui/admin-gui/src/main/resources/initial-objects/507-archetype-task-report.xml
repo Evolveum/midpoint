@@ -1,0 +1,68 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000507"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:rext="http://midpoint.evolveum.com/xml/ns/public/report/extension-3">
+    <name>Report task</name>
+    <archetypePolicy>
+        <display>
+            <label>Report task</label>
+            <pluralLabel>Report tasks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-pie-chart</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+        <itemConstraint>
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/rext:reportParam</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/rext:reportOutputOid</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <container>
+                    <display>
+                        <label>ReportTask.reportOptions</label>
+                    </display>
+                    <item>
+                        <c:path>extension/rext:reportParam</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/rext:reportOutputOid</c:path>
+                    </item>
+                </container>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>Report</value>
+                </expression>
+                <target>
+                    <c:path>category</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</archetype>

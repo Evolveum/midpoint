@@ -7,45 +7,30 @@
 
 package com.evolveum.midpoint.schema;
 
+import java.util.Date;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.util.Date;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
  */
-public class TestImmutable {
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
+public class TestImmutable extends AbstractSchemaTest {
 
     @Test
-    public void test010SimpleProperty() throws Exception {
-        System.out.println("===[ test010SimpleProperty ]===");
-
+    public void test010SimpleProperty() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -72,9 +57,7 @@ public class TestImmutable {
     }
 
     @Test
-    public void test020DateProperty() throws Exception {
-        System.out.println("===[ test020DateProperty ]===");
-
+    public void test020DateProperty() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -83,7 +66,7 @@ public class TestImmutable {
                 new QName(SchemaConstants.NS_C, "dateTime"), DOMUtil.XSD_DATETIME);
         PrismProperty<XMLGregorianCalendar> datePP = datePPD.instantiate();
         Date now = new Date();
-        Date yesterday = new Date(now.getTime()-86400000L);
+        Date yesterday = new Date(now.getTime() - 86400000L);
         datePP.setRealValue(XmlTypeConverter.createXMLGregorianCalendar(now));
         datePP.freeze();
 
@@ -111,8 +94,6 @@ public class TestImmutable {
 
     @Test
     public void test030Reference() throws Exception {
-        System.out.println("===[ test030Reference ]===");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -140,8 +121,6 @@ public class TestImmutable {
 
     @Test
     public void test100Resource() throws Exception {
-        System.out.println("===[ test100Resource ]===");
-
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -208,6 +187,5 @@ public class TestImmutable {
 //            System.out.println("Got (expected) exception of " + e);
 //        }
     }
-
 
 }

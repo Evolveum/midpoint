@@ -255,7 +255,8 @@ public class PageAccountActivation extends PageBase {
         ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
         UsernamePasswordAuthenticationToken token;
         try {
-            token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value));
+            token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value,
+                    userModel.getObject().getClass() ));
         } catch (Exception ex) {
             LOGGER.error("Failed to authenticate user, reason {}", ex.getMessage());
             getSession().error(getString("PageAccountActivation.authentication.failed"));
@@ -274,7 +275,7 @@ public class PageAccountActivation extends PageBase {
             ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
                     .createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
                             passwordValue);
-            shadowDelta.addModificationDeleteProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
+            shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
             passwordDeltas.add(shadowDelta);
         }
 

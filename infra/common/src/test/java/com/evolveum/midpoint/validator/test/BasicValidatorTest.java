@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.validator.test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,16 +26,14 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,7 +43,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  * @author Radovan Semancik
  */
-public class BasicValidatorTest {
+public class BasicValidatorTest extends AbstractUnitTest
+        implements InfraTestMixin {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -64,10 +60,7 @@ public class BasicValidatorTest {
 
     @Test
     public void resource1Valid() throws Exception {
-        System.out.println("\n===[ resource1Valid ]=====");
-
-        OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
-
+        OperationResult result = createOperationResult();
         EventHandler handler = new EventHandler() {
 
             @Override
@@ -79,14 +72,13 @@ public class BasicValidatorTest {
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
                     OperationResult objectResult) {
-                System.out.println("Validating resorce:");
-                System.out.println(object.debugDump());
+                displayDumpable("Validating resource:", object);
                 object.checkConsistence();
 
                 PrismContainer<?> extensionContainer = object.getExtension();
-                PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever","menOnChest"));
+                PrismProperty<Integer> menProp = extensionContainer.findProperty(new ItemName("http://myself.me/schemas/whatever", "menOnChest"));
                 assertNotNull("No men on a dead man chest!", menProp);
-                assertEquals("Wrong number of men on a dead man chest", (Integer)15, menProp.getAnyRealValue());
+                assertEquals("Wrong number of men on a dead man chest", (Integer) 15, menProp.getAnyRealValue());
                 PrismPropertyDefinition menPropDef = menProp.getDefinition();
                 assertNotNull("Men on a dead man chest NOT defined", menPropDef);
                 assertEquals("Wrong type for men on a dead man chest definition", DOMUtil.XSD_INT, menPropDef.getTypeName());
@@ -106,9 +98,7 @@ public class BasicValidatorTest {
 
     @Test
     public void handlerTest() throws Exception {
-        System.out.println("\n===[ handlerTest ]=====");
-
-        OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
+        OperationResult result = createOperationResult();
 
         final List<String> postMarshallHandledOids = new ArrayList<>();
         final List<String> preMarshallHandledOids = new ArrayList<>();
@@ -123,23 +113,21 @@ public class BasicValidatorTest {
 
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
-                System.out.println("Handler processing " + object + ", result:");
-                System.out.println(objectResult.debugDump());
+                displayDumpable("Handler processing " + object + ", result:", objectResult);
                 postMarshallHandledOids.add(object.getOid());
                 return EventResult.cont();
             }
 
             @Override
             public void handleGlobalError(OperationResult currentResult) {
-                System.out.println("Handler got global error:");
-                System.out.println(currentResult.debugDump());
+                displayDumpable("Handler got global error:", currentResult);
             }
 
         };
 
-        validateFile("three-objects.xml",handler,result);
+        validateFile("three-objects.xml", handler, result);
 
-        System.out.println(result.debugDump());
+        displayDumpable("Result:", result);
         AssertJUnit.assertTrue("Result is not success", result.isSuccess());
         AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
@@ -151,11 +139,9 @@ public class BasicValidatorTest {
 
     @Test
     public void notWellFormed() throws Exception {
-        System.out.println("\n===[ notWellFormed ]=====");
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
-
-        validateFile("not-well-formed.xml",result);
+        validateFile("not-well-formed.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -168,11 +154,9 @@ public class BasicValidatorTest {
 
     @Test
     public void undeclaredPrefix() throws Exception {
-        System.out.println("\n===[ undeclaredPrefix ]=====");
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
-
-        validateFile("undeclared-prefix.xml",result);
+        validateFile("undeclared-prefix.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -185,11 +169,9 @@ public class BasicValidatorTest {
 
     @Test
     public void schemaViolation() throws Exception {
-        System.out.println("\n===[ schemaViolation ]=====");
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
-
-        validateFile("three-users-schema-violation.xml",result);
+        validateFile("three-users-schema-violation.xml", result);
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
@@ -206,9 +188,7 @@ public class BasicValidatorTest {
      */
     @Test
     public void testStopOnErrors() throws Exception {
-        System.out.println("\n===[ testStopOnErrors ]=====");
-
-        OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
+        OperationResult result = createOperationResult();
 
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
         validator.setVerbose(false);
@@ -218,16 +198,14 @@ public class BasicValidatorTest {
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
-        assertEquals(2,result.getSubresults().size());
+        assertEquals(2, result.getSubresults().size());
     }
 
     @Test
     public void noName() throws Exception {
-        System.out.println("\n===[ noName ]=====");
+        OperationResult result = createOperationResult();
 
-        OperationResult result = new OperationResult(this.getClass().getName()+".noName");
-
-        validateFile("no-name.xml",result);
+        validateFile("no-name.xml", result);
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
@@ -237,12 +215,12 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename, OperationResult result) throws FileNotFoundException {
-        validateFile(filename,(EventHandler) null,result);
+        validateFile(filename, (EventHandler) null, result);
     }
 
-    private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
+    private void validateFile(String filename, EventHandler handler, OperationResult result) throws FileNotFoundException {
         LegacyValidator validator = new LegacyValidator(PrismTestUtil.getPrismContext());
-        if (handler!=null) {
+        if (handler != null) {
             validator.setHandler(handler);
         }
         validator.setVerbose(false);
@@ -250,26 +228,19 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
-
         String filepath = BASE_PATH + filename;
 
-        System.out.println("Validating " + filename);
-
-        FileInputStream fis = null;
+        display("Validating " + filename);
 
         File file = new File(filepath);
-        fis = new FileInputStream(file);
+        FileInputStream fis = new FileInputStream(file);
 
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
         if (!result.isSuccess()) {
-            System.out.println("Errors:");
-            System.out.println(result.debugDump());
+            displayDumpable("Errors:", result);
         } else {
-            System.out.println("No errors");
-            System.out.println(result.debugDump());
+            displayDumpable("No errors:", result);
         }
-
     }
-
 }

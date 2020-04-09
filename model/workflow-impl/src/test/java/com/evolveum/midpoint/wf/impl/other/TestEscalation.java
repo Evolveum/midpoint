@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -24,23 +37,11 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEscalation extends AbstractWfTestPolicy {
 
@@ -89,11 +90,11 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test100CreateE1ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, ROLE_E1_OID, task, result);                // should start approval process
-        assertNotAssignedRole(userJackOid, ROLE_E1_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_E1_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         WorkItemId.of(workItem);
@@ -117,8 +118,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test110NotifyAfter5Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.overrideDuration("P5DT1H");            // at P5D there's a notify action
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
@@ -139,8 +140,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test120EscalateAfter12Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         clock.overrideDuration("P12DT1H");        // at -P2D (i.e. P12D) there is a delegate action
@@ -161,8 +162,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test130CompleteAfter14Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         clock.overrideDuration("P14DT1H");        // at 0 (i.e. P14D) there is a delegate action
@@ -176,15 +176,15 @@ public class TestEscalation extends AbstractWfTestPolicy {
         display("rootTask", rootCase);
         waitForCaseClose(rootCase, 60000);
 
-        assertAssignedRole(userJackOid, ROLE_E1_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_E1_OID, result);
     }
 
     @Test
     public void test200CreateE2ApprovalCase() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         clock.resetOverride();
         resetTriggerTask(TASK_TRIGGER_SCANNER_OID, TASK_TRIGGER_SCANNER_FILE, result);
@@ -193,7 +193,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         assignRole(userJackOid, ROLE_E2_OID, task, result);                // should start approval process
 
         // THEN
-        assertNotAssignedRole(userJackOid, ROLE_E2_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_E2_OID, result);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
         displayWorkItems("Work items", workItems);
@@ -212,8 +212,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test210EscalateAfter3Days() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -235,7 +235,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
         assertEquals("Wrong # of triggers", 2, aCase.getTrigger().size());
 
         displayCollection("audit records", dummyAuditService.getRecords());
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
 
         assertEquals("Wrong # of work items", 2, workItems.size());
         assertEquals("The work item deadlines differ after escalation", workItems.get(0).getDeadline(), workItems.get(1).getDeadline());
@@ -245,8 +245,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
     public void test220Reject() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -271,25 +271,25 @@ public class TestEscalation extends AbstractWfTestPolicy {
             if (event instanceof WorkItemCompletionEventType) {
                 WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
                 eventMap.put(c.getExternalWorkItemId(), c);
-                assertNotNull("No result in "+c, c.getOutput());
-                assertEquals("Wrong outcome in "+c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
-                assertNotNull("No cause in "+c, c.getCause());
-                assertEquals("Wrong cause type in "+c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
-                assertEquals("Wrong cause name in "+c, "auto-reject", c.getCause().getName());
-                assertEquals("Wrong cause display name in "+c, "Automatic rejection at deadline", c.getCause().getDisplayName());
+                assertNotNull("No result in " + c, c.getOutput());
+                assertEquals("Wrong outcome in " + c, WorkItemOutcomeType.REJECT, ApprovalUtils.fromUri(c.getOutput().getOutcome()));
+                assertNotNull("No cause in " + c, c.getCause());
+                assertEquals("Wrong cause type in " + c, WorkItemEventCauseTypeType.TIMED_ACTION, c.getCause().getType());
+                assertEquals("Wrong cause name in " + c, "auto-reject", c.getCause().getName());
+                assertEquals("Wrong cause display name in " + c, "Automatic rejection at deadline", c.getCause().getDisplayName());
             }
         }
-        display("completion event map", eventMap);
+        displayValue("completion event map", eventMap);
         assertEquals("Wrong # of completion events", 2, eventMap.size());
 
         displayCollection("audit records", dummyAuditService.getRecords());
         List<AuditEventRecord> workItemAuditRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
         assertEquals("Wrong # of work item audit records", 2, workItemAuditRecords.size());
         for (AuditEventRecord r : workItemAuditRecords) {
-            assertEquals("Wrong causeType in "+r, Collections.singleton("timedAction"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_TYPE));
-            assertEquals("Wrong causeName in "+r, Collections.singleton("auto-reject"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_NAME));
-            assertEquals("Wrong causeDisplayName in "+r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME));
-            assertEquals("Wrong result in "+r, "Rejected", r.getResult());
+            assertEquals("Wrong causeType in " + r, Collections.singleton("timedAction"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_TYPE));
+            assertEquals("Wrong causeName in " + r, Collections.singleton("auto-reject"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_NAME));
+            assertEquals("Wrong causeDisplayName in " + r, Collections.singleton("Automatic rejection at deadline"), r.getPropertyValues(WorkflowConstants.AUDIT_CAUSE_DISPLAY_NAME));
+            assertEquals("Wrong result in " + r, "Rejected", r.getResult());
         }
         displayCollection("notifications - process", dummyTransport.getMessages("dummy:simpleWorkflowNotifier-Processes"));
         List<Message> notifications = dummyTransport.getMessages("dummy:simpleWorkflowNotifier-WorkItems");
@@ -302,8 +302,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
     private void assertContains(Message notification, String text) {
         if (!notification.getBody().contains(text)) {
-            fail("No '"+text+"' in "+notification);
+            fail("No '" + text + "' in " + notification);
         }
     }
-
 }

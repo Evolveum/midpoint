@@ -6,14 +6,6 @@
  */
 package com.evolveum.midpoint.testing.story.security;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,7 +14,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -33,9 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Tests for privacy-enhancing setup. E.g. broad get authorizations, but limited search.
  *
  * @author semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestPrivacy extends AbstractStoryTest {
 
@@ -52,8 +42,6 @@ public class TestPrivacy extends AbstractStoryTest {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     protected static final String RESOURCE_DUMMY_OID = "dfc012e2-b813-11e8-82af-679b6f0a6ad4";
-    private static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -72,15 +60,12 @@ public class TestPrivacy extends AbstractStoryTest {
      */
     @Test
     public void test100AutzJackReadSearch() throws Exception {
-        final String TEST_NAME = "test100AutzJackReadSearch";
-        displayTestTitle(TEST_NAME);
-
         assignRole(USER_JACK_OID, ROLE_PRIVACY_END_USER_OID);
 
         login(USER_JACK_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_ELAINE_OID);
@@ -90,7 +75,7 @@ public class TestPrivacy extends AbstractStoryTest {
                 USER_ADMINISTRATOR_OID, USER_GUYBRUSH_OID, USER_ELAINE_OID, USER_JACK_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
     }
 

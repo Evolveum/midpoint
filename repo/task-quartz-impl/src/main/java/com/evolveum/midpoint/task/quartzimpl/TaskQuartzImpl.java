@@ -26,8 +26,6 @@ import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
-import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -605,7 +603,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     void setOperationStatsTransient(OperationStatsType value) {
-        setContainerableTransient(TaskType.F_OPERATION_STATS, value.clone());
+        setContainerableTransient(TaskType.F_OPERATION_STATS, value != null ? value.clone() : null);
     }
 
     /*
@@ -1336,14 +1334,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 
     @Override
-    public PrismObject<UserType> getOwner() {
+    public PrismObject<? extends FocusType> getOwner() {
         PrismReferenceValue ownerRef = getReferenceValue(TaskType.F_OWNER_REF);
         //noinspection unchecked
         return ownerRef != null ? ownerRef.getObject() : null;
     }
 
     @Override
-    public void setOwner(PrismObject<UserType> owner) {
+    public void setOwner(PrismObject<? extends FocusType> owner) {
         if (isPersistent()) {
             throw new IllegalStateException("setOwner method can be called only on transient tasks!");
         }
@@ -2249,36 +2247,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return sub;
     }
 
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        return waitForSubtasks(interval, null, parentResult);
-    }
-
-    @Deprecated
-    public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?, ?>> extensionDeltas,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "waitForSubtasks");
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
-        result.addContext(OperationResult.CONTEXT_OID, getOid());
-
-        TaskRunResult trr = new TaskRunResult();
-        trr.setRunResultStatus(TaskRunResult.TaskRunResultStatus.RESTART_REQUESTED);
-        trr.setOperationResult(null);
-
-        ScheduleType schedule = new ScheduleType();
-        if (interval != null) {
-            schedule.setInterval(interval);
-        } else {
-            schedule.setInterval(30);
-        }
-        pushHandlerUri(WaitForSubtasksByPollingTaskHandler.HANDLER_URI, schedule, null, extensionDeltas);
-        setBinding(TaskBinding.LOOSE);
-        flushPendingModifications(result);
-        return trr;
-    }
-
     @Override
     public List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "listPersistentSubtasksRaw");
@@ -2358,12 +2326,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
         return taskManager.resolveTasksFromTaskTypes(listPrerequisiteTasksRaw(result), result);
     }
-
-    @Override
-    public void pushWaitForTasksHandlerUri() {
-        pushHandlerUri(WaitForTasksTaskHandler.HANDLER_URI, new ScheduleType(), null);
-    }
-
 
     @Override
     public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult)
@@ -2498,6 +2460,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+        LOGGER.trace("recordIterativeOperationStart: {} in {}", objectDisplayName, this);
         statistics.recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
     }
 
@@ -2518,37 +2481,44 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Override
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType,
-            String objectOid) {
-        statistics.recordSynchronizationOperationStart(objectName, objectDisplayName, objectType, objectOid);
-    }
-
-    @Override
     public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
             long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", objectDisplayName, this);
         statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
+    }
+
+    @Override
+    public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
+            SynchronizationInformation.Record originalStateIncrement,
+            SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", shadow, this);
+        statistics.recordSynchronizationOperationEnd(shadow, started, exception, originalStateIncrement, newStateIncrement);
     }
 
     @Override
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, objectDisplayName, this);
         statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
     }
 
     @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
     }
 
     @Override
     public void markObjectActionExecutedBoundary() {
+        LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
         statistics.markObjectActionExecutedBoundary();
     }
 
@@ -2617,6 +2587,56 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public Collection<? extends AssignmentType> getAssignments() {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getAssignment();
+        }
+    }
+
+    @Override
+    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
+            List<Task> allTasksToRoot = new ArrayList<>();
+            allTasksToRoot.add(this);
+
+            if (getParent() == null) {
+                return allTasksToRoot;
+            }
+
+            Task parent = getParentTaskSafe(parentResult);
+            if (parent == null) {
+                return allTasksToRoot;
+            }
+
+            allTasksToRoot.addAll(parent.getPathToRootTask(parentResult));
+            return allTasksToRoot;
+    }
+
+    public String getTaskTreeId(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return getOid();
+        }
+
+        Task parent = getParentTaskSafe(parentResult);
+        if (parent == null) {
+            return getOid();
+        }
+
+        return parent.getTaskTreeId(parentResult);
+    }
+
+    private Task getParentTaskSafe(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return null;
+        }
+
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getPathToRootTask");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+        try {
+            Task parent = getParentTask(result);
+            result.recordSuccess();
+            return parent;
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Cannot find parent identified by {}, {}", getParent(), e.getMessage(), e);
+            result.recordFatalError("Cannot find parent identified by " + getParent() + ". Reason: " + e.getMessage(), e);
+            return null;
         }
     }
 

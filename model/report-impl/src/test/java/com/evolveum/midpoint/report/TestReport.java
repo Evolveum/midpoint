@@ -67,26 +67,23 @@ public class TestReport extends AbstractReportIntegrationTest {
 
   @Test
   public void test100ReportUserList() throws Exception {
-      final String TEST_NAME = "test100ReportUserList";
-      displayTestTitle(TEST_NAME);
-
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
 
       display("Background task", task);
 
-      waitForTaskFinish(task.getOid(), true);
+      waitForTaskFinish(task.getOid(), false);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -99,8 +96,7 @@ public class TestReport extends AbstractReportIntegrationTest {
    */
   @Test
   public void test110ReportUserListExpressionsCsv() throws Exception {
-      final String TEST_NAME = "test110ReportUserListExpressionsCsv";
-      testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_CSV_OID);
+      testReportListUsersCsv(REPORT_USER_LIST_EXPRESSIONS_CSV_OID);
   }
 
   /**
@@ -110,8 +106,7 @@ public class TestReport extends AbstractReportIntegrationTest {
    */
   @Test
   public void test112ReportUserListExpressionsPoisonousQueryCsv() throws Exception {
-      final String TEST_NAME = "test112ReportUserListExpressionsPoisonousQueryCsv";
-      testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
+      testReportListUsersCsv(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_OID);
   }
 
   /**
@@ -121,37 +116,33 @@ public class TestReport extends AbstractReportIntegrationTest {
    */
   @Test
   public void test114ReportUserListExpressionsPoisonousFieldCsv() throws Exception {
-      final String TEST_NAME = "test114ReportUserListExpressionsPoisonousFieldCsv";
-      testReportListUsersCsv(TEST_NAME, REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
+      testReportListUsersCsv(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_FIELD_CSV_OID);
   }
 
   @Test
   public void test200ReportUserListScript() throws Exception {
-      final String TEST_NAME = "test200ReportUserListScript";
-      displayTestTitle(TEST_NAME);
-
       if (!isOsUnix()) {
-            displaySkip(TEST_NAME);
+            displaySkip();
             return;
         }
 
-      Task task = createTask(TEST_NAME);
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       PrismObject<ReportType> report = getObject(ReportType.class, REPORT_USER_LIST_SCRIPT_OID);
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
 
       display("Background task", task);
 
-      waitForTaskFinish(task.getOid(), true);
+      waitForTaskFinish(task.getOid(), false);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task", finishedTask);
 
@@ -167,54 +158,50 @@ public class TestReport extends AbstractReportIntegrationTest {
      */
     @Test
     public void test300ReportAuditLegacy() throws Exception {
-     final String TEST_NAME = "test300ReportAuditLegacy";
-     testReportAuditCsvSuccess(TEST_NAME, REPORT_AUDIT_CSV_LEGACY_OID);
+     testReportAuditCsvSuccess(REPORT_AUDIT_CSV_LEGACY_OID);
     }
 
     @Test
     public void test310ReportAudit() throws Exception {
-        final String TEST_NAME = "test310ReportAudit";
-        testReportAuditCsvSuccess(TEST_NAME, REPORT_AUDIT_CSV_OID);
+        testReportAuditCsvSuccess(REPORT_AUDIT_CSV_OID);
     }
 
-  protected void testReportListUsersCsv(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
+  protected void testReportListUsersCsv(String reportOid) throws Exception {
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, false);
+      PrismObject<TaskType> finishedTask = runReport(report, false);
 
       assertSuccess("Finished report task result", finishedTask.asObjectable().getResult());
 
       checkCsvUserReport(report);
   }
 
-  protected void testReportListUsersCsvFailure(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
+  protected void testReportListUsersCsvFailure(String reportOid) throws Exception {
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);
+      PrismObject<TaskType> finishedTask = runReport(report, true);
 
       assertFailure("Finished report task result", finishedTask.asObjectable().getResult());
 
       assertNoCsvReport(report);
   }
 
-  protected PrismObject<TaskType> runReport(final String TEST_NAME, PrismObject<ReportType> report, boolean errorOk) throws Exception {
-      Task task = createTask(TEST_NAME);
+  protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
+      Task task = getTestTask();
       OperationResult result = task.getResult();
 
       // WHEN
-      displayWhen(TEST_NAME);
+      when();
       reportManager.runReport(report, null, task, result);
 
       assertInProgress(result);
 
       display("Background task (running)", task);
 
-      waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
+      waitForTaskFinish(task.getOid(), false, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
       // THEN
-      displayThen(TEST_NAME);
+      then();
       PrismObject<TaskType> finishedTask = getTask(task.getOid());
       display("Background task (finished)", finishedTask);
 
@@ -224,55 +211,53 @@ public class TestReport extends AbstractReportIntegrationTest {
 
   protected void checkCsvUserReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
       File outputFile = findOutputFile(report);
-      display("Found report file", outputFile);
+      displayValue("Found report file", outputFile);
       assertNotNull("No output file for "+report, outputFile);
       List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
-      display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
+      displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
-      Task task = createTask("checkCsvUserReport");
+      Task task = getTestTask();
       OperationResult result = task.getResult();
       SearchResultList<PrismObject<UserType>> currentUsers = modelService.searchObjects(UserType.class, null, null, task, result);
-      display("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
+      displayValue("Current users in midPoint ("+currentUsers.size()+" users)", currentUsers.toString());
 
       assertEquals("Unexpected number of report lines", currentUsers.size() + 1, lines.size());
   }
 
-  protected void assertNoCsvReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+  protected void assertNoCsvReport(PrismObject<ReportType> report) {
       File outputFile = findOutputFile(report);
-      display("Found report file (expected null)", outputFile);
+      displayValue("Found report file (expected null)", outputFile);
       assertNull("Unexpected output file for "+report+": "+outputFile, outputFile);
   }
 
-  protected void testReportAuditCsvSuccess(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
+  protected void testReportAuditCsvSuccess(String reportOid) throws Exception {
 
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, false);
+      PrismObject<TaskType> finishedTask = runReport(report, false);
 
       assertSuccess("Report task result", finishedTask.asObjectable().getResult());
 
       checkCsvAuditReport(report);
   }
 
-  protected void testReportAuditCsvFailure(final String TEST_NAME, String reportOid) throws Exception {
-      displayTestTitle(TEST_NAME);
+  protected void testReportAuditCsvFailure(String reportOid) throws Exception {
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);
+      PrismObject<TaskType> finishedTask = runReport(report, true);
 
       assertFailure("Finished report task result", finishedTask.asObjectable().getResult());
 
       assertNoCsvReport(report);
   }
 
-  protected void checkCsvAuditReport(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+  protected void checkCsvAuditReport(PrismObject<ReportType> report) throws IOException {
       File outputFile = findOutputFile(report);
-      display("Found report file", outputFile);
+      displayValue("Found report file", outputFile);
       assertNotNull("No output file for "+report, outputFile);
       List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
-      display("Report content ("+lines.size()+" lines)", String.join("\n", lines));
+      displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
       outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
 
       if (lines.size() < 10) {

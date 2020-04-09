@@ -6,20 +6,14 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,8 +21,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -39,22 +35,11 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMachineIntelligence extends AbstractStoryTest {
-
-    public static final Trace LOGGER = TraceManager.getTrace(TestMachineIntelligence.class);
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "machineintelligence");
 
@@ -73,7 +58,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 
     @Autowired
-    MidpointConfiguration midPointConfig;
+    private MidpointConfiguration midPointConfig;
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -86,11 +71,11 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         File resourceDir = new File(home, "machineintelligence");
         resourceDir.mkdir();
 
-        LOGGER.info("Start copying HR.csv from {} to {}", RESOURCE_CSV_CONTENT_FILE.getAbsolutePath(), resourceDir.getAbsolutePath());
+        logger.info("Start copying HR.csv from {} to {}", RESOURCE_CSV_CONTENT_FILE.getAbsolutePath(), resourceDir.getAbsolutePath());
         File desticationFile = new File(resourceDir, "HR.csv");
         ClassPathUtil.copyFile(new FileInputStream(RESOURCE_CSV_CONTENT_FILE), "HR.csv", desticationFile);
 
-        if (!desticationFile.exists()){
+        if (!desticationFile.exists()) {
             throw new SystemException("Source file for HR resource was not created");
         }
 
@@ -99,14 +84,11 @@ public class TestMachineIntelligence extends AbstractStoryTest {
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(RESOURCE_HR_FILE);
-
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         Object[] newRealValue = { sourceFilePath };
 
@@ -130,17 +112,14 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     }
 
     /**
-     *
      * WHEN: Create account in the HR, import this acount to the midPoint
      * THEN: User is imported to midPoint, new Organization is created,
-     *         user is assigned to the organization, assignment is active/inactive
-     *         according to the setting in the resource
+     * user is assigned to the organization, assignment is active/inactive
+     * according to the setting in the resource
      */
     @Test
     public void test010importActiveUserRUR() throws Exception {
-        final String TEST_NAME = "test010importActiveUserRUR";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMachineIntelligence.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -171,9 +150,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
     @Test
     public void test011importInactiveUserChappie() throws Exception {
-        final String TEST_NAME = "test011importInactiveUserChappie";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestMachineIntelligence.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -206,15 +183,17 @@ public class TestMachineIntelligence extends AbstractStoryTest {
 
     }
 
-    private PrismObject<UserType> assertShadowOwner(String shadowOid, String userName, String userGivenName, String userFamilyName, String userFullName, Task task, OperationResult result) throws Exception{
+    private PrismObject<UserType> assertShadowOwner(
+            String shadowOid, String userName, String userGivenName, String userFamilyName,
+            String userFullName, Task task, OperationResult result) throws Exception {
         PrismObject<UserType> userRur = (PrismObject<UserType>) modelService.searchShadowOwner(shadowOid, null, task, result);
         assertNotNull("Owner must not be null", userRur);
 
         UserType userType = userRur.asObjectable();
-        assertEquals("Unexpected name in the user", PrismTestUtil.createPolyStringType(userName) , userType.getName());
-        assertEquals("Unexpected givenName in the user", PrismTestUtil.createPolyStringType(userGivenName) , userType.getGivenName());
-        assertEquals("Unexpected familyName in the user", PrismTestUtil.createPolyStringType(userFamilyName) , userType.getFamilyName());
-        assertEquals("Unexpected fullName in the user", PrismTestUtil.createPolyStringType(userFullName) , userType.getFullName());
+        assertEquals("Unexpected name in the user", PrismTestUtil.createPolyStringType(userName), userType.getName());
+        assertEquals("Unexpected givenName in the user", PrismTestUtil.createPolyStringType(userGivenName), userType.getGivenName());
+        assertEquals("Unexpected familyName in the user", PrismTestUtil.createPolyStringType(userFamilyName), userType.getFamilyName());
+        assertEquals("Unexpected fullName in the user", PrismTestUtil.createPolyStringType(userFullName), userType.getFullName());
 
         return userRur;
     }

@@ -82,7 +82,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                     return converter;
                 }
 
-                return new LookupTableConverter<>(converter);
+                return new LookupTableConverter<>(converter, lookupTable, getBaseFormComponent(), strict);
 
             }
         };
@@ -155,44 +155,6 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 updateFeedbackPanel(input, true, target);
             }
         }
-    }
-
-    class LookupTableConverter<C> implements IConverter<C> {
-
-            private static final long serialVersionUID = 1L;
-            IConverter<C> originConverter;
-
-            public LookupTableConverter(IConverter<C> originConverter) {
-                this.originConverter = originConverter;
-            }
-
-            @Override
-            public C convertToObject(String value, Locale locale) throws ConversionException {
-                for (LookupTableRowType row : lookupTable.getRow()) {
-                    if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
-                        return originConverter.convertToObject(row.getKey(), locale);
-                    }
-                }
-
-                if (strict) {
-                    throw new ConversionException("Cannot convert " + value);
-                }
-
-                return originConverter.convertToObject(value, locale);
-
-            }
-
-            @Override
-            public String convertToString(C key, Locale arg1) {
-                if (lookupTable != null) {
-                    for (LookupTableRowType row : lookupTable.getRow()) {
-                        if (key.toString().equals(row.getKey())) {
-                            return WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
-                        }
-                    }
-                }
-                return key.toString();
-            }
     }
 
     protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){

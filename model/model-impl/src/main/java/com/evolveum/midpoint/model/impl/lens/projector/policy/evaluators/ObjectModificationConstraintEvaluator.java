@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -45,10 +43,6 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-/**
- * @author semancik
- * @author mederly
- */
 @Component
 public class ObjectModificationConstraintEvaluator extends ModificationConstraintEvaluator<ModificationPolicyConstraintType> {
 
@@ -59,8 +53,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
     private static final String CONSTRAINT_KEY_PREFIX = "objectModification.";
 
     @Override
-    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
-            PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+    public <AH extends AssignmentHolderType> EvaluatedModificationTrigger evaluate(@NotNull JAXBElement<ModificationPolicyConstraintType> constraint,
+            @NotNull PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE)
@@ -139,6 +133,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             return false;
         }
         if (!constraint.getItem().isEmpty()) {
+            //noinspection unchecked
             ObjectDelta<?> summaryDelta = ObjectDeltaCollectionsUtil.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
             if (summaryDelta == null) {
                 return false;

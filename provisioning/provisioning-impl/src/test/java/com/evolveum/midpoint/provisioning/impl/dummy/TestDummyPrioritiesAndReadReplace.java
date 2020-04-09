@@ -22,8 +22,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
@@ -66,8 +64,6 @@ import static org.testng.AssertJUnit.assertTrue;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestDummyPrioritiesAndReadReplace.class);
-
     protected String willIcfUid;
 
     public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
@@ -93,13 +89,9 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
     // copied from TestDummy
     @Test
     public void test100AddAccount() throws Exception {
-        final String TEST_NAME = "test100AddAccount";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-                + "." + TEST_NAME);
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
@@ -166,7 +158,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
                 addedObjectOid, null, result);
         assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-        display("Repository shadow", shadowFromRepo.debugDump());
+        displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
@@ -176,11 +168,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
     @Test
     public void test123ModifyObjectReplace() throws Exception {
-        final String TEST_NAME = "test123ModifyObjectReplace";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -210,7 +198,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         titleDelta.setRealValuesToReplace("Pirate Master");
         objectDelta.addModification(titleDelta);
 
-        display("ObjectDelta", objectDelta);
+        displayDumpable("ObjectDelta", objectDelta);
         objectDelta.checkConsistence();
 
         // WHEN
@@ -273,11 +261,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
     @Test
     public void test150ModifyObjectAddDelete() throws Exception {
-        final String TEST_NAME = "test150ModifyObjectAddDelete";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
-                + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -322,7 +306,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
         drinkDelta.addRealValuesToAdd("orange juice");
         objectDelta.addModification(drinkDelta);
 
-        display("ObjectDelta", objectDelta);
+        displayDumpable("ObjectDelta", objectDelta);
         objectDelta.checkConsistence();
 
         // WHEN

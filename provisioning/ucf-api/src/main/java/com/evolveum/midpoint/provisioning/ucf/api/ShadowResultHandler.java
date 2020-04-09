@@ -23,7 +23,7 @@ public interface ShadowResultHandler {
     /**
      * Handle a single result.
      * @param object Resource object to process.
-     * @return true if the operation shoudl proceed, false if it should stop
+     * @return true if the operation should proceed, false if it should stop
      */
     boolean handle(PrismObject<ShadowType> object);
 

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -105,12 +105,12 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<>();
-    private CompiledUserProfile compiledUserProfile;
+    private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
+    private CompiledGuiProfile compiledGuiProfile;
 
     public PageSelfDashboard() {
-        compiledUserProfile = getPrincipal().getCompiledUserProfile();
-        principalModel.setObject(loadUser());
+        compiledGuiProfile = getPrincipal().getCompiledGuiProfile();
+        principalModel.setObject(loadFocus());
         setTimeZone(PageSelfDashboard.this);
         initLayout();
     }
@@ -284,7 +284,7 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        PrismObject<UserType> user = principalModel.getObject();
+        PrismObject<? extends FocusType> user = principalModel.getObject();
         if (user == null) {
             return callableResult;
         }
@@ -332,8 +332,8 @@ public class PageSelfDashboard extends PageSelf {
             return callableResult;
         }
 
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null) {
             return callableResult;
         }
 
@@ -343,7 +343,7 @@ public class PageSelfDashboard extends PageSelf {
 
         try {
             S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseType.class);
-            ObjectQuery query = QueryUtils.filterForMyRequests(q, user.getOid())
+            ObjectQuery query = QueryUtils.filterForMyRequests(q, focus.getOid())
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                     .item(CaseType.F_OBJECT_REF).resolve()
@@ -365,7 +365,7 @@ public class PageSelfDashboard extends PageSelf {
     }
 
 
-    private PrismObject<UserType> loadUser() {
+    private PrismObject<? extends FocusType> loadFocus() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
@@ -374,7 +374,7 @@ public class PageSelfDashboard extends PageSelf {
 
         Task task = createSimpleTask(OPERATION_LOAD_USER);
         OperationResult result = task.getResult();
-        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+        PrismObject<? extends FocusType> focus = WebModelServiceUtils.loadObject(FocusType.class,
                 principal.getOid(), PageSelfDashboard.this, task, result);
         result.computeStatus();
 
@@ -382,15 +382,15 @@ public class PageSelfDashboard extends PageSelf {
             showResult(result);
         }
 
-        return user;
+        return focus;
     }
 
     private List<RichHyperlinkType> loadLinksList() {
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null) {
             return new ArrayList<>();
         } else {
-            return ((PageBase) getPage()).getCompiledUserProfile().getUserDashboardLink();
+            return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
         }
     }
 
@@ -467,8 +467,8 @@ public class PageSelfDashboard extends PageSelf {
         AccountCallableResult callableResult = new AccountCallableResult();
         List<SimpleAccountDto> list = new ArrayList<>();
         callableResult.setValue(list);
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null) {
             return callableResult;
         }
 
@@ -479,7 +479,7 @@ public class PageSelfDashboard extends PageSelf {
                 .root().resolveNames().noFetch()
                 .item(ShadowType.F_RESOURCE_REF).resolve().noFetch()
                 .build();
-        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
+        List<ObjectReferenceType> references = focus.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
             PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(),
                     options, this, task, result);
@@ -554,8 +554,8 @@ public class PageSelfDashboard extends PageSelf {
         List<AssignmentItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null || user.findContainer(UserType.F_ASSIGNMENT) == null) {
+        PrismObject<? extends FocusType> focus = principalModel.getObject();
+        if (focus == null || focus.findContainer(UserType.F_ASSIGNMENT) == null) {
             return callableResult;
         }
 
@@ -563,14 +563,14 @@ public class PageSelfDashboard extends PageSelf {
         OperationResult result = task.getResult();
         callableResult.setResult(result);
 
-        PrismContainer assignments = user.findContainer(UserType.F_ASSIGNMENT);
+        PrismContainer assignments = focus.findContainer(UserType.F_ASSIGNMENT);
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
             AssignmentType assignmentType = (AssignmentType)assignment.asContainerable();
             if (assignmentType.getTargetRef() != null && ArchetypeType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())){
                 continue;
             }
-            AssignmentItemDto item = createAssignmentItem(user, assignment, task, result);
+            AssignmentItemDto item = createAssignmentItem(assignment, task, result);
             if (item != null) {
                 list.add(item);
             }
@@ -585,8 +585,7 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-    private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
-                                                   PrismContainerValue<AssignmentType> assignment,
+    private AssignmentItemDto createAssignmentItem(PrismContainerValue<AssignmentType> assignment,
             Task task, OperationResult result) {
         ActivationType activation = assignment.asContainerable().getActivation();
         if (activation != null && activation.getAdministrativeStatus() != null
@@ -607,7 +606,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
                             resourceRef.getOid(), this, task, result);
-                    name = WebComponentUtil.getName(resource);
+                    name = WebComponentUtil.getName(resource, false);
                     description = constr.getDescription();
                 }
             }
@@ -650,14 +649,14 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
-        if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
+        if (compiledGuiProfile == null || compiledGuiProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
-        List<DashboardWidgetType> widgetsList = compiledUserProfile.getUserDashboard().getWidget();
+        List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
         if (widgetsList == null || widgetsList.size() == 0){
             return UserInterfaceElementVisibilityType.VACANT;
         }
-        DashboardWidgetType widget = compiledUserProfile.findUserDashboardWidget(componentId.getUri());
+        DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
         if (widget == null || widget.getVisibility() == null){
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {

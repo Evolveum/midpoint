@@ -13,9 +13,10 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
-import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -50,9 +50,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -68,10 +66,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,9 +75,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -299,7 +293,7 @@ public class ModelImplUtils {
         }
     }
 
-    static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
+    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
             PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
         String refName = refVal.getParent() != null ?
@@ -461,8 +455,8 @@ public class ModelImplUtils {
         result.recordSuccessIfUnknown();
     }
 
-    private static boolean containExpression(ObjectFilter filter){
-        if (filter == null){
+    private static boolean containExpression(ObjectFilter filter) {
+        if (filter == null) {
             return false;
         }
         if (filter instanceof InOidFilter && ((InOidFilter) filter).getExpression() != null) {
@@ -477,27 +471,22 @@ public class ModelImplUtils {
         return false;
     }
 
-    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
-
-        QName objectclass = null;
-        PrismProperty<QName> objectclassProperty = task.getExtensionPropertyOrClone(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
-        if (objectclassProperty != null) {
-            objectclass = objectclassProperty.getValue().getValue();
-        }
-
-        ShadowKindType kind = null;
-        PrismProperty<ShadowKindType> kindProperty = task.getExtensionPropertyOrClone(ModelConstants.KIND_PROPERTY_NAME);
-        if (kindProperty != null) {
-            kind = kindProperty.getValue().getValue();
-        }
-
-        String intent = null;
-        PrismProperty<String> intentProperty = task.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
-        if (intentProperty != null) {
-            intent = intentProperty.getValue().getValue();
-        }
+    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task)
+            throws SchemaException {
+        QName objectclass = getTaskExtensionPropertyValue(task, ModelConstants.OBJECTCLASS_PROPERTY_NAME);
+        ShadowKindType kind = getTaskExtensionPropertyValue(task, ModelConstants.KIND_PROPERTY_NAME);
+        String intent = getTaskExtensionPropertyValue(task, ModelConstants.INTENT_PROPERTY_NAME);
 
         return determineObjectClassInternal(refinedSchema, objectclass, kind, intent, task);
+    }
+
+    private static <T> T getTaskExtensionPropertyValue(Task task, ItemName propertyName) {
+        PrismProperty<T> property = task.getExtensionPropertyOrClone(propertyName);
+        if (property != null) {
+            return property.getValue().getValue();
+        } else {
+            return null;
+        }
     }
 
     public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, PrismObject<ShadowType> shadow) throws SchemaException {
@@ -523,16 +512,13 @@ public class ModelImplUtils {
         if (kind != null) {
             refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
             LOGGER.trace("Determined refined object class {} by using kind={}, intent={}",
-                    new Object[]{refinedObjectClassDefinition, kind, intent});
+                    refinedObjectClassDefinition, kind, intent);
         } else if (objectclass != null) {
             refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(objectclass);
-            LOGGER.trace("Determined refined object class {} by using objectClass={}",
-                    new Object[]{refinedObjectClassDefinition, objectclass});
+            LOGGER.trace("Determined refined object class {} by using objectClass={}", refinedObjectClassDefinition, objectclass);
         } else {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
-            }
             refinedObjectClassDefinition = null;
+            LOGGER.debug("No kind or objectclass specified in {}, assuming null object class", source);
         }
 
         return refinedObjectClassDefinition;
@@ -579,28 +565,20 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
-        Validate.notNull(task, "Task must not be null.");
-        if (!task.hasExtension()) {
-            return null;
-        }
-        //LOGGER.info("Task:\n{}",task.debugDump(1));
+    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) throws SchemaException {
         PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
         if (item == null || item.isEmpty()) {
             return null;
-        }
-        //LOGGER.info("Item:\n{}",item.debugDump(1));
-        if (item.getValues().size() > 1) {
+        } else if (item.getValues().size() > 1) {
             throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
+        } else {
+            ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
+            if (modelExecuteOptionsType != null) {
+                return ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
+            } else {
+                return null;
+            }
         }
-        ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
-        if (modelExecuteOptionsType == null) {
-            return null;
-        }
-        //LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-        //LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
-        return modelExecuteOptions;
     }
 
     public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {
@@ -789,14 +767,17 @@ public class ModelImplUtils {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 
         try {
-
-            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
-
+            ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+            context.setVariables(variables);
+            context.setSuggestedReturnType(ScriptExpressionReturnTypeType.SCALAR);
+            context.setEvaluateNew(useNew);
+            context.setScriptExpression(scriptExpression);
+            context.setContextDescription(shortDesc);
+            context.setTask(task);
+            context.setResult(parentResult);
+            return scriptExpression.evaluate(context);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-//            if (lensContext.getDebugListener() != null) {
-//                lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
-//            }
         }
     }
 
@@ -831,51 +812,4 @@ public class ModelImplUtils {
         return UUID.randomUUID().toString();
     }
 
-    /*
-    the ordering algorithm is: the first level is occupied by
-    the column which previousColumn == null || "" || notExistingColumnNameValue.
-    Each next level contains columns which
-    previousColumn == columnNameFromPreviousLevel
-     */
-    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-        if (customColumns == null || customColumns.size() == 0){
-            return new ArrayList<>();
-        }
-        List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
-        List<String> previousColumnValues = new ArrayList<>();
-        previousColumnValues.add(null);
-        previousColumnValues.add("");
-
-        Map<String, String> columnRefsMap = new HashMap<>();
-        for (GuiObjectColumnType column : customColumns){
-            columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
-        }
-
-        List<String> temp = new ArrayList<> ();
-        int index = 0;
-        while (index < customColumns.size()){
-            int sortFrom = index;
-            for (int i = index; i < customColumnsList.size(); i++){
-                GuiObjectColumnType column = customColumnsList.get(i);
-                if (previousColumnValues.contains(column.getPreviousColumn()) ||
-                        !columnRefsMap.containsKey(column.getPreviousColumn())){
-                    Collections.swap(customColumnsList, index, i);
-                    index++;
-                    temp.add(column.getName());
-                }
-            }
-            if (temp.size() == 0){
-                temp.add(customColumnsList.get(index).getName());
-                index++;
-            }
-            if (index - sortFrom > 1){
-                customColumnsList.subList(sortFrom, index - 1)
-                        .sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
-            }
-            previousColumnValues.clear();
-            previousColumnValues.addAll(temp);
-            temp.clear();
-        }
-        return customColumnsList;
-    }
 }

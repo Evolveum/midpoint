@@ -8,13 +8,12 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-/**
- * @author Pavol Mederly
- */
 public class SynchronizationInformation {
 
     /*
@@ -75,7 +74,18 @@ public class SynchronizationInformation {
             this.countUnmatched = countUnmatched;
         }
 
-    };
+        public static Record createProtected() {
+            Record record = new Record();
+            record.setCountProtected(1);
+            return record;
+        }
+
+        public static Record createNotApplicable() {
+            Record record = new Record();
+            record.setCountNotApplicableForTask(1);
+            return record;
+        }
+    }
 
     private final Record stateBefore = new Record();
     private final Record stateAfter = new Record();
@@ -88,29 +98,16 @@ public class SynchronizationInformation {
         this(null);
     }
 
-    public SynchronizationInformationType getStartValue() {
-        return (SynchronizationInformationType) startValue;
-    }
-
-    public synchronized SynchronizationInformationType getDeltaValue() {
-        SynchronizationInformationType rv = toSynchronizationInformationType();
-        return rv;
-    }
-
     public synchronized SynchronizationInformationType getAggregatedValue() {
         SynchronizationInformationType delta = toSynchronizationInformationType();
-        SynchronizationInformationType rv = aggregate(startValue, delta);
-        return rv;
-    }
-
-    private SynchronizationInformationType aggregate(SynchronizationInformationType startValue, SynchronizationInformationType delta) {
         if (startValue == null) {
             return delta;
+        } else {
+            SynchronizationInformationType aggregated = new SynchronizationInformationType();
+            addTo(aggregated, startValue);
+            addTo(aggregated, delta);
+            return aggregated;
         }
-        SynchronizationInformationType rv = new SynchronizationInformationType();
-        addTo(rv, startValue);
-        addTo(rv, delta);
-        return rv;
     }
 
     public static void addTo(SynchronizationInformationType sum, @Nullable SynchronizationInformationType delta) {
@@ -172,7 +169,7 @@ public class SynchronizationInformation {
         addToState(stateAfter, newStateIncrement);
     }
 
-    protected void addToState(Record state, Record increment) {
+    private void addToState(Record state, Record increment) {
         state.countProtected += increment.countProtected;
         state.countNoSynchronizationPolicy += increment.countNoSynchronizationPolicy;
         state.countSynchronizationDisabled += increment.countSynchronizationDisabled;
@@ -184,8 +181,32 @@ public class SynchronizationInformation {
         state.countUnmatched += increment.countUnmatched;
     }
 
-    public void recordSynchronizationOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
-        // noop
+    public static String format(SynchronizationInformationType source) {
+        StringBuilder sb = new StringBuilder();
+        appendHeader(sb);
+        SynchronizationInformationType i = source != null ? source : new SynchronizationInformationType();
+        append(sb, "Unmatched", i.getCountUnmatched(), i.getCountUnmatchedAfter());
+        append(sb, "Unlinked", i.getCountUnlinked(), i.getCountUnlinkedAfter());
+        append(sb, "Linked", i.getCountLinked(), i.getCountLinkedAfter());
+        append(sb, "Deleted", i.getCountDeleted(), i.getCountDeletedAfter());
+        append(sb, "Disputed", i.getCountDisputed(), i.getCountDisputedAfter());
+        append(sb, "Protected", i.getCountProtected(), i.getCountProtectedAfter());
+        append(sb, "No sync policy", i.getCountNoSynchronizationPolicy(), i.getCountNoSynchronizationPolicyAfter());
+        append(sb, "Sync disabled", i.getCountSynchronizationDisabled(), i.getCountSynchronizationDisabledAfter());
+        append(sb, "Not applicable", i.getCountNotApplicableForTask(), i.getCountNotApplicableForTaskAfter());
+        return sb.toString();
     }
 
+    private static void appendHeader(StringBuilder sb) {
+        sb.append(String.format("%20s%10s%10s%10s\n", "Kind", "Before", "After", "Delta"));
+        sb.append(StringUtils.repeat('-', 60)).append("\n");
+    }
+
+    private static void append(StringBuilder sb, String label, int before, int after) {
+        sb.append(String.format("%20s%10d%10d%10d\n", label, before, after, after-before));
+    }
+
+    private static float div(long duration, int count) {
+        return count != 0 ? (float) duration / count : 0;
+    }
 }

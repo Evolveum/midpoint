@@ -86,9 +86,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultGrouper = modelService.testResource(RESOURCE_GROUPER_OID, task);
         TestUtil.assertSuccess(testResultGrouper);
@@ -99,9 +97,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100AddAnderson() throws Exception {
-        final String TEST_NAME = "test100AddAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -137,9 +133,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test105AddLewis() throws Exception {
-        final String TEST_NAME = "test105AddLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -178,9 +172,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110AddAlumni() throws Exception {
-        final String TEST_NAME = "test110AddAlumni";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -216,9 +208,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test120AddStaff() throws Exception {
-        final String TEST_NAME = "test120AddStaff";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -254,9 +244,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200AddGroupsForAnderson() throws Exception {
-        final String TEST_NAME = "test200AddGroupsForAnderson";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -292,9 +280,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test210AddGroupsForLewis() throws Exception {
-        final String TEST_NAME = "test210AddGroupsForLewis";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNotifyChange.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN

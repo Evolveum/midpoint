@@ -15,6 +15,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <!-- user extension -->
 
@@ -102,8 +103,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- Multivalued containers -->
+            <xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Single valued extension property (can be statically-defined) to test MID-6129 -->
+            <xsd:element name="dataProtection" type="c:DataProtectionType" minOccurs="0"/>
+
+            <xsd:element name="booleanFlag" type="xsd:boolean" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:element name="riskVector" type="tns:RiskVectorType" />
 
     <xsd:simpleType name="MarkType">
         <xsd:restriction base="xsd:string">
@@ -127,8 +136,6 @@
             <xsd:enumeration value="bravery"/>
         </xsd:restriction>
     </xsd:simpleType>
-
-    <!-- assignment extension -->
 
     <xsd:complexType name="AssignmentTypeExtensionType">
         <xsd:annotation>

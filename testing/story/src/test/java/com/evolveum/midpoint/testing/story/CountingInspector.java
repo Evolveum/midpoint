@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -14,25 +14,21 @@ import java.util.Map.Entry;
 
 import org.testng.AssertJUnit;
 
-import java.util.Set;
-
 import com.evolveum.midpoint.schema.internals.InternalInspector;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
 public class CountingInspector implements InternalInspector, DebugDumpable {
 
     @SuppressWarnings("rawtypes")
-    private Map<Class,Integer> readMap = new HashMap<>();
+    private Map<Class, Integer> readMap = new HashMap<>();
 
-    private Map<NamedObjectKey,Integer> roleEvaluationMap = new HashMap<>();
+    private Map<NamedObjectKey, Integer> roleEvaluationMap = new HashMap<>();
 
     @Override
     public <O extends ObjectType> void inspectRepositoryRead(Class<O> type, String oid) {
@@ -45,7 +41,7 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
     }
 
     public <O extends ObjectType> void assertRead(Class<O> type, int expectedCount) {
-        assertEquals("Unexpected number of reads of "+type.getSimpleName(), (Integer)expectedCount, readMap.get(type));
+        assertEquals("Unexpected number of reads of " + type.getSimpleName(), (Integer) expectedCount, readMap.get(type));
     }
 
     @Override
@@ -59,15 +55,16 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
         roleEvaluationMap.put(key, i);
     }
 
-    public <O extends ObjectType> void assertRoleEvaluations(String roleOid, int expectedCount) {
-        for(Entry<NamedObjectKey,Integer> entry: roleEvaluationMap.entrySet()) {
+    public void assertRoleEvaluations(String roleOid, int expectedCount) {
+        for (Entry<NamedObjectKey, Integer> entry : roleEvaluationMap.entrySet()) {
             if (roleOid.equals(entry.getKey().oid)) {
-                assertEquals("Wrong role evaluation count for role "+roleOid, (Integer)expectedCount, entry.getValue());
+                assertEquals("Wrong role evaluation count for role " + roleOid,
+                        (Integer) expectedCount, entry.getValue());
                 return;
             }
         }
         if (expectedCount != 0) {
-            AssertJUnit.fail("No evaluation count found for role "+roleOid);
+            AssertJUnit.fail("No evaluation count found for role " + roleOid);
         }
     }
 
@@ -144,7 +141,5 @@ public class CountingInspector implements InternalInspector, DebugDumpable {
         public String toString() {
             return "(" + oid + ":" + name + ")";
         }
-
-
     }
 }

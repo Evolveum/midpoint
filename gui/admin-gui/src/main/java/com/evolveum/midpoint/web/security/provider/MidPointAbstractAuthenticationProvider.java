@@ -7,24 +7,28 @@
 
 package com.evolveum.midpoint.web.security.provider;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,16 +46,8 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointAbstractAuthenticationProvider.class);
 
-//    private MessageSourceAccessor messages;
-
-//    @Override
-//    public void setMessageSource(MessageSource messageSource) {
-//        this.messages = new MessageSourceAccessor(messageSource);
-//    }
-//
-//    @Autowired
-//    private transient
-//    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    @Autowired
+    private PrismContext prismContext;
 
     protected abstract AuthenticationEvaluator<T> getEvaluator();
 
@@ -60,7 +56,9 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
         List<ObjectReferenceType> requireAssignment = null;
         AuthenticationChannel channel = null;
+        Class<? extends FocusType> focusType = UserType.class;
         try {
+            Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
             Authentication processingAuthentication = originalAuthentication;
             if (originalAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) originalAuthentication;
@@ -69,21 +67,31 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
                     return mpAuthentication; // hack for specific situation when user is anonymous, but accessDecisionManager resolve it
                 }
                 processingAuthentication = moduleAuthentication.getAuthentication();
+                if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null){
+                    focusType = WebComponentUtil.qnameToClass(prismContext, moduleAuthentication.getFocusType(), FocusType.class);
+                }
                 requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
+                channel = mpAuthentication.getAuthenticationChannel();
+            } else {
+                if (actualAuthentication instanceof MidpointAuthentication) {
+                    MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+                    ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+                    if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null){
+                        focusType = WebComponentUtil.qnameToClass(prismContext, moduleAuthentication.getFocusType(), FocusType.class);
+                    }
+                    requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
+                    channel = mpAuthentication.getAuthenticationChannel();
+
+                }
             }
-            Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-            if (actualAuthentication instanceof MidpointAuthentication) {
-                requireAssignment = ((MidpointAuthentication) actualAuthentication).getSequence().getRequireAssignmentTarget();
-                channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel();
-            }
-            Authentication token = internalAuthentication(processingAuthentication, requireAssignment, channel);
+            Authentication token = internalAuthentication(processingAuthentication, requireAssignment, channel, focusType);
 
             if (actualAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
                 ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
                 MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
                 token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
-                writeAutentication(originalAuthentication, mpAuthentication, moduleAuthentication, token);
+                writeAutentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
 
                 return mpAuthentication;
             }
@@ -100,8 +108,8 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
 
     protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication, ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
-        if (principal != null && principal instanceof MidPointUserProfilePrincipal) {
-            mpAuthentication.setPrincipal((MidPointUserProfilePrincipal) principal);
+        if (principal != null && principal instanceof MidPointPrincipal) {
+            mpAuthentication.setPrincipal(principal);
         }
 
         moduleAuthentication.setAuthentication(token);
@@ -129,7 +137,8 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         }
     }
 
-    protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment, AuthenticationChannel channel) throws AuthenticationException;
+    protected abstract Authentication internalAuthentication(Authentication authentication, List<ObjectReferenceType> requireAssignment,
+            AuthenticationChannel channel, Class<? extends FocusType> focusType) throws AuthenticationException;
 
     protected abstract Authentication createNewAuthenticationToken(Authentication actualAuthentication, Collection<? extends GrantedAuthority> newAuthorities);
 

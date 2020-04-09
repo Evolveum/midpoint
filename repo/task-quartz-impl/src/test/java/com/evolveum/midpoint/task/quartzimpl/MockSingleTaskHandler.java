@@ -8,7 +8,6 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -17,11 +16,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang.Validate;
-
-import java.util.ArrayList;
 
 import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
 
@@ -34,15 +32,12 @@ public class MockSingleTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private static final String NS_EXT = "http://myself.me/schemas/whatever";
     private static final ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
-    private static final ItemName WFS_FLAG_QNAME = new ItemName(NS_EXT, "wfsFlag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
     private String id;
 
     private PrismPropertyDefinition l1FlagDefinition;
-    private PrismPropertyDefinition wfsFlagDefinition;
-
 
     MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
         this.id = id;
@@ -50,8 +45,6 @@ public class MockSingleTaskHandler implements TaskHandler {
 
         l1FlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(L1_FLAG_QNAME);
         Validate.notNull(l1FlagDefinition, "l1Flag property is unknown");
-        wfsFlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFS_FLAG_QNAME);
-        Validate.notNull(wfsFlagDefinition, "wfsFlag property is unknown");
     }
 
     private boolean hasRun = false;
@@ -118,34 +111,6 @@ public class MockSingleTaskHandler implements TaskHandler {
             }
         } else if ("L3".equals(id)) {
             LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
-        } else if ("WFS".equals(id)) {
-
-            PrismProperty<Boolean> wfsFlag = task.getExtensionPropertyOrClone(WFS_FLAG_QNAME);
-
-            if (wfsFlag == null || !wfsFlag.getRealValue()) {
-
-                LOGGER.info("Wait-for-subtasks creating subtasks...");
-
-                Task t1 = task.createSubtask();
-                t1.setHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI);
-                taskManager.switchToBackground(t1, opResult);
-
-                Task t2 = task.createSubtask();
-                t2.setHandlerUri(AbstractTaskManagerTest.SINGLE_TASK_HANDLER_URI);
-                taskManager.switchToBackground(t2, opResult);
-
-                try {
-                    ArrayList<ItemDelta<?,?>> deltas = new ArrayList<>();
-                    deltas.add(createExtensionDelta(wfsFlagDefinition, true, taskManager.getPrismContext()));
-                    runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
-                    runResult.setProgress(1L);
-                } catch (Exception e) {
-                    throw new SystemException("WaitForSubtasks failed.", e);
-                }
-            } else {
-                LOGGER.info("Wait-for-subtasks seems to finish successfully; progress = " + task.getProgress() + ", wfsFlag = " + wfsFlag.getRealValue());
-            }
-
         }
 
         LOGGER.info("MockSingle.run stopping");
@@ -187,5 +152,10 @@ public class MockSingleTaskHandler implements TaskHandler {
 
     public void setTaskManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

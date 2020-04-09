@@ -24,7 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -57,19 +56,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
-        final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -94,19 +90,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test102RecomputeUserJack() throws Exception {
-        final String TEST_NAME = "test102RecomputeUserJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserJack11x();
@@ -114,19 +107,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test103ReconcileUserJack() throws Exception {
-        final String TEST_NAME = "test103ReconcileUserJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserJack11x();
@@ -134,19 +124,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test104RecomputeJackAdminPersona() throws Exception {
-        final String TEST_NAME = "test104RecomputeJackAdminPersona";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userJackAdminPersonaOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserJack11x();
@@ -154,19 +141,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test105ReconcileJackAdminPersona() throws Exception {
-        final String TEST_NAME = "test105ReconcileJackAdminPersona";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userJackAdminPersonaOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserJack11x();
@@ -191,19 +175,16 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test120ModifyJackGivenName() throws Exception {
-        final String TEST_NAME = "test120ModifyJackGivenName";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME_NEW));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -229,21 +210,18 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test140ModifyUserJackPassword() throws Exception {
-        final String TEST_NAME = "test140ModifyUserJackPassword";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -264,11 +242,8 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test142ModifyPersonaPassword() throws Exception {
-        final String TEST_NAME = "test142ModifyPersonaPassword";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -277,11 +252,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_3_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -305,11 +280,8 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
 
     @Test
     public void test145ModifyPersonaPasswordBack() throws Exception {
-        final String TEST_NAME = "test145ModifyPersonaPasswordBack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
@@ -318,11 +290,11 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserChangePassword(personaBefore.getOid(), USER_PASSWORD_2_CLEAR, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
@@ -340,25 +312,22 @@ public abstract class AbstractPersonaTest extends AbstractInitializedModelIntegr
     }
 
 
-    // TODO: assign some accouts/roles to user and persona, make sure they are independent
+    // TODO: assign some accounts/roles to user and persona, make sure they are independent
 
     // TODO: independent change in the persona
 
     @Test
     public void test199UnassignRolePersonaAdminFromJack() throws Exception {
-        final String TEST_NAME = "test199UnassignRolePersonaAdminFromJack";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

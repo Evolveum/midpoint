@@ -84,7 +84,7 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
     protected abstract String getEpilog();
 
     private Writer createWriter() throws IOException {
-        Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip());
+        Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip(), options.isOverwrite());
         String prolog = getProlog();
         if (prolog != null) {
             writer.write(prolog);

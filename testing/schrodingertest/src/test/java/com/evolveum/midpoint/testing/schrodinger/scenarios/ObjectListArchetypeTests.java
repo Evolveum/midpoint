@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
@@ -14,21 +15,19 @@ import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.naming.ConfigurationException;
 import java.io.File;
-import java.io.IOException;
 
 import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar
  */
-public class ObjectListArchetypeTests extends TestBase {
+public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
 
     private static final File EMPLOYEE_ARCHETYPE_FILE = new File("src/test/resources/configuration/objects/archetypes/archetype-employee.xml");
     private static final String ARCHETYPE_OBJECT_NAME = "Employee";
@@ -46,7 +45,7 @@ public class ObjectListArchetypeTests extends TestBase {
     public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
 
     @Test(priority = 0, groups = OBJECT_LIST_ARCHETYPE_TESTS_GROUP)
-    public void importEmployeeArchetype() throws IOException, ConfigurationException {
+    public void importEmployeeArchetype() {
         importObject(EMPLOYEE_ARCHETYPE_FILE, true);
     }
 
@@ -109,7 +108,7 @@ public class ObjectListArchetypeTests extends TestBase {
     public void actualizeArchetypeConfiguration() {
         basicPage.loggedUser().logout();
         midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+                .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //check archetype pluralLabel
         ListUsersPage collectionListPage = basicPage.listUsers(ARCHETYPE_PLURAL_LABEL);
@@ -160,6 +159,7 @@ public class ObjectListArchetypeTests extends TestBase {
 
     @Test(priority = 4, dependsOnMethods ={"actualizeArchetypeConfiguration"})
     public void checkNewObjectButtonWithDropdown(){
+        Selenide.sleep(5000);
         ListUsersPage userListPage = basicPage.listUsers();
         Assert.assertTrue(userListPage
                             .table()

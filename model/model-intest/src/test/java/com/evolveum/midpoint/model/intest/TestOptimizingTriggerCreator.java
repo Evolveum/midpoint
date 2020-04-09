@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,9 +32,6 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test100CreateThreeTriggers() throws Exception {
-        final String TEST_NAME = "test100CreateThreeTriggers";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);
         boolean first = creator.createForNamedUser(USER_JACK_USERNAME);
         boolean second = creator.createForNamedUser(USER_JACK_USERNAME);
@@ -50,10 +46,7 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test110CreateTriggersWithUserDeletion() throws Exception {
-        final String TEST_NAME = "test110CreateTriggersWithUserDeletion";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);
@@ -82,9 +75,6 @@ public class TestOptimizingTriggerCreator extends AbstractInitializedModelIntegr
 
     @Test
     public void test200CreateThreeTriggersByOid() throws Exception {
-        final String TEST_NAME = "test200CreateThreeTriggersByOid";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         OptimizingTriggerCreator creator = libraryMidpointFunctions.getOptimizingTriggerCreator(60000, 2000);
         boolean first = creator.createForObject(UserType.class, USER_BARBOSSA_OID);
         boolean second = creator.createForObject(UserType.class, USER_BARBOSSA_OID);

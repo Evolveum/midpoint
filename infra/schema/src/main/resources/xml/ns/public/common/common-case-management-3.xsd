@@ -164,14 +164,28 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information related to manual resource provisioning request that is to be executed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to the task holding workflow context for wf-related cases.
-                                EXPERIMENTAL. Probably will be removed.
+                                DEPRECATED. Not used any more. The relation is defined the other way:
+                                task.objectRef points to this case.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.1</a:deprecatedSince>
+                                <a:deprecatedSince>4.0.3</a:deprecatedSince>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -833,6 +847,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="time" type="tns:TimedActionTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -982,6 +997,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1237,5 +1253,21 @@
             <!-- TODO something like "replaceCurrentAssignee" ? -->
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ManualProvisioningContextType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes the context of the manual provisioning request that is represented by a case.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="manualProvisioningContext" type="tns:ManualProvisioningContextType" />
 
 </xsd:schema>

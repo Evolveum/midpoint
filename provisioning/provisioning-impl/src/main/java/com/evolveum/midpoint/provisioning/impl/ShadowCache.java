@@ -120,18 +120,6 @@ public class ShadowCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
-    /**
-     * Get the value of repositoryService.
-     *
-     * DO NOT USE. Only ShadowManager should access repository
-     *
-     * @return the value of repositoryService
-     */
-    @Deprecated
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -171,7 +159,18 @@ public class ShadowCache {
 
         ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
-        ctx.assertDefinition();
+        try {
+            ctx.assertDefinition();
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException e) {
+            if (GetOperationOptions.isRaw(rootOptions)) {
+                // when using raw (repository option), return the repo shadow as it is. it's better than nothing and in this case we don't even need resource
+                //TODO maybe change assertDefinition to consider rawOption?
+                parentResult.computeStatusIfUnknown();
+                parentResult.muteError();
+                return repositoryShadow;
+            }
+            throw e;
+        }
         shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
 
         ResourceType resource = ctx.getResource();
@@ -522,7 +521,7 @@ public class ShadowCache {
 //            // HACK HACK HACK, not really right solution.
 //            // We need this for reliable uniqueness check in preAddChecks() and addResourceObject()
 //            // Maybe the right solution would be to pass opState as a parameter to addResourceObject()?
-//            // Or maybe addResourceObject() should not check uniqueness and we shoudl check it here?
+//            // Or maybe addResourceObject() should not check uniqueness and we should check it here?
 //            shadowToAdd.setOid(opState.getRepoShadow().getOid());
 //        }
 
@@ -1452,6 +1451,18 @@ public class ShadowCache {
             if (operationCompleted && gracePeriod == null) {
                 LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
                 shadowDelta.addModificationDeleteContainer(ShadowType.F_PENDING_OPERATION, pendingOperation.clone());
+
+                ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+                ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+
+                if (pendingDelta.isAdd()) {
+                    shadowInception = true;
+                }
+
+                if (pendingDelta.isDelete()) {
+                    shadowInception = false;
+                    shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
+                }
                 continue;
 
             } else {

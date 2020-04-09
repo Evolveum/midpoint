@@ -88,31 +88,25 @@ public class TestOperationPerf extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
     }
 
     @Test
     public void test100AddAlice() throws Exception {
-        final String TEST_NAME = "test100AddAlice";
-        testAddUser(TEST_NAME, USER_ALICE_FILE, USER_ALICE_OID, 1);
+        testAddUser(USER_ALICE_FILE, USER_ALICE_OID, 1);
     }
 
     @Test
     public void test110AddBob() throws Exception {
-        final String TEST_NAME = "test110AddBob";
-        testAddUser(TEST_NAME, USER_BOB_FILE, USER_BOB_OID, 1);
+        testAddUser(USER_BOB_FILE, USER_BOB_OID, 1);
     }
 
-    public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
-        displayTestTitle(TEST_NAME);
+    public void testAddUser(File userFile, String userOid, int roles) throws Exception {
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = parseObject(userFile);
@@ -129,27 +123,27 @@ public class TestOperationPerf extends AbstractStoryTest {
         long startMillis = System.currentTimeMillis();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
 
         display("Added user in "+(endMillis - startMillis)+" ms");
 
-        display("Model diagnostics", profilingModelInspectorManager);
-        display("Internal inspector", internalInspector);
-        display("Internal counters", InternalMonitor.debugDumpStatic(1));
+        displayDumpable("Model diagnostics", profilingModelInspectorManager);
+        displayDumpable("Internal inspector", internalInspector);
+        displayValue("Internal counters", InternalMonitor.debugDumpStatic(1));
 
         PrismObject<UserType> userAfter = getUser(userOid);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
 
-        display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
-        display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        displayValue("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
+        displayValue("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }

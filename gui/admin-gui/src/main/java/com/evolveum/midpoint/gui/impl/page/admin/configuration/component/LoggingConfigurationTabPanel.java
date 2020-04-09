@@ -297,10 +297,22 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     }
 
     private ItemVisibility getLoggingVisibility(ItemPath pathToCheck) {
-        if(pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_APPENDER)) ||
-                pathToCheck.isSubPathOrEquivalent(ItemPath.create(getModelObject().getPath(), LoggingConfigurationType.F_ROOT_LOGGER_LEVEL))){
+        if (ItemPath.create(SystemConfigurationType.F_LOGGING).equivalent(pathToCheck)) {
             return ItemVisibility.AUTO;
         }
+
+        if (ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_ROOT_LOGGER_APPENDER).equivalent(pathToCheck)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_ROOT_LOGGER_LEVEL).equivalent(pathToCheck)) {
+            return ItemVisibility.AUTO;
+        }
+
+        if (ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_DEBUG).equivalent(pathToCheck)) {
+            return ItemVisibility.AUTO;
+        }
+
         return ItemVisibility.HIDDEN;
     }
 

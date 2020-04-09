@@ -59,11 +59,6 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);

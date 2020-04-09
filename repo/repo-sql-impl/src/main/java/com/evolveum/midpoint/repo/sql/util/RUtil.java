@@ -317,8 +317,9 @@ public final class RUtil {
         }
         Object[] values = type.getEnumConstants();
         for (Object value : values) {
+            //noinspection unchecked
             T schemaEnum = (T) value;
-            if (schemaEnum.getSchemaValue().equals(object)) {
+            if (object.equals(schemaEnum.getSchemaValue())) {
                 return schemaEnum;
             }
         }

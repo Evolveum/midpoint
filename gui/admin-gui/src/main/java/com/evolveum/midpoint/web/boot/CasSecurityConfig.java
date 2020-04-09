@@ -25,55 +25,57 @@ import java.lang.reflect.Constructor;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Profile("cas")
-@Configuration
+
+//TODO not used, don't delete because of possible future implementation CAS authentication module
+//@Profile("cas")
+//@Configuration
 public class CasSecurityConfig {
 
-    @Value("${auth.cas.midpoint.url}")
-    private String casMidpointUrl;
-    @Value("${auth.cas.server.url}")
-    private String casServerUrl;
-    @Value("${auth.cas.ticketValidator}")
-    private String ticketValidator;
-
-    @Bean
-    public ServiceProperties serviceProperties() {
-        ServiceProperties properties = new ServiceProperties();
-        properties.setService(casMidpointUrl + "/login/cas");
-        properties.setSendRenew(false);
-
-        return properties;
-    }
-
-    @Bean
-    public CasAuthenticationEntryPoint authenticationEntryPoint() {
-        CasAuthenticationEntryPoint entryPoint = new CasAuthenticationEntryPoint();
-        entryPoint.setLoginUrl(casServerUrl + "/login");
-        entryPoint.setServiceProperties(serviceProperties());
-
-        return entryPoint;
-    }
-
-    @Profile("cas")
-    @Bean
-    public AuthenticationProvider midPointAuthenticationProvider(UserDetailsService userDetailsService) throws Exception {
-        CasAuthenticationProvider provider = new CasAuthenticationProvider();
-        provider.setAuthenticationUserDetailsService(new UserDetailsByNameServiceWrapper<>(userDetailsService));
-        provider.setServiceProperties(serviceProperties());
-        provider.setTicketValidator(createTicketValidatorInstance());
-        provider.setKey("CAS_ID");
-
-        return provider;
-    }
-
-    private TicketValidator createTicketValidatorInstance() throws Exception {
-        if (!StringUtils.contains(ticketValidator, "\\.")) {
-            ticketValidator = "org.jasig.cas.client.validation." + ticketValidator;
-        }
-
-        Class<TicketValidator> type = (Class) Class.forName(ticketValidator);
-        Constructor<TicketValidator> c = type.getConstructor(String.class);
-
-        return c.newInstance(casServerUrl);
-    }
+//    @Value("${auth.cas.midpoint.url}")
+//    private String casMidpointUrl;
+//    @Value("${auth.cas.server.url}")
+//    private String casServerUrl;
+//    @Value("${auth.cas.ticketValidator}")
+//    private String ticketValidator;
+//
+//    @Bean
+//    public ServiceProperties serviceProperties() {
+//        ServiceProperties properties = new ServiceProperties();
+//        properties.setService(casMidpointUrl + "/login/cas");
+//        properties.setSendRenew(false);
+//
+//        return properties;
+//    }
+//
+//    @Bean
+//    public CasAuthenticationEntryPoint authenticationEntryPoint() {
+//        CasAuthenticationEntryPoint entryPoint = new CasAuthenticationEntryPoint();
+//        entryPoint.setLoginUrl(casServerUrl + "/login");
+//        entryPoint.setServiceProperties(serviceProperties());
+//
+//        return entryPoint;
+//    }
+//
+//    @Profile("cas")
+//    @Bean
+//    public AuthenticationProvider midPointAuthenticationProvider(UserDetailsService guiProfiledPrincipalManager) throws Exception {
+//        CasAuthenticationProvider provider = new CasAuthenticationProvider();
+//        provider.setAuthenticationUserDetailsService(new UserDetailsByNameServiceWrapper<>(guiProfiledPrincipalManager));
+//        provider.setServiceProperties(serviceProperties());
+//        provider.setTicketValidator(createTicketValidatorInstance());
+//        provider.setKey("CAS_ID");
+//
+//        return provider;
+//    }
+//
+//    private TicketValidator createTicketValidatorInstance() throws Exception {
+//        if (!StringUtils.contains(ticketValidator, "\\.")) {
+//            ticketValidator = "org.jasig.cas.client.validation." + ticketValidator;
+//        }
+//
+//        Class<TicketValidator> type = (Class) Class.forName(ticketValidator);
+//        Constructor<TicketValidator> c = type.getConstructor(String.class);
+//
+//        return c.newInstance(casServerUrl);
+//    }
 }

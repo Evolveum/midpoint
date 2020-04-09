@@ -6,39 +6,35 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
+import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,11 +43,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public class MemberOperationsHelper {
@@ -80,27 +77,18 @@ public class MemberOperationsHelper {
         try {
             value.applyDefinition(def);
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Can not aply definition " + def, e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Can not apply definition " + def, e);
             operationalTask.getResult().recordFatalError(pageBase.createStringResource("MemberOperationsHelper.message.unassignMembersPerformed.fatalError", def).getString(), e);
         }
         expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
                 new RawType(value, DOMUtil.XSD_STRING, pageBase.getPrismContext())));
         if(relations != null) {
-            relations.forEach(relation -> {
-                expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
-            });
+            relations.forEach(relation -> expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation))));
         }
-        script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
+        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
-        executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
+        executeMemberOperation(pageBase, operationalTask, type, query, script, target);
 
     }
 
@@ -119,61 +107,66 @@ public class MemberOperationsHelper {
         if(relation != null) {
             expression.parameter(new ActionParameterValueType().name(RELATION_PARAMETER).value(QNameUtil.qNameToUri(relation)));
         }
-        script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
+        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
-        executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
+        executeMemberOperation(pageBase, operationalTask, type, query, script, target);
     }
 
-    public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
-            ObjectQuery query, QName type, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "delete", DELETE_OPERATION);
+    public static void deleteMembersPerformed(
+            PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
+        Task task = createDeleteMembersTask(pageBase, scope, query, target);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
     }
 
-    public static <R extends AbstractRoleType> void recomputeMembersPerformed(PageBase pageBase, QueryScope scope,
+    public static void recomputeMembersPerformed(
+            PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
+        Task task = createRecomputeMembersTask(pageBase, scope, query, target);
+        if (task != null) {
+            executeMemberOperation(pageBase, task, target);
+        }
+    }
+
+    public static Task createRecomputeMembersTask(PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
-        recomputeOrDeleteMembersPerformed(pageBase, scope, query, target, "recompute", RECOMPUTE_OPERATION);
+        Task operationalTask = pageBase.createSimpleTask(getTaskName(RECOMPUTE_OPERATION, scope));
+        OperationResult parentResult = operationalTask.getResult();
+            operationalTask.getClonedTaskObject().asObjectable().getAssignment()
+                    .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE, pageBase.getPrismContext()));
+            operationalTask.getClonedTaskObject().asObjectable().getArchetypeRef()
+                    .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value(), ObjectTypes.ARCHETYPE));
+            return createRecomputeMemberOperationTask(operationalTask, AssignmentHolderType.COMPLEX_TYPE, query,
+                    null, parentResult, pageBase, target);
+
     }
 
-    private static <R extends AbstractRoleType> void recomputeOrDeleteMembersPerformed(PageBase pageBase, QueryScope scope,
-            ObjectQuery query, AjaxRequestTarget target, String operation, String displayNameOfOperation) {
+    private static Task createDeleteMembersTask(PageBase pageBase, QueryScope scope,
+            ObjectQuery query, AjaxRequestTarget target) {
         QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
-        Task operationalTask = pageBase.createSimpleTask(getTaskName(displayNameOfOperation, scope));
+        Task operationalTask = pageBase.createSimpleTask(getTaskName(DELETE_OPERATION, scope));
 
         ExecuteScriptType script = new ExecuteScriptType();
         ActionExpressionType expression = new ActionExpressionType();
-        expression.setType(operation);
+        expression.setType("delete");
 
-        script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
+        script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-//        try {
-//            script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-//        } catch (SchemaException e) {
-//            LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-//            operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-//        }
-
-        executeMemberOperation(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
+        return createMemberOperationTask(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
 
     }
 
-    public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
+    public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
             AvailableRelationDto availableRelationList, List<QName> objectTypes) {
         assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, true);
 
     }
 
-    public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
+    public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
             AvailableRelationDto availableRelationList, List<QName> objectTypes, boolean isOrgTreePanelVisible) {
-        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, new ArrayList<>(), true);
+        assignMembers(pageBase, targetRefObject, target, availableRelationList, objectTypes, new ArrayList<>(), isOrgTreePanelVisible);
     }
 
     public static <O extends ObjectType, R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
@@ -267,19 +260,25 @@ public class MemberOperationsHelper {
             q0 = prismContext.queryFor(FocusType.class)
                     .type(objectType);
         }
-        S_AtomicFilterExit q = q0.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+
+        // Use exists filter to build a query like this:
+        // $a/targetRef = oid1 and $a/tenantRef = oid2 and $a/orgRef = oid3
+        S_AtomicFilterExit q = q0.exists(FocusType.F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
                 .ref(createReferenceValuesList(targetObject, relations));
+
         if (tenant != null && tenant.getObjectType() != null) {
-            q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
+            q = q.and().item(AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
                     prismContext).asReferenceValue());
         }
 
         if (project != null && project.getObjectType() != null) {
-            q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
+            q = q.and().item(AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
                     prismContext).asReferenceValue());
         }
 
-        ObjectQuery query = q.build();
+        ObjectQuery query = q.endBlock().build();
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Searching members of role {} with query:\n{}", targetObject.getOid(), query.debugDump());
         }
@@ -295,97 +294,141 @@ public class MemberOperationsHelper {
     public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects,
             PrismContext prismContext) {
         Set<String> oids = getFocusOidToRecompute(selectedObjects);
-        QueryFactory queryFactory = prismContext.queryFactory();
-        return queryFactory.createQuery(queryFactory.createInOid(oids));
+        return prismContext.queryFor(AssignmentHolderType.class).id(oids.toArray(new String[0])).build();
     }
 
     public static <O extends ObjectType> Set<String> getFocusOidToRecompute(List<O> selectedObjects) {
         Set<String> oids = new HashSet<>();
-        selectedObjects.stream().forEach(f -> oids.add(f.getOid()));
+        selectedObjects.forEach(f -> oids.add(f.getOid()));
         return oids;
     }
 
     private static String getTaskName(String operation, QueryScope scope) {
-        return getTaskName(operation, scope, false);
-    }
-
-    private static String getTaskName(String operation, QueryScope scope, boolean managers) {
         StringBuilder nameBuilder = new StringBuilder(operation);
         nameBuilder.append(".");
         if (scope != null) {
             nameBuilder.append(scope.name());
             nameBuilder.append(".");
         }
-        if (managers) {
-            nameBuilder.append("managers");
-        } else {
-            nameBuilder.append("members");
-        }
+        nameBuilder.append("members");
         return nameBuilder.toString();
     }
 
-    protected static <R extends AbstractRoleType> ObjectDelta getDeleteAssignmentDelta(R targetObject, Collection<QName> relations, Class classType, PrismContext prismContext) throws SchemaException {
-        if (relations == null || relations.isEmpty()) {
-            return prismContext.deltaFactory().object().createModificationDeleteContainer(classType, "fakeOid",
-                    FocusType.F_ASSIGNMENT,
-                    createAssignmentToModify(targetObject, null, prismContext));
-        }
-
-        ObjectDelta delta =  prismContext.deltaFactory().object().createEmptyModifyDelta(classType, "fakeOid"
-        );
-
-        for (QName relation : relations) {
-            delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(targetObject, relation, prismContext));
-        }
-
-        return delta;
-
-    }
-
-    protected static <R extends AbstractRoleType> ObjectDelta getDeleteParentOrgDelta(R targetObject,  Collection<QName> relations, PrismContext prismContext) throws SchemaException {
-        if (relations == null || relations.isEmpty()) {
-            return prismContext.deltaFactory().object().createModificationDeleteReference(ObjectType.class, "fakeOid",
-                    ObjectType.F_PARENT_ORG_REF,
-                    ObjectTypeUtil.createObjectRef(targetObject, prismContext).asReferenceValue());
-        }
-
-        ObjectDelta delta =  prismContext.deltaFactory().object().createEmptyModifyDelta(ObjectType.class, "fakeOid"
-        );
-
-        for (QName relation : relations) {
-            delta.addModificationDeleteReference(ObjectType.F_PARENT_ORG_REF, MemberOperationsHelper.createReference(targetObject, relation).asReferenceValue());
-        }
-
-        return delta;
-
-    }
-
-    public static <R extends AbstractRoleType> AssignmentType createAssignmentToModify(R targetObject, QName relation, PrismContext prismContext) throws SchemaException {
-        AssignmentType assignmentToModify = new AssignmentType();
-        assignmentToModify.setTargetRef(createReference(targetObject, relation));
-        prismContext.adopt(assignmentToModify);
-        return assignmentToModify;
-    }
-
     public static <R extends AbstractRoleType> ObjectReferenceType createReference(R targetObject, QName relation) {
-        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(targetObject, relation);
-        return ref;
+        return ObjectTypeUtil.createObjectRef(targetObject, relation);
     }
 
-    protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
+    protected static Task createMemberOperationTask(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
             ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
 
         OperationResult parentResult = operationalTask.getResult();
-        try {
-            WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
-        } catch (SchemaException e) {
-            parentResult.recordFatalError(parentResult.getOperation(), e);
-            LoggingUtils.logUnexpectedException(LOGGER,
-                    "Failed to execute operation " + parentResult.getOperation(), e);
+        return createMemberOperationTask(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator, target);
+
+    }
+
+    protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
+            ExecuteScriptType script, AjaxRequestTarget target) {
+
+        OperationResult parentResult = operationalTask.getResult();
+        Task executableTask = createMemberOperationTask(operationalTask, type, memberQuery, script, null, parentResult, modelServiceLocator, target);
+        if (executableTask == null) {
             target.add(modelServiceLocator.getFeedbackPanel());
+            return;
         }
 
+        TaskType executableTaskType = executableTask.getUpdatedTaskObject().asObjectable();
+        executableTaskType.getAssignment()
+                  .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ObjectTypes.ARCHETYPE, modelServiceLocator.getPrismContext()));
+        executableTaskType.getArchetypeRef()
+                        .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ObjectTypes.ARCHETYPE));
+        executeMemberOperation(executableTask, parentResult, modelServiceLocator);
         target.add(modelServiceLocator.getFeedbackPanel());
+    }
+
+    protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, AjaxRequestTarget target) {
+        OperationResult parentResult = operationalTask.getResult();
+        executeMemberOperation(operationalTask, parentResult, modelServiceLocator);
+        target.add(modelServiceLocator.getFeedbackPanel());
+    }
+
+    public static Task createMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
+            ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase, AjaxRequestTarget target) {
+
+        try {
+            createTask(operationalTask, type, memberQuery, option, parentResult, pageBase);
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.EXECUTE_SCRIPT.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, script);
+            operationalTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+            return operationalTask;
+        } catch (Exception e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
+            target.add(pageBase.getFeedbackPanel());
+        }
+        return null;
+    }
+
+    public static Task createRecomputeMemberOperationTask(Task operationalTask, QName type, ObjectQuery memberQuery,
+            Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase, AjaxRequestTarget target) {
+        try {
+            createTask(operationalTask, type, memberQuery, option, parentResult, pageBase);
+            pageBase.getSecurityEnforcer().authorize(ModelAuthorizationAction.RECOMPUTE.getUrl(),
+                    null, AuthorizationParameters.EMPTY, null, operationalTask, parentResult);
+            operationalTask.setHandlerUri(ModelPublicConstants.RECOMPUTE_HANDLER_URI);
+            return operationalTask;
+        } catch (Exception e) {
+            parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.createTask").getString(), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create bulk action task", e);
+            target.add(pageBase.getFeedbackPanel());
+        }
+        return null;
+    }
+
+    private static void createTask(Task operationalTask, QName type, ObjectQuery memberQuery, Collection<SelectorOptions<GetOperationOptions>> option,
+            OperationResult parentResult, PageBase pageBase) throws SchemaException {
+        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+        operationalTask.setOwner(owner.getFocus().asPrismObject());
+
+        operationalTask.setBinding(TaskBinding.LOOSE);
+        operationalTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+        operationalTask.setThreadStopAction(ThreadStopActionType.RESTART);
+        ScheduleType schedule = new ScheduleType();
+        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
+        operationalTask.makeSingle(schedule);
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+
+        PrismPropertyDefinition<QueryType> propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
+        QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
+        queryProperty.setRealValue(queryType);
+        operationalTask.addExtensionProperty(queryProperty);
+
+        PrismPropertyDefinition<QName> propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
+        typeProperty.setRealValue(type);
+        operationalTask.addExtensionProperty(typeProperty);
+
+        if (option != null) {
+            PrismPropertyDefinition<SelectorQualifiedGetOptionsType> propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
+                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
+            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
+            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
+            operationalTask.addExtensionProperty(optionProperty);
+        }
+    }
+
+
+    public static void executeMemberOperation(Task operationalTask, OperationResult parentResult, PageBase pageBase) {
+
+        OperationResult result = parentResult.createSubresult("evaluateExpressionInBackground");
+        pageBase.getTaskManager().switchToBackground(operationalTask, result);
+        result.computeStatus();
+        parentResult.recordInProgress();
+        parentResult.setBackgroundTaskOid(operationalTask.getOid());
+        pageBase.showResult(parentResult);
     }
 
 }

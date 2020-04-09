@@ -363,21 +363,6 @@ public class DebugUtil {
         sb.append("\n");
     }
 
-    public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
-        StringBuilder sb = new StringBuilder();
-        indentDebugDump(sb, indent);
-        sb.append(getCollectionOpeningSymbol(xsdAnyCollection));
-        for (Object element : xsdAnyCollection) {
-            sb.append("\n");
-            indentDebugDump(sb, indent+1);
-            sb.append(PrettyPrinter.prettyPrintElementAsProperty(element));
-        }
-        sb.append("\n");
-        indentDebugDump(sb, indent);
-        sb.append(getCollectionClosingSymbol(xsdAnyCollection));
-        return sb.toString();
-    }
-
     public static String getCollectionOpeningSymbol(Collection<?> col) {
         if (col instanceof List) {
             return "[";
@@ -615,14 +600,14 @@ public class DebugUtil {
         return debugDumpLazily(dumpable, 0);
     }
 
-    public static Object debugDumpLazily(DebugDumpable dumpable, int index) {
+    public static Object debugDumpLazily(DebugDumpable dumpable, int indent) {
         if (dumpable == null) {
             return null;
         }
         return new Object() {
             @Override
             public String toString() {
-                return dumpable.debugDump(index);
+                return dumpable.debugDump(indent);
             }
         };
     }
@@ -668,6 +653,18 @@ public class DebugUtil {
             @Override
             public String toString() {
                 return debugDump(dumpables, indent, true);
+            }
+        };
+    }
+
+    public static Object debugDumpLazily(Map<?, ?> dumpables, int indent) {
+        if (dumpables == null || dumpables.isEmpty()) {
+            return dumpables;
+        }
+        return new Object() {
+            @Override
+            public String toString() {
+                return debugDump(dumpables, indent);
             }
         };
     }

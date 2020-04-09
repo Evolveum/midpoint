@@ -55,7 +55,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
     @Override
     protected void initLeftSidePanel(){
         if (getRoleCatalogStorage().getAssignmentsUserOwner() == null) {
-            getRoleCatalogStorage().setAssignmentsUserOwner(getPageBase().getPrincipalUser());
+            getRoleCatalogStorage().setAssignmentsUserOwner((UserType) getPageBase().getPrincipalFocus());
         }
 
         WebMarkupContainer sourceUserPanel = new WebMarkupContainer(ID_SOURCE_USER_PANEL);
@@ -104,7 +104,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     private String getSourceUserSelectionButtonLabel(){
         UserType user = getRoleCatalogStorage().getAssignmentsUserOwner();
-        if (user.getOid().equals(getPageBase().getPrincipalUser().getOid())){
+        if (user.getOid().equals(getPageBase().getPrincipalFocus().getOid())){
             return createStringResource("UserSelectionButton.myAssignmentsLabel").getString();
         } else {
             return createStringResource("UserSelectionButton.userAssignmentsLabel", user.getName().getOrig()).getString();

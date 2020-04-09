@@ -6,39 +6,28 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.*;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.prism.path.*;
 
 /**
  * @author semancik
- *
  */
-public class TestPath {
+public class TestPath extends AbstractPrismTest {
 
     private static final String NS = "http://example.com/";
 
     private static Map<Character, Function<Object[], ItemPath>> creators = new HashMap<>();
+
     static {
         creators.put('C', seq -> getPrismContext().path(seq));
         creators.put('S', ItemPath::create);
@@ -46,16 +35,8 @@ public class TestPath {
         creators.put('R', seq -> creators.get("CSN".charAt((int) (Math.random() * 3))).apply(seq));
     }
 
-    @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-    }
-
     @Test
     public void testPathNormalize() {
-        System.out.println("\n\n===[ testPathNormalize ]===\n");
-
         PrismContext prismContext = getPrismContext();
 
         // GIVEN
@@ -131,8 +112,6 @@ public class TestPath {
     }
 
     private void testPathCompare(String source) {
-        System.out.println("\n\n===[ testPathCompare (" + source + ") ]===\n");
-
         // GIVEN
 
         // /foo
@@ -239,9 +218,7 @@ public class TestPath {
     }
 
     @Test
-    public void testPathRemainder() throws Exception {
-        System.out.println("\n\n===[ testPathRemainder ]===\n");
-
+    public void testPathRemainder() {
         PrismContext prismContext = getPrismContext();
 
         // GIVEN
@@ -251,7 +228,7 @@ public class TestPath {
         UniformItemPath pathFoo123 = prismContext.path(new QName(NS, "foo"), 123L);
         UniformItemPath pathFooBar = prismContext.path(new QName(NS, "foo"), new QName(NS, "bar"));
         UniformItemPath pathFooNullBar = prismContext.path(new QName(NS, "foo"), null,
-                                                new QName(NS, "bar"));
+                new QName(NS, "bar"));
 
         // WHEN
         UniformItemPath remainder1 = pathFooBar.remainder(pathFooNull);
@@ -261,20 +238,20 @@ public class TestPath {
     }
 
     private void assertNormalizedPath(UniformItemPath normalized, Object... expected) {
-        assertEquals("wrong path length",normalized.size(), expected.length);
-        for(int i=0; i<normalized.size(); i+=2) {
+        assertEquals("wrong path length", normalized.size(), expected.length);
+        for (int i = 0; i < normalized.size(); i += 2) {
             ItemPathSegment nameSegment = normalized.getSegment(i);
-            assert ItemPath.isName(nameSegment) : "Expected name segment but it was "+nameSegment.getClass();
+            assert ItemPath.isName(nameSegment) : "Expected name segment but it was " + nameSegment.getClass();
             QName name = ItemPath.toName(nameSegment);
             assert name != null : "name is null";
-            assert name.getNamespaceURI().equals(NS) : "wrong namespace: "+name.getNamespaceURI();
-            assert name.getLocalPart().equals(expected[i]) : "wrong local name, expected "+expected[i]+", was "+name.getLocalPart();
+            assert name.getNamespaceURI().equals(NS) : "wrong namespace: " + name.getNamespaceURI();
+            assert name.getLocalPart().equals(expected[i]) : "wrong local name, expected " + expected[i] + ", was " + name.getLocalPart();
 
             if (i + 1 < expected.length) {
-                Object idSegment = normalized.getSegment(i+1);
-                assert ItemPath.isId(idSegment) : "Expected is segment but it was "+idSegment.getClass();
+                Object idSegment = normalized.getSegment(i + 1);
+                assert ItemPath.isId(idSegment) : "Expected is segment but it was " + idSegment.getClass();
                 Long id = ItemPath.toId(idSegment);
-                assertId(id, (Long)expected[i+1]);
+                assertId(id, (Long) expected[i + 1]);
             }
         }
     }
@@ -283,10 +260,7 @@ public class TestPath {
         if (expected == null && actual == null) {
             return;
         }
-        assert expected != null : "Expected null id but it was "+actual;
+        assert expected != null : "Expected null id but it was " + actual;
         assertEquals("wrong id", expected, actual);
     }
-
-
-
 }

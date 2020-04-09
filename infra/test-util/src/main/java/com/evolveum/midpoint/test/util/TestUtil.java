@@ -7,32 +7,12 @@
 
 package com.evolveum.midpoint.test.util;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrimitiveType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectFactory;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.TestNameHolder;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,17 +21,9 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
@@ -64,12 +36,21 @@ import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Unit test utilities.
@@ -80,10 +61,6 @@ public class TestUtil {
 
     public static final int MAX_EXCEPTION_MESSAGE_LENGTH = 500;
 
-    public static final String TEST_LOG_PREFIX = "=====[ ";
-    public static final String TEST_LOG_SUFFIX = " ]======================================";
-    public static final String TEST_OUT_PREFIX = "\n\n=====[ ";
-    public static final String TEST_OUT_SUFFIX = " ]======================================\n";
     public static final String TEST_OUT_SECTION_PREFIX = "\n\n----- ";
     public static final String TEST_OUT_SECTION_SUFFIX = " --------------------------------------\n";
     public static final String TEST_LOG_SECTION_PREFIX = "----- ";
@@ -124,7 +101,7 @@ public class TestUtil {
     }
 
     public static <T> void assertSetEquals(String message, T[] actual, T[] expected) {
-        assertTrue(message+"expected "+Arrays.toString(expected)+", was "+Arrays.toString(actual),
+        assertTrue(message + "expected " + Arrays.toString(expected) + ", was " + Arrays.toString(actual),
                 MiscUtil.unorderedArrayEquals(actual, expected));
     }
 
@@ -132,7 +109,7 @@ public class TestUtil {
         Node oidNode = null;
         if ((null == node.getAttributes())
                 || (null == (oidNode = node.getAttributes().getNamedItem(
-                        SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
+                SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
                 || (StringUtils.isEmpty(oidNode.getNodeValue()))) {
             return null;
         }
@@ -150,22 +127,22 @@ public class TestUtil {
     }
 
     public static void assertElement(List<Object> elements, QName elementQName, String value) {
-        for (Object element: elements) {
+        for (Object element : elements) {
             QName thisElementQName = JAXBUtil.getElementQName(element);
             if (elementQName.equals(thisElementQName)) {
                 if (element instanceof Element) {
-                    String thisElementContent = ((Element)element).getTextContent();
+                    String thisElementContent = ((Element) element).getTextContent();
                     if (value.equals(thisElementContent)) {
                         return;
                     } else {
-                        AssertJUnit.fail("Wrong value for element with name "+elementQName+"; expected "+value+"; was "+thisElementContent);
+                        AssertJUnit.fail("Wrong value for element with name " + elementQName + "; expected " + value + "; was " + thisElementContent);
                     }
                 } else {
-                    throw new IllegalArgumentException("Unexpected type of element "+elementQName+": "+element.getClass());
+                    throw new IllegalArgumentException("Unexpected type of element " + elementQName + ": " + element.getClass());
                 }
             }
         }
-        AssertJUnit.fail("No element with name "+elementQName);
+        AssertJUnit.fail("No element with name " + elementQName);
     }
 
     public static void assertExceptionSanity(ObjectAlreadyExistsException e) {
@@ -174,40 +151,7 @@ public class TestUtil {
         System.out.println(ExceptionUtils.getFullStackTrace(e));
         assert !e.getMessage().isEmpty() : "Empty exception message";
         assert e.getMessage().length() < MAX_EXCEPTION_MESSAGE_LENGTH : "Exception message too long ("
-                +e.getMessage().length()+" characters): "+e.getMessage();
-    }
-
-    public static void displayTestTitle(String testName) {
-        System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
-        LOGGER.info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
-        TestNameHolder.setCurrentTestName(testName);
-    }
-
-    public static void displayTestTitle(Object testCase, String testName) {
-        String qualifiedTestName = testCase.getClass().getSimpleName() + "." + testName;
-        System.out.println(TEST_OUT_PREFIX + qualifiedTestName + TEST_OUT_SUFFIX);
-        LOGGER.info(TEST_LOG_PREFIX + qualifiedTestName + TEST_LOG_SUFFIX);
-        TestNameHolder.setCurrentTestName(qualifiedTestName);
-    }
-
-    public static void displayWhen(String testName) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    public static void displayWhen(String testName, String part) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " WHEN " + testName + " (" + part + ")" + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    public static void displayThen(String testName) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + TEST_LOG_SECTION_SUFFIX);
-    }
-
-    public static void displayThen(String testName, String part) {
-        System.out.println(TEST_OUT_SECTION_PREFIX + " THEN " + testName + " (" + part + ")" + TEST_OUT_SECTION_SUFFIX);
-        LOGGER.info(TEST_LOG_SECTION_PREFIX + " THEN " + testName + " (" + part + ")" + TEST_LOG_SECTION_SUFFIX);
+                + e.getMessage().length() + " characters): " + e.getMessage();
     }
 
     public static void displayCleanup(String testName) {
@@ -230,7 +174,7 @@ public class TestUtil {
             return;
         }
         if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
-            String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+            String logmsg = message + ": undefined status (" + result.getStatus() + ") on operation " + result.getOperation();
             LOGGER.error(logmsg);
             LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
             System.out.println(logmsg + "\n" + originalResult.debugDump());
@@ -276,7 +220,7 @@ public class TestUtil {
     }
 
     public static void assertSuccess(String message, OperationResult result) {
-        assertSuccess(message, result,-1);
+        assertSuccess(message, result, -1);
     }
 
     public static void assertSuccess(OperationResultType result) {
@@ -289,23 +233,23 @@ public class TestUtil {
         }
         assertNotNull(message + ": null result", result);
         // Ignore top-level if the operation name is not set
-        if (result.getOperation()!=null) {
+        if (result.getOperation() != null) {
             if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
-                fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+                fail(message + ": undefined status (" + result.getStatus() + ") on operation " + result.getOperation());
             }
             if (result.getStatus() != OperationResultStatusType.SUCCESS
                     && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
                     && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
-                fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+                fail(message + ": " + result.getMessage() + " (" + result.getStatus() + ")");
             }
         }
         List<OperationResultType> partialResults = result.getPartialResults();
         for (OperationResultType subResult : partialResults) {
-            if (subResult==null) {
-                fail(message+": null subresult under operation "+result.getOperation());
+            if (subResult == null) {
+                fail(message + ": null subresult under operation " + result.getOperation());
             }
-            if (subResult.getOperation()==null) {
-                fail(message+": null subresult operation under operation "+result.getOperation());
+            if (subResult.getOperation() == null) {
+                fail(message + ": null subresult operation under operation " + result.getOperation());
             }
             assertSuccess(message, subResult);
         }
@@ -313,51 +257,51 @@ public class TestUtil {
 
     public static void assertInProgressOrSuccess(OperationResult result) {
         if (!result.isInProgress()) {
-            assertSuccess("Operation "+result.getOperation()+" result", result);
+            assertSuccess("Operation " + result.getOperation() + " result", result);
         }
     }
 
     public static void assertSuccess(OperationResult result) {
-        assertSuccess("Operation "+result.getOperation()+" result", result);
+        assertSuccess("Operation " + result.getOperation() + " result", result);
     }
 
     public static void assertSuccess(OperationResult result, int depth) {
-        assertSuccess("Operation "+result.getOperation()+" result", result, depth);
+        assertSuccess("Operation " + result.getOperation() + " result", result, depth);
     }
 
     public static void assertStatus(OperationResult result, OperationResultStatus expectedStatus) {
-        assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());
+        assertEquals("Operation " + result.getOperation() + " result", expectedStatus, result.getStatus());
     }
 
     public static void assertStatus(OperationResultType result, OperationResultStatusType expectedStatus) {
-        assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());
+        assertEquals("Operation " + result.getOperation() + " result", expectedStatus, result.getStatus());
     }
 
     public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
         boolean hasWarning = false;
         // Ignore top-level if the operation name is not set
-        if (result.getOperation()!=null) {
+        if (result.getOperation() != null) {
             if (result.getStatus() == OperationResultStatusType.WARNING) {
                 // Do not descent into warnings. There may be lions inside. Or errors.
                 return true;
             } else {
                 if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
-                    fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+                    fail(message + ": undefined status (" + result.getStatus() + ") on operation " + result.getOperation());
                 }
                 if (result.getStatus() != OperationResultStatusType.SUCCESS
                         && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE
                         && result.getStatus() != OperationResultStatusType.HANDLED_ERROR) {
-                    fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+                    fail(message + ": " + result.getMessage() + " (" + result.getStatus() + ")");
                 }
             }
         }
         List<OperationResultType> partialResults = result.getPartialResults();
         for (OperationResultType subResult : partialResults) {
-            if (subResult==null) {
-                fail(message+": null subresult under operation "+result.getOperation());
+            if (subResult == null) {
+                fail(message + ": null subresult under operation " + result.getOperation());
             }
-            if (subResult.getOperation()==null) {
-                fail(message+": null subresult operation under operation "+result.getOperation());
+            if (subResult.getOperation() == null) {
+                fail(message + ": null subresult operation under operation " + result.getOperation());
             }
             if (hasWarningAssertSuccess(message, subResult)) {
                 hasWarning = true;
@@ -380,23 +324,29 @@ public class TestUtil {
 
     public static void assertFailure(OperationResult result) {
         if (!result.isError()) {
-            String message = "Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus();
+            String message = "Expected that operation " + result.getOperation() + " fails, but the result was " + result.getStatus();
             System.out.println(message);
             System.out.println(result.debugDump());
-            LOGGER.error("{}",message);
-            LOGGER.error("{}",result.debugDump());
+            LOGGER.error("{}", message);
+            LOGGER.error("{}", result.debugDump());
             AssertJUnit.fail(message);
         }
         assertNoUnknown(result);
     }
 
+    public static void assertPartialError(OperationResultType result) {
+        assertTrue("Expected that operation " + result.getOperation() +
+                " fails partially, but the result was " + result.getStatus(),
+                result.getStatus() == OperationResultStatusType.PARTIAL_ERROR);
+    }
+
     public static void assertPartialError(OperationResult result) {
-        assertTrue("Expected that operation "+result.getOperation()+" fails partially, but the result was "+result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
+        assertTrue("Expected that operation " + result.getOperation() + " fails partially, but the result was " + result.getStatus(), result.getStatus() == OperationResultStatus.PARTIAL_ERROR);
         assertNoUnknown(result);
     }
 
     public static void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
-        assertTrue("Expected that operation "+result.getOperation()+" will result with "+expectedStatus+", but the result was "+result.getStatus(), result.getStatus() == expectedStatus);
+        assertTrue("Expected that operation " + result.getOperation() + " will result with " + expectedStatus + ", but the result was " + result.getStatus(), result.getStatus() == expectedStatus);
         assertNoUnknown(result);
     }
 
@@ -406,26 +356,26 @@ public class TestUtil {
 
     public static void assertFailure(String message, OperationResultType result) {
         assertTrue((message == null ? "" : message + ": ") +
-                "Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(),
+                        "Expected that operation " + result.getOperation() + " fails, but the result was " + result.getStatus(),
                 OperationResultStatusType.FATAL_ERROR == result.getStatus() ||
-                OperationResultStatusType.PARTIAL_ERROR == result.getStatus()) ;
+                        OperationResultStatusType.PARTIAL_ERROR == result.getStatus());
         assertNoUnknown(result);
     }
 
     public static void assertNoUnknown(OperationResult result) {
         if (result.isUnknown()) {
-            AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+            AssertJUnit.fail("Unkwnown status for operation " + result.getOperation());
         }
-        for (OperationResult subresult: result.getSubresults()) {
+        for (OperationResult subresult : result.getSubresults()) {
             assertNoUnknown(subresult);
         }
     }
 
     public static void assertNoUnknown(OperationResultType result) {
         if (result.getStatus() == OperationResultStatusType.UNKNOWN) {
-            AssertJUnit.fail("Unkwnown status for operation "+result.getOperation());
+            AssertJUnit.fail("Unkwnown status for operation " + result.getOperation());
         }
-        for (OperationResultType subresult: result.getPartialResults()) {
+        for (OperationResultType subresult : result.getPartialResults()) {
             assertNoUnknown(subresult);
         }
     }
@@ -444,7 +394,7 @@ public class TestUtil {
 
     public static boolean hasWarningAssertSuccess(String message, OperationResult result, OperationResult originalResult, int stopLevel, int currentLevel) {
         if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
-            String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
+            String logmsg = message + ": undefined status (" + result.getStatus() + ") on operation " + result.getOperation();
             LOGGER.error(logmsg);
             LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
             System.out.println(logmsg + "\n" + originalResult.debugDump());
@@ -487,7 +437,7 @@ public class TestUtil {
     }
 
     public static void assertInProgress(String message, OperationResult result) {
-        assertTrue("Expected result IN_PROGRESS but it was "+result.getStatus()+" in "+message,
+        assertTrue("Expected result IN_PROGRESS but it was " + result.getStatus() + " in " + message,
                 result.getStatus() == OperationResultStatus.IN_PROGRESS);
     }
 
@@ -495,7 +445,7 @@ public class TestUtil {
         if (result.isError()) {
             return result.getMessage();
         }
-        for (OperationResult subresult: result.getSubresults()) {
+        for (OperationResult subresult : result.getSubresults()) {
             String message = getErrorMessage(subresult);
             if (message != null) {
                 return message;
@@ -543,9 +493,9 @@ public class TestUtil {
         }
         reader.close();
         String outstring = output.toString();
-        LOGGER.debug("Command output:\n{}",outstring);
+        LOGGER.debug("Command output:\n{}", outstring);
         if (!ignoreExitCode && exitCode != 0) {
-            String msg = "Execution of command '"+command+"' failed with exit code "+exitCode;
+            String msg = "Execution of command '" + command + "' failed with exit code " + exitCode;
             LOGGER.error("{}", msg);
             throw new IOException(msg);
         }
@@ -556,12 +506,12 @@ public class TestUtil {
             XMLGregorianCalendar actual) {
         assertNotNull(message + " is null", actual);
         if (start != null) {
-            assertTrue(message+": expected time to be after "+start+" but it was "+actual,
-                actual.compare(start) == DatatypeConstants.GREATER || actual.compare(start) == DatatypeConstants.EQUAL);
+            assertTrue(message + ": expected time to be after " + start + " but it was " + actual,
+                    actual.compare(start) == DatatypeConstants.GREATER || actual.compare(start) == DatatypeConstants.EQUAL);
         }
         if (end != null) {
-            assertTrue(message+": expected time to be before "+end+" but it was "+actual,
-                actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
+            assertTrue(message + ": expected time to be before " + end + " but it was " + actual,
+                    actual.compare(end) == DatatypeConstants.LESSER || actual.compare(end) == DatatypeConstants.EQUAL);
         }
     }
 
@@ -569,23 +519,23 @@ public class TestUtil {
             Long actual) {
         assertNotNull(message + " is null", actual);
         if (start != null) {
-            assertTrue(message+": expected time to be after "+start+" but it was "+actual, actual >= start);
+            assertTrue(message + ": expected time to be after " + start + " but it was " + actual, actual >= start);
         }
         if (end != null) {
-            assertTrue(message+": expected time to be before "+end+" but it was "+actual, actual <= end);
+            assertTrue(message + ": expected time to be before " + end + " but it was " + actual, actual <= end);
         }
     }
 
     public static void assertEqualsTimestamp(String message, XMLGregorianCalendar expected, XMLGregorianCalendar actual) {
-        assertNotNull(message+"; expected "+expected, actual);
-        assertTrue(message+"; expected "+expected+" but was "+actual, expected.compare(actual) == 0);
+        assertNotNull(message + "; expected " + expected, actual);
+        assertTrue(message + "; expected " + expected + " but was " + actual, expected.compare(actual) == 0);
     }
 
     public static void assertCreateTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
             XMLGregorianCalendar end) {
         MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in "+object, metadata);
-        assertBetween("createTimestamp in "+object, start, end, metadata.getCreateTimestamp());
+        assertNotNull("No metadata in " + object, metadata);
+        assertBetween("createTimestamp in " + object, start, end, metadata.getCreateTimestamp());
     }
 
     public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
@@ -596,8 +546,8 @@ public class TestUtil {
     public static void assertModifyTimestamp(PrismObject<? extends ObjectType> object, XMLGregorianCalendar start,
             XMLGregorianCalendar end, String channel) {
         MetadataType metadata = object.asObjectable().getMetadata();
-        assertNotNull("No metadata in "+object, metadata);
-        assertBetween("modifyTimestamp in "+object, start, end, metadata.getModifyTimestamp());
+        assertNotNull("No metadata in " + object, metadata);
+        assertBetween("modifyTimestamp in " + object, start, end, metadata.getModifyTimestamp());
         if (channel != null) {
             assertEquals("Wrong channel", channel, metadata.getModifyChannel());
         }
@@ -627,13 +577,13 @@ public class TestUtil {
         if (matcher.matches()) {
             return Integer.parseInt(matcher.group(1));
         } else {
-            throw new IllegalStateException("Cannot match java version string '"+javaVersionString+"'");
+            throw new IllegalStateException("Cannot match java version string '" + javaVersionString + "'");
         }
 
     }
 
     public static void assertMessageContains(String message, String expectedSubstring) {
-        assertTrue("Expected that message will contain substring '"+expectedSubstring+"', but it did not. Message: "+message,
+        assertTrue("Expected that message will contain substring '" + expectedSubstring + "', but it did not. Message: " + message,
                 message.contains(expectedSubstring));
     }
 
@@ -660,16 +610,18 @@ public class TestUtil {
         }
     }
 
-    private static  void assertPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
-        assertTrue(permissions.contains(permission), f.getPath() + ": missing permission "+permission);
+    private static void assertPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
+        assertTrue(permissions.contains(permission), f.getPath() + ": missing permission " + permission);
     }
 
     private static void assertNoPermission(File f, Set<PosixFilePermission> permissions, PosixFilePermission permission) {
-        assertFalse(permissions.contains(permission), f.getPath() + ": unexpected permission "+permission);
+        assertFalse(permissions.contains(permission), f.getPath() + ": unexpected permission " + permission);
     }
 
-    public static ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
+    public static ParallelTestThread[] multithread(
+            MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
         ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
+        System.out.println("Going to create " + numberOfThreads + " threads...");
         for (int i = 0; i < numberOfThreads; i++) {
             threads[i] = new ParallelTestThread(i,
                     (ii) -> {
@@ -677,7 +629,7 @@ public class TestUtil {
                         LOGGER.info("{} starting", Thread.currentThread().getName());
                         lambda.run(ii);
                     });
-            threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
+            threads[i].setName("Thread " + (i + 1) + " of " + numberOfThreads);
             threads[i].start();
         }
         return threads;
@@ -702,7 +654,7 @@ public class TestUtil {
             }
             Throwable threadException = threads[i].getException();
             if (threadException != null) {
-                throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
+                throw new AssertionError("Test thread " + i + " failed: " + threadException.getMessage(), threadException);
             }
         }
     }

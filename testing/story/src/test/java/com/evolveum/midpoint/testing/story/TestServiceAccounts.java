@@ -7,17 +7,9 @@
 package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,20 +17,22 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestServiceAccounts extends AbstractStoryTest {
 
@@ -46,7 +40,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     protected static final String RESOURCE_DUMMY_OID = "0069ac14-8377-11e8-b404-5b5a1a8af0db";
-    private static final String RESOURCE_DUMMY_NS = MidPointConstants.NS_RI;
     protected static final String RESOURCE_DUMMY_INTENT_SERVICE = "service";
 
     private static final String ACCOUNT_RUM_STORAGE_DUMMY_USERNAME = "rum-storage";
@@ -58,9 +51,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
     private static final String SERVICE_BARELLIUM_DESCRIPTION = "Barellium Superiorum";
 
     private static final File ACCOUNT_BARELLIUM_DUMMY_FILE = new File(TEST_DIR, "account-barellium-dummy.xml");
-    private static final String ACCOUNT_BARELLIUM_DUMMY_OID = "fe0d6d9a-a77d-11e8-a144-0bbeb63fd26b";
     private static final String ACCOUNT_BARELLIUM_DUMMY_USERNAME = "barellium";
-    private static final String ACCOUNT_BARELLIUM_DUMMY_FULLNAME = "Barellium Magnum";
 
     private static final String ACCOUNT_MAGAZINE_DUMMY_USERNAME = "magazine";
     private static final String ACCOUNT_MAGAZINE_DUMMY_FULLNAME = "Gunpowder magazine";
@@ -83,19 +74,16 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     @Test
     public void test100StartSyncTask() throws Exception {
-        final String TEST_NAME = "test100StartSyncTask";
-        displayTestTitle(TEST_NAME);
-
         assertUsers(getNumberOfUsers());
         assertServices(0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_OID, true);
 
@@ -105,9 +93,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     @Test
     public void test101AddServiceAccountSync() throws Exception {
-        final String TEST_NAME = "test101AddServiceAccountSync";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(0);
 
@@ -117,29 +102,29 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertServices(1);
 
         serviceAccountShadowOid = assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
-            .links()
+                .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
+                .links()
                 .single()
-                    .resolveTarget()
-                        .assertLife()
-                        .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
-                        .getOid();
+                .resolveTarget()
+                .assertLife()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
+                .getOid();
 
         assertDummyAccountByUsername(null, ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
+                .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
     }
 
     /**
@@ -149,10 +134,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
      */
     @Test
     public void test102ModifyServiceAccount() throws Exception {
-        final String TEST_NAME = "test102ModifyServiceAccount";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -161,16 +143,15 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
-            displayThen(TEST_NAME);
-            display("expected exception", e);
+            then();
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -178,17 +159,17 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
-            .links()
+                .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
+                .links()
                 .single()
-                    .resolveTarget()
-                        .assertLife()
-                        .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
-                        .getOid();
+                .resolveTarget()
+                .assertLife()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
+                .getOid();
 
         assertDummyAccountByUsername(null, ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
+                .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
     }
 
     /**
@@ -198,10 +179,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
      */
     @Test
     public void test104DeleteServiceAccount() throws Exception {
-        final String TEST_NAME = "test104DeleteServiceAccount";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class,
@@ -209,16 +187,15 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
-            displayThen(TEST_NAME);
-            display("expected exception", e);
+            then();
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -226,17 +203,17 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
-            .links()
+                .assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME)
+                .links()
                 .single()
-                    .resolveTarget()
-                        .assertLife()
-                        .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
-                        .getOid();
+                .resolveTarget()
+                .assertLife()
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent(RESOURCE_DUMMY_INTENT_SERVICE)
+                .getOid();
 
         assertDummyAccountByUsername(null, ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
-            .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
+                .assertFullName(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
     }
 
     // TODO: account modifications, check that the changes are synced to service
@@ -246,21 +223,18 @@ public class TestServiceAccounts extends AbstractStoryTest {
      */
     @Test
     public void test108DeleteServiceAccountSync() throws Exception {
-        final String TEST_NAME = "test108DeleteServiceAccountSync";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().deleteAccountByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
 
         waitForTaskNextRunAssertSuccess(TASK_LIVE_SYNC_DUMMY_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertNoServiceByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
         assertServices(0);
@@ -268,37 +242,31 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     @Test
     public void test109StopLivesyncTask() throws Exception {
-        final String TEST_NAME = "test109StopLivesyncTask";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         suspendTask(TASK_LIVE_SYNC_DUMMY_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
     }
 
     @Test
     public void test120StartReconTask() throws Exception {
-        final String TEST_NAME = "test120StartReconTask";
-        displayTestTitle(TEST_NAME);
-
         assertUsers(getNumberOfUsers());
         assertServices(0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         importObjectFromFile(TASK_RECONCILE_DUMMY_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_RECONCILE_DUMMY_OID, true);
 
@@ -308,9 +276,6 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
     @Test
     public void test121AddServiceAccountRecon() throws Exception {
-        final String TEST_NAME = "test121AddServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(0);
 
@@ -320,19 +285,19 @@ public class TestServiceAccounts extends AbstractStoryTest {
                 ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().addAccount(account);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertServices(1);
 
         assertServiceAfterByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME)
-            .assertDescription(ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
+                .assertDescription(ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
     }
 
     /**
@@ -340,40 +305,36 @@ public class TestServiceAccounts extends AbstractStoryTest {
      */
     @Test
     public void test128DeleteServiceAccountRecon() throws Exception {
-        final String TEST_NAME = "test128DeleteServiceAccountRecon";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getDummyResource().deleteAccountByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
 
         waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertNoServiceByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
         assertServices(0);
     }
 
+    @UnusedTestElement
     public void test129StopReconTask() throws Exception {
-        final String TEST_NAME = "test129StopReconTask";
-        displayTestTitle(TEST_NAME);
-
         // Preconditions
         assertServices(1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         suspendTask(TASK_RECONCILE_DUMMY_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
+
         assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
     }
 
@@ -384,10 +345,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
      */
     @Test
     public void test140CreateServiceAccount() throws Exception {
-        final String TEST_NAME = "test140CreateServiceAccount";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(SERVICE_BARELLIUM_FILE);
@@ -404,16 +362,15 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
 
             executeChanges(delta, null, task, result);
 
             assertNotReached();
 
         } catch (UnsupportedOperationException e) {
-            // THEN
-            displayThen(TEST_NAME);
-            display("expected exception", e);
+            then();
+            displayExpectedException(e);
         }
 
         assertFailure(result);
@@ -421,9 +378,9 @@ public class TestServiceAccounts extends AbstractStoryTest {
         assertServices(1);
 
         assertServiceAfter(SERVICE_BARELLIUM_OID)
-            .assertName(SERVICE_BARELLIUM_NAME)
-            .assertDescription(SERVICE_BARELLIUM_DESCRIPTION)
-            .assertLinks(0);
+                .assertName(SERVICE_BARELLIUM_NAME)
+                .assertDescription(SERVICE_BARELLIUM_DESCRIPTION)
+                .assertLinks(0);
 
         assertNoDummyAccount(ACCOUNT_BARELLIUM_DUMMY_USERNAME);
     }

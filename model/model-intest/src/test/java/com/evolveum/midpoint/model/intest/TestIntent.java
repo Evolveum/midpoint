@@ -31,10 +31,6 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntent extends AbstractInitializedModelIntegrationTest {
@@ -54,11 +50,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccountDefault() throws Exception {
-        final String TEST_NAME="test131ModifyUserJackAssignAccountDefault";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -70,11 +63,11 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -99,7 +92,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -114,11 +107,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test132ModifyUserJackAssignAccountTest() throws Exception {
-        final String TEST_NAME="test132ModifyUserJackAssignAccountTest";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -130,11 +120,11 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
@@ -172,7 +162,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -187,20 +177,17 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test135ModifyUserJackFullName() throws Exception {
-        final String TEST_NAME="test135ModifyUserJackFullName";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("cpt. Jack Sparrow"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
 
@@ -234,7 +221,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -249,11 +236,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test147ModifyUserJackUnAssignAccountDefault() throws Exception {
-        final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -262,16 +246,13 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
                 RESOURCE_DUMMY_OID, null, false);
         deltas.add(accountAssignmentUserDelta);
 
-        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
-        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -294,7 +275,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -309,11 +290,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test149ModifyUserJackUnassignAccountTest() throws Exception {
-        final String TEST_NAME = "test149ModifyUserJackUnassignAccountTest";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -341,7 +319,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();

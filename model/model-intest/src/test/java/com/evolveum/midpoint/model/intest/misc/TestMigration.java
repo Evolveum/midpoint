@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest.misc;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -15,28 +13,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests for various migration and temporary situations.
@@ -75,15 +56,12 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test050SanityLost1() throws Exception {
-        final String TEST_NAME = "test050SanityLost1";
-        displayTestTitle(TEST_NAME);
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         assertShadow(shadowLost1Repo, "Repo shadow")
             .assertPrimaryIdentifierValue(null);
@@ -95,18 +73,15 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100RefreshTaskDefault() throws Exception {
-        final String TEST_NAME = "test100RefreshTaskDefault";
-        displayTestTitle(TEST_NAME);
-
         addObject(TASK_SHADOW_REFRESH_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")
@@ -120,18 +95,15 @@ public class TestMigration extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110RefreshTaskExplicitDummy() throws Exception {
-        final String TEST_NAME = "test110RefreshTaskExplicitDummy";
-        displayTestTitle(TEST_NAME);
-
         addObject(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         waitForTaskStart(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
         waitForTaskFinish(TASK_SHADOW_REFRESH_EXPLICIT_DUMMY_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> shadowLost1Repo = getShadowRepo(SHADOW_ACCOUNT_DUMMY_LOST1_OID);
         assertShadow(shadowLost1Repo, "Repo shadow")

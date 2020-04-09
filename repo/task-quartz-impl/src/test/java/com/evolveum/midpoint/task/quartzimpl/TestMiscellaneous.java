@@ -6,6 +6,23 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -16,29 +33,10 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.testng.AssertJUnit.assertEquals;
-
-/**
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-task-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestMiscellaneous {
+public class TestMiscellaneous extends AbstractTaskManagerTest {
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -119,13 +117,13 @@ public class TestMiscellaneous {
 
     private void assertLimitationsParsed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
         TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
-        display("parsed value of '" + value + "'", serialize(parsed));
+        displayValue("parsed value of '" + value + "'", serialize(parsed));
         assertEquals("Wrong parsed value for '" + value + "'", expected, parsed.getGroupLimitation());
     }
 
     private void assertLimitationsComputed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
         TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
-        display("parsed value of '" + value + "'", serialize(parsed));
+        displayValue("parsed value of '" + value + "'", serialize(parsed));
         TaskExecutionLimitationsType computed = NodeRegistrar.computeTaskExecutionLimitations(parsed, "NODE");
         assertEquals("Wrong computed value for '" + value + "'", expected, computed.getGroupLimitation());
     }

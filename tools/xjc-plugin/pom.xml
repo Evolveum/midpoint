@@ -18,7 +18,7 @@
     <artifactId>xjc-plugin</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Infrastructure - xjc plugin</name>
+    <name>midPoint Tools - xjc plugin</name>
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
@@ -48,10 +48,6 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-tools-common</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
             <artifactId>jaxb2-basics-runtime</artifactId>
         </dependency>
@@ -66,7 +62,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

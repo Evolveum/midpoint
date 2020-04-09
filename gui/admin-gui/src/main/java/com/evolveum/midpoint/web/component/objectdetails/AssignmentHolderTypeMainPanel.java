@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.HistoryPageTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
@@ -31,8 +31,6 @@ import java.util.List;
  */
 public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> extends AbstractObjectMainPanel<AHT>{
     private static final long serialVersionUID = 1L;
-
-    private AssignmentHolderTypeAssignmentsTabPanel assignmentsTabPanel = null;
 
     public AssignmentHolderTypeMainPanel(String id, LoadableModel<PrismObjectWrapper<AHT>> objectModel,
                                          PageAdminObjectDetails<AHT> parentPage) {
@@ -63,7 +61,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel(), parentPage){
+                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel()){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -83,20 +81,14 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
     }
 
     protected IModel<PrismObject<AHT>> unwrapModel() {
-        return new IModel<PrismObject<AHT>>() {
-
-            @Override
-            public PrismObject<AHT> getObject() {
-                return getObjectWrapper().getObject();
-            }
-        };
+        return (IModel<PrismObject<AHT>>) () -> getObjectWrapper().getObject();
     }
 
-    protected FocusTabVisibleBehavior getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
+    protected ObjectTabVisibleBehavior<AHT> getTabVisibility(String authUrl, boolean isVisibleOnHistoryPage, PageAdminObjectDetails<AHT> parentPage){
         if (isFocusHistoryPage()){
-            return new HistoryPageTabVisibleBehavior<AHT>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
+            return new HistoryPageTabVisibleBehavior<>(unwrapModel(), authUrl, isVisibleOnHistoryPage, parentPage);
         } else {
-            return new FocusTabVisibleBehavior<AHT>(unwrapModel(), authUrl, parentPage);
+            return new ObjectTabVisibleBehavior<>(unwrapModel(), authUrl, parentPage);
         }
     }
 

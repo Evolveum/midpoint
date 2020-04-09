@@ -7,20 +7,12 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
-
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -28,13 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -42,22 +28,17 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * LDAP Tests with LDAP content that is completely mutilated. It is all wrong.
  * Wrong capitalization in objectClass attributes, spaces in DNs and so on.
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapMutilated extends AbstractLdapTest {
 
@@ -69,8 +50,6 @@ public class TestLdapMutilated extends AbstractLdapTest {
 
     protected static final String OPENDJ_ACCOUNTS_SUFFIX = "ou=accounts,dc=example,dc=com";
 
-    private PrismObject<ResourceType> resourceOpenDj;
-
     private String accountJackOid;
 
     @Override
@@ -79,7 +58,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -96,7 +75,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
                 "objectclass: organizationalunit");
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         DebugUtil.setDetailedDebugDump(false);
@@ -109,9 +88,7 @@ public class TestLdapMutilated extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -126,19 +103,17 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test010Shadows() throws Exception {
-        final String TEST_NAME = "test010Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -150,25 +125,23 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test100AssignAccountOpenDjSimple() throws Exception {
-        final String TEST_NAME = "test100AssignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid)
-            .display();
+                .display();
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Jack LDAP entry", accountEntry);
@@ -182,20 +155,18 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test105Shadows() throws Exception {
-        final String TEST_NAME = "test105Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
-        display("Query", query);
+        displayDumpable("Query", query);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -204,21 +175,19 @@ public class TestLdapMutilated extends AbstractLdapTest {
 
     @Test
     public void test109UnassignAccountOpenDjSimple() throws Exception {
-        final String TEST_NAME = "test109UnassignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .links()
+                .links()
                 .assertNone();
 
         assertNoShadow(accountJackOid);
@@ -228,7 +197,6 @@ public class TestLdapMutilated extends AbstractLdapTest {
         assertNull("Unexpected LDAP entry for jack", accountEntry);
     }
 
-
     /**
      * Make sure there is no shadow for ou=accounts,dc=example,dc=com.
      * We haven't searched for accounts yet.
@@ -236,19 +204,17 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test300Shadows() throws Exception {
-        final String TEST_NAME = "test300Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -261,13 +227,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test310SearchLdapAccounts() throws Exception {
-        final String TEST_NAME = "test310SearchLdapAccounts";
-        displayTestTitle(TEST_NAME);
-
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
 
     }
@@ -277,19 +241,17 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test312Shadows() throws Exception {
-        final String TEST_NAME = "test312Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -297,15 +259,15 @@ public class TestLdapMutilated extends AbstractLdapTest {
         assertEquals("Unexpected number of shadows", 1, shadows.size());
         PrismObject<ShadowType> peopleShadow = null;
         for (PrismObject<ShadowType> shadow : shadows) {
-            if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(),OPENDJ_ACCOUNTS_SUFFIX)) {
+            if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(), OPENDJ_ACCOUNTS_SUFFIX)) {
                 peopleShadow = shadow;
             }
         }
         assertNotNull("No ou=accounts shadow", peopleShadow);
         assertShadow(peopleShadow, "ou=accounts")
-            .display()
-            .assertObjectClass(new QName(MidPointConstants.NS_RI, "organizationalUnit"))
-            .assertKind(ShadowKindType.UNKNOWN);
+                .display()
+                .assertObjectClass(new QName(MidPointConstants.NS_RI, "organizationalUnit"))
+                .assertKind(ShadowKindType.UNKNOWN);
     }
 
     /**
@@ -313,25 +275,23 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test320AssignAccountOpenDj() throws Exception {
-        final String TEST_NAME = "test320AssignAccountOpenDj";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid)
-            .display();
+                .display();
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Jack LDAP entry", accountEntry);
@@ -344,14 +304,11 @@ public class TestLdapMutilated extends AbstractLdapTest {
      */
     @Test
     public void test322SearchLdapAccounts() throws Exception {
-        final String TEST_NAME = "test310SearchLdapAccounts";
-        displayTestTitle(TEST_NAME);
-
-        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID,
+                ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
-
     }
 }

@@ -70,14 +70,9 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     void setId(Long id);
 
-    @SuppressWarnings("unchecked")
     PrismContainerable<C> getParent();
 
-    @SuppressWarnings("unchecked")
     PrismContainer<C> getContainer();
-
-    @NotNull
-    ItemPath getPath();
 
     // For compatibility with other PrismValue types
     C getValue();
@@ -165,7 +160,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         return false;
     }
 
-    Object find(ItemPath path);
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
@@ -246,8 +240,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean hasCompleteDefinition();
 
-    boolean isRaw();
-
     boolean addRawElement(Object element) throws SchemaException;
 
     boolean deleteRawElement(Object element) throws SchemaException;
@@ -258,18 +250,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     void applyDefinition(@NotNull PrismContainerDefinition<C> containerDef, boolean force) throws SchemaException;
 
-    @Override
-    void revive(PrismContext prismContext) throws SchemaException;
-
-    boolean isEmpty();
-
     boolean isIdOnly();
-
-    @Override
-    void normalize();
-
-    @Override
-    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
     void assertDefinitions(String sourceDescription) throws SchemaException;
 
@@ -286,47 +267,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean equivalent(PrismContainerValue<?> other);
 
-    @Override
-    boolean equals(Object obj);
-
-    @Override
-    int hashCode();
-
-    @Override
-    String toString();
-
-    @Override
-    String debugDump(int indent);
-
-    String toHumanReadableString();
-
-    // copies the definition from original to aClone (created outside of this method)
-    // it has to (artifically) create a parent PrismContainer to hold the definition
-    //
-    // without having a definition, such containers cannot be serialized using
-    // PrismJaxbProcessor.marshalContainerableToString (without definition, there is
-    // no information on corresponding element name)
-    //
-    // todo review usefulness and appropriateness of this method and its placement
-    @Deprecated
-    static void copyDefinition(Containerable aClone, Containerable original, PrismContext prismContext) {
-        try {
-            Validate.notNull(original.asPrismContainerValue().getParent(), "original PrismContainerValue has no parent");
-
-            ComplexTypeDefinition definition = original.asPrismContainerValue().getComplexTypeDefinition();
-            Validate.notNull(definition, "original PrismContainer definition is null");
-
-            PrismContainer<?> aCloneParent = prismContext.getSchemaRegistry()
-                    .findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) definition.getCompileTimeClass())
-                    .instantiate();
-            aCloneParent.add(aClone.asPrismContainerValue());
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected SchemaException when copying definition from original object to its clone", e);
-        }
-    }
-
-    QName getTypeName();
-
     @Nullable
     ComplexTypeDefinition getComplexTypeDefinition();
 
@@ -337,13 +277,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
         }
         return rv;
     }
-
-    @Override
-    Class<?> getRealClass();
-
-    @NotNull
-    @Override
-    <T> T getRealValue();
 
     /**
      * Returns a single-valued container (with a single-valued definition) holding just this value.
@@ -382,10 +315,6 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     // TODO optimize a bit + test thoroughly
     void removePaths(List<? extends ItemPath> remove) throws SchemaException;
-
-    @NotNull
-    @Override
-    Collection<PrismValue> getAllValues(ItemPath path);
 
     void removeItems(List<? extends ItemPath> itemsToRemove);
 

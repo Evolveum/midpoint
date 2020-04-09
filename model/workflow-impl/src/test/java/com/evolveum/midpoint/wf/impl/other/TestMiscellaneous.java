@@ -7,6 +7,18 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -21,22 +33,11 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestMiscellaneous extends AbstractWfTestPolicy {
 
@@ -102,8 +103,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test100RequesterComment() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -117,7 +118,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
         modelService.executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContext), task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SAILOR_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_SAILOR_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -143,7 +144,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
         assertEquals("Wrong original assignee OID", USER_SCOTT_OID, event2.getOriginalAssigneeRef().getOid());
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         assertEquals("Wrong # of process instance audit records", 2, records.size());
         for (int i = 0; i < records.size(); i++) {
@@ -155,7 +156,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_SAILOR_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -167,8 +168,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test105RequesterCommentImmediate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -184,7 +185,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         options.setExecuteImmediatelyAfterApproval(true);
         modelService.executeChanges(deltas, options, task, result);
 
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
         display("Work item", workItem);
@@ -210,7 +211,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
         assertEquals("Wrong original assignee OID", USER_SCOTT_OID, event2.getOriginalAssigneeRef().getOid());
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
         assertEquals("Wrong # of process instance audit records", 2, records.size());
         for (int i = 0; i < records.size(); i++) {
@@ -222,7 +223,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType parentCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(parentCase);
 
-        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        AssignmentType assignment = assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
         display("assignment after creation", assignment);
         MetadataType metadata = assignment.getMetadata();
         assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
@@ -234,8 +235,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test110RequestPrunedRole() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
 
@@ -252,7 +253,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertInProgress("Operation NOT in progress", result);
 
-        assertNotAssignedRole(userJackOid, ROLE_SILVER_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_SILVER_OID, result);
 
         // complete the work item related to assigning role silver
         CaseWorkItemType workItem = getWorkItem(task, result);
@@ -265,20 +266,20 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase);
 
-        assertNotAssignedRole(userJackOid, ROLE_GOLD_OID, task, result);            // should be pruned without approval
+        assertNotAssignedRole(userJackOid, ROLE_GOLD_OID, result);            // should be pruned without approval
     }
 
     @Test
     public void test200GetRoleByTemplate() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_OID);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         // some innocent change
@@ -288,20 +289,20 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test210GetRoleByTemplateAfterAssignments() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER_OID);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         // some innocent change
@@ -312,20 +313,20 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test220GetRoleByFocusMappings() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         assignRole(userJackOid, ROLE_ASSIGNING_CAPTAIN_OID, task, result);
@@ -334,27 +335,27 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 
     @Test
     public void test250SkippingApprovals() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // GIVEN
         setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
-        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
 
         // WHEN
         ObjectDelta<? extends ObjectType> delta =
                 prismContext.deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
+                        .item(UserType.F_ASSIGNMENT)
                         .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN_OID, ObjectTypes.ROLE, prismContext))
-                .asObjectDelta(userJackOid);
+                        .asObjectDelta(userJackOid);
         ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(Collections.singletonList(delta), options, task, result);
@@ -363,6 +364,6 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, task, result);
+        assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
     }
 }

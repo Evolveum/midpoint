@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -67,10 +68,11 @@ public class CleanUpTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        CleanupPoliciesType cleanupPolicies = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
-
-        if (cleanupPolicies != null) {
-            LOGGER.info("Using task-specific cleanupPolicies: {}", cleanupPolicies);
+        CleanupPoliciesType cleanupPolicies;
+        CleanupPoliciesType taskCleanupPolicies = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
+        if (taskCleanupPolicies != null) {
+            LOGGER.info("Using task-specific cleanupPolicies: {}", taskCleanupPolicies);
+            cleanupPolicies = taskCleanupPolicies;
         } else {
             PrismObject<SystemConfigurationType> systemConfig;
             try {
@@ -189,15 +191,16 @@ public class CleanUpTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        if (task != null && task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES) != null) {
-            return TaskCategory.UTIL;            // this is run on-demand just like other utility tasks (e.g. delete task handler)
-        } else {
-            return TaskCategory.SYSTEM;            // this is the default instance, always running
-        }
+        return TaskCategory.CLEANUP;
     }
 
     @Override
     public List<String> getCategoryNames() {
-        return Arrays.asList(TaskCategory.UTIL, TaskCategory.SYSTEM);
+        return Collections.singletonList(TaskCategory.CLEANUP);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
     }
 }

@@ -24,9 +24,9 @@ public interface Refreshable {
     void refresh(AjaxRequestTarget target);
 
     /**
-     * Component to which the refreshing timer should be attached.
+     * If the refresh is enabled
      */
-    Component getRefreshingBehaviorParent();
+    boolean isRefreshEnabled();
 
     /**
      * Current refreshing interval (may depend on page content).

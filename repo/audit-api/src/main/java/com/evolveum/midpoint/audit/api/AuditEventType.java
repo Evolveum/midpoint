@@ -44,7 +44,13 @@ public enum AuditEventType {
 
     WORKFLOW_PROCESS_INSTANCE,
 
-    RECONCILIATION;
+    RECONCILIATION,
+
+    SUSPEND_TASK,
+
+    RESUME_TASK,
+
+    RUN_TASK_IMMEDIATELY;
 
     /*
      * Query session, modify session
@@ -87,6 +93,12 @@ public enum AuditEventType {
                 return AuditEventType.WORK_ITEM;
             case WORKFLOW_PROCESS_INSTANCE:
                 return AuditEventType.WORKFLOW_PROCESS_INSTANCE;
+            case SUSPEND_TASK:
+                return AuditEventType.SUSPEND_TASK;
+            case RESUME_TASK:
+                return AuditEventType.RESUME_TASK;
+            case RUN_TASK_IMMEDIATELY:
+                return AuditEventType.RUN_TASK_IMMEDIATELY;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
         }
@@ -119,6 +131,12 @@ public enum AuditEventType {
                 return AuditEventTypeType.WORK_ITEM;
             case WORKFLOW_PROCESS_INSTANCE:
                 return AuditEventTypeType.WORKFLOW_PROCESS_INSTANCE;
+            case SUSPEND_TASK:
+                return AuditEventTypeType.SUSPEND_TASK;
+            case RESUME_TASK:
+                return AuditEventTypeType.RESUME_TASK;
+            case RUN_TASK_IMMEDIATELY:
+                return AuditEventTypeType.RUN_TASK_IMMEDIATELY;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
 

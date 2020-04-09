@@ -44,20 +44,16 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
 
     @Test
     public void testParseFileAsPCV() throws Exception {
-        displayTestTitle("testParseFileAsPCV");
         processParsingsPCV(null, null);
     }
 
     @Test
     public void testParseFileAsPO() throws Exception {
-        displayTestTitle("testParseFileAsPO");
         processParsingsPO(null, null, true);
     }
 
     @Test
     public void testParseRoundTripAsPCV() throws Exception {
-        displayTestTitle("testParseRoundTripAsPCV");
-
         SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
         processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0");
         processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1");
@@ -72,8 +68,6 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
 
     @Test
     public void testParseRoundTripAsPO() throws Exception {
-        displayTestTitle("testParseRoundTripAsPO");
-
         SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
         processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0", true);
         processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1",

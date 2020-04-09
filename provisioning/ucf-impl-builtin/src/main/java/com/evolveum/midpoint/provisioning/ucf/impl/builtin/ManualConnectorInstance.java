@@ -257,8 +257,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
         caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
-        // deprecated "objectChange" element was removed in midPoint 4.0.
-        // TODO: record operation as pending operation delta
+        caseType.beginManualProvisioningContext()
+                .beginPendingOperation()
+                    .type(PendingOperationTypeType.MANUAL)
+                    .delta(objectDelta)
+                .<ManualProvisioningContextType>end()
+                .end();
 
         ObjectReferenceType archetypeRef = ObjectTypeUtil
                 .createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
@@ -347,6 +351,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             return null;
         } else if (outcome.equals(OperationResultStatusType.SUCCESS.value())) {
             return OperationResultStatus.SUCCESS;
+        } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
+            return OperationResultStatus.SUCCESS;
         } else {
             return OperationResultStatus.UNKNOWN;
         }
@@ -365,7 +371,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         try {
             Object[] shadowIdentifiers = identifiers.toArray();
 
-            return ((ResourceAttribute)shadowIdentifiers[0]).getValue().getValue().toString();
+            return ((ResourceAttribute<?>)shadowIdentifiers[0]).getValue().getValue().toString();
         } catch (NullPointerException e){
             return "";
         }

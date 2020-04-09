@@ -26,7 +26,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.resource.IResourceStream;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.web.component.AbstractAjaxDownloadBehavior;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
@@ -113,7 +113,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             public void onClick(AjaxRequestTarget target) {
                 long exportSizeLimit = -1;
                 try {
-                    CompiledUserProfile adminGuiConfig = getPageBase().getCompiledUserProfile();
+                    CompiledGuiProfile adminGuiConfig = getPageBase().getCompiledGuiProfile();
                     if (adminGuiConfig.getDefaultExportSettings() != null && adminGuiConfig.getDefaultExportSettings().getSizeLimit() != null) {
                         exportSizeLimit = adminGuiConfig.getDefaultExportSettings().getSizeLimit();
                     }

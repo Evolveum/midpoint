@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
@@ -17,7 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,24 +43,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectLifecycleDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -83,10 +72,10 @@ public class ActivationProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivationProcessor.class);
 
-    private static final QName SHADOW_EXISTS_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "shadowExists");
-    private static final QName LEGAL_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "legal");
-    private static final QName ASSIGNED_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "assigned");
-    private static final QName FOCUS_EXISTS_PROPERTY_NAME = new QName(SchemaConstants.NS_C, "focusExists");
+    private static final ItemName SHADOW_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "shadowExists");
+    private static final ItemName LEGAL_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "legal");
+    private static final ItemName ASSIGNED_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "assigned");
+    private static final ItemName FOCUS_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "focusExists");
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
@@ -494,6 +483,10 @@ public class ActivationProcessor {
         params.setContext(context);
 
         params.setInitializer(builder -> {
+            builder.mappingKind(MappingKindType.OUTBOUND)
+                    .implicitSourcePath(LEGAL_PROPERTY_NAME)
+                    .implicitTargetPath(SHADOW_EXISTS_PROPERTY_NAME);
+
             // Source: legal
             ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(projCtx);
             Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource
@@ -584,6 +577,9 @@ public class ActivationProcessor {
 
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> initializer =
             builder -> {
+                builder.mappingKind(MappingKindType.OUTBOUND);
+                builder.implicitTargetPath(projectionPropertyPath);
+
                 // Source: administrativeStatus, validFrom or validTo
                 ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
 
@@ -592,19 +588,19 @@ public class ActivationProcessor {
                     ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
 
                     // Source: computedShadowStatus
-                    ItemDeltaItem<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedIdi;
+                    ItemPath sourcePath;
                     if (capValidFrom != null && capValidTo != null) {
                         // "Native" validFrom and validTo, directly use administrativeStatus
-                        computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
-
+                        sourcePath = focusPropertyPath;
                     } else {
                         // Simulate validFrom and validTo using effectiveStatus
-                        computedIdi = context.getFocusContext().getObjectDeltaObject().findIdi(SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS);
-
+                        sourcePath = SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
                     }
+                    ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> computedIdi =
+                            context.getFocusContext().getObjectDeltaObject().findIdi(sourcePath);
+                    builder.implicitSourcePath(sourcePath);
 
                     Source<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedSource = new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME);
-
                     builder.defaultSource(computedSource);
 
                     Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME);
@@ -613,6 +609,7 @@ public class ActivationProcessor {
                 } else {
                     Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME);
                     builder.defaultSource(source);
+                    builder.implicitSourcePath(focusPropertyPath);
                 }
 
                 // Source: legal
@@ -664,7 +661,9 @@ public class ActivationProcessor {
                 builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
 
                 builder.originType(OriginType.OUTBOUND);
+                builder.mappingKind(MappingKindType.OUTBOUND);
                 builder.originObject(projCtx.getResource());
+                builder.implicitTargetPath(projectionPropertyPath);
 
                 initializer.initialize(builder);
 
@@ -691,9 +690,8 @@ public class ActivationProcessor {
 
         Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap = mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent, DebugUtil.debugDump(outputTripleMap, 1));
-        }
+        LOGGER.trace("Mapping processing output after {} ({}):\n{}", desc, evaluateCurrent,
+                DebugUtil.debugDumpLazily(outputTripleMap, 1));
 
         if (projCtx.isDoReconciliation()) {
             reconcileOutboundValue(context, projCtx, outputTripleMap, desc);

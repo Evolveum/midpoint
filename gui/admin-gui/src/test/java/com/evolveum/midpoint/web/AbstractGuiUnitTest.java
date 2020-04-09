@@ -25,10 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -37,16 +36,11 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractHigherUnitTest;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 
 /**
  * @author lazyman
  */
 public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiUnitTest.class);
 
     protected ModelServiceLocator getServiceLocator() {
         return new ModelServiceLocator() {
@@ -88,8 +82,8 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @NotNull
             @Override
-            public CompiledUserProfile getCompiledUserProfile() {
-                return new CompiledUserProfile();
+            public CompiledGuiProfile getCompiledGuiProfile() {
+                return new CompiledGuiProfile();
             }
 
             @Override

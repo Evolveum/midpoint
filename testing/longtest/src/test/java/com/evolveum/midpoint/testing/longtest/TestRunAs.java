@@ -6,87 +6,34 @@ package com.evolveum.midpoint.testing.longtest;
  * and European Union Public License. See LICENSE file for details.
  */
 
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.mutable.MutableInt;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Mix of various tests for issues that are difficult to replicate using dummy resources.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRunAs extends AbstractLongTest {
 
@@ -98,7 +45,7 @@ public class TestRunAs extends AbstractLongTest {
     private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     private static final String RESOURCE_DUMMY_OID = "2f454e92-c9e8-11e7-8f60-17bc95e695f8";
 
-    protected static final File USER_ROBOT_FILE = new File (TEST_DIR, "user-robot.xml");
+    protected static final File USER_ROBOT_FILE = new File(TEST_DIR, "user-robot.xml");
     protected static final String USER_ROBOT_OID = "20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed";
     protected static final String USER_ROBOT_USERNAME = "robot";
 
@@ -148,9 +95,6 @@ public class TestRunAs extends AbstractLongTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         assertUsers(NUM_INITIAL_USERS);
     }
 
@@ -159,19 +103,16 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test100AssignAccountDummyToBarbossa() throws Exception {
-        final String TEST_NAME = "test100AssignAccountDummyToBarbossa";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -180,7 +121,7 @@ public class TestRunAs extends AbstractLongTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_NAME, USER_BARBOSSA_USERNAME,
                 USER_BARBOSSA_FULL_NAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
                 "Some say robot -- administrator");
@@ -191,19 +132,16 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test109UnassignAccountDummyFromBarbossa() throws Exception {
-        final String TEST_NAME = "test109UnassignAccountDummyFromBarbossa";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_BARBOSSA_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -215,20 +153,17 @@ public class TestRunAs extends AbstractLongTest {
 
     @Test
     public void test200CleanupPlain() throws Exception {
-        final String TEST_NAME = "test200CleanupPlain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -241,13 +176,12 @@ public class TestRunAs extends AbstractLongTest {
         assertSuccess(result);
     }
 
-
     /**
      * Warm up JVM, so we have stable and comparable results
      */
     @Test
     public void test205WarmUp() throws Exception {
-        warmUp("test205WarmUp");
+        warmUp();
     }
 
     /**
@@ -255,27 +189,24 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test210BarbossaSetOrganizationPlain() throws Exception {
-        final String TEST_NAME = "test210BarbossaSetOrganizationPlain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
-        display("Run time "+(endMillis - starMillis)+"ms, repo read count increment " + readCountIncremenet);
+        display("Run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncremenet);
         baselineRunTime = endMillis - starMillis;
         baselineRepoReadCountIncrement = readCountIncremenet;
 
@@ -288,20 +219,17 @@ public class TestRunAs extends AbstractLongTest {
 
     @Test
     public void test300CleanupRunAs() throws Exception {
-        final String TEST_NAME = "test300CleanupRunAs";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -319,48 +247,44 @@ public class TestRunAs extends AbstractLongTest {
      */
     @Test
     public void test305WarmUp() throws Exception {
-        warmUp("test305WarmUp");
+        warmUp();
     }
-
 
     /**
      * MID-3844
      */
     @Test
     public void test310BarbossaSetOrganizationRunAs() throws Exception {
-        final String TEST_NAME = "test310BarbossaSetOrganizationRunAs";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         long starMillis = System.currentTimeMillis();
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, createPolyString(ORG_PIRATES));
         long endMillis = System.currentTimeMillis();
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         long readCountIncrement = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
         long runTimeMillis = (endMillis - starMillis);
-        display("Run time "+runTimeMillis+"ms, repo read count increment " + readCountIncrement);
-        long percentRuntimeIncrease = (runTimeMillis - baselineRunTime)*100/baselineRunTime;
+        display("Run time " + runTimeMillis + "ms, repo read count increment " + readCountIncrement);
+        long percentRuntimeIncrease = (runTimeMillis - baselineRunTime) * 100 / baselineRunTime;
         long readCountIncrease = readCountIncrement - baselineRepoReadCountIncrement;
-        display("Increase over baseline",
-                "  run time: "+(runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%) \n" +
-                "  repo read: "+ readCountIncrease);
+        displayValue("Increase over baseline",
+                "  run time: " + (runTimeMillis - baselineRunTime) + " (" + percentRuntimeIncrease + "%) \n" +
+                        "  repo read: " + readCountIncrease);
 
         if (readCountIncrease > 2) {
             fail("High increase over repo read count baseline: " + readCountIncrease + " (expected: at most 2)");
         }
         if (percentRuntimeIncrease > 20) {
-            fail("Too high run time increase over baseline: "+percentRuntimeIncrease+"% "+baselineRunTime+"ms -> "+runTimeMillis+"ms");
+            fail("Too high run time increase over baseline: " + percentRuntimeIncrease + "% " + baselineRunTime + "ms -> " + runTimeMillis + "ms");
         }
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -370,17 +294,15 @@ public class TestRunAs extends AbstractLongTest {
 
     }
 
-    private void warmUp(final String TEST_NAME) throws Exception {
-        displayTestTitle(TEST_NAME);
-
+    private void warmUp() throws Exception {
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         long firstTime = warmUpRound(0, task, result);
         long lastTime = 0;
         long sumTime = firstTime;
@@ -390,11 +312,11 @@ public class TestRunAs extends AbstractLongTest {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
-        long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
-        display("Warm up run times: first "+(firstTime)+"ms, last " + lastTime + ", average "+(sumTime/WARM_UP_ROUNDS)+"ms");
+        getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
+        display("Warm up run times: first " + (firstTime) + "ms, last " + lastTime + ", average " + (sumTime / WARM_UP_ROUNDS) + "ms");
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
         display("User after", userAfter);
@@ -416,14 +338,13 @@ public class TestRunAs extends AbstractLongTest {
         assertSuccess(result);
 
         long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
-        display("Warm up round "+round+" run time "+(endMillis - starMillis)+"ms, repo read count increment " + readCountIncremenet);
+        display("Warm up round " + round + " run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncremenet);
 
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result /* no value */);
         modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result /* no value */);
 
-        return  endMillis - starMillis;
+        return endMillis - starMillis;
     }
-
 
     private void assertUserOrgs(PrismObject<UserType> user, String organization, String principalUsername) {
         PrismAsserts.assertPropertyValue(user, UserType.F_ORGANIZATION, createPolyString(organization));
@@ -437,6 +358,5 @@ public class TestRunAs extends AbstractLongTest {
         }
         return out;
     }
-
 
 }

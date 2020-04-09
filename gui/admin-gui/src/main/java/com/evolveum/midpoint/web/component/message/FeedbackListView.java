@@ -53,7 +53,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
                 protected void onAfterRender() {
                     opResult.setAlreadyShown(true);
                     super.onAfterRender();
-                };
+                }
             };
             panel.add(new VisibleEnableBehaviour() {
 
@@ -61,7 +61,7 @@ public class FeedbackListView extends ListView<FeedbackMessage> {
 
                 public boolean isVisible() {
                     return !opResult.isAlreadyShown();
-                };
+                }
             });
 
             panel.setOutputMarkupId(true);

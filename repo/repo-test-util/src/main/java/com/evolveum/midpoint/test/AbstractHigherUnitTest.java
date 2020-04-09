@@ -6,26 +6,18 @@
  */
 package com.evolveum.midpoint.test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -38,18 +30,11 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -66,32 +51,17 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -101,13 +71,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractHigherUnitTest {
+public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements InfraTestMixin {
 
     public static final String COMMON_DIR_NAME = "common";
     public static final File COMMON_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, COMMON_DIR_NAME);
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractHigherUnitTest.class);
-    protected static final Random RND = new Random();
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -149,29 +116,29 @@ public abstract class AbstractHigherUnitTest {
     }
 
     protected void assertNoChanges(ObjectDelta<?> delta) {
-        assertNull("Unexpected changes: "+ delta, delta);
+        assertNull("Unexpected changes: " + delta, delta);
     }
 
     protected void assertNoChanges(String desc, ObjectDelta<?> delta) {
-        assertNull("Unexpected changes in "+desc+": "+ delta, delta);
+        assertNull("Unexpected changes in " + desc + ": " + delta, delta);
     }
 
-    protected <F extends FocusType> void  assertEffectiveActivation(PrismObject<F> focus, ActivationStatusType expected) {
+    protected <F extends FocusType> void assertEffectiveActivation(PrismObject<F> focus, ActivationStatusType expected) {
         ActivationType activationType = focus.asObjectable().getActivation();
-        assertNotNull("No activation in "+focus, activationType);
-        assertEquals("Wrong effectiveStatus in activation in "+focus, expected, activationType.getEffectiveStatus());
+        assertNotNull("No activation in " + focus, activationType);
+        assertEquals("Wrong effectiveStatus in activation in " + focus, expected, activationType.getEffectiveStatus());
     }
 
-    protected <F extends FocusType> void  assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
+    protected <F extends FocusType> void assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
         ActivationType activationType = assignmentType.getActivation();
-        assertNotNull("No activation in "+assignmentType, activationType);
-        assertEquals("Wrong effectiveStatus in activation in "+assignmentType, expected, activationType.getEffectiveStatus());
+        assertNotNull("No activation in " + assignmentType, activationType);
+        assertEquals("Wrong effectiveStatus in activation in " + assignmentType, expected, activationType.getEffectiveStatus());
     }
 
-    protected <F extends FocusType> void  assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {
+    protected <F extends FocusType> void assertValidityStatus(PrismObject<F> focus, TimeIntervalStatusType expected) {
         ActivationType activationType = focus.asObjectable().getActivation();
-        assertNotNull("No activation in "+focus, activationType);
-        assertEquals("Wrong validityStatus in activation in "+focus, expected, activationType.getValidityStatus());
+        assertNotNull("No activation in " + focus, activationType);
+        assertEquals("Wrong validityStatus in activation in " + focus, expected, activationType.getValidityStatus());
     }
 
     protected void assertShadow(PrismObject<? extends ShadowType> shadow) {
@@ -180,9 +147,9 @@ public abstract class AbstractHigherUnitTest {
 
     protected void assertObject(PrismObject<? extends ObjectType> object) {
         object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
-        assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+        assertTrue("Incomplete definition in " + object, object.hasCompleteDefinition());
         assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
-        assertNotNull("Null name in "+object, object.asObjectable().getName());
+        assertNotNull("Null name in " + object, object.asObjectable().getName());
     }
 
     protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
@@ -196,10 +163,10 @@ public abstract class AbstractHigherUnitTest {
             assertEquals("Wrong " + user + " OID (prism)", oid, user.getOid());
             assertEquals("Wrong " + user + " OID (jaxb)", oid, userType.getOid());
         }
-        PrismAsserts.assertEqualsPolyString("Wrong "+user+" name", name, userType.getName());
-        PrismAsserts.assertEqualsPolyString("Wrong "+user+" fullName", fullName, userType.getFullName());
-        PrismAsserts.assertEqualsPolyString("Wrong "+user+" givenName", givenName, userType.getGivenName());
-        PrismAsserts.assertEqualsPolyString("Wrong "+user+" familyName", familyName, userType.getFamilyName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + user + " name", name, userType.getName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + user + " fullName", fullName, userType.getFullName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + user + " givenName", givenName, userType.getGivenName());
+        PrismAsserts.assertEqualsPolyString("Wrong " + user + " familyName", familyName, userType.getFamilyName());
 
         if (location != null) {
             PrismAsserts.assertEqualsPolyString("Wrong " + user + " location", location,
@@ -208,7 +175,7 @@ public abstract class AbstractHigherUnitTest {
     }
 
     protected <O extends ObjectType> void assertSubtype(PrismObject<O> object, String subtype) {
-        assertTrue("Object "+object+" does not have subtype "+subtype, FocusTypeUtil.hasSubtype(object, subtype));
+        assertTrue("Object " + object + " does not have subtype " + subtype, FocusTypeUtil.hasSubtype(object, subtype));
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, QName objectClass) throws SchemaException {
@@ -220,8 +187,8 @@ public abstract class AbstractHigherUnitTest {
     }
 
     protected void assertAccountShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
-                                      MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(accountShadow,oid,username,resourceType,getAccountObjectClass(resourceType),nameMatchingRule, requireNormalizedIdentfiers);
+            MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), nameMatchingRule, requireNormalizedIdentfiers);
     }
 
     protected QName getAccountObjectClass(ResourceType resourceType) {
@@ -238,7 +205,7 @@ public abstract class AbstractHigherUnitTest {
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-                                      QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
+            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
         assertShadow(shadow);
         if (oid != null) {
             assertEquals("Shadow OID mismatch (prism)", oid, shadow.getOid());
@@ -250,8 +217,8 @@ public abstract class AbstractHigherUnitTest {
         assertEquals("Shadow objectclass", objectClass, resourceObjectShadowType.getObjectClass());
         assertEquals("Shadow resourceRef OID", resourceType.getOid(), shadow.asObjectable().getResourceRef().getOid());
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        assertNotNull("Null attributes in shadow for "+username, attributesContainer);
-        assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
+        assertNotNull("Null attributes in shadow for " + username, attributesContainer);
+        assertFalse("Empty attributes in shadow for " + username, attributesContainer.isEmpty());
 
         if (useMatchingRuleForShadowName) {
             MatchingRule<PolyString> polyMatchingRule = new MatchingRule<PolyString>() {
@@ -292,14 +259,14 @@ public abstract class AbstractHigherUnitTest {
         if (ocDef.getSecondaryIdentifiers().isEmpty()) {
             ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
             PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
-            assertNotNull("No primary identifier ("+idDef.getItemName()+") attribute in shadow for "+username, idProp);
+            assertNotNull("No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username, idProp);
             if (nameMatchingRule == null) {
-                assertEquals("Unexpected primary identifier in shadow for "+username, username, idProp.getRealValue());
+                assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
             } else {
                 if (requireNormalizedIdentfiers) {
-                    assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule.normalize(username), idProp.getRealValue());
+                    assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule.normalize(username), idProp.getRealValue());
                 } else {
-                    PrismAsserts.assertEquals("Unexpected primary identifier in shadow for "+username, nameMatchingRule, username, idProp.getRealValue());
+                    PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
                 }
             }
         } else {
@@ -309,10 +276,10 @@ public abstract class AbstractHigherUnitTest {
                 expected = nameMatchingRule.normalize(username);
             }
             List<String> wasValues = new ArrayList<>();
-            for (ResourceAttributeDefinition idSecDef: ocDef.getSecondaryIdentifiers()) {
+            for (ResourceAttributeDefinition idSecDef : ocDef.getSecondaryIdentifiers()) {
                 PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
                 wasValues.addAll(idProp.getRealValues());
-                assertNotNull("No secondary identifier ("+idSecDef.getItemName()+") attribute in shadow for "+username, idProp);
+                assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + username, idProp);
                 if (nameMatchingRule == null) {
                     if (username.equals(idProp.getRealValue())) {
                         found = true;
@@ -331,7 +298,7 @@ public abstract class AbstractHigherUnitTest {
                 }
             }
             if (!found) {
-                fail("Unexpected secondary identifier in shadow for "+username+", expected "+expected+" but was "+wasValues);
+                fail("Unexpected secondary identifier in shadow for " + username + ", expected " + expected + " but was " + wasValues);
             }
         }
     }
@@ -342,17 +309,17 @@ public abstract class AbstractHigherUnitTest {
         ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
-        assertNotNull("No secondary identifier ("+idSecDef.getItemName()+") attribute in shadow for "+expectedIdentifier, idProp);
+        assertNotNull("No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + expectedIdentifier, idProp);
         if (nameMatchingRule == null) {
-            assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, expectedIdentifier, idProp.getRealValue());
+            assertEquals("Unexpected secondary identifier in shadow for " + expectedIdentifier, expectedIdentifier, idProp.getRealValue());
         } else {
-            PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
+            PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for " + expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
         }
 
     }
 
     protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
-        PrismAsserts.assertEqualsPolyString("Shadow name is wrong in "+shadow, expectedName, shadow.asObjectable().getName());
+        PrismAsserts.assertEqualsPolyString("Shadow name is wrong in " + shadow, expectedName, shadow.asObjectable().getName());
     }
 
     protected void assertShadowName(ShadowType shadowType, String expectedName) {
@@ -377,9 +344,9 @@ public abstract class AbstractHigherUnitTest {
 
     // objectClassName may be null
     protected RefinedAttributeDefinition getAttributeDefinition(ResourceType resourceType,
-                                                                ShadowKindType kind,
-                                                                QName objectClassName,
-                                                                String attributeLocalName) throws SchemaException {
+            ShadowKindType kind,
+            QName objectClassName,
+            String attributeLocalName) throws SchemaException {
         RefinedResourceSchema refinedResourceSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition refinedObjectClassDefinition =
                 refinedResourceSchema.findRefinedDefinitionByObjectClassQName(kind, objectClassName);
@@ -388,15 +355,14 @@ public abstract class AbstractHigherUnitTest {
 
     protected void assertFilter(ObjectFilter filter, Class<? extends ObjectFilter> expectedClass) {
         if (expectedClass == null) {
-            assertNull("Expected that filter is null, but it was "+filter, filter);
+            assertNull("Expected that filter is null, but it was " + filter, filter);
         } else {
-            assertNotNull("Expected that filter is of class "+expectedClass.getName()+", but it was null", filter);
+            assertNotNull("Expected that filter is of class " + expectedClass.getName() + ", but it was null", filter);
             if (!(expectedClass.isAssignableFrom(filter.getClass()))) {
-                AssertJUnit.fail("Expected that filter is of class "+expectedClass.getName()+", but it was "+filter);
+                AssertJUnit.fail("Expected that filter is of class " + expectedClass.getName() + ", but it was " + filter);
             }
         }
     }
-
 
     protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
         ActivationType activationType = shadow.asObjectable().getActivation();
@@ -404,10 +370,10 @@ public abstract class AbstractHigherUnitTest {
             if (expectedStatus == null) {
                 return;
             } else {
-                AssertJUnit.fail("Expected activation administrative status of "+shadow+" to be "+expectedStatus+", but there was no activation administrative status");
+                AssertJUnit.fail("Expected activation administrative status of " + shadow + " to be " + expectedStatus + ", but there was no activation administrative status");
             }
         } else {
-            assertEquals("Wrong activation administrative status of "+shadow, expectedStatus, activationType.getAdministrativeStatus());
+            assertEquals("Wrong activation administrative status of " + shadow, expectedStatus, activationType.getAdministrativeStatus());
         }
     }
 
@@ -417,10 +383,10 @@ public abstract class AbstractHigherUnitTest {
             if (expectedStatus == null) {
                 return;
             } else {
-                AssertJUnit.fail("Expected lockout status of "+shadow+" to be "+expectedStatus+", but there was no lockout status");
+                AssertJUnit.fail("Expected lockout status of " + shadow + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
-            assertEquals("Wrong lockout status of "+shadow, expectedStatus, activationType.getLockoutStatus());
+            assertEquals("Wrong lockout status of " + shadow, expectedStatus, activationType.getLockoutStatus());
         }
     }
 
@@ -430,10 +396,10 @@ public abstract class AbstractHigherUnitTest {
             if (expectedStatus == null) {
                 return;
             } else {
-                AssertJUnit.fail("Expected lockout status of "+user+" to be "+expectedStatus+", but there was no lockout status");
+                AssertJUnit.fail("Expected lockout status of " + user + " to be " + expectedStatus + ", but there was no lockout status");
             }
         } else {
-            assertEquals("Wrong lockout status of "+user, expectedStatus, activationType.getLockoutStatus());
+            assertEquals("Wrong lockout status of " + user, expectedStatus, activationType.getLockoutStatus());
         }
     }
 
@@ -451,12 +417,12 @@ public abstract class AbstractHigherUnitTest {
 
     protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
-        Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+        assertNotNull("No attributes in repo shadow " + shadow, attributesContainer);
+        Collection<Item<?, ?>> attributes = attributesContainer.getValue().getItems();
 
-        assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
+        assertFalse("Empty attributes in repo shadow " + shadow, attributes.isEmpty());
         if (expectedNumberOfAttributes != null) {
-            assertEquals("Unexpected number of attributes in repo shadow "+shadow, (int)expectedNumberOfAttributes, attributes.size());
+            assertEquals("Unexpected number of attributes in repo shadow " + shadow, (int) expectedNumberOfAttributes, attributes.size());
         }
     }
 
@@ -496,21 +462,8 @@ public abstract class AbstractHigherUnitTest {
         return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type).instantiate();
     }
 
-
     protected <O extends ObjectType> PrismObject<O> parseObject(File file) throws SchemaException, IOException {
         return getPrismContext().parseObject(file);
-    }
-
-    protected void displayTestTitle(String testName) {
-        TestUtil.displayTestTitle(this, testName);
-    }
-
-    protected void displayWhen(String testName) {
-        TestUtil.displayWhen(testName);
-    }
-
-    protected void displayThen(String testName) {
-        TestUtil.displayThen(testName);
     }
 
     protected void displayCleanup(String testName) {
@@ -519,10 +472,6 @@ public abstract class AbstractHigherUnitTest {
 
     protected void displaySkip(String testName) {
         TestUtil.displaySkip(testName);
-    }
-
-    protected void display(String str) {
-        IntegrationTestTools.display(str);
     }
 
     public static void display(String message, SearchResultEntry response) {
@@ -569,24 +518,12 @@ public abstract class AbstractHigherUnitTest {
         IntegrationTestTools.display(title, elements);
     }
 
-    public static void display(String title, DebugDumpable dumpable) {
-        IntegrationTestTools.display(title, dumpable);
-    }
-
-    public static void display(String title, String value) {
-        IntegrationTestTools.display(title, value);
-    }
-
     public static void display(String title, Object value) {
         IntegrationTestTools.display(title, value);
     }
 
     public static void display(String title, Containerable value) {
         IntegrationTestTools.display(title, value);
-    }
-
-    public static void display(String title, Throwable e) {
-        IntegrationTestTools.display(title, e);
     }
 
     public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
@@ -674,7 +611,7 @@ public abstract class AbstractHigherUnitTest {
     protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname,
             T... expectedValues) {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
 
     protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, String attrName,
@@ -696,7 +633,7 @@ public abstract class AbstractHigherUnitTest {
     protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule,
             QName attrQname, T... expectedValues) throws SchemaException {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-        PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
+        PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, matchingRule, actualValues, expectedValues);
     }
 
     protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, ItemName attrQname) {
@@ -705,7 +642,7 @@ public abstract class AbstractHigherUnitTest {
             return;
         }
         PrismProperty attribute = attributesContainer.findProperty(attrQname);
-        assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
+        assertNull("Unexpected attribute " + attrQname + " in " + shadow + ": " + attribute, attribute);
     }
 
     protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
@@ -716,14 +653,14 @@ public abstract class AbstractHigherUnitTest {
     protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
         PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
         if (linkRef == null) {
-            assert expectedNumLinks == 0 : "Expected "+expectedNumLinks+" but "+focus+" has no linkRef";
+            assert expectedNumLinks == 0 : "Expected " + expectedNumLinks + " but " + focus + " has no linkRef";
             return;
         }
         assertEquals("Wrong number of links in " + focus, expectedNumLinks, linkRef.size());
     }
 
     protected <O extends ObjectType> void assertObjectOids(String message, Collection<PrismObject<O>> objects, String... oids) {
-        List<String> objectOids = objects.stream().map( o -> o.getOid()).collect(Collectors.toList());
+        List<String> objectOids = objects.stream().map(o -> o.getOid()).collect(Collectors.toList());
         PrismAsserts.assertEqualsCollectionUnordered(message, objectOids, oids);
     }
 
@@ -732,7 +669,7 @@ public abstract class AbstractHigherUnitTest {
     }
 
     protected void assertMessageContains(String message, String string) {
-        assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+        assert message.contains(string) : "Expected message to contain '" + string + "' but it does not; message: " + message;
     }
 
     protected void assertExceptionUserFriendly(CommonException e, String expectedMessage) {

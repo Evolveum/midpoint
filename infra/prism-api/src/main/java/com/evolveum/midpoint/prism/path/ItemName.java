@@ -178,7 +178,8 @@ public class ItemName extends QName implements ItemPath {
         }
     }
 
-    public boolean matches(ItemName other) {
+    public boolean matches(QName other) {
         return QNameUtil.match(this, other);
     }
+
 }

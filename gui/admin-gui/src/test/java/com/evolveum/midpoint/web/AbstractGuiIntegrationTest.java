@@ -13,17 +13,18 @@ import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.util.tester.WicketTester;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -53,8 +54,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -67,8 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  */
 public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegrationTest {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiIntegrationTest.class);
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
@@ -126,50 +123,21 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        LOGGER.info("before super init");
+        logger.info("before super init");
         super.initSystem(initTask, initResult);
 
-        LOGGER.info("after super init");
+        logger.info("after super init");
 
         login(USER_ADMINISTRATOR_USERNAME);
-        LOGGER.info("user logged in");
+        logger.info("user logged in");
 
         tester = new WicketTester(application, true);
     }
 
-    @BeforeMethod
-    public void beforeMethodApplication() {
-    }
-
-    @AfterMethod
-    public void afterMethodApplication() {
-    }
-
     @BeforeClass
-    public void beforeClass() {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName() });
-        LOGGER.info("Loalization serivce : {}", localizationService);
-        String s = localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale());
-        LOGGER.info("SsSSSSSSSSSSSSS {}", s);
-    }
-
-    @AfterClass
-    public void afterClass() {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> FINISH " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> FINISH {} <<<<<<<<<<<<<<<<<<<<<<<<\n", new Object[] { getClass().getName() });
-    }
-
-    @BeforeMethod
-    public void beforeMethod(Method method) {
-        System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
-    }
-
-    @AfterMethod
-    public void afterMethod(Method method) {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> END TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
-        LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>> END {}.{} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[] { getClass().getName(), method.getName() });
+    public void displayLocalizationAndSystemBuildInfo() {
+        display("Localization service: " + localizationService);
+        display("System build: " + localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale()));
     }
 
     protected ModelServiceLocator getServiceLocator(final Task pageTask) {
@@ -196,7 +164,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
                 if (user == null) {
                     throw new IllegalStateException("No authenticated user");
                 }
-                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getUser().asPrismObject(), taskManager);
+                return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getFocus().asPrismObject(), taskManager);
             }
 
             @Override
@@ -216,10 +184,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @NotNull
             @Override
-            public CompiledUserProfile getCompiledUserProfile() {
-                Task task = createSimpleTask("getCompiledUserProfile");
+            public CompiledGuiProfile getCompiledGuiProfile() {
+                Task task = createSimpleTask("getCompiledGuiProfile");
                 try {
-                    return getModelInteractionService().getCompiledUserProfile(task, task.getResult());
+                    return getModelInteractionService().getCompiledGuiProfile(task, task.getResult());
                 } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
                     throw new SystemException(e.getMessage(), e);
                 }
@@ -305,9 +273,21 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
         return ItemPath.create(ObjectType.F_EXTENSION, qname);
     }
 
-    protected Task createSimpleTask(String operation) {
-        Task task = taskManager.createTaskInstance(operation);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        return task;
+    /**
+     * Emulate closing ModalWindow component.
+     */
+    protected void executeModalWindowCloseCallback(String path) {
+        Component component = tester.getComponentFromLastRenderedPage(path);
+        if (!(component instanceof ModalWindow)) {
+            fail("path: '" + path + "' is not ModalWindow: " + component.getClass());
+        }
+        for (Behavior behavior : ((ModalWindow)component).getBehaviors()) {
+            if (behavior instanceof AbstractDefaultAjaxBehavior) {
+                String name = behavior.getClass().getSimpleName();
+                if (name.startsWith("WindowClosedBehavior")) {
+                    tester.executeBehavior((AbstractAjaxBehavior) behavior);
+                }
+            }
+        }
     }
 }

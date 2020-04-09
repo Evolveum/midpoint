@@ -11,26 +11,27 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static org.testng.AssertJUnit.*;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -40,41 +41,16 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.*;
-
-/**
- * @author semancik
- */
-public class TestResourceSchema {
+public class TestResourceSchema extends AbstractSchemaTest {
 
     private static final String TEST_DIR = "src/test/resources/processor/";
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
-    private static final String RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME = TEST_DIR + "resource-schema-simple-deprecated.xsd";
 
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
 
-    public TestResourceSchema() {
-    }
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test
     public void testParseSchema() throws Exception {
-        System.out.println("===[ testParseSchema ]===");
         // GIVEN
 
         Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_FILENAME);
@@ -86,22 +62,6 @@ public class TestResourceSchema {
 
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
-    }
-
-    @Test
-    public void testParseSchemaDeprecated() throws Exception {
-        System.out.println("===[ testParseSchemaDeprecated ]===");
-        // GIVEN
-
-        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
-
-        // WHEN
-
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), "http://schema.foo.com/bar",
-                RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME, PrismTestUtil.getPrismContext());
-
-        // THEN
-        assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
     }
 
     private void assertSimpleSchema(ResourceSchema schema, String filename) {
@@ -137,9 +97,8 @@ public class TestResourceSchema {
     }
 
     // The support for the xsd:any properties is missing in JAXB generator. Otherwise this test should work.
-    @Test(enabled=false)
-    public void testResourceSchemaJaxbRoundTrip() throws SchemaException, JAXBException {
-        System.out.println("\n===[ testResourceSchemaJaxbRoundTrip ]=====");
+    @Test(enabled = false)
+    public void testResourceSchemaJaxbRoundTrip() throws SchemaException {
         // GIVEN
         ResourceSchema schema = createResourceSchema();
 
@@ -155,8 +114,6 @@ public class TestResourceSchema {
 
         // WHEN
 
-//        JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
-//        String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
         String marshalledResource = PrismTestUtil.serializeObjectToString(resource.asPrismObject());
 
         System.out.println("Marshalled resource");
@@ -179,7 +136,6 @@ public class TestResourceSchema {
 
     @Test
     public void testResourceSchemaPrismRoundTrip() throws SchemaException {
-        System.out.println("\n===[ testResourceSchemaPrismRoundTrip ]=====");
         // GIVEN
         ResourceSchema schema = createResourceSchema();
 
@@ -200,7 +156,7 @@ public class TestResourceSchema {
 
         // WHEN
 
-        String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
+        String marshalledResource = prismContext.xmlSerializer().serialize(resource);
 
         System.out.println("Marshalled resource");
         System.out.println(marshalledResource);
@@ -227,26 +183,21 @@ public class TestResourceSchema {
     private void assertResourceSchema(ResourceSchema unSchema) {
         ObjectClassComplexTypeDefinition objectClassDef = unSchema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"));
         assertNotNull("No object class def", objectClassDef);
-        assertEquals(new ItemName(SCHEMA_NAMESPACE,"AccountObjectClass"),objectClassDef.getTypeName());
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "AccountObjectClass"), objectClassDef.getTypeName());
         assertEquals("AccountObjectClass class not an account", ShadowKindType.ACCOUNT, objectClassDef.getKind());
         assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
 
-        PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"login"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE,"login"), loginDef.getItemName());
+        PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "login"));
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
-        PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"password"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE,"password"), passwdDef.getItemName());
+        PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "password"));
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "password"), passwdDef.getItemName());
         assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
-
-//        PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new SingleNamePath(SchemaConstants.NS_C,"credentials"));
-//        assertEquals(new SingleNamePath(SchemaConstants.NS_C,"credentials"), credDef.getName());
-//        assertEquals(new SingleNamePath(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
     }
 
     @Test
-    public void testResourceSchemaSerializationDom() throws SchemaException, JAXBException {
-        System.out.println("\n===[ testResourceSchemaSerializationDom ]=====");
+    public void testResourceSchemaSerializationDom() throws SchemaException {
         // GIVEN
         ResourceSchema schema = createResourceSchema();
 
@@ -261,8 +212,7 @@ public class TestResourceSchema {
     }
 
     @Test
-    public void testResourceSchemaSerializationInResource() throws SchemaException, JAXBException {
-        System.out.println("\n===[ testResourceSchemaSerializationInResource ]=====");
+    public void testResourceSchemaSerializationInResource() throws SchemaException {
         // GIVEN
         ResourceSchema schema = createResourceSchema();
 
@@ -271,7 +221,7 @@ public class TestResourceSchema {
         Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
 
         PrismObject<ResourceType> resource = wrapInResource(xsdElement);
-        String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
+        String resourceXmlString = PrismTestUtil.getPrismContext().xmlSerializer().serialize(resource);
 
         System.out.println("Serialized resource");
         System.out.println(resourceXmlString);
@@ -290,10 +240,9 @@ public class TestResourceSchema {
         assertDomSchema(reparsedXsdElement);
     }
 
-
     private PrismObject<ResourceType> wrapInResource(Element xsdElement) throws SchemaException {
         PrismObjectDefinition<ResourceType> resourceDefinition =
-            PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+                PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
         PrismObject<ResourceType> resource = resourceDefinition.instantiate();
         ResourceTypeUtil.setResourceXsdSchema(resource, xsdElement);
         return resource;
@@ -332,7 +281,7 @@ public class TestResourceSchema {
         // ... in it ordinary attribute - an identifier
         ResourceAttributeDefinition<String> icfUidDef = containerDefinition.createAttributeDefinition(
                 SchemaTestConstants.ICFS_UID, DOMUtil.XSD_STRING);
-        ((Collection)containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
+        ((Collection) containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
         ResourceAttributeDefinitionImpl<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
         xloginDef.setNativeAttributeName("LOGIN");
         containerDefinition.setDisplayNameAttribute(xloginDef.getItemName());
@@ -347,12 +296,11 @@ public class TestResourceSchema {
     }
 
     private void assertPrefix(String expectedPrefix, Element element) {
-        assertEquals("Wrong prefix on element "+DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
+        assertEquals("Wrong prefix on element " + DOMUtil.getQName(element), expectedPrefix, element.getPrefix());
     }
 
     @Test
     public void testParseResource() throws Exception {
-        System.out.println("===[ testParseResource ]===");
         // WHEN
         PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml"));
 
@@ -362,7 +310,6 @@ public class TestResourceSchema {
 
     @Test
     public void testUnmarshallResource() throws Exception {
-        System.out.println("===[ testUnmarshallResource ]===");
         // WHEN
         ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/xml/ns/resource-opendj.xml")).asObjectable();
 
@@ -370,36 +317,35 @@ public class TestResourceSchema {
         assertCapabilities(resourceType);
     }
 
-
     private void assertCapabilities(ResourceType resourceType) throws SchemaException {
         if (resourceType.getCapabilities() != null) {
             if (resourceType.getCapabilities().getNative() != null) {
                 for (Object capability : resourceType.getCapabilities().getNative().getAny()) {
-                    System.out.println("Native Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+                    System.out.println("Native Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
                 }
             }
 
             if (resourceType.getCapabilities().getConfigured() != null) {
                 for (Object capability : resourceType.getCapabilities().getConfigured().getAny()) {
-                    System.out.println("Configured Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+                    System.out.println("Configured Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
                 }
             }
         }
 
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resourceType);
         for (Object capability : effectiveCapabilities) {
-            System.out.println("Efective Capability: "+CapabilityUtil.getCapabilityDisplayName(capability)+" : "+capability);
+            System.out.println("Efective Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
         }
 
         assertNotNull("null native capabilities", resourceType.getCapabilities().getNative());
         assertFalse("empty native capabilities", resourceType.getCapabilities().getNative().getAny().isEmpty());
-        assertEquals("Unexepected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
+        assertEquals("Unexpected number of native capabilities", 3, resourceType.getCapabilities().getNative().getAny().size());
 
         assertNotNull("null configured capabilities", resourceType.getCapabilities().getConfigured());
         assertFalse("empty configured capabilities", resourceType.getCapabilities().getConfigured().getAny().isEmpty());
-        assertEquals("Unexepected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
+        assertEquals("Unexpected number of configured capabilities", 2, resourceType.getCapabilities().getConfigured().getAny().size());
 
-        assertEquals("Unexepected number of effective capabilities", 3,effectiveCapabilities.size());
+        assertEquals("Unexpected number of effective capabilities", 3, effectiveCapabilities.size());
         assertNotNull("No credentials effective capability",
                 ResourceTypeUtil.getEffectiveCapability(resourceType, CredentialsCapabilityType.class));
         assertNotNull("No activation effective capability",
@@ -408,6 +354,5 @@ public class TestResourceSchema {
                 ResourceTypeUtil.getEffectiveCapability(resourceType, LiveSyncCapabilityType.class));
 
     }
-
 
 }

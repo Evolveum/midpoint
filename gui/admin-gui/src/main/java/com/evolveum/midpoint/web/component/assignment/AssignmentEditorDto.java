@@ -192,6 +192,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
         if (relation != null){
             targetRef.setRelation(relation);
         }
+        targetRef.asReferenceValue().setObject(object.asPrismObject());
 
         AssignmentType assignment = new AssignmentType();
         assignment.setTargetRef(targetRef);
@@ -384,7 +385,7 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
         if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
             PrismContainer<PolicyRuleType> policyRuleContainer = getPolicyRuleContainer(assignment);
-            PrismProperty policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
+            PrismProperty<?> policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
                     (PrismProperty)policyRuleContainer.getValue().find(PolicyRuleType.F_NAME) : null;
             String policyRuleName = policyRuleNameProperty != null ?
                     policyRuleNameProperty.getValue().getValue().toString() : "";

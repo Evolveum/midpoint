@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,26 +6,27 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
+import static com.codeborne.selenide.Selenide.$;
+
+import javax.xml.namespace.QName;
+
 import com.codeborne.selenide.Condition;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar
  * covers LAB 4-1
  */
-public class BasicProvisioningTest  extends TestBase {
+public class BasicProvisioningTest extends AbstractSchrodingerTest {
 
     private static final String USER_NAME_ATTRIBUTE = "Name";
     private static final String USER_GIVEN_NAME_ATTRIBUTE = "Given name";
@@ -42,31 +43,31 @@ public class BasicProvisioningTest  extends TestBase {
     private static final String USER_ADMINISTRATIVE_STATUS = "Enabled";
 
     //todo dependsOnGroup
-    @Test(groups={"lab_4_1"})
-    public void test001createUserKirk(){
+    @Test(groups = { "lab_4_1" })
+    public void test001createUserKirk() {
         //we use New user link in this test
         UserPage userPage = basicPage.newUser();
         userPage
                 .selectTabBasic()
-                    .form()
-                        .addAttributeValue(UserType.F_NAME, USER_NAME)
-                        .addAttributeValue(UserType.F_FAMILY_NAME, USER_FAMILY_NAME)
-                        .addAttributeValue(UserType.F_GIVEN_NAME, USER_GIVEN_NAME)
-                        .setDropDownAttributeValue(ActivationType.F_ADMINISTRATIVE_STATUS, USER_ADMINISTRATIVE_STATUS)
-                        .setPasswordFieldsValues(PASSWORD_FIELD_LABEL, USER_PASSWORD)
-                        .and()
-                    .and()
+                .form()
+                .addAttributeValue(UserType.F_NAME, USER_NAME)
+                .addAttributeValue(UserType.F_FAMILY_NAME, USER_FAMILY_NAME)
+                .addAttributeValue(UserType.F_GIVEN_NAME, USER_GIVEN_NAME)
+                .setDropDownAttributeValue(ActivationType.F_ADMINISTRATIVE_STATUS, USER_ADMINISTRATIVE_STATUS)
+                .setPasswordFieldsValues(PASSWORD_FIELD_LABEL, USER_PASSWORD)
+                .and()
+                .and()
                 .clickSave();
 
         ListUsersPage usersList = new ListUsersPage();
 
         usersList
                 .table()
-                    .search()
-                        .byName()
-                        .inputValue(USER_NAME)
-                        .updateSearch()
-                    .and()
+                .search()
+                .byName()
+                .inputValue(USER_NAME)
+                .updateSearch()
+                .and()
                 .clickByName(USER_NAME);
 
         //check name attribute value
@@ -100,26 +101,25 @@ public class BasicProvisioningTest  extends TestBase {
 
     }
 
-    @Test(groups={"lab_4_1"})
+    @Test(groups = { "lab_4_1" })
     public void test002addProjectionToUserKirk() {
         ListUsersPage users = basicPage.listUsers();
         users
                 .table()
-                    .search()
-                    .byName()
-                    .inputValue(USER_NAME)
-                    .updateSearch()
+                .search()
+                .byName()
+                .inputValue(USER_NAME)
+                .updateSearch()
                 .and()
-                    .clickByName(USER_NAME)
-                        .selectTabProjections()
-                            .clickHeaderActionDropDown()
-                                .addProjection()
-                                    .table()
-                                        .selectCheckboxByName(ImportResourceTest.RESOURCE_NAME)
-                                .and()
-                            .clickAdd()
-                        .and()
-                    .clickSave()
+                .clickByName(USER_NAME)
+                .selectTabProjections()
+                .clickAddProjection()
+                .table()
+                .selectCheckboxByName(ImportResourceTest.RESOURCE_NAME)
+                .and()
+                .clickAdd()
+                .and()
+                .clickSave()
                 .feedback()
                 .isSuccess();
 

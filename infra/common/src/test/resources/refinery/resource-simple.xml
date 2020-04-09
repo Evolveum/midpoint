@@ -97,8 +97,8 @@
             <xsd:complexType name="AccountObjectClass">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <r:account />
                         <r:resourceObject />
+                        <r:kind>account</r:kind>
                         <r:identifier ref="icfs:uid" />
                         <r:displayNameAttribute ref="ri:uid" />
                         <r:namingAttribute ref="icfs:name" />

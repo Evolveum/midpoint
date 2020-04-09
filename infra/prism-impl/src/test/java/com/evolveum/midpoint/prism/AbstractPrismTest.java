@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -24,16 +25,13 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-/**
- * @author semancik
- *
- */
-public class AbstractPrismTest {
+public class AbstractPrismTest extends AbstractUnitTest {
 
     protected static final String USER_FOO_OID = "01234567";
 
@@ -43,34 +41,17 @@ public class AbstractPrismTest {
     protected static final String ASSIGNMENT_ABRAKADABRA_DESCRIPTION = "abra kadabra";
     protected static final long ASSIGNMENT_ABRAKADABRA_ID = 222L;
 
-
     @BeforeSuite
-    public void setupDebug() throws SchemaException, SAXException, IOException {
+    public void initPrismContext() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
         PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
     }
 
-    protected void displayTestTitle(String testName) {
-        PrismTestUtil.displayTestTitle(testName);
-    }
-
-    protected void displayWhen(String testName) {
-        PrismTestUtil.displayWhen(testName);
-    }
-
-    protected void displayThen(String testName) {
-        PrismTestUtil.displayThen(testName);
-    }
-
-    protected void display(String title, String value) {
+    protected void displayValue(String title, DebugDumpable value) {
         PrismTestUtil.display(title, value);
     }
 
-    protected void display(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
-    }
-
-    protected void display(String title, Object value) {
+    public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
     }
 
@@ -82,7 +63,7 @@ public class AbstractPrismTest {
         return PrismTestUtil.createPolyString(orig);
     }
 
-    protected PrismContext getPrismContext() {
+    protected static PrismContext getPrismContext() {
         return PrismTestUtil.getPrismContext();
     }
 
@@ -108,7 +89,7 @@ public class AbstractPrismTest {
             if (expectedValues == 0) {
                 return;
             } else {
-                fail("No assignment delta in "+userDelta);
+                fail("No assignment delta in " + userDelta);
             }
         }
         Collection<PrismContainerValue<AssignmentType>> values = lambda.apply(assignmentDelta);
@@ -116,10 +97,10 @@ public class AbstractPrismTest {
             if (expectedValues == 0) {
                 return;
             } else {
-                fail("No values to delete in assignment "+type+" in "+userDelta);
+                fail("No values to delete in assignment " + type + " in " + userDelta);
             }
         }
-        assertEquals("Wrong number of assignment "+type+" values in "+userDelta, expectedValues, values.size());
+        assertEquals("Wrong number of assignment " + type + " values in " + userDelta, expectedValues, values.size());
     }
 
     protected void assertAssignmentDelete(ObjectDelta<UserType> userDelta, Long expectedId, String expectedDescription) {
@@ -137,18 +118,18 @@ public class AbstractPrismTest {
     private void assertAssignmentValue(ObjectDelta<UserType> userDelta, Long expectedId, String expectedDescription, String type, Function<ContainerDelta<AssignmentType>, Collection<PrismContainerValue<AssignmentType>>> lambda) {
         ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(UserType.F_ASSIGNMENT);
         if (assignmentDelta == null) {
-            fail("No assignment delta in "+userDelta);
+            fail("No assignment delta in " + userDelta);
         }
         Collection<PrismContainerValue<AssignmentType>> valuesToDelete = lambda.apply(assignmentDelta);
         if (valuesToDelete == null) {
-            fail("No values to "+type+" in assignment delta in "+userDelta);
+            fail("No values to " + type + " in assignment delta in " + userDelta);
         }
         for (PrismContainerValue<AssignmentType> valueToDelete : valuesToDelete) {
             if (assignmentMatches(valueToDelete, expectedId, expectedDescription)) {
                 return;
             }
         }
-        fail("Assignment "+expectedId+":"+expectedDescription+" not found in "+userDelta);
+        fail("Assignment " + expectedId + ":" + expectedDescription + " not found in " + userDelta);
     }
 
     protected boolean assignmentMatches(PrismContainerValue<AssignmentType> assignmentValue, Long expectedId, String expectedDescription) {
@@ -201,6 +182,5 @@ public class AbstractPrismTest {
 
         return user;
     }
-
 
 }

@@ -21,6 +21,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -37,7 +39,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
-import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -56,21 +57,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
@@ -92,13 +78,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final String RESOURCE_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 
     protected static final File RESOURCE_SEMI_MANUAL_FILE = new File(TEST_DIR, "resource-semi-manual.xml");
-    protected static final String RESOURCE_SEMI_MANUAL_OID = "8a8e19de-1a14-11e7-965f-6f995b457a8b";
 
     public static final QName RESOURCE_ACCOUNT_OBJECTCLASS = new QName(MidPointConstants.NS_RI, "AccountObjectClass");
 
     protected static final String MANUAL_CONNECTOR_TYPE = "ManualConnector";
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractManualResourceTest.class);
 
     protected static final String NS_MANUAL_CONF = "http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector";
     protected static final ItemName CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME = new ItemName(NS_MANUAL_CONF, "defaultAssignee");
@@ -163,14 +146,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         assertNotNull("Resource is null", resource);
         assertNotNull("ResourceType is null", resourceType);
 
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         ResourceType repoResource = repositoryService.getObject(ResourceType.class, getResourceOid(),
                 null, result).asObjectable();
@@ -188,10 +167,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test003Connection() throws Exception {
-        final String TEST_NAME = "test003Connection";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
@@ -222,8 +199,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-        display("Resource XML", resourceXml);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
+        displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
         assertNotNull("No caching metadata", cachingMetadata);
@@ -241,11 +218,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test004Configuration() throws Exception {
-        final String TEST_NAME = "test004Configuration";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName()
-                + "." + TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result);
@@ -266,10 +240,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test005ParsedSchema() throws Exception {
-        final String TEST_NAME = "test005ParsedSchema";
-        TestUtil.displayTestTitle(TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(AbstractManualResourceTest.class.getName() + "." + TEST_NAME);
 
         // THEN
         // The returned type should have the schema pre-parsed
@@ -278,7 +249,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
@@ -316,18 +287,15 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test006Capabilities() throws Exception {
-        final String TEST_NAME = "test006Capabilities";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        OperationResult result = new OperationResult(TestOpenDj.class.getName()+"."+TEST_NAME);
+        OperationResult result = createOperationResult();
 
         // WHEN
         ResourceType resource = provisioningService.getObject(ResourceType.class, getResourceOid(), null, null, result).asObjectable();
 
         // THEN
         display("Resource from provisioninig", resource);
-        display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
+        displayValue("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 
         CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
         List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
@@ -353,10 +321,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test100AddAccountWill() throws Exception {
-        final String TEST_NAME = "test100AddAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -368,11 +334,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -426,21 +392,19 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test102GetAccountWillFuture() throws Exception {
-        final String TEST_NAME = "test102GetAccountWillFuture";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -461,10 +425,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test104RefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test104RefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -472,11 +434,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -516,10 +478,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test106AddToBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test106AddToBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreAddWill();
@@ -527,11 +487,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -558,10 +518,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test108GetAccountWillFuture() throws Exception {
-        final String TEST_NAME = "test108GetAccountWillFuture";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
@@ -569,11 +527,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow", shadowProvisioning);
@@ -602,17 +560,15 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test109GetAccountWillFutureNoFetch() throws Exception {
-        final String TEST_NAME = "test109GetAccountWillFutureNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
         options.setNoFetch(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
@@ -620,7 +576,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
@@ -644,10 +600,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test110CloseCaseAndRefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test110CloseCaseAndRefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -659,11 +613,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -707,10 +661,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test120RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test120RefreshAccountWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -720,11 +672,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -760,10 +712,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test130RefreshAccountWillAfter16min() throws Exception {
-        final String TEST_NAME = "test130RefreshAccountWillAfter16min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -773,11 +723,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -813,10 +763,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test132RefreshAccountWillAfter27min() throws Exception {
-        final String TEST_NAME = "test132RefreshAccountWillAfter27min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -826,11 +774,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -853,27 +801,25 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test200ModifyAccountWillFullname() throws Exception {
-        final String TEST_NAME = "test200ModifyAccountWillFullname";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
                 ACCOUNT_WILL_FULLNAME_PIRATE);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -936,10 +882,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test202RefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test202RefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -947,11 +891,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1017,10 +961,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test204CloseCaseAndRefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test204CloseCaseAndRefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1032,11 +974,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1111,10 +1053,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test210RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test210RefreshAccountWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1124,11 +1064,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1180,10 +1120,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test212UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test212UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1193,11 +1131,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.ENABLED, ACCOUNT_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1245,27 +1183,25 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test220ModifyAccountWillDisable() throws Exception {
-        final String TEST_NAME = "test220ModifyAccountWillDisable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 ACCOUNT_WILL_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                 ActivationStatusType.DISABLED);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -1329,10 +1265,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
-        final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1342,17 +1276,17 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         ProtectedStringType ps = new ProtectedStringType();
         ps.setClearValue(ACCOUNT_WILL_PASSWORD_NEW);
         delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, ps);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1404,7 +1338,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-        assertShadowSanity(shadowProvisioningFuture);
+        new PrismObjectAsserter<>(shadowProvisioningFuture)
+                .assertSanity();
 
         assertNotNull("No async reference in result", willSecondLastCaseOid);
 
@@ -1420,10 +1355,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
-        final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1432,12 +1365,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1532,10 +1465,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test250RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test250RefreshAccountWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1545,11 +1476,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1620,10 +1551,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1633,11 +1562,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.DISABLED, ACCOUNT_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1686,10 +1615,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test260ClosePasswordChangeCaseAndRefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test260ClosePasswordChangeCaseAndRefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1703,11 +1630,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -1786,10 +1713,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test270RefreshAccountWillAfter7min() throws Exception {
-        final String TEST_NAME = "test270RefreshAccountWillAfter7min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1799,11 +1724,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1885,10 +1810,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test271RefreshAccountWillAfter12min() throws Exception {
-        final String TEST_NAME = "test271RefreshAccountWillAfter12min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1898,11 +1821,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1981,10 +1904,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -1994,11 +1915,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         backingStoreUpdateWill(ACCOUNT_WILL_FULLNAME_PIRATE, ActivationStatusType.ENABLED, ACCOUNT_WILL_PASSWORD_NEW);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2046,10 +1967,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test280RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test132RefreshAccountWillAfter10min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2059,11 +1978,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2135,10 +2054,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test290RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test134RefreshAccountWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2148,11 +2065,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -2201,21 +2118,19 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test300DeleteAccountWill() throws Exception {
-        final String TEST_NAME = "test300DeleteAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -2271,14 +2186,12 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test302GetAccountWillFuture() throws Exception {
-        final String TEST_NAME = "test302GetAccountWillFuture";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
@@ -2286,7 +2199,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow (future)", shadowProvisioningFuture);
@@ -2297,17 +2210,15 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     @Test
     public void test303GetAccountWillFutureNoFetch() throws Exception {
-        final String TEST_NAME = "test303GetAccountWillFutureNoFetch";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
         options.setNoFetch(true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowProvisioningFuture = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID,
                 SelectorOptions.createCollection(options),
@@ -2315,7 +2226,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Provisioning shadow (future,noFetch)", shadowProvisioningFuture);
@@ -2330,10 +2241,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test310CloseCaseAndRefreshAccountWill() throws Exception {
-        final String TEST_NAME = "test310CloseCaseAndRefreshAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2345,11 +2254,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -2397,10 +2306,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
      */
     @Test
     public void test320RefreshAccountWillAfter5min() throws Exception {
-        final String TEST_NAME = "test320RefreshAccountWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -2410,11 +2317,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.refreshShadow(shadowBefore, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);

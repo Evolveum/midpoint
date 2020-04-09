@@ -216,7 +216,8 @@ public class IterativeTaskInformation {
         return new ArrayList<>(lastFailures);
     }
 
-    public static String format(IterativeTaskInformationType i) {
+    public static String format(IterativeTaskInformationType source) {
+        IterativeTaskInformationType i = source != null ? source : new IterativeTaskInformationType();
         StringBuilder sb = new StringBuilder();
         sb.append(String.format(Locale.US, "  Successfully processed: %6d in %10d ms = %8.1f ms per object", i.getTotalSuccessCount(),
                 i.getTotalSuccessDuration(), div(i.getTotalSuccessDuration(), i.getTotalSuccessCount())));
@@ -248,5 +249,4 @@ public class IterativeTaskInformation {
     private static float div(long duration, int count) {
         return count != 0 ? (float) duration / count : 0;
     }
-
 }

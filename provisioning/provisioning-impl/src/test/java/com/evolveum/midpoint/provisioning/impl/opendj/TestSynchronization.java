@@ -7,16 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import org.opends.server.core.AddOperation;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -37,13 +31,17 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -65,10 +63,10 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     private ResourceType resourceType;
 
-    @Autowired(required=true)
+    @Autowired
     private ProvisioningService provisioningService;
 
-    @Autowired(required=true)
+    @Autowired
     private ResourceObjectChangeListener syncServiceMock;
 
     @BeforeClass
@@ -77,9 +75,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
     }
 
     @AfterClass
-    public static void stopLdap() throws Exception {
+    public static void stopLdap() {
         openDJController.stop();
-
     }
 
     /*
@@ -105,10 +102,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
     @Test
     public void test010Sanity() throws Exception {
-        final String TEST_NAME = "test010Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-        final OperationResult result = new OperationResult(TestSynchronization.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
         // WHEN
         PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, resourceType.getOid(), null, taskManager.createTaskInstance(), result);
@@ -125,24 +119,21 @@ public class TestSynchronization extends AbstractIntegrationTest {
         assertNotNull("No resource schema", resource.asObjectable().getSchema());
         assertNotNull("No native capabilities", resource.asObjectable().getCapabilities().getNative());
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0, result);
+        assertSyncToken(syncTask, 0);
     }
 
     @Test
     public void test100SyncAddWill() throws Exception {
-        final String TEST_NAME = "test100SyncAddWill";
-        TestUtil.displayTestTitle(TEST_NAME);
-        final OperationResult result = new OperationResult(TestSynchronization.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 0, result);
-        ((SynchronizationServiceMock)syncServiceMock).reset();
+        assertSyncToken(syncTask, 0);
+        ((SynchronizationServiceMock) syncServiceMock).reset();
 
-        // create add change in embeded LDAP
+        // create add change in embedded LDAP
         LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILE.getPath());
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry entry = ldifReader.readEntry();
@@ -183,26 +174,23 @@ public class TestSynchronization extends AbstractIntegrationTest {
                 .qNameToUri(SchemaConstants.SYNC_TOKEN) + "'");
         RepositoryQueryDiagResponse valueResponse = repositoryService.executeQueryDiagnostics(valueRequest, result);
         System.out.println(valueResponse.getQueryResult());
-        assertTrue("Unexpected repo query result on sync token: "+ valueResponse.getQueryResult(), valueResponse.getQueryResult().isEmpty());
+        assertTrue("Unexpected repo query result on sync token: " + valueResponse.getQueryResult(), valueResponse.getQueryResult().isEmpty());
 
         RepositoryQueryDiagRequest dictionaryRequest = new RepositoryQueryDiagRequest();
         dictionaryRequest.setImplementationLevelQuery("select RExtItem i where i.name='" + QNameUtil.qNameToUri(SchemaConstants.SYNC_TOKEN) + "'");
         RepositoryQueryDiagResponse dictionaryResponse = repositoryService.executeQueryDiagnostics(valueRequest, result);
         System.out.println(dictionaryResponse.getQueryResult());
-        assertTrue("Unexpected repo query result on sync token definition: "+ dictionaryResponse.getQueryResult(), dictionaryResponse.getQueryResult().isEmpty());
+        assertTrue("Unexpected repo query result on sync token definition: " + dictionaryResponse.getQueryResult(), dictionaryResponse.getQueryResult().isEmpty());
     }
 
     @Test
     public void test500SyncAddProtected() throws Exception {
-        final String TEST_NAME = "test500SyncAddProtected";
-        TestUtil.displayTestTitle(TEST_NAME);
-        final OperationResult result = new OperationResult(TestSynchronization.class.getName()
-                + "." + TEST_NAME);
+        final OperationResult result = createOperationResult();
 
-        Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+        Task syncTask = taskManager.getTaskPlain(SYNC_TASK_OID, result);
         AssertJUnit.assertNotNull(syncTask);
-        assertSyncToken(syncTask, 1, result);
-        ((SynchronizationServiceMock)syncServiceMock).reset();
+        assertSyncToken(syncTask, 1);
+        ((SynchronizationServiceMock) syncServiceMock).reset();
 
         // create add change in embedded LDAP
         LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_CALYPSO_FILE.getPath());

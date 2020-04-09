@@ -19,9 +19,11 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 @Service
 public class LightweightIdentifierGeneratorImpl implements LightweightIdentifierGenerator {
 
-    long lastTimestamp;
-    int lastSequence;
-    int hostIdentifier;
+    private static final long BACKWARD_TIME_ALLOWANCE = 10 * 1000L;
+
+    private long lastTimestamp;     // monotonic increasing sequence
+    private int lastSequence;       // incremented by 1, occasionally reset to 0
+    private int hostIdentifier;     // currently unused
 
     public LightweightIdentifierGeneratorImpl() {
         lastTimestamp = 0;
@@ -29,22 +31,22 @@ public class LightweightIdentifierGeneratorImpl implements LightweightIdentifier
         hostIdentifier = 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.task.api.LightweightIdentifierGenerator#generate()
-     */
     @Override
     public synchronized LightweightIdentifier generate() {
         long timestamp = System.currentTimeMillis();
-        if (timestamp == lastTimestamp) {
-            // Nothing to do
-        } else if (timestamp > lastTimestamp) {
-            // reset the last timestamp and sequence conunter
+        if (timestamp > lastTimestamp) {
+            // update the last timestamp and reset sequence counter
             lastTimestamp = timestamp;
             lastSequence = 0;
+        } else if (timestamp < lastTimestamp - BACKWARD_TIME_ALLOWANCE) {
+            throw new IllegalStateException("The time has moved back more than " + BACKWARD_TIME_ALLOWANCE
+                    + " milliseconds, possible consistency violation. Current time = " + timestamp + ", last time = "
+                    + lastTimestamp + ", difference is " + (lastTimestamp - timestamp) + ".");
         } else {
-            throw new IllegalStateException("The time has moved back, possible consistency violation");
+            // Usually timestamp == lastTimestamp here. But even if the time moved back a few seconds we stay calm
+            // and simply keep lastTimestamp unchanged. We will probably get a few identifiers with increasing sequence
+            // numbers and nothing wrong will happen.
         }
         return new LightweightIdentifier(timestamp, hostIdentifier, ++lastSequence);
     }
-
 }

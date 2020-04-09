@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -55,7 +56,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Returns true if this item and all contained items have proper definition.
      */
-    boolean hasCompleteDefinition();
+    default boolean hasCompleteDefinition() {
+        return getDefinition() != null;
+    }
 
     /**
      * Returns the name of the item.
@@ -109,7 +112,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return display name for the item
      */
-    String getDisplayName();
+    default String getDisplayName() {
+        return getDefinition() == null ? null : getDefinition().getDisplayName();
+    }
 
     /**
      * Returns help message defined for the item.
@@ -121,7 +126,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return help message for the item
      */
-    String getHelp();
+    default String getHelp() {
+        return getDefinition() == null ? null : getDefinition().getHelp();
+    }
 
     /**
      * Flag that indicates incomplete item. If set to true then the
@@ -205,7 +212,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Returns any of the values. Usually called when we are quite confident that there is only a single value;
      * or we don't care which of the values we get. Does not create values if there are none.
      */
-    V getAnyValue();
+    default V getAnyValue() {
+        return !getValues().isEmpty() ? getValues().get(0) : null;
+    }
 
     /**
      * Returns the value, if there is only one. Throws exception if there are more values.
@@ -217,6 +226,16 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * TODO think again whether getOrCreateValue would not be better
      */
     V getValue();
+
+    /**
+     * Returns a value matching given selector (or null if none exists).
+     */
+    default V getAnyValue(@NotNull ValueSelector<V> selector) {
+        return getValues().stream()
+                .filter(selector)
+                .findAny()
+                .orElse(null);
+    }
 
     /**
      * Returns the "real value" (content) of this item:
@@ -236,11 +255,33 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     Object getRealValue();
 
     /**
+     * Type override, also for compatibility.
+     */
+    <X> X getRealValue(Class<X> type);
+
+    /**
+     * Type override, also for compatibility.
+     */
+    <X> X[] getRealValuesArray(Class<X> type);
+
+    /**
      * Returns (potentially empty) collection of "real values".
      * @see Item#getRealValue().
      */
     @NotNull
     Collection<?> getRealValues();
+
+    @Experimental
+    @NotNull
+    default Collection<Object> getRealValuesOrRawTypes(PrismContext prismContext) {
+        List<Object> rv = new ArrayList<>();
+        for (V value : getValues()) {
+            if (value != null) {
+                rv.add(value.getRealValueOrRawType(prismContext));
+            }
+        }
+        return rv;
+    }
 
     /**
      * Returns true if the item contains 0 or 1 values and (by definition) is not multivalued.
@@ -264,7 +305,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call (i.e. if the value was really added)
      */
-    boolean add(@NotNull V newValue) throws SchemaException;
+    default boolean add(@NotNull V newValue) throws SchemaException {
+        return add(newValue, true);
+    }
 
     /**
      * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
@@ -428,12 +471,18 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.
+     *
+     * Compares item values only -- does NOT dive into lower levels.
      */
-    ItemDelta<V,D> diff(Item<V,D> other);
+    default ItemDelta<V,D> diff(Item<V,D> other) {
+        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
+    }
 
     /**
      * Computes a difference (delta) with the specified item using given equivalence strategy.
      * Note this method cannot accept general EquivalenceStrategy here; it needs the parameterized strategy.
+     *
+     * Compares item values only -- does NOT dive into lower levels.
      */
     ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy);
 
@@ -495,11 +544,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     Item cloneComplex(CloneStrategy strategy);
 
-    static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
+    static <T extends Item<?,?>> Collection<T> cloneCollection(Collection<T> items) {
         Collection<T> clones = new ArrayList<>(items.size());
         for (T item: items) {
             //noinspection unchecked
-            clones.add((T)item.clone());
+            clones.add((T)((Item<?,?>)item).clone());
         }
         return clones;
     }
@@ -545,9 +594,14 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean hasRaw();
 
-    boolean isEmpty();
+    default boolean isEmpty() {
+        return hasNoValues();
+    }
 
-    boolean hasNoValues();
+    default boolean hasNoValues() {
+        return getValues().isEmpty();
+    }
+
 
     @SuppressWarnings("unused")
     static boolean hasNoValues(Item<?, ?> item) {
@@ -559,10 +613,14 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Returns true if this item is metadata item that should be ignored
      * for metadata-insensitive comparisons and hashCode functions.
      */
-    boolean isOperational();
-
-    boolean isImmutable();
-
+    default boolean isOperational() {
+        D def = getDefinition();
+        if (def != null) {
+            return def.isOperational();
+        } else {
+            return false;
+        }
+    }
 
     @NotNull
     static <V extends PrismValue> Collection<V> getValues(Item<V, ?> item) {

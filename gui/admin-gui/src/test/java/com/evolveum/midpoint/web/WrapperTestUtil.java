@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.web;
 
+import static org.testng.AssertJUnit.*;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.AssertJUnit;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
@@ -22,92 +29,86 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.testng.AssertJUnit;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
  */
 public class WrapperTestUtil {
 
-    public static <C extends Containerable,T> void fillInPropertyWrapper(ModelServiceLocator modelServiceLocator, PrismContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... newValues) throws SchemaException {
+    public static <C extends Containerable, T> void fillInPropertyWrapper(
+            ModelServiceLocator modelServiceLocator, PrismContainerValueWrapper<C> containerWrapper,
+            ItemPath itemPath, T... newValues)
+            throws SchemaException {
         PrismPropertyWrapper itemWrapper = containerWrapper.findProperty(itemPath);
-        assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
+        assertNotNull("No item wrapper for path " + itemPath + " in " + containerWrapper, itemWrapper);
         fillInPropertyWrapper(modelServiceLocator, itemWrapper, itemPath.lastName(), newValues);
     }
 
-    private static <C extends Containerable,T> void fillInPropertyWrapper(ModelServiceLocator modelServiceLocator, PrismPropertyWrapper itemWrapper, ItemName itemName, T... newValues) throws SchemaException {
-        for (T newValue: newValues) {
+    private static <T> void fillInPropertyWrapper(ModelServiceLocator modelServiceLocator,
+            PrismPropertyWrapper itemWrapper, ItemName itemName, T... newValues)
+            throws SchemaException {
+        for (T newValue : newValues) {
             List<PrismValueWrapper> valueWrappers = itemWrapper.getValues();
             PrismValueWrapper lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
             PrismPropertyValue<T> pval = (PrismPropertyValue<T>) lastValueWrapper.getNewValue();
-//            if (!isEmptyValue(pval)) {
-//                PrismPropertyValue<T> newPropertyValue = modelServiceLocator.getPrismContext().itemFactory().createPropertyValue();
-//                newPropertyValue.setValue(newValue);
-//                WrapperContext context = new WrapperContext(modelServiceLocator.getPageTask(), modelServiceLocator.getPageTask().getResult());
-//                context.setShowEmpty(true);
-//                context.setCreateIfEmpty(true);
-//                context.setObjectStatus(itemWrapper.findObjectStatus());
-//                PrismPropertyValueWrapper newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newPropertyValue, ValueStatus.ADDED, context);
-//                itemWrapper.getValues().add(newValueWrapper);
-//
-//                pval = (PrismPropertyValue<T>) newValueWrapper.getNewValue();
-//            }
             pval.setValue(newValue);
         }
     }
 
-    public static <C extends Containerable,T> void assertPropertyWrapper(PrismContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... expectedValues) throws SchemaException {
+    public static <C extends Containerable, T> void assertPropertyWrapper(
+            PrismContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... expectedValues)
+            throws SchemaException {
         ItemWrapper itemWrapper = containerWrapper.findItem(itemPath, ItemWrapper.class);
-        assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
+        assertNotNull("No item wrapper for path " + itemPath + " in " + containerWrapper, itemWrapper);
         assertPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), expectedValues);
     }
 
     // todo better name
-    public static <C extends Containerable,T> void assertPropertyWrapperByName(PrismContainerValueWrapper<C> containerWrapper, ItemName itemName, T... expectedValues) throws SchemaException {
+    public static <C extends Containerable, T> void assertPropertyWrapperByName(
+            PrismContainerValueWrapper<C> containerWrapper, ItemName itemName, T... expectedValues)
+            throws SchemaException {
         ItemWrapper itemWrapper = containerWrapper.findItem(itemName, ItemWrapper.class);
-        assertNotNull("No item wrapper "+itemName+" in "+containerWrapper, itemWrapper);
+        assertNotNull("No item wrapper " + itemName + " in " + containerWrapper, itemWrapper);
         assertPropertyWrapper(containerWrapper, itemWrapper, itemName, expectedValues);
     }
 
-    private static <C extends Containerable,T> void assertPropertyWrapper(PrismContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper, ItemName itemName, T... expectedValues) {
+    private static <C extends Containerable, T> void assertPropertyWrapper(
+            PrismContainerValueWrapper<C> containerWrapper, ItemWrapper itemWrapper,
+            ItemName itemName, T... expectedValues) {
         List<PrismValueWrapper> valueWrappers = itemWrapper.getValues();
-        assertPropertyWrapperValues("item wrapper "+itemName+" in "+containerWrapper, valueWrappers, expectedValues);
+        assertPropertyWrapperValues("item wrapper " + itemName + " in " + containerWrapper, valueWrappers, expectedValues);
     }
 
-    public static <C extends Containerable,T> void assertPropertyWrapperValues(String desc, List<PrismValueWrapper> valueWrappers, T... expectedValues) {
+    public static <T> void assertPropertyWrapperValues(
+            String desc, List<PrismValueWrapper> valueWrappers, T... expectedValues) {
         if (expectedValues == null) {
             expectedValues = (T[]) new Object[] { null };
         }
-        assertEquals("Wrong number of values in "+desc+"; was: "+valueWrappers+", expected: "+Arrays.toString(expectedValues), expectedValues.length, valueWrappers.size());
+        assertEquals("Wrong number of values in " + desc + "; was: " + valueWrappers + ", expected: " + Arrays.toString(expectedValues), expectedValues.length, valueWrappers.size());
         if (expectedValues.length == 0) {
             return;
         }
-        for (PrismValueWrapper vw: valueWrappers) {
+        for (PrismValueWrapper vw : valueWrappers) {
             PrismValue actualPval = vw.getNewValue();
             if (actualPval instanceof PrismPropertyValue<?>) {
-                T actualValue = ((PrismPropertyValue<T>)actualPval).getValue();
-                if (expectedValues == null || expectedValues.length == 0 || ( expectedValues.length == 1 && expectedValues[0] == null)) {
+                T actualValue = ((PrismPropertyValue<T>) actualPval).getValue();
+                if (expectedValues == null || expectedValues.length == 0 || (expectedValues.length == 1 && expectedValues[0] == null)) {
                     if (!isEmptyValue((PrismPropertyValue<T>) vw.getOldValue())) {
-                        AssertJUnit.fail("Unexpected value "+actualValue+" in value wrapper in "+desc+"; was: "+valueWrappers+", expected: "+ Arrays.toString(expectedValues));
+                        AssertJUnit.fail("Unexpected value " + actualValue + " in value wrapper in " + desc + "; was: " + valueWrappers + ", expected: " + Arrays.toString(expectedValues));
                     }
                 } else {
                     boolean found = false;
-                    for (T expectedValue: expectedValues) {
+                    for (T expectedValue : expectedValues) {
                         if (MiscUtil.equals(expectedValue, actualValue)) {
                             found = true;
                         }
                     }
                     if (!found) {
-                        AssertJUnit.fail("Unexpected value "+actualValue+" in value wrapper in "+desc+"; was: "+valueWrappers+", expected: "+Arrays.toString(expectedValues));
+                        AssertJUnit.fail("Unexpected value " + actualValue + " in value wrapper in " + desc + "; was: " + valueWrappers + ", expected: " + Arrays.toString(expectedValues));
                     }
                 }
             } else {
-                AssertJUnit.fail("expected PrismPropertyValue in value wrapper in "+desc+", but got "+actualPval.getClass());
+                AssertJUnit.fail("expected PrismPropertyValue in value wrapper in " + desc + ", but got " + actualPval.getClass());
             }
 
         }
@@ -118,51 +119,53 @@ public class WrapperTestUtil {
         if (val == null) {
             return true;
         }
-        if (val instanceof String && ((String)val).isEmpty()) {
+        if (val instanceof String && ((String) val).isEmpty()) {
             return true;
         }
-        if (val instanceof PolyString && ((PolyString)val).isEmpty()) {
+        if (val instanceof PolyString && ((PolyString) val).isEmpty()) {
             return true;
         }
         return false;
     }
 
-    public static <C extends Containerable, O extends ObjectType> void assertWrapper(PrismContainerWrapper<C> containerWrapper, String displayName,
-                                                                                     ItemPath expectedPath, PrismObject<O> object, ItemStatus status) throws SchemaException {
+    public static <C extends Containerable, O extends ObjectType> void assertWrapper(
+            PrismContainerWrapper<C> containerWrapper, String displayName,
+            ItemPath expectedPath, PrismObject<O> object, ItemStatus status)
+            throws SchemaException {
         PrismContainer<C> container;
         if (expectedPath == null) {
             container = (PrismContainer<C>) object;
         } else {
             container = object.findContainer(expectedPath);
         }
-        assertWrapper(containerWrapper, displayName, expectedPath, container, expectedPath==null, status);
+        assertWrapper(containerWrapper, displayName, expectedPath, container, expectedPath == null, status);
     }
 
-    public static <C extends Containerable> void assertWrapper(PrismContainerWrapper<C> containerWrapper, String displayName, ItemPath expectedPath,
-                                                               PrismContainer<C> container, boolean isMain, ItemStatus status) throws SchemaException {
+    public static <C extends Containerable> void assertWrapper(
+            PrismContainerWrapper<C> containerWrapper, String displayName, ItemPath expectedPath,
+            PrismContainer<C> container, boolean isMain, ItemStatus status)
+            throws SchemaException {
         assertNotNull("null wrapper", containerWrapper);
         PrismAsserts.assertEquivalent("Wrong path in wrapper " + containerWrapper,
                 expectedPath == null ? ItemPath.EMPTY_PATH : expectedPath, containerWrapper.getPath());
-//        assertEquals("Wrong main flag in wrapper "+containerWrapper, isMain, containerWrapper.isMain());
         if (container != null) {
-            assertEquals("Wrong item in wrapper "+containerWrapper, container, containerWrapper.getItem());
+            assertEquals("Wrong item in wrapper " + containerWrapper, container, containerWrapper.getItem());
         }
-        assertEquals("Wrong displayName in wrapper "+containerWrapper, displayName, containerWrapper.getValue().getDisplayName());
-        assertEquals("Wrong status in wrapper "+containerWrapper, status, containerWrapper.getStatus());
+        assertEquals("Wrong displayName in wrapper " + containerWrapper, displayName, containerWrapper.getValue().getDisplayName());
+        assertEquals("Wrong status in wrapper " + containerWrapper, status, containerWrapper.getStatus());
     }
 
-    public static <O extends ObjectType> void assertWrapper(PrismObjectWrapper<O> objectWrapper, String displayName, String description, PrismObject<O> object, PrismObject<O> objectOld,
-                                                            ItemStatus status) {
+    public static <O extends ObjectType> void assertWrapper(
+            PrismObjectWrapper<O> objectWrapper, String displayName, String description,
+            PrismObject<O> object, PrismObject<O> objectOld, ItemStatus status) {
         assertNotNull("null wrapper", objectWrapper);
-        assertEquals("Wrong object in wrapper "+objectWrapper, object, objectWrapper.getObject());
+        assertEquals("Wrong object in wrapper " + objectWrapper, object, objectWrapper.getObject());
         if (ItemStatus.ADDED != objectWrapper.getStatus()) {
             assertEquals("Wrong old object in wrapper " + objectWrapper, objectOld, objectWrapper.getObjectOld());
         }
-        assertFalse("object and old object not clonned in "+objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
-        assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getValue().getDisplayName());
-//        assertEquals("Wrong description in wrapper "+objectWrapper, description, objectWrapper.getDescription());
-        assertEquals("Wrong status in wrapper "+objectWrapper, status, objectWrapper.getStatus());
-//        assertNull("Unexpected old delta in "+objectWrapper, objectWrapper.getOldDelta());
+        assertFalse("object and old object not cloned in " + objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
+        assertEquals("Wrong displayName in wrapper " + objectWrapper, displayName, objectWrapper.getValue().getDisplayName());
+        assertEquals("Wrong status in wrapper " + objectWrapper, status, objectWrapper.getStatus());
     }
 
 }

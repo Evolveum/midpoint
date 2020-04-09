@@ -25,12 +25,7 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-
-        <!--  Testing dependecies  -->
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -40,7 +35,6 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -117,22 +111,7 @@
                             <catalog>${basedir}/src/compile/resources/catalog.xml</catalog>
                             <laxSchemaValidation>true</laxSchemaValidation>
                             <verbose>false</verbose>
-                            <xjcSourceExcludeFilters>
-                                <!-- This is a workaround for xjc bug described here: https://java.net/projects/jaxb/lists/users/archive/2005-12/message/33 -->
-                                <!-- It presents itself on Windows machines. -->
-                                <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
-                                <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
-                                    <patterns>
-                                        <pattern>annotation-3\.xsd</pattern>
-                                        <pattern>query-3\.xsd</pattern>
-                                        <pattern>\\types-3\.xsd</pattern>      <!-- to match types but not api-types -->
-                                        <pattern>/types-3\.xsd</pattern>       <!-- to match types but not api-types -->
-                                        <pattern>common-.*\.xsd</pattern>
-                                        <pattern>scripting-3\.xsd</pattern>
-                                        <pattern>resource-schema-3\.xsd</pattern>
-                                    </patterns>
-                                </filter>
-                            </xjcSourceExcludeFilters>
+                            <!-- JDK 11 does not need exclusions of imported files like JDK 8 -->
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -143,12 +122,12 @@
                             <dependency>
                                 <groupId>xerces</groupId>
                                 <artifactId>xercesImpl</artifactId>
-                                <version>2.12.0</version>
+                                <version>${xerces.version}</version>
                             </dependency>
                             <dependency>
                                 <groupId>xalan</groupId>
                                 <artifactId>xalan</artifactId>
-                                <version>2.7.2</version>
+                                <version>${xalan.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -183,17 +162,17 @@
                             <laxSchemaValidation>true</laxSchemaValidation>
                             <verbose>false</verbose>
                             <xjcSourceExcludeFilters>
-                                <!-- This is a workaround for xjc bug described here: https://java.net/projects/jaxb/lists/users/archive/2005-12/message/33 -->
-                                <!-- It presents itself on Windows machines. -->
+                                <!-- These exclusions are a workaround for xjc bug that occurs only on Windows machines. -->
                                 <!-- We simply exclude any imported files. So, after a new imported file is present, please add it into this list. -->
                                 <filter implementation="org.codehaus.mojo.jaxb2.shared.filters.pattern.PatternFileFilter">
                                     <patterns>
-                                        <pattern>annotation-3\.xsd</pattern>
+                                        <pattern>public.annotation-3\.xsd</pattern> <!-- only from prism, not resource annotation -->
                                         <pattern>query-3\.xsd</pattern>
                                         <pattern>\\types-3\.xsd</pattern>      <!-- to match types but not api-types -->
                                         <pattern>/types-3\.xsd</pattern>       <!-- to match types but not api-types -->
                                         <pattern>common-.*\.xsd</pattern>
-                                        <pattern>scripting-3\.xsd</pattern>
+                                        <pattern>/scripting/.*</pattern>
+                                        <pattern>\\scripting\\.*</pattern>
                                         <pattern>resource-schema-3\.xsd</pattern>
                                     </patterns>
                                 </filter>
@@ -203,12 +182,12 @@
                             <dependency>
                                 <groupId>xerces</groupId>
                                 <artifactId>xercesImpl</artifactId>
-                                <version>2.12.0</version>
+                                <version>${xerces.version}</version>
                             </dependency>
                             <dependency>
                                 <groupId>xalan</groupId>
                                 <artifactId>xalan</artifactId>
-                                <version>2.7.2</version>
+                                <version>${xalan.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>

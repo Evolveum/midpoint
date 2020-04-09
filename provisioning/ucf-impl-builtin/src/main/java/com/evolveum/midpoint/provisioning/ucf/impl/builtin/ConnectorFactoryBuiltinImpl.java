@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,8 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
-import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -34,8 +34,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManagedConnectorInstance;
@@ -61,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @Component
 public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
-    public static final String SCAN_PACKAGE = "com.evolveum.midpoint";
+    private static final String SCAN_PACKAGE = "com.evolveum.midpoint";
 
     private static final String CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN + "/bundle/";
 
@@ -100,8 +98,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
                     LOGGER.debug("Found connector class {}", bd);
                     String beanClassName = bd.getBeanClassName();
                     try {
-                        Class connectorClass = Class.forName(beanClassName);
-                        ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
+                        Class<?> connectorClass = Class.forName(beanClassName);
+                        ManagedConnector annotation = connectorClass.getAnnotation(ManagedConnector.class);
                         String type = annotation.type();
                         LOGGER.debug("Found connector {} class {}", type, connectorClass);
                         ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
@@ -117,10 +115,13 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         }
     }
 
-    private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws SchemaException {
+    private ConnectorStruct createConnectorStruct(Class<?> connectorClass, ManagedConnector annotation) throws SchemaException {
         ConnectorStruct struct = new ConnectorStruct();
+        if (!ConnectorInstance.class.isAssignableFrom(connectorClass)) {
+            throw new IllegalStateException("Connector class " + connectorClass + " is not of ConnectorInstance type");
+        }
         //noinspection unchecked
-        struct.connectorClass = connectorClass;
+        struct.connectorClass = (Class<? extends ConnectorInstance>) connectorClass;
 
         ConnectorType connectorType = new ConnectorType();
         String bundleName = connectorClass.getPackage().getName();
@@ -186,43 +187,63 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
         BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationClass);
         for (PropertyDescriptor prop: configurationClassBean.getPropertyDescriptors()) {
-            if (!UcfUtil.hasAnnotation(prop, ConfigurationProperty.class)) {
-                continue;
+            if (UcfUtil.hasAnnotation(prop, ConfigurationItem.class)) {
+                ItemDefinition<?> itemDef = createConfigurationItemDefinition(configurationContainerDef, prop);
+                LOGGER.trace("Configuration item definition for {}: {}", prop.getName(), itemDef);
             }
-
-            ItemDefinition<?> itemDef = createPropertyDefinition(configurationContainerDef, prop);
-
-            LOGGER.trace("Configuration item definition for {}: {}", prop.getName(), itemDef);
         }
 
         return connectorSchema;
     }
 
-    private ItemDefinition<?> createPropertyDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
+    private ItemDefinition<?> createConfigurationItemDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
             PropertyDescriptor prop) {
-        String propName = prop.getName();
-        Class<?> propertyType = prop.getPropertyType();
-        Class<?> baseType = propertyType;
+        String itemLocalName = prop.getName();
+        Class<?> itemType = prop.getPropertyType();
+        Class<?> baseType;
         int minOccurs = 1;
-        int maxOccurs = 1;
-        if (propertyType.isArray()) {
+        int maxOccurs;
+        if (!itemType.isArray()) {
+            maxOccurs = 1;
+            baseType = itemType;
+        } else {
             maxOccurs = -1;
-            baseType = propertyType.getComponentType();
+            baseType = itemType.getComponentType();
         }
         // TODO: minOccurs: define which properties are optional/mandatory
         // TODO: display names, ordering, help texts
-        QName propType = XsdTypeMapper.getJavaToXsdMapping(baseType);
-        if (propType == null) {
-            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry()
-                    .findItemDefinitionByCompileTimeClass(baseType, PrismPropertyDefinition.class);
-            if (propDef != null) {
-                propType = propDef.getTypeName();
+        QName itemTypeName;
+        QName standardTypeName = XsdTypeMapper.getJavaToXsdMapping(baseType);
+        ComplexTypeDefinition complexTypeDefinition;
+        if (standardTypeName != null) {
+            complexTypeDefinition = null;
+            itemTypeName = standardTypeName;
+        } else {
+            ItemDefinition<?> itemDef = prismContext.getSchemaRegistry()
+                    .findItemDefinitionByCompileTimeClass(baseType, ItemDefinition.class);
+            if (itemDef != null) {
+                itemTypeName = itemDef.getTypeName();
+                if (itemDef instanceof PrismContainerDefinition) {
+                    complexTypeDefinition = ((PrismContainerDefinition<?>) itemDef).getComplexTypeDefinition();
+                    if (complexTypeDefinition == null) {
+                        throw new IllegalStateException("Configuration item " + itemLocalName + " of " + baseType
+                                + " is a container without complex type definition");
+                    }
+                } else {
+                    complexTypeDefinition = null;
+                }
             } else {
-                throw new IllegalStateException("Property " + propName + " of " + baseType + " cannot be resolved to a XSD type or a prism property");
+                throw new IllegalStateException("Configuration item " + itemLocalName + " of " + baseType
+                        + " cannot be resolved to a XSD type or a prism item type");
             }
         }
-        return configurationContainerDef.createPropertyDefinition(
-                new QName(configurationContainerDef.getItemName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
+        String namespaceURI = configurationContainerDef.getItemName().getNamespaceURI();
+        QName itemName = new QName(namespaceURI, itemLocalName);
+        if (complexTypeDefinition != null) {
+            return configurationContainerDef.createContainerDefinition(itemName, complexTypeDefinition, minOccurs, maxOccurs);
+        } else {
+            return configurationContainerDef.createPropertyDefinition(itemName, itemTypeName, minOccurs, maxOccurs);
+        }
     }
 
     @Override
@@ -232,13 +253,13 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
         ConnectorInstance connectorInstance;
         try {
-            connectorInstance = connectorClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            connectorInstance = connectorClass.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
             setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType,
-                    namespace, desc, struct);
+                    namespace, struct);
         }
         if (connectorInstance instanceof RepositoryAware) {
             ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
@@ -266,7 +287,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
     private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, String instanceName,
             ConnectorType connectorObject, String namespace,
-            String desc, ConnectorStruct struct) {
+            ConnectorStruct struct) {
         connectorInstance.setInstanceName(instanceName);
         connectorInstance.setConnectorObject(connectorObject);
         connectorInstance.setResourceSchemaNamespace(namespace);
@@ -295,9 +316,9 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     private static class ConnectorStruct {
-        Class<? extends ConnectorInstance> connectorClass;
-        ConnectorType connectorObject;
-        PrismSchema connectorConfigurationSchema;
+        private Class<? extends ConnectorInstance> connectorClass;
+        private ConnectorType connectorObject;
+        private PrismSchema connectorConfigurationSchema;
     }
 
 }

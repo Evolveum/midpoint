@@ -9,9 +9,11 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.LabeledString;
@@ -87,6 +89,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
     private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
+    private static final String OPERATION_LOAD_NODE = DOT_CLASS + "loadNode";
     private static final String POST_INIT = DOT_CLASS + "postInit";
 
     private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
@@ -115,6 +118,9 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
     private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
     private static final String ID_FACTORY_DEFAULT = "factoryDefault";
+    private static final String ID_NODE_NAME = "nodeName";
+    private static final String ID_NODE_ID = "nodeId";
+    private static final String ID_NODE_URL = "nodeUrl";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -216,6 +222,42 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(provisioningAdditionalDetails);
+
+        String nodeId = getTaskManager().getNodeId();
+        OperationResult result = new OperationResult(OPERATION_LOAD_NODE);
+        List<PrismObject<NodeType>> nodes = WebModelServiceUtils.searchObjects(NodeType.class,
+                getPrismContext().queryFor(NodeType.class)
+                        .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
+                        .build(),
+                result, PageAbout.this);
+
+        if (nodes.isEmpty()) {
+            throw new IllegalArgumentException("Couldn't find NodeType with identifier '" + nodeId + "'");
+        }
+
+        if (nodes.size() > 1) {
+            throw new IllegalArgumentException("Found more as one NodeType with identifier '" + nodeId + "'");
+        }
+
+        PrismObject<NodeType> node = nodes.get(0);
+
+        if (node == null) {
+            throw new IllegalArgumentException("Found NodeType with identifier '" + nodeId + "' is null");
+        }
+
+        NodeType nodeType = node.asObjectable();
+
+        Label nodeName = new Label(ID_NODE_NAME, nodeType.getName() != null ? nodeType.getName() : "");
+        nodeName.setRenderBodyOnly(true);
+        add(nodeName);
+
+        Label nodeIdValue = new Label(ID_NODE_ID, nodeType.getNodeIdentifier());
+        nodeIdValue.setRenderBodyOnly(true);
+        add(nodeIdValue);
+
+        Label nodeUrl = new Label(ID_NODE_URL, nodeType.getUrl() != null ? nodeType.getUrl() : "");
+        nodeUrl.setRenderBodyOnly(true);
+        add(nodeUrl);
 
         Label jvmProperties = new Label(ID_JVM_PROPERTIES, new LoadableModel<String>(false) {
 
@@ -405,7 +447,7 @@ public class PageAbout extends PageAdminConfiguration {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                task.setOwner(user.getUser().asPrismObject());
+                task.setOwner(user.getFocus().asPrismObject());
             }
             authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
             task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
@@ -472,7 +514,7 @@ public class PageAbout extends PageAdminConfiguration {
         final String taskOidToRemoving = taskOid;
 
         try {
-            while(!getTaskManager().getTask(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
+            while(!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
 
             runPrivileged(new Producer<Object>() {
 

@@ -20,17 +20,12 @@ import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author semancik
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundReconTask extends AbstractInboundSyncTest {
@@ -65,12 +60,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 
     @Override
     public void test180NoChange() throws Exception {
-        final String TEST_NAME = "test180NoChange";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         dummyAuditService.clear();
         rememberTimeBeforeSync();
         prepareNotifications();
@@ -79,12 +69,12 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         assertUsers(7);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);
@@ -102,18 +92,13 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         // notifications
         notificationManager.setDisabled(true);
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);            // reconciliation request + execution
     }
 
     @Override
     public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-        final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
 
@@ -121,14 +106,14 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         assertUsers(7);
 
         /// WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);

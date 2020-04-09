@@ -20,8 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.testng.annotations.Test;
 
 /**
@@ -36,8 +34,6 @@ import org.testng.annotations.Test;
 public class TestOpenDjDumber extends TestOpenDj {
 
     protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 
     @Override
     protected File getResourceOpenDjFile() {
@@ -71,10 +67,11 @@ public class TestOpenDjDumber extends TestOpenDj {
     protected void assertTimestamp(String attrName, Object timestampValue) {
         if (!(timestampValue instanceof String)) {
             fail("Wrong type of "+attrName+", expected String but was "+timestampValue.getClass());
+        } else {
+            String str = (String) timestampValue;
+            assertTrue("Timestamp " + attrName + " does not start with 2: " + str, str.startsWith("2"));
+            assertTrue("Timestamp " + attrName + " does not end with Z: " + str, str.endsWith("Z"));
         }
-        String str = (String)timestampValue;
-        assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
-        assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
     }
 
     /**
@@ -83,17 +80,14 @@ public class TestOpenDjDumber extends TestOpenDj {
     @Test
     @Override
     public void test489DeleteOuSuperWithSub() throws Exception {
-        final String TEST_NAME = "test489DeleteOuSuperWithSub";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         createSubOrg();
 
         try {
             // WHEN
-            displayWhen(TEST_NAME);
+            when();
             provisioningService.deleteObject(ShadowType.class, OU_SUPER_OID, null, null, task, result);
 
             assertNotReached();
@@ -102,7 +96,7 @@ public class TestOpenDjDumber extends TestOpenDj {
         }
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertFailure(result);
     }
 

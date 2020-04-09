@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -19,30 +33,16 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Performance tests for accounts with large number of role assignments and group associations; using assignmentTargetSearch,
  * associationFromLink and similar mappings.
- *
+ * <p>
  * MID-5341
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
@@ -94,9 +94,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     private static final String SUMMARY_LINE_FORMAT = "%50s: %5d ms (%4d ms/user, %7.2f ms/user/role)\n";
     private static final String REPO_LINE_FORMAT = "%6d (%8.1f/%s)\n";
 
-    private Map<String,Long> durations = new LinkedHashMap<>();
-
-    private PrismObject<ResourceType> resourceOpenDj;
+    private Map<String, Long> durations = new LinkedHashMap<>();
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -114,7 +112,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -128,7 +126,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
         importObjectFromFile(ROLE_LDAP_FILE);
@@ -146,10 +144,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test000ClonePerformance() throws SchemaException {
-        final String TEST_NAME = "test000ClonePerformance";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -160,25 +155,23 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
             CloneUtil.clone(systemConfiguration.asObjectable().getGlobalPolicyRule());
         }
         long duration = System.currentTimeMillis() - start;
-        System.out.println("Time per clone = " + duration*1000.0/COUNT + " us");
+        System.out.println("Time per clone = " + duration * 1000.0 / COUNT + " us");
 
     }
+
     @Test
     public void test010Sanity() throws Exception {
-        final String TEST_NAME = "test010Sanity";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(ROLE_TEST_FILE, task, result);
         addObject(USER_TEST_FILE, task, result);
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
         dumpLdap();
         openDJController.assertUniqueMember("cn=role-test,ou=groups,dc=example,dc=com", "uid=user-test,ou=people,dc=example,dc=com");
@@ -190,14 +183,11 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test020GenerateRoles() throws Exception {
-        final String TEST_NAME = "test020GenerateRoles";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         resetPerformanceCollectors();
 
@@ -213,15 +203,15 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         long endMillis = System.currentTimeMillis();
-        recordDuration(TEST_NAME, (endMillis - startMillis));
+        recordDuration((endMillis - startMillis));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor()
                 .getThreadLocalPerformanceInformation();
-        dumpRepoSnapshot("SQL operations for " + TEST_NAME, performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshot(performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
+        dumpGlobalCachePerformanceData();
 
         result.computeStatus();
         assertSuccess(result);
@@ -239,14 +229,11 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test100AddUsers() throws Exception {
-        final String TEST_NAME = "test100AddUsers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         resetPerformanceCollectors();
 
@@ -275,14 +262,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         long endMillis = System.currentTimeMillis();
-        recordDuration(TEST_NAME, (endMillis - startMillis));
+        recordDuration((endMillis - startMillis));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getThreadLocalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         result.computeStatus();
         assertSuccess(result);
@@ -290,12 +277,15 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertLdapConnectorInstances(1);
     }
 
-    private void dumpRepoSnapshotPerUser(String label, PerformanceInformation performanceInformation) {
-        dumpRepoSnapshot(label, performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
+    private void dumpRepoSnapshotPerUser(PerformanceInformation performanceInformation) {
+        dumpRepoSnapshot(performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
     }
 
-    private void dumpRepoSnapshot(String label, PerformanceInformation performanceInformation, String unit, int unitCount) {
-        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) (got from global monitor)", performanceInformation);
+    private void dumpRepoSnapshot(
+            PerformanceInformation performanceInformation, String unit, int unitCount) {
+        String label = "SQL operations for " + getTestNameShort();
+        displayDumpable(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES
+                + " roles) (got from global monitor)", performanceInformation);
 
         // per unit:
         Map<String, OperationPerformanceInformation> counters = performanceInformation.getAllData();
@@ -303,22 +293,19 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         kinds.sort(String::compareToIgnoreCase);
         int max = kinds.stream().mapToInt(String::length).max().orElse(0);
         StringBuilder sb = new StringBuilder();
-        kinds.forEach(kind -> sb.append(String.format("%" + (max+2) + "s: " + REPO_LINE_FORMAT, kind, counters.get(kind).getInvocationCount(), (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
-        display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
+        kinds.forEach(kind -> sb.append(
+                String.format("%" + (max + 2) + "s: " + REPO_LINE_FORMAT,
+                        kind, counters.get(kind).getInvocationCount(),
+                        (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
+        displayValue(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
     }
 
     @Test
     public void test110RecomputeUsers() throws Exception {
-        final String TEST_NAME = "test110RecomputeUsers";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -328,16 +315,15 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
-
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_1_OID));
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_1_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -354,16 +340,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test120RecomputeUsersNoRoleAndShadowCache() throws Exception {
-        final String TEST_NAME = "test120RecomputeUsersNoRoleAndShadowCache";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -373,16 +353,16 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_NO_CACHE_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -399,16 +379,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test130RecomputeUsersMultinode() throws Exception {
-        final String TEST_NAME = "test130RecomputeUsersMultinode";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -420,16 +394,16 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
-        recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_OID));
+        recordDuration(getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_OID));
 
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_MULTINODE_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -448,16 +422,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test140RecomputeUsersMultinodeMultithreaded() throws Exception {
-        final String TEST_NAME = "test140RecomputeUsersMultinodeMultithreaded";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
         resetGlobalCachePerformanceCollector();
@@ -469,17 +437,17 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         IntegrationTestTools.setSilentConsole(false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
-        recordDuration(TEST_NAME, getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID));
+        recordDuration(getTreeRunDurationMillis(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID));
 
         // todo retrieve this information from finished task
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_MULTINODE_MULTITHREADED_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -498,16 +466,13 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
     @Test
     public void test200RecomputeUsersNoDefaultRoleCache() throws Exception {
-        final String TEST_NAME = "test200RecomputeUsersNoDefaultRoleCache";
-        displayTestTitle(TEST_NAME);
-
         rememberConnectorResourceCounters();
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         PrismObject<SystemConfigurationType> newConfiguration = parseObject(SYSTEM_CONFIGURATION_NO_ROLE_CACHE_FILE);
         repositoryService.addObject(newConfiguration, RepoAddOptions.createOverwrite(), result);
@@ -519,17 +484,17 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         waitForTaskFinish(TASK_RECOMPUTE_4_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
-        recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_4_OID));
+        recordDuration(getRunDurationMillis(TASK_RECOMPUTE_4_OID));
 
         // todo retrieve this information from finished task
         PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
-        dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
-        dumpGlobalCachePerformanceData(TEST_NAME);
+        dumpRepoSnapshotPerUser(performanceInformation);
+        dumpGlobalCachePerformanceData();
 
         OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECOMPUTE_4_OID);
-        displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
+        displayOperationStatistics(statistics);
         assertNotNull(statistics);
 
         assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -545,23 +510,17 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     }
 
     @Test
-    public void test900Summarize() throws Exception {
-        final String TEST_NAME = "test900Summarize";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
+    public void test900Summarize() {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Long> entry : durations.entrySet()) {
             sb.append(summary(entry.getKey(), entry.getValue()));
         }
-        display("Summary ("+NUMBER_OF_GENERATED_USERS+" users, "+NUMBER_OF_GENERATED_ROLES+" roles)", sb.toString());
+        displayValue("Summary (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", sb.toString());
 
-         // THEN
-         displayThen(TEST_NAME);
+        // THEN
+        then();
 
-         // TODO: more thresholds
+        // TODO: more thresholds
 
     }
 
@@ -587,16 +546,12 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
     }
 
-    protected void assertLdapConnectorInstances() throws NumberFormatException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException, InterruptedException {
-        assertLdapConnectorInstances(2,4);
-    }
-
-    private long recordDuration(String label, long duration) {
-        durations.put(label, duration);
+    private long recordDuration(long duration) {
+        durations.put(getTestNameShort(), duration);
         return duration;
     }
 
     private Object summary(String label, long duration) {
-        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration/NUMBER_OF_GENERATED_USERS, (double) duration/(NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
+        return String.format(SUMMARY_LINE_FORMAT, label, duration, duration / NUMBER_OF_GENERATED_USERS, (double) duration / (NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
     }
 }

@@ -23,6 +23,15 @@ public interface ValueParser<T> {
 
     T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException;
 
+    /**
+     * Checks if this parser can (by itself) parse the value as given type.
+     * (If it cannot, the parsing must be done by higher layers.)
+     *
+     * This method should be efficient. It may bring some performance penalty (when coupled with following
+     * parse() call) but we assume this situation is quite rare and performance effect is negligible.
+     */
+    boolean canParseAs(QName typeName);
+
     // This has to work even without the type
     boolean isEmpty();
 

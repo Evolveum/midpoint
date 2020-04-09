@@ -128,7 +128,7 @@ public class StartInstruction implements DebugDumpable {
         aCase.setTargetRef(ref);
     }
 
-    public void setRequesterRef(PrismObject<UserType> requester) {
+    public void setRequesterRef(PrismObject<? extends FocusType> requester) {
         aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
     }
 
@@ -146,11 +146,6 @@ public class StartInstruction implements DebugDumpable {
                 "aCase=" + aCase +
                 ", changeProcessor=" + changeProcessor +
                 '}';
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

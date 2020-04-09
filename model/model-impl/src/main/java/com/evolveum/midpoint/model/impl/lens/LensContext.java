@@ -52,7 +52,7 @@ import java.util.Map.Entry;
  * @author semancik
  *
  */
-public class LensContext<F extends ObjectType> implements ModelContext<F> {
+public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
     private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
@@ -202,6 +202,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     transient private boolean preview;
 
     transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
+
+    transient private PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
 
     @NotNull transient private final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
     @NotNull transient private final List<String> operationApproverComments = new ArrayList<>();
@@ -849,6 +851,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
         LensContext<F> clone = new LensContext<>(focusClass, prismContext, provisioningService);
         copyValues(clone);
@@ -1389,10 +1392,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     @Override
     public <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz) {
         List<T> rv = new ArrayList<>();
-        for (Collection<Containerable> collection : getHookPreviewResultsMap().values()) {
-            for (Containerable item : CollectionUtils.emptyIfNull(collection)) {
-                if (item != null && clazz.isAssignableFrom(item.getClass())) {
-                    rv.add((T) item);
+        for (Collection<Containerable> previewResults : getHookPreviewResultsMap().values()) {
+            for (Containerable previewResult : CollectionUtils.emptyIfNull(previewResults)) {
+                if (previewResult != null && clazz.isAssignableFrom(previewResult.getClass())) {
+                    //noinspection unchecked
+                    rv.add((T) previewResult);
                 }
             }
         }
@@ -1401,15 +1405,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
     @Nullable
     @Override
-    public <T> T getHookPreviewResult(@NotNull Class<T> clazz) {
-        List<T> results = getHookPreviewResults(clazz);
-        if (results.size() > 1) {
-            throw new IllegalStateException("More than one preview result of type " + clazz);
-        } else if (results.size() == 1) {
-            return results.get(0);
-        } else {
-            return null;
-        }
+    public PolicyRuleEnforcerPreviewOutputType getPolicyRuleEnforcerPreviewOutput() {
+        return policyRuleEnforcerPreviewOutput;
+    }
+
+    public void setPolicyRuleEnforcerPreviewOutput(PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput) {
+        this.policyRuleEnforcerPreviewOutput = policyRuleEnforcerPreviewOutput;
     }
 
     public int getConflictResolutionAttemptNumber() {
@@ -1570,7 +1571,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
     }
 
-    public ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
+    ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
         return (objectClass, oid) -> {
             if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
                 for (LensProjectionContext projectionContext : projectionContexts) {

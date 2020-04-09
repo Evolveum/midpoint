@@ -1,7 +1,11 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.repeater.RepeatingView;
+
+import java.util.Iterator;
 
 public class OperationalButtonsPanel extends BasePanel<Void> {
 
@@ -27,5 +31,20 @@ public class OperationalButtonsPanel extends BasePanel<Void> {
 
     protected void addButtons(RepeatingView repeatingView) {
 
+    }
+
+    public boolean buttonsExist(){
+        RepeatingView repeatingView = (RepeatingView) get(ID_BUTTONS);
+        boolean buttonsExist = repeatingView != null && repeatingView.iterator().hasNext();
+        if (buttonsExist){
+            Iterator<Component> buttonsIt = repeatingView.iterator();
+            while (buttonsIt.hasNext()){
+                Component comp = buttonsIt.next();
+                if (comp.isVisible()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

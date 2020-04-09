@@ -10,6 +10,7 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
 import com.evolveum.midpoint.prism.*;
@@ -96,9 +97,17 @@ public class PolicyRuleProcessor {
         for (EvaluatedAssignmentImpl<F> evaluatedAssignment : evaluatedAssignmentTriple.union()) {
             RulesEvaluationContext globalCtx = new RulesEvaluationContext();
 
-            boolean inPlus = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
-            boolean inMinus = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
-            boolean inZero = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
+            /*
+             * We need to determine if the assignment is being added, deleted or simply modified. This is mainly
+             * to decide with regard of "operation" qualifier on Assignment modification constraint.
+             *
+             * The code below should be relatively OK, even when regarding waves greater than zero.
+             * The only thing to reconsider is what if the assignment is being replaced?
+             */
+            AssignmentOrigin origin = evaluatedAssignment.getOrigin();
+            boolean inPlus = origin.isBeingAdded();
+            boolean inMinus = origin.isBeingDeleted();
+            boolean inZero = origin.isBeingModified();
 
             resolveReferences(evaluatedAssignment.getAllTargetsPolicyRules(), getAllGlobalRules(context));
 
@@ -354,7 +363,7 @@ public class PolicyRuleProcessor {
     /**
      * Evaluates given policy rule in a given context.
      */
-    private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
+    private <AH extends AssignmentHolderType> void evaluateRule(@NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         String ruleShortString = ctx.policyRule.toShortString();
@@ -379,14 +388,17 @@ public class PolicyRuleProcessor {
                 }
                 ctx.triggerRule(triggers);
             }
-            LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
-            if (ctx.policyRule.isTriggered()) {
+            boolean triggered = ctx.policyRule.isTriggered();
+            LOGGER.trace("Policy rule triggered: {}", triggered);
+            result.addReturn("triggered", triggered);
+            if (triggered) {
                 LOGGER.trace("Start to compute actions");
                 ((EvaluatedPolicyRuleImpl) ctx.policyRule)
                         .computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
                 if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
                     ctx.record();
                 }
+                result.addArbitraryObjectCollectionAsReturn("enabledActions", ctx.policyRule.getEnabledActions());
             }
             traceRuleEvaluationResult(ctx.policyRule, ctx);
         } catch (Throwable t) {
@@ -453,22 +465,21 @@ public class PolicyRuleProcessor {
     }
 
     private <AH extends AssignmentHolderType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<AH> ctx) {
-        if (!LOGGER.isTraceEnabled()) {
-            return;
+        if (LOGGER.isTraceEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("\n---[ POLICY RULE ");
+            if (rule.isTriggered()) {
+                sb.append("# ");
+            }
+            sb.append(rule.toShortString());
+            sb.append(" for ");
+            sb.append(ctx.getShortDescription());
+            sb.append(" (").append(ctx.lensContext.getState()).append(")");
+            sb.append("]---------------------------");
+            sb.append("\n");
+            sb.append(rule.debugDump());
+            LOGGER.trace("{}", sb.toString());
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n---[ POLICY RULE ");
-        if (rule.isTriggered()) {
-            sb.append("# ");
-        }
-        sb.append(rule.toShortString());
-        sb.append(" for ");
-        sb.append(ctx.getShortDescription());
-        sb.append(" (").append(ctx.lensContext.getState()).append(")");
-        sb.append("]---------------------------");
-        sb.append("\n");
-        sb.append(rule.debugDump());
-        LOGGER.trace("{}", sb.toString());
     }
 
     private PolicyConstraintEvaluator<?> getConstraintEvaluator(JAXBElement<AbstractPolicyConstraintType> constraint) {
@@ -624,6 +635,7 @@ public class PolicyRuleProcessor {
                 .createMappingBuilder();
         ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
         builder = builder.mappingType(condition)
+                .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)
                 .defaultTargetDefinition(

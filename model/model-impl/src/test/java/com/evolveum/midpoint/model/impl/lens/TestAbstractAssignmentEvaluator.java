@@ -6,31 +6,17 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
-import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createDuration;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType.F_ACTIVATION;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
+import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -42,29 +28,34 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
@@ -109,11 +100,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test100Direct() throws Exception {
-        final String TEST_NAME = "test100Direct";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
@@ -122,25 +110,26 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
-        display("Evaluated construction", construction);
+        displayDumpable("Evaluated construction", construction);
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
@@ -148,11 +137,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test110DirectExpression() throws Exception {
-        final String TEST_NAME = "test110DirectExpression";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -162,20 +148,21 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment);
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -187,54 +174,53 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test120DirectExpressionReplaceDescription() throws Exception {
-        final String TEST_NAME = "test120DirectExpressionReplaceDescription";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
-        AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
+        AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
         user.asObjectable().getAssignment().add(assignmentType.clone());
 
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                path, "captain");
+                        path, "captain");
         ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
         display("Assignment old", assignmentType);
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
         assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
         assignmentIdi.setSubItemDeltas(userDelta.getModifications());
         assignmentIdi.recompute();
-        display("Assignment IDI", assignmentIdi);
+        displayDumpable("Assignment IDI", assignmentIdi);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment);
-        assertEquals(1,evaluatedAssignment.getConstructionTriple().size());
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
+        assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
         Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
-        assertEquals(1,construction.getAttributeMappings().size());
-        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
+        assertEquals(1, construction.getAttributeMappings().size());
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
+                (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
-        display("output triple", outputTriple);
+        displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
-          PrismAsserts.assertTripleMinus(outputTriple, "The best pirate the world has ever seen");
+        PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
+        PrismAsserts.assertTripleMinus(outputTriple, "The best pirate the world has ever seen");
 
         // the same using other words
 
@@ -249,53 +235,52 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test130DirectExpressionReplaceDescriptionFromNull() throws Exception {
-        final String TEST_NAME = "test130DirectExpressionReplaceDescriptionFromNull";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
-        AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
+        AssignmentType assignmentType = unmarshalValueFromFile(ASSIGNMENT_DIRECT_EXPRESSION_FILE, AssignmentType.class);
         assignmentType.setDescription(null);
         user.asObjectable().getAssignment().add(assignmentType.clone());
 
         ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, 123L, AssignmentType.F_DESCRIPTION);
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                path, "sailor");
+                        path, "sailor");
         ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         userOdo.recompute();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
         assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
         assignmentIdi.setSubItemDeltas(userDelta.getModifications());
         assignmentIdi.recompute();
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testDirect", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testDirect", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment);
-        assertEquals(1,evaluatedAssignment.getConstructionTriple().size());
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
+        assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
         Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
-        assertEquals(1,construction.getAttributeMappings().size());
-        PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping = (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
+        assertEquals(1, construction.getAttributeMappings().size());
+        PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
+                (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
         PrismAsserts.assertTripleNoZero(outputTriple);
-          PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
-          PrismAsserts.assertTripleMinus(outputTriple, "The best man the world has ever seen");
+        PrismAsserts.assertTriplePlus(outputTriple, "The best sailor the world has ever seen");
+        PrismAsserts.assertTripleMinus(outputTriple, "The best man the world has ever seen");
 
         // the same using other words
 
@@ -333,11 +318,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test140RoleVisitor() throws Exception {
-        final String TEST_NAME = "test140RoleVisitor";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
@@ -346,19 +328,21 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
+                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
+                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -378,11 +362,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test142RoleVisitorDisabledAssignment() throws Exception {
-        final String TEST_NAME = "test142RoleVisitorDisabledAssignment";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
@@ -392,20 +373,22 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
+                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
+                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -425,11 +408,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test150RoleEngineer() throws Exception {
-        final String TEST_NAME = "test150RoleEngineer";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
@@ -438,19 +418,20 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -471,11 +452,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test160AddRoleEngineer() throws Exception {
-        final String TEST_NAME = "test160AddRoleEngineer";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
@@ -483,6 +461,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         AssignmentType assignmentForUser = assignmentType.clone();
         assignmentForUser.asPrismContainerValue().setParent(null);
+        //noinspection unchecked
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationAddContainer(UserType.class, USER_JACK_OID, UserType.F_ASSIGNMENT,
                         assignmentForUser.asPrismContainerValue());
@@ -490,19 +469,21 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
+                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
+                getTestNameShort(), AssignmentOrigin.createNotVirtual(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals("Wrong number of constructions", 4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -536,17 +517,14 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     /**
      * jack has assigned role Manager.
-     *
+     * <p>
      * However, condition in job metarole for Manager is such that it needs "management"
      * to be present in user/costCenter in order to be active.
      */
     @Test
     public void test170RoleManagerChangeCostCenter() throws Exception {
-        final String TEST_NAME = "test170RoleManagerChangeCostCenter";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
@@ -558,25 +536,27 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER, "management");
+                        UserType.F_COST_CENTER, "management");
         ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(
+                assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack,
+                getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -597,19 +577,16 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     /**
      * jack has assigned role Manager.
-     *
+     * <p>
      * However, condition in job metarole for Manager is such that it needs "management"
      * to be present in user/costCenter in order to be active.
-     *
+     * <p>
      * In this test we remove the value of "management" from jack.
      */
     @Test
     public void test180RoleManagerRemoveCostCenter() throws Exception {
-        final String TEST_NAME = "test180RoleManagerRemoveCostCenter";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = userTypeJack.asPrismObject().clone();
@@ -622,25 +599,26 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModificationReplaceProperty(UserType.class, USER_JACK_OID,
-                UserType.F_COST_CENTER);
+                        UserType.F_COST_CENTER);
         ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, TEST_NAME, false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, getTestNameShort(), AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(4, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -665,11 +643,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test(enabled = false)
     public void test200DisableEngineerEmployeeInducement() throws Exception {
-        final String TEST_NAME = "test200DisableEngineerEmployeeInducement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // disable Engineer->Employee inducement
@@ -686,31 +661,29 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
 
         // TODO
     }
 
     @Test(enabled = false)
     public void test299ReenableEngineerEmployeeInducement() throws Exception {
-        final String TEST_NAME = "test299ReenableEngineerEmployeeInducement";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // disable Engineer->Employee inducement
@@ -727,18 +700,15 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test300DisableRoleEmployee() throws Exception {
-        final String TEST_NAME = "test300DisableRoleEmployee";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // disable role Employee
         ObjectDelta disableEmployeeDelta = prismContext.deltaFor(RoleType.class)
                 .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_EMPLOYEE_OID);
-        modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEmployeeDelta),
+        modelService.executeChanges(Collections.singletonList(disableEmployeeDelta),
                 null, task, result);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
@@ -748,20 +718,21 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment",evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -782,18 +753,15 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     @Test
     public void test310DisableRoleEngineer() throws Exception {
-        final String TEST_NAME = "test310DisableRoleEngineer";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // disable role Engineer
         ObjectDelta disableEngineerDelta = prismContext.deltaFor(RoleType.class)
                 .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
                 .asObjectDelta(ROLE_CORP_ENGINEER_OID);
-        modelService.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singletonList(disableEngineerDelta),
+        modelService.executeChanges(Collections.singletonList(disableEngineerDelta),
                 null, task, result);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator();
@@ -803,20 +771,21 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
         ObjectDeltaObject<UserType> userOdo = createUserOdo(userTypeJack.asPrismObject());
 
-        ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+        ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
 
         // WHEN
-        displayWhen(TEST_NAME);
-        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userTypeJack, "testRoleEngineer", false, task, result);
+        when();
+        EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO,
+                false, userTypeJack, "testRoleEngineer", AssignmentOrigin.createInObject(), task, result);
         evaluatedAssignment.evaluateConstructions(userOdo, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment.debugDump());
+        displayValue("Evaluated assignment", evaluatedAssignment.debugDump());
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -842,11 +811,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     // MID-4251
     @Test
     public void test400UserFred() throws Exception {
-        final String TEST_NAME = "test400UserFred";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String pastTime = XmlTypeConverter.fromNow(createDuration("-P3D")).toString();
@@ -868,34 +834,35 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         addFocusDeltaToContext(lensContext, descriptionDelta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         projector.project(lensContext, "test", task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = lensContext.getEvaluatedAssignmentTriple();
-        display("Evaluated assignment triple", triple.debugDump());
+        displayValue("Evaluated assignment triple", triple.debugDump());
         assertEquals("Wrong # of evaluated assignments zero set", 0, triple.getZeroSet().size());
         assertEquals("Wrong # of evaluated assignments plus set", 1, triple.getPlusSet().size());
         assertEquals("Wrong # of evaluated assignments minus set", 1, triple.getMinusSet().size());
     }
 
     protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
-            Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
-            for (Construction construction : constructions) {
-                PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
-                assertNull("Unexpected mapping for " + attributeName, mapping);
-            }
+        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
+        for (Construction construction : constructions) {
+            PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
+                    construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            assertNull("Unexpected mapping for " + attributeName, mapping);
         }
-
+    }
 
     protected void assertConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
         Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
         for (Construction construction : constructions) {
-            PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
+            PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
+                    construction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
             if (mapping != null && mapping.getOutputTriple() != null) {
                 Collection<? extends PrismPropertyValue<?>> valsInMapping = mapping.getOutputTriple().getSet(attributeSet);
                 if (valsInMapping != null) {
@@ -910,13 +877,13 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         AssertJUnit.assertEquals("Wrong values", new HashSet<>(Arrays.asList(expectedValues)), realValues);
     }
 
-    protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws ObjectNotFoundException, SchemaException {
+    protected AssignmentEvaluator<UserType> createAssignmentEvaluator() throws SchemaException {
         PrismObject<UserType> userJack = userTypeJack.asPrismObject();
         ObjectDeltaObject<UserType> focusOdo = createUserOdo(userJack);
         return createAssignmentEvaluator(focusOdo);
     }
 
-    protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) throws ObjectNotFoundException, SchemaException {
+    protected AssignmentEvaluator<UserType> createAssignmentEvaluator(ObjectDeltaObject<UserType> focusOdo) {
         LensContext<UserType> lensContext = createLensContext(UserType.class);
         LensFocusContext<UserType> focusContext = lensContext.getOrCreateFocusContext();
         focusContext.setObjectOld(focusOdo.getOldObject());
@@ -949,7 +916,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         return userOdo;
     }
 
-    private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> createAssignmentIdi(AssignmentType assignmentType) throws SchemaException {
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(AssignmentType assignmentType) throws SchemaException {
         return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), getAssignmentDefinition());
     }
 }

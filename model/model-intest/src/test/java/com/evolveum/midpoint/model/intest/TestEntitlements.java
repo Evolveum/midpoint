@@ -6,6 +6,23 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,7 +40,6 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -31,30 +47,13 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Test of account-entitlement association.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
@@ -145,10 +144,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test100AddGroupShadowSwashbucklers() throws Exception {
-        final String TEST_NAME = "test100AddGroupShadowSwashbucklers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertSteadyResources();
@@ -163,7 +159,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group created on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
 
@@ -174,10 +170,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test101GetGroupShadowSwashbucklers() throws Exception {
-        final String TEST_NAME = "test101GetGroupShadowSwashbucklers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -197,10 +190,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110AssociateGuybrushToSwashbucklers() throws Exception {
-        final String TEST_NAME = "test110AssociateGuybrushToSwashbucklers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
@@ -208,32 +198,29 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyGroupByName(null, GROUP_DUMMY_SWASHBUCKLERS_NAME)
-            .assertDescription(GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION)
-            .assertMember(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+                .assertDescription(GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION)
+                .assertMember(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
 
     @Test
     public void test200AssignRoleSwashbucklerToJack() throws Exception {
-        final String TEST_NAME = "test200AssignRoleSwashbucklerToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -244,7 +231,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -253,18 +240,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test209UnAssignRoleSwashbucklerFromJack() throws Exception {
-        final String TEST_NAME = "test209UnAssignRoleSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -273,7 +257,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -287,10 +271,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test220AssignRoleLandluberToWally() throws Exception {
-        final String TEST_NAME = "test220AssignRoleLandluberToWally";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(SHADOW_GROUP_DUMMY_LANDLUBERS_FILE);
@@ -306,7 +287,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_LANDLUBERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
@@ -317,10 +298,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test222AssignRoleMapmakerToWally() throws Exception {
-        final String TEST_NAME = "test222AssignRoleMapmakerToWally";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup mapmakers = new DummyGroup(GROUP_DUMMY_MAPMAKERS_NAME);
@@ -329,11 +307,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, USER_WALLY_NAME, getDummyResource());
@@ -348,67 +326,60 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 .assertKind(ShadowKindType.UNKNOWN);
 
         String accountWallyOid = assertUserAfterByUsername(USER_WALLY_NAME)
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountWallyOid)
-            .associations()
+                .associations()
                 .assertSize(2)
                 .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
-                    .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
+                .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
     }
 
     @Test
     public void test224UnassignRoleMapmakerFromWally() throws Exception {
-        final String TEST_NAME = "test224UnassignRoleMapmakerFromWally";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_WALLY_NAME);
     }
 
-
     @Test
     public void test300AddRoleWimp() throws Exception {
-        final String TEST_NAME = "test300AddRoleWimp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ROLE_WIMP_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
 //        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION,
 //                dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMembers(dummyGroup);
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
-        display("Group @orange", dummyGroupAtOrange);
+        displayDumpable("Group @orange", dummyGroupAtOrange);
         assertNoGroupMembers(dummyGroupAtOrange);
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
@@ -418,76 +389,67 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test302AddRoleBrute() throws Exception {
-        final String TEST_NAME = "test302AddRoleBrute";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ROLE_BRUTE_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupBrute = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
+        displayDumpable("Group", dummyGroupBrute);
         assertNoGroupMembers(dummyGroupBrute);
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertNoGroupMembers(dummyGroupBruteWannabe);
     }
 
     @Test
     public void test304AddRoleThug() throws Exception {
-        final String TEST_NAME = "test304AddRoleThug";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(ROLE_THUG_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupThug = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
+        displayDumpable("Group", dummyGroupThug);
         assertNoGroupMembers(dummyGroupThug);
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMembers(dummyGroupThugWannabe);
     }
 
     @Test
     public void test310AssignRoleWimpToLargo() throws Exception {
-        final String TEST_NAME = "test310AssignRoleWimpToLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_LARGO_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -495,24 +457,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupWimpAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
-        display("Group @orange", dummyGroupWimpAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpAtOrange);
         assertGroupMember(dummyGroupWimpAtOrange, USER_LARGO_USERNAME);
     }
 
     @Test
     public void test312AssignRoleBruteToLargo() throws Exception {
-        final String TEST_NAME = "test312AssignRoleBruteToLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -520,59 +479,53 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_LARGO_USERNAME);
     }
 
     @Test
     public void test313UnAssignRoleBruteFromLargo() throws Exception {
-        final String TEST_NAME = "test313UnAssignRoleBruteFromLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupBrute = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupBrute);
-        display("Group", dummyGroupBrute);
+        displayDumpable("Group", dummyGroupBrute);
         assertNoGroupMembers(dummyGroupBrute);
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertNoGroupMembers(dummyGroupBruteWannabe);
 
         assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_LARGO_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
-        display("Group @orange", dummyGroupAtOrange);
+        displayDumpable("Group @orange", dummyGroupAtOrange);
         assertGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
     }
 
     @Test
     public void test314AssignRoleThugToLargo() throws Exception {
-        final String TEST_NAME = "test314AssignRoleThugToLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -580,42 +533,39 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_LARGO_USERNAME);
     }
 
     @Test
     public void test315UnAssignRoleThugFromLargo() throws Exception {
-        final String TEST_NAME = "test315UnAssignRoleThugFromLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupThug = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
+        displayDumpable("Group", dummyGroupThug);
         assertNoGroupMembers(dummyGroupThug);
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMembers(dummyGroupThugWannabe);
 
         assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_LARGO_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
-        display("Group @orange", dummyGroupAtOrange);
+        displayDumpable("Group @orange", dummyGroupAtOrange);
         assertGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
     }
 
@@ -624,18 +574,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test317RenameLargo() throws Exception {
-        final String TEST_NAME = "test317RenameLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_LARGO_OID, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("newLargo"));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -643,31 +590,28 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
         assertGroupMember(dummyGroup, "newLargo");
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
-        display("Group", dummyGroupAtOrange);
+        displayDumpable("Group", dummyGroupAtOrange);
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
         assertGroupMember(dummyGroupAtOrange, "newLargo");
     }
 
     @Test
     public void test319UnassignRoleWimpFromLargo() throws Exception {
-        final String TEST_NAME = "test319UnassignRoleWimpFromLargo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -676,13 +620,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertNoGroupMember(dummyGroup, USER_LARGO_USERNAME);
         assertNoGroupMember(dummyGroup, "newLargo");
 
         DummyGroup dummyGroupAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupAtOrange);
-        display("Group @orange", dummyGroupAtOrange);
+        displayDumpable("Group @orange", dummyGroupAtOrange);
         assertNoGroupMember(dummyGroupAtOrange, USER_LARGO_USERNAME);
         // Orange resource has explicit referential integrity switched off
         assertGroupMember(dummyGroupAtOrange, "newLargo");
@@ -693,20 +637,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test320AssignRoleBruteToRapp() throws Exception {
-        final String TEST_NAME = "test320AssignRoleBruteToRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         addObject(USER_RAPP_FILE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -714,24 +655,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test322AssignRoleWimpToRapp() throws Exception {
-        final String TEST_NAME = "test322AssignRoleWimpToRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -739,31 +677,28 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupWimpAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
-        display("Group @orange", dummyGroupWimpAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpAtOrange);
         assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test324AssignRoleThugToRapp() throws Exception {
-        final String TEST_NAME = "test324AssignRoleThugToRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -771,125 +706,116 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_DUMMY_WIMPS_NAME, USER_RAPP_USERNAME, getDummyResource());
 
         DummyGroup dummyGroupWimpAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
-        display("Group @orange", dummyGroupWimpAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpAtOrange);
         assertGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test327UnassignRoleWimpFromRapp() throws Exception {
-        final String TEST_NAME = "test327UnassignRoleWimpFromRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_WIMP_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
-        display("Group", dummyGroupWimp);
+        displayDumpable("Group", dummyGroupWimp);
         assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
 
         DummyGroup dummyGroupWimpAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
-        display("Group @orange", dummyGroupWimpAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpAtOrange);
         assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_THUG_NAME, USER_RAPP_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test328UnassignRoleThugFromRapp() throws Exception {
-        final String TEST_NAME = "test328UnassignRoleThugFromRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_THUG_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
         DummyGroup dummyGroupThug = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupThug);
-        display("Group", dummyGroupThug);
+        displayDumpable("Group", dummyGroupThug);
         assertNoGroupMember(dummyGroupThug, USER_RAPP_USERNAME);
 
         DummyGroup dummyGroupThugWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_THUG_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupThugWannabe);
-        display("Wannabe Group", dummyGroupThugWannabe);
+        displayDumpable("Wannabe Group", dummyGroupThugWannabe);
         assertNoGroupMember(dummyGroupThugWannabe, USER_RAPP_USERNAME);
 
         DummyGroup dummyGroupWimp = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimp);
-        display("Group", dummyGroupWimp);
+        displayDumpable("Group", dummyGroupWimp);
         assertNoGroupMember(dummyGroupWimp, USER_RAPP_USERNAME);
 
         DummyGroup dummyGroupWimpAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpAtOrange);
-        display("Group @orange", dummyGroupWimpAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpAtOrange);
         assertNoGroupMember(dummyGroupWimpAtOrange, USER_RAPP_USERNAME);
 
         assertGroupMember(GROUP_BRUTE_NAME, USER_RAPP_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test329UnAssignRoleBruteFromRapp() throws Exception {
-        final String TEST_NAME = "test329UnAssignRoleBruteFromRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_BRUTE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -899,43 +825,40 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         DummyGroup dummyGroupBruteWannabe = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_BRUTE_NAME + "-wannabe");
         assertNotNull("No wannabe group on orange dummy resource", dummyGroupBruteWannabe);
-        display("Wannabe Group", dummyGroupBruteWannabe);
+        displayDumpable("Wannabe Group", dummyGroupBruteWannabe);
         // Orange resource has explicit referential integrity switched off
         assertGroupMember(dummyGroupBruteWannabe, USER_RAPP_USERNAME);
 
         DummyGroup dummyGroupWimps = getDummyResource().getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on dummy resource", dummyGroupWimps);
-        display("Group", dummyGroupWimps);
+        displayDumpable("Group", dummyGroupWimps);
         assertNoGroupMembers(dummyGroupWimps);
 
         DummyGroup dummyGroupWimpsAtOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME).getGroupByName(GROUP_DUMMY_WIMPS_NAME);
         assertNotNull("No group on orange dummy resource", dummyGroupWimpsAtOrange);
-        display("Group @orange", dummyGroupWimpsAtOrange);
+        displayDumpable("Group @orange", dummyGroupWimpsAtOrange);
         // Orange resource has explicit referential integrity switched off
         assertNoGroupMember(dummyGroupWimpsAtOrange, USER_RAPP_USERNAME);
     }
 
     @Test
     public void test350AssignOrangeAccountToGuybrushAndRapp() throws Exception {
-        final String TEST_NAME = "test350AssignOrangeAccountToGuybrushAndRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
         assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         DummyAccount accountGuybrush = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Account guybrush", accountGuybrush);
+        displayDumpable("Account guybrush", accountGuybrush);
         DummyAccount accountRapp = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
-        display("Account rapp", accountRapp);
+        displayDumpable("Account rapp", accountRapp);
     }
 
     /**
@@ -943,10 +866,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test351AssignRoleCrewOfGuybrushToRapp() throws Exception {
-        final String TEST_NAME = "test351AssignRoleCrewOfGuybrushToRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
@@ -957,11 +877,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_RAPP_OID, ROLE_CREW_OF_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -978,7 +898,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
 
         DummyAccount dummyOrangeAccountRapp = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
-        display("Rapp account", dummyOrangeAccountRapp);
+        displayDumpable("Rapp account", dummyOrangeAccountRapp);
         assertDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME,
                 DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
     }
@@ -988,10 +908,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test358UnassignRoleCrewOfGuybrushToRapp() throws Exception {
-        final String TEST_NAME = "test358UnassignRoleCrewOfGuybrushToRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userRappBefore = getUser(USER_RAPP_OID);
@@ -1002,11 +919,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_RAPP_OID, ROLE_CREW_OF_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userGuybrushAfter = getUser(USER_GUYBRUSH_OID);
@@ -1021,26 +938,23 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoAssociation(rappShadow, RESOURCE_DUMMY_ORANGE_ASSOCIATION_CREW_QNAME, guybrushShadowOid);
 
         DummyAccount dummyOrangeAccountRapp = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME);
-        display("Rapp account", dummyOrangeAccountRapp);
+        displayDumpable("Rapp account", dummyOrangeAccountRapp);
         assertNoDummyAccountAttribute(RESOURCE_DUMMY_ORANGE_NAME, USER_RAPP_USERNAME,
                 DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
     }
 
     @Test
     public void test359UnassignOrangeAccountFromGuybrushAndRapp() throws Exception {
-        final String TEST_NAME = "test359UnassignOrangeAccountFromGuybrushAndRapp";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
         unassignAccountFromUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
@@ -1051,18 +965,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test600AssignRolePirateToJack() throws Exception {
-        final String TEST_NAME = "test600AssignRolePirateToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1071,7 +982,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1079,25 +990,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
 
-
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
     }
 
     @Test
     public void test610AssignRoleSwashbucklerToJack() throws Exception {
-        final String TEST_NAME = "test610AssignRoleSwashbucklerToJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1106,7 +1013,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1120,18 +1027,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test620UnAssignSwashbucklerFromJack() throws Exception {
-        final String TEST_NAME = "test620UnAssignSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -1140,14 +1044,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
 
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK);
-
 
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate");
@@ -1158,28 +1061,25 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test630AssignRoleSwashbucklerToJackValidity() throws Exception {
-        final String TEST_NAME = "test630AssignRoleSwashbucklerToJackValidity";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         jackSwashbucklerAssignmentActivation = new ActivationType();
 
         XMLGregorianCalendar validFrom = clock.currentTimeXMLGregorianCalendar();
-        validFrom.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
+        validFrom.add(XmlTypeConverter.createDuration(60 * 60 * 1000)); // one hour ahead
         jackSwashbucklerAssignmentActivation.setValidFrom(validFrom);
 
         XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
-        validTo.add(XmlTypeConverter.createDuration(3*60*60*1000)); // three hours ahead
+        validTo.add(XmlTypeConverter.createDuration(3 * 60 * 60 * 1000)); // three hours ahead
         jackSwashbucklerAssignmentActivation.setValidTo(validTo);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, jackSwashbucklerAssignmentActivation, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1188,7 +1088,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1202,10 +1102,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test640JackRoleSwashbucklerBecomesValid() throws Exception {
-        final String TEST_NAME = "test640JackRoleSwashbucklerBecomesValid";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT2H");
@@ -1223,7 +1120,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1231,17 +1128,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, RESOURCE_DUMMY_DRINK, "grog");
 
-
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Bloody Pirate", "Swashbuckler");
     }
 
     @Test
     public void test645JackRoleSwashbucklerIsValid() throws Exception {
-        final String TEST_NAME = "test645JackRoleSwashbucklerIsValid";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -1256,7 +1149,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1270,10 +1163,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test650JackRoleSwashbucklerBecomesInvalid() throws Exception {
-        final String TEST_NAME = "test650JackRoleSwashbucklerBecomesInvalid";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clock.overrideDuration("PT2H");
@@ -1290,7 +1180,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1306,18 +1196,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test659UnassignRoleSwashbucklerFromJack() throws Exception {
-        final String TEST_NAME = "test659UnassignRoleSwashbucklerFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, jackSwashbucklerAssignmentActivation.clone(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1328,7 +1215,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1346,18 +1233,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test699UnassignRolePirateFromJack() throws Exception {
-        final String TEST_NAME = "test699UnassignRolePirateFromJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1372,10 +1256,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test700ReconcileGuybrush() throws Exception {
-        final String TEST_NAME = "test700ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         clock.resetOverride();
 
@@ -1390,11 +1271,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1406,16 +1287,13 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test710AssociateGuybrushToLandlubers() throws Exception {
-        final String TEST_NAME = "test710AssociateGuybrushToLandlubers";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta =
                 IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SHADOW_GROUP_DUMMY_LANDLUBERS_OID, prismContext);
+                        dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+                        SHADOW_GROUP_DUMMY_LANDLUBERS_OID, prismContext);
 
         // WHEN
         executeChanges(delta, null, task, result);
@@ -1426,16 +1304,12 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
     }
 
-
     /**
      * Add account to 2 groups using model service (shadow operations) - preparation for next test (intolerantValuePatterns)
      */
     @Test
     public void test715AssociateGuybrushToThugs() throws Exception {
-        final String TEST_NAME = "test715AssociateGuybrushToThugs";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -1449,26 +1323,26 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
                 IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
                         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
                         getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug", task, result).getOid(),
-                                prismContext);
+                        prismContext);
 
         ObjectDelta<ShadowType> delta2 =
                 IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
                         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug-wannabe", task, result) .getOid(),
-                                prismContext);
+                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getGroupObjectClass(), "thug-wannabe", task, result).getOid(),
+                        prismContext);
 
         ObjectDelta<ShadowType> delta = ObjectDeltaCollectionsUtil.summarize(delta1, delta2);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
-        assertGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
+        assertGroupMember(GROUP_THUG_NAME + "-wannabe", ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
     }
 
     /**
@@ -1476,10 +1350,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test720ReconcileGuybrush() throws Exception {
-        final String TEST_NAME = "test720ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
@@ -1488,24 +1359,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_LANDLUBERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
-        assertNoGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
+        assertNoGroupMember(GROUP_THUG_NAME + "-wannabe", ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
     }
 
     @Test
     public void test729CleanupGuybrush() throws Exception {
-        final String TEST_NAME = "test729CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -1513,11 +1381,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAll(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1534,10 +1402,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test750PrepareGuybrushFuturePerfect() throws Exception {
-        final String TEST_NAME = "test750PrepareGuybrushFuturePerfect";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
@@ -1552,11 +1417,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1577,20 +1442,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test752GuybrushFuturePerfect() throws Exception {
-        final String TEST_NAME = "test752GuybrushFuturePerfect";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         getDummyResourceController().addGroup(orgGroupName(OU_CLUB_SCI_FI));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1603,20 +1465,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test759CleanupGuybrush() throws Exception {
-        final String TEST_NAME = "test759CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1630,10 +1489,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test760GuybrushOrgGroupsRepo() throws Exception {
-        final String TEST_NAME = "test760GuybrushOrgGroupsRepo";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = dumpUserAndAccounts(USER_GUYBRUSH_OID);
@@ -1641,11 +1497,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBefore, 0);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1658,19 +1514,16 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test765ReconcileGuybrush() throws Exception {
-        final String TEST_NAME = "test765ReconcileGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 1);
@@ -1680,7 +1533,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(orgGroupName(OU_CLUB_DIVERS), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
         assertGroupMember(orgGroupName(OU_CLUB_SCI_FI), ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
 
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1690,20 +1543,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test769CleanupGuybrush() throws Exception {
-        final String TEST_NAME = "test769CleanupGuybrush";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_ORG_GROUPING_REPO_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
         PrismObject<UserType> userAfter = dumpUserAndAccounts(USER_GUYBRUSH_OID);
         assertAssignments(userAfter, 0);
@@ -1717,18 +1567,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test780AssignGuybrushSwashbuckler() throws Exception {
-        final String TEST_NAME = "test780AssignGuybrushSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1742,10 +1589,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test781GuybrushTheLostSwashbuckler() throws Exception {
-        final String TEST_NAME = "test781GuybrushTheLostSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
@@ -1753,11 +1597,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1766,18 +1610,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test784UnassignGuybrushSwashbuckler() throws Exception {
-        final String TEST_NAME = "test784UnassignGuybrushSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1786,21 +1627,18 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test785AssignGuybrushBlueSwashbuckler() throws Exception {
-        final String TEST_NAME = "test785AssignGuybrushBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<ShadowType> group = prismContext.parseObject(SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE);
         addObject(group, task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1814,10 +1652,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test786GuybrushTheLostBlueSwashbuckler() throws Exception {
-        final String TEST_NAME = "test786GuybrushTheLostBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         DummyGroup dummyGroup = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
@@ -1825,11 +1660,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1838,18 +1673,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test789UnassignGuybrushBlueSwashbuckler() throws Exception {
-        final String TEST_NAME = "test789UnassignGuybrushBlueSwashbuckler";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
@@ -1861,10 +1693,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test800AssignRoleSwashbucklerToJackNone() throws Exception {
-        final String TEST_NAME = "test800AssignRoleSwashbucklerToJackNone";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -1873,11 +1702,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1895,20 +1724,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test805ReconcileJackNone() throws Exception {
-        final String TEST_NAME = "test805ReconcileJackNone";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1924,20 +1750,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test809UnAssignRoleSwashbucklerFromJackNone() throws Exception {
-        final String TEST_NAME = "test809UnAssignRoleSwashbucklerFromJackNone";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1952,10 +1775,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test810AssignRoleSwashbucklerToJackPositive() throws Exception {
-        final String TEST_NAME = "test810AssignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -1964,11 +1784,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -1984,20 +1804,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test815ReconcileJackPositive() throws Exception {
-        final String TEST_NAME = "test815ReconcileJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2013,20 +1830,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test817UnAssignRoleSwashbucklerFromJackPositive() throws Exception {
-        final String TEST_NAME = "test817UnAssignRoleSwashbucklerFromJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2041,20 +1855,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test819ReconcileJackPositive() throws Exception {
-        final String TEST_NAME = "test819ReconcileJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2074,10 +1885,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test820RecomputeJackFull() throws Exception {
-        final String TEST_NAME = "test820RecomputeJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -2086,11 +1894,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2105,10 +1913,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test822AssignRoleSwashbucklerToJackFull() throws Exception {
-        final String TEST_NAME = "test822AssignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -2117,11 +1922,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2137,20 +1942,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test825ReconcileJackFull() throws Exception {
-        final String TEST_NAME = "test825ReconcileJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2166,20 +1968,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test827UnAssignRoleSwashbucklerFromJackFull() throws Exception {
-        final String TEST_NAME = "test827UnAssignRoleSwashbucklerFromJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2194,20 +1993,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test829ReconcileJackFull() throws Exception {
-        final String TEST_NAME = "test829ReconcileJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2223,10 +2019,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test830AssignJackAccountDummy() throws Exception {
-        final String TEST_NAME = "test830AssignJackAccountDummy";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -2235,11 +2028,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackClean();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2247,17 +2040,14 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userAfter, 1);
 
         assertJackAccountNoSwashbuckler();
-     }
+    }
 
     /**
      * MID-4021
      */
     @Test
     public void test840AssignRoleSwashbucklerToJackNone() throws Exception {
-        final String TEST_NAME = "test840AssignRoleSwashbucklerToJackNone";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
@@ -2266,11 +2056,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2286,20 +2076,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test849UnassignRoleSwashbucklerFromJackNone() throws Exception {
-        final String TEST_NAME = "test849UnassignRoleSwashbucklerFromJackNone";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2314,10 +2101,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test850AssignRoleSwashbucklerToJackPositive() throws Exception {
-        final String TEST_NAME = "test850AssignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
@@ -2326,11 +2110,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2346,20 +2130,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test859UnassignRoleSwashbucklerToJackPositive() throws Exception {
-        final String TEST_NAME = "test859UnassignRoleSwashbucklerToJackPositive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2376,20 +2157,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test860RecomputeJackFull() throws Exception {
-        final String TEST_NAME = "test860RecomputeJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2404,10 +2182,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test862AssignRoleSwashbucklerToJackFull() throws Exception {
-        final String TEST_NAME = "test862AssignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
@@ -2416,11 +2191,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertJackJustAccount();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2436,20 +2211,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test869UnassignRoleSwashbucklerToJackFull() throws Exception {
-        final String TEST_NAME = "test869UnassignRoleSwashbucklerToJackFull";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2464,20 +2236,17 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test899UnAssignAccountJackDummy() throws Exception {
-        final String TEST_NAME = "test899UnAssignAccountJackDummy";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -2512,7 +2281,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -2521,15 +2290,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     /**
      * Account: yes, group: no
      */
-     private void assertJackAccountNoSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException, InterruptedException {
-         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+    private void assertJackAccountNoSwashbuckler() throws SchemaViolationException, ConflictException, ConnectException, FileNotFoundException, InterruptedException {
+        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
-                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+                dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
-     }
+    }
 
     /**
      * Account: no, group: no
@@ -2537,7 +2306,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
     private void assertJackNoAccountNoSwashbuckler() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         assertNotNull("No group on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
+        displayDumpable("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
                 dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertNoGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -2554,18 +2323,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         }
     }
 
-    private void dumpUserAndAccounts(PrismObject<UserType> user)
-            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("dumpUserAndAccounts");
-        OperationResult result = task.getResult();
-        dumpUserAndAccounts(user, task, result);
-    }
-
     private PrismObject<UserType> dumpUserAndAccounts(String userOid)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
-        Task task = createTask("dumpUserAndAccounts");
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<UserType> user = getUser(userOid);
         dumpUserAndAccounts(user, task, result);
@@ -2587,7 +2348,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             throws ConflictException, SchemaViolationException, FileNotFoundException, ConnectException, InterruptedException {
         String userName = user.getName().getOrig();
         DummyAccount dummyAccount = getDummyAccount(dummyResourceName, userName);
-        display("dummy account: " + dummyResourceName, dummyAccount);
+        displayDumpable("dummy account: " + dummyResourceName, dummyAccount);
         List<DummyGroup> groups = getGroupsForUser(dummyResourceName, userName);
         display("dummy account groups: " + dummyResourceName, groups);
     }
@@ -2631,7 +2392,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
         assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
-        display("group", dummyGroup);
+        displayDumpable("group", dummyGroup);
         assertGroupMember(dummyGroup, accountName);
     }
 
@@ -2639,7 +2400,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyGroup dummyGroup = dummyResource.getGroupByName(groupName);
         assertNotNull("No group " + dummyGroup + " on " + dummyResource, dummyGroup);
-        display("group", dummyGroup);
+        displayDumpable("group", dummyGroup);
         assertNoGroupMember(dummyGroup, accountName);
     }
 

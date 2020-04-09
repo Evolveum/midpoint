@@ -78,9 +78,7 @@ public class JobExecutor implements InterruptableJob {
         // get the task instance
         String oid = context.getJobDetail().getKey().getName();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = taskManagerImpl.getSchemaHelper().getOperationOptionsBuilder()
-                    .item(TaskType.F_RESULT).retrieve().build();
-            task = taskManagerImpl.createRunningTask(taskManagerImpl.getTask(oid, options, executionResult));
+            task = taskManagerImpl.createRunningTask(taskManagerImpl.getTaskWithResult(oid, executionResult));
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
@@ -173,7 +171,7 @@ public class JobExecutor implements InterruptableJob {
             }
 
             // Setup Spring Security context
-            PrismObject<UserType> taskOwner = task.getOwner();
+            PrismObject<? extends FocusType> taskOwner = task.getOwner();
             try {
                 // just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
                 taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
@@ -365,7 +363,7 @@ public class JobExecutor implements InterruptableJob {
                 }
                 Task otherTask;
                 try {
-                    otherTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
+                    otherTask = taskManagerImpl.getTaskPlain(taskInfo.getOid(), result);
                 } catch (ObjectNotFoundException e) {
                     LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(),
                             e.getMessage());

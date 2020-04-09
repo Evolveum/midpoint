@@ -66,7 +66,7 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
-        getOrApply(http, new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter()))
+        getOrApply(http, getMidpointFormLoginConfiguration())
                 .loginPage("/login")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
                 .failureHandler(new MidpointAuthenticationFauileHandler())
@@ -76,7 +76,8 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
                 .authenticationEntryPoint(new WicketLoginUrlAuthenticationEntryPoint("/login"));
 
         http.logout().clearAuthentication(true)
-                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
+                .logoutRequestMatcher(getLogoutMatcher(http, getPrefix() +"/logout"))
+//                .logoutUrl(stripEndingSlases(getPrefix()) +"/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(createLogoutHandler());
@@ -89,5 +90,9 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
                                 if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
             http.addFilterBefore(requestAttributeAuthenticationFilter, LogoutFilter.class);
         }
+    }
+
+    protected MidpointFormLoginConfigurer getMidpointFormLoginConfiguration() {
+        return new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter());
     }
 }

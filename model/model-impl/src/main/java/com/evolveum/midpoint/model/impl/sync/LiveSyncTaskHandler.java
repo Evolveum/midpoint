@@ -8,7 +8,8 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,25 +22,19 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 /**
  * The task handler for a live synchronization.
- *
- *  This handler takes care of executing live synchronization "runs". It means that the handler "run" method will
- *  be called every few seconds. The responsibility is to scan for changes that happened since the last run.
+ * <p>
+ * This handler takes care of executing live synchronization "runs". It means that the handler "run" method will
+ * be called every few seconds. The responsibility is to scan for changes that happened since the last run.
  *
  * @author Radovan Semancik
- *
  */
 @Component
 public class LiveSyncTaskHandler implements TaskHandler {
@@ -48,7 +43,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private PrismContext prismContext;
     @Autowired private SyncTaskHelper helper;
 
     private static final Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
@@ -72,7 +66,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
         LOGGER.trace("LiveSyncTaskHandler.run starting");
 
-
         OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
@@ -81,9 +74,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
             task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
         }
 
-        final String CTX = "Live Sync";
+        final String ctx = "Live Sync";
 
-        TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, CTX);
+        TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, ctx);
         if (targetInfo == null) {
             return runResult;
         }
@@ -97,7 +90,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
             ModelImplUtils.clearRequestee(task);
             changesProcessed = provisioningService.synchronize(targetInfo.coords, task, partition, opResult);
         } catch (Throwable t) {
-            helper.processException(LOGGER, t, opResult, runResult, partition, CTX);
+            helper.processException(LOGGER, t, opResult, runResult, partition, ctx);
             return runResult;
         }
 
@@ -113,5 +106,10 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.LIVE_SYNCHRONIZATION;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
     }
 }

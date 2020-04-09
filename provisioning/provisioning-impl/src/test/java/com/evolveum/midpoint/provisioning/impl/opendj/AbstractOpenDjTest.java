@@ -25,20 +25,13 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-/**
- * @author semancik
- *
- */
 public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegrationTest {
 
     protected static final File TEST_DIR = new File("src/test/resources/opendj");
@@ -160,25 +153,23 @@ public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegration
 
     protected static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NS, "group");
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractOpenDjTest.class);
-
     protected MatchingRule<String> dnMatchingRule;
 
     protected PrismObject<ResourceType> resource;
     protected ResourceType resourceType;
     protected PrismObject<ConnectorType> connector;
 
-    @Autowired(required = true)
+    @Autowired
     protected ProvisioningService provisioningService;
 
     // Used to make sure that the connector is cached
-    @Autowired(required = true)
+    @Autowired
     protected ResourceManager resourceManager;
 
-    @Autowired(required = true)
+    @Autowired
     protected SynchronizationServiceMock syncServiceMock;
 
-    @Autowired(required = true)
+    @Autowired
     protected MatchingRuleRegistry matchingRuleRegistry;
 
     protected File getResourceOpenDjFile() {

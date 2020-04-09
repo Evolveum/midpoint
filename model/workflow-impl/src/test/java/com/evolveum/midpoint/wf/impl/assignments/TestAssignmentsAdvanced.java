@@ -6,6 +6,24 @@
  */
 package com.evolveum.midpoint.wf.impl.assignments;
 
+import static java.util.Collections.*;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
+
+import java.io.File;
+import java.util.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -22,44 +40,22 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.ExpectedWorkItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.io.File;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.PROCESS;
-import static java.util.Collections.*;
-import static org.testng.AssertJUnit.*;
 
 /**
  * A special test dealing with assigning roles that have different metarole-induced approval policies.
- *
+ * <p>
  * Role21 - uses default approval (org:approver)
  * Role22 - uses metarole 1 'default' induced approval (org:special-approver)
  * Role23 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
- *
- * @author mederly
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
-
-    protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentsAdvanced.class);
 
     private static final File TEST_RESOURCE_DIR = new File("src/test/resources/assignments-advanced");
 
@@ -77,6 +73,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE27_FILE = new File(TEST_RESOURCE_DIR, "role-role27-modifications-and.xml");
     private static final File ROLE_ROLE28_FILE = new File(TEST_RESOURCE_DIR, "role-role28-modifications-or.xml");
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
+
+    private static final TestResource ROLE_SKIPPED_FILE = new TestResource(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
+
     private static final TestResource ROLE_IDEMPOTENT = new TestResource(TEST_RESOURCE_DIR, "role-idempotent.xml", "e2f2d977-887b-4ea1-99d8-a6a030a1a6c0");
     private static final TestResource ROLE_WITH_IDEMPOTENT_METAROLE = new TestResource(TEST_RESOURCE_DIR, "role-with-idempotent-metarole.xml", "34855a80-3899-4ecf-bdb3-9fc008c4ff70");
 
@@ -131,6 +130,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         roleRole29Oid = repoAddObjectFromFile(ROLE_ROLE29_FILE, initResult).getOid();
         repoAdd(ROLE_IDEMPOTENT, initResult);
         repoAdd(ROLE_WITH_IDEMPOTENT_METAROLE, initResult);
+        repoAdd(ROLE_SKIPPED_FILE, initResult);
 
         orgLeads2122Oid = repoAddObjectFromFile(ORG_LEADS2122_FILE, initResult).getOid();
 
@@ -278,8 +278,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test300ApprovalAndEnforce() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         try {
             assignRole(userJackOid, roleRole24Oid, task, result);
@@ -326,8 +326,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test500NoApprovers() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         assignRole(userJackOid, roleRole26Oid, task, result);
         String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
@@ -352,15 +352,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test600AssignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         assignRole(userJackOid, roleRole29Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole29Oid);
@@ -371,20 +371,20 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
-                        .replace("new description")
+                .replace("new description")
                 .asObjectDeltaCast(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
-                        .replace(PolyString.fromOrig("new full name"))
+                .replace(PolyString.fromOrig("new full name"))
                 .asObjectDeltaCast(userJackOid);
 
         // +THEN
-        executeTest2(getTestNameShort(), new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jackBefore;
@@ -465,7 +465,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole29Oid);
@@ -487,20 +487,20 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole29Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
-                        .replace("new description 2")
+                .replace("new description 2")
                 .asObjectDeltaCast(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
-                        .replace(PolyString.fromOrig("new full name 2"))
+                .replace(PolyString.fromOrig("new full name 2"))
                 .asObjectDeltaCast(userJackOid);
 
         // +THEN
-        executeTest2(getTestNameShort(), new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jackBefore;
@@ -582,7 +582,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, true);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole29Oid);
@@ -592,15 +592,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test630UnassignRole29() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignRoleByAssignmentValue(getUser(userJackOid), roleRole29Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, roleRole29Oid);
@@ -614,8 +614,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         // WHEN/THEN
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                        .add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
-                                    .description("description"))
+                .add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
+                        .description("description"))
                 .asObjectDeltaCast(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
@@ -624,7 +624,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         PrismObject<UserType> jackBefore = getUser(userJackOid);
 
-        executeTest2(getTestNameShort(), new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jackBefore;
@@ -708,7 +708,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole28Oid);
@@ -720,22 +720,22 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
-                        .replace("new description")
+                .replace("new description")
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_LIFECYCLE_STATE)      // this will be part of the delta to approve
-                        .replace("active")
+                .replace("active")
                 .asObjectDeltaCast(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
-                        .replace(PolyString.fromOrig("new full name 4"))
+                .replace(PolyString.fromOrig("new full name 4"))
                 .asObjectDeltaCast(userJackOid);
 
         // +THEN
-        executeTest2(getTestNameShort(), new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jackBefore;
@@ -816,7 +816,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertAssignedRoles(jackAfter, roleRole28Oid);
@@ -828,12 +828,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         login(userAdministrator);
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignment = findAssignmentByTargetRequired(jackBefore, roleRole28Oid);
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                        .delete(new AssignmentType().id(assignment.getId()))        // id-only, to test the constraint
+                .delete(new AssignmentType().id(assignment.getId()))        // id-only, to test the constraint
                 .asObjectDeltaCast(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
@@ -841,7 +841,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .asObjectDeltaCast(userJackOid);
 
         // +THEN
-        executeTest2(getTestNameShort(), new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jackBefore;
@@ -925,7 +925,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }, 1, false);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jackAfter = getUser(userJackOid);
         display("jack after", jackAfter);
         assertNotAssignedRole(jackAfter, roleRole28Oid);
@@ -934,11 +934,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test800AssignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
@@ -947,7 +947,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertAssignedRoles(jack, roleRole27Oid);
@@ -956,11 +956,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test810ModifyAssignmentOfRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         PrismObject<UserType> jackBefore = getUser(userJackOid);
         AssignmentType assignmentBefore = findAssignmentByTargetRequired(jackBefore, roleRole27Oid);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
@@ -971,7 +971,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, roleRole27Oid);
@@ -981,15 +981,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test820UnassignRole27() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignRoleByAssignmentValue(getUser(userJackOid), roleRole27Oid, task, result);           // should proceed without approvals
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, roleRole27Oid);
@@ -998,26 +998,26 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test      // MID-5827
     public void test900AssignIdempotentRole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAllRoles(userJackOid);
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .add(
-                            new AssignmentType(prismContext).targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE),
-                            new AssignmentType(prismContext)
-                                    .targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE)
-                                    .beginActivation().validFrom("1990-01-01T00:00:00").end())
+                .add(
+                        new AssignmentType(prismContext).targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE),
+                        new AssignmentType(prismContext)
+                                .targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE)
+                                .beginActivation().validFrom("1990-01-01T00:00:00").end())
                 .asObjectDeltaCast(userJackOid);
 
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, ROLE_IDEMPOTENT.oid);
@@ -1038,26 +1038,26 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     @Test
     public void test910AssignRoleWithIdempotentMetarole() throws Exception {
         login(userAdministrator);
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         // WHEN
-        displayWhen();
+        when();
         unassignAllRoles(userJackOid);
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .add(
-                            new AssignmentType(prismContext).targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE),
-                            new AssignmentType(prismContext)
-                                    .targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE)
-                                    .beginActivation().validFrom("1990-01-01T00:00:00").end())
+                .add(
+                        new AssignmentType(prismContext).targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE),
+                        new AssignmentType(prismContext)
+                                .targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE)
+                                .beginActivation().validFrom("1990-01-01T00:00:00").end())
                 .asObjectDeltaCast(userJackOid);
 
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen();
+        then();
         PrismObject<UserType> jack = getUser(userJackOid);
         display("jack", jack);
         assertNotAssignedRole(jack, ROLE_WITH_IDEMPOTENT_METAROLE.oid);
@@ -1075,9 +1075,37 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         deleteCaseTree(rootCaseOid, result);
     }
 
+    /**
+     * MID-5895
+     */
+    @Test
+    public void test920AssignRoleWithComputedSkip() throws Exception {
+        given();
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        unassignAllRoles(userJackOid);
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType(prismContext).targetRef(ROLE_SKIPPED_FILE.oid, RoleType.COMPLEX_TYPE))
+                .asObjectDeltaCast(userJackOid);
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        String ref = result.findAsynchronousOperationReference();
+        assertNull("Present async operation reference", ref);
+
+        assertUser(userJackOid, "after")
+                .assertAssignments(1);
+    }
+
     private void executeAssignRoles123ToJack(boolean immediate,
             boolean approve1, boolean approve2, boolean approve3a, boolean approve3b, boolean securityDeputy) throws Exception {
-        Task task = getTask();
+        Task task = getTestTask();
         String testName = getTestNameShort();
         PrismObject<UserType> jack = getUser(userJackOid);
         ObjectDelta<UserType> addRole1Delta = prismContext
@@ -1100,7 +1128,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .summarize(addRole1Delta, addRole2Delta, addRole3Delta, changeDescriptionDelta);
         ObjectDelta<UserType> delta0 = changeDescriptionDelta.clone();
         String originalDescription = getUser(userJackOid).asObjectable().getDescription();
-        executeTest2(testName, new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -1173,12 +1201,12 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                     case 2:
                     case 3:
                         String[] oids = { roleRole21Oid, roleRole22Oid, roleRole23Oid };
-                    if (yes) {
-                        assertAssignedRole(userJackOid, oids[number-1], opTask, result);
-                    } else {
-                        assertNotAssignedRole(userJackOid, oids[number-1], opTask, result);
-                    }
-                    break;
+                        if (yes) {
+                            assertAssignedRole(userJackOid, oids[number - 1], result);
+                        } else {
+                            assertNotAssignedRole(userJackOid, oids[number - 1], result);
+                        }
+                        break;
 
                 }
             }
@@ -1193,11 +1221,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 List<ExpectedTask> tasks = getExpectedTasks();
                 List<ApprovalInstruction> instructions = new ArrayList<>();
                 instructions.add(new ApprovalInstruction(
-                                new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid, null));
+                        new ExpectedWorkItem(userLead21Oid, roleRole21Oid, tasks.get(0)), approve1, userLead21Oid, null));
                 instructions.add(new ApprovalInstruction(
-                                new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid, null));
+                        new ExpectedWorkItem(userLead22Oid, roleRole22Oid, tasks.get(1)), approve2, userLead22Oid, null));
                 instructions.add(new ApprovalInstruction(
-                                new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid, null));
+                        new ExpectedWorkItem(userLead23Oid, roleRole23Oid, tasks.get(2)), approve3a, userLead23Oid, null));
                 if (approve3a) {
                     ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userSecurityApproverOid, roleRole23Oid, tasks.get(2));
                     ApprovalInstruction.CheckedRunnable before = () -> {
@@ -1218,8 +1246,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
     private void previewAssignRolesToJack(boolean immediate, boolean also24) throws Exception {
         String testName = getTestNameShort();
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
         boolean TRACE = false;
         //noinspection ConstantConditions
         if (TRACE) {
@@ -1246,9 +1274,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .previewChanges(singleton(primaryDelta), options, task, result);
 
         List<ApprovalSchemaExecutionInformationType> approvalInfo = modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class);
-        List<PolicyRuleEnforcerHookPreviewOutputType> enforceInfo = modelContext.getHookPreviewResults(PolicyRuleEnforcerHookPreviewOutputType.class);
+        PolicyRuleEnforcerPreviewOutputType enforceInfo = modelContext.getPolicyRuleEnforcerPreviewOutput();
         displayContainerablesCollection("Approval infos", approvalInfo);
-        displayContainerablesCollection("Enforce infos", enforceInfo);
+        display("Enforce info", enforceInfo);
         result.computeStatus();
         //noinspection ConstantConditions
         if (TRACE) {
@@ -1258,8 +1286,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         // we do not assert success here, because there are (intentional) exceptions in some of the expressions
 
         assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
-        assertEquals("Wrong # of enforcement hook preview output items", 1, enforceInfo.size());
-        List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.get(0).getRule();
+        assertNotNull("No enforcement preview output", enforceInfo);
+        List<EvaluatedPolicyRuleType> enforcementRules = enforceInfo.getRule();
         if (also24) {
             assertEquals("Wrong # of enforcement rules", 1, enforcementRules.size());
         } else {
@@ -1303,7 +1331,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ApprovalSchemaExecutionInformationType found = null;
         for (ApprovalSchemaExecutionInformationType info : infos) {
             assertNotNull("No taskRef", info.getCaseRef());
-            PrismObject object = info.getCaseRef().asReferenceValue().getObject();
+            PrismObject<?> object = info.getCaseRef().asReferenceValue().getObject();
             assertNotNull("No case in caseRef", object);
             CaseType aCase = (CaseType) object.asObjectable();
             ApprovalContextType wfc = aCase.getApprovalContext();
@@ -1325,15 +1353,15 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
             assertNotNull("no execution preview at " + pos, stagePreview.getExecutionPreview());
             assertNull("execution record present at " + pos, stagePreview.getExecutionRecord());
 
-            assertEquals("Wrong preview stage number at " + pos, (Integer) (i+1), stagePreview.getNumber());
-            assertEquals("Wrong definition stage number at " + pos, (Integer) (i+1), stagePreview.getDefinition().getNumber());
+            assertEquals("Wrong preview stage number at " + pos, (Integer) (i + 1), stagePreview.getNumber());
+            assertEquals("Wrong definition stage number at " + pos, (Integer) (i + 1), stagePreview.getDefinition().getNumber());
 
             assertEquals("Stage definition approver ref info differs at " + pos, expectedStagePreview.definitionApproverOids, getOids(stagePreview.getDefinition().getApproverRef()));
             assertEquals("Stage expected approver ref info differs at " + pos, expectedStagePreview.expectedApproverOids, getOids(stagePreview.getExecutionPreview().getExpectedApproverRef()));
             assertEquals("Unexpected outcome at " + pos, expectedStagePreview.outcome, stagePreview.getExecutionPreview().getExpectedAutomatedOutcome());
             assertEquals("Unexpected completion reason at " + pos, expectedStagePreview.reason, stagePreview.getExecutionPreview().getExpectedAutomatedCompletionReason());
             if (expectedStagePreview.hasError) {
-                assertNotNull("Error should be present at "+ pos, stagePreview.getExecutionPreview().getErrorMessage());
+                assertNotNull("Error should be present at " + pos, stagePreview.getExecutionPreview().getErrorMessage());
             } else {
                 //noinspection SimplifiedTestNGAssertion
                 assertEquals("Error message differs at " + pos, null, stagePreview.getExecutionPreview().getErrorMessage());
@@ -1377,7 +1405,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta0 = ObjectDeltaCollectionsUtil
                 .summarize(changeDescriptionDelta, deleteRole1Delta, deleteRole2Delta);
         String originalDescription = getUser(userJackOid).asObjectable().getDescription();
-        executeTest2(testName, new TestDetails2<UserType>() {
+        executeTest2(new TestDetails2<UserType>() {
             @Override
             protected PrismObject<UserType> getFocus(OperationResult result) {
                 return jack.clone();
@@ -1442,18 +1470,18 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                             }
                         }
                         if (yes || !has1and2) {
-                            assertNotAssignedRole(userJackOid, roleRole21Oid, opTask, result);
-                            assertNotAssignedRole(userJackOid, roleRole22Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole21Oid, result);
+                            assertNotAssignedRole(userJackOid, roleRole22Oid, result);
                         } else {
-                            assertAssignedRole(userJackOid, roleRole21Oid, opTask, result);
-                            assertAssignedRole(userJackOid, roleRole22Oid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRole21Oid, result);
+                            assertAssignedRole(userJackOid, roleRole22Oid, result);
                         }
                         break;
                     case 1:
                         if (yes) {
-                            assertNotAssignedRole(userJackOid, roleRole23Oid, opTask, result);
+                            assertNotAssignedRole(userJackOid, roleRole23Oid, result);
                         } else {
-                            assertAssignedRole(userJackOid, roleRole23Oid, opTask, result);
+                            assertAssignedRole(userJackOid, roleRole23Oid, result);
                         }
                         break;
                     default:
@@ -1491,12 +1519,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         }
     }
 
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
-
     private static class ExpectedStagePreview {
         @SuppressWarnings({ "FieldCanBeLocal", "unused" }) private int number;
         private final Set<String> definitionApproverOids;
@@ -1508,14 +1530,17 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         private ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids) {
             this(number, definitionApproverOids, expectedApproverOids, null, null, false);
         }
+
         private ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
                 ApprovalLevelOutcomeType outcome, AutomatedCompletionReasonType reason) {
             this(number, definitionApproverOids, expectedApproverOids, outcome, reason, false);
         }
+
         private ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
                 boolean hasError) {
             this(number, definitionApproverOids, expectedApproverOids, null, null, hasError);
         }
+
         private ExpectedStagePreview(int number, Set<String> definitionApproverOids, Set<String> expectedApproverOids,
                 ApprovalLevelOutcomeType outcome, AutomatedCompletionReasonType reason, boolean hasError) {
             this.number = number;

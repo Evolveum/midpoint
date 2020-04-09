@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,22 +70,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -736,6 +722,8 @@ public class InboundProcessor {
                 .variables(variables)
                 .variableResolver(variableProducer)
                 .valuePolicyResolver(createStringPolicyResolver(context))
+                .mappingKind(MappingKindType.INBOUND)
+                .implicitSourcePath(ShadowType.F_ATTRIBUTES.append(accountAttributeQName))
                 .originType(OriginType.INBOUND)
                 .originObject(resource);
 
@@ -1095,12 +1083,10 @@ public class InboundProcessor {
         boolean tolerateTargetValues = !outputDefinition.isSingleValue() || rangeCompletelyDefined;
 
         if (targetFocusItem != null) {
+            LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}",
+                    DebugUtil.debugDumpLazily(targetFocusItem, 1), DebugUtil.debugDumpLazily(shouldBeItem, 1));
             ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}\ndiff:\n{} ",
-                        DebugUtil.debugDump(targetFocusItem, 1), DebugUtil.debugDump(shouldBeItem, 1),
-                        DebugUtil.debugDump(diffDelta, 1));
-            }
+            LOGGER.trace("The difference is:\n{}", DebugUtil.debugDumpLazily(diffDelta, 1));
 
             if (diffDelta != null) {
                 // this is probably not correct, as the default for
@@ -1331,6 +1317,9 @@ public class InboundProcessor {
                         .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
                         .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
                         .valuePolicyResolver(createStringPolicyResolver(context))
+                        .mappingKind(MappingKindType.INBOUND)
+                        .implicitSourcePath(sourcePath)
+                        .implicitTargetPath(targetPath)
                         .originType(OriginType.INBOUND)
                         .originObject(projContext.getResource());
 

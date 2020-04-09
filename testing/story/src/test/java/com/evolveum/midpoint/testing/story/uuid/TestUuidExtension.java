@@ -8,15 +8,9 @@ package com.evolveum.midpoint.testing.story.uuid;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -24,8 +18,6 @@ import org.opends.server.types.DirectoryException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
@@ -81,9 +73,7 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test100AddUserRapp() throws Exception {
-        final String TEST_NAME = "test100AddUserRapp";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createUser(USER_RAPP_NAME, USER_RAPP_GIVEN_NAME, USER_RAPP_FAMILY_NAME, true);
@@ -102,9 +92,7 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test101RappAssignRoleEmployee() throws Exception {
-        final String TEST_NAME = "test101RappAssignRoleEmployee";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
@@ -122,10 +110,6 @@ public class TestUuidExtension extends AbstractUuidTest {
 
     @Test
     public void test107RappUnAssignRoleEmployee() throws Exception {
-        final String TEST_NAME = "test107RappUnAssignRoleEmployee";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-
         // WHEN
         unassignRole(userRappOid, ROLE_EMPLOYEE_OID);
 
@@ -140,9 +124,7 @@ public class TestUuidExtension extends AbstractUuidTest {
      */
     @Test
     public void test110AddKateWithRoleEmployee() throws Exception {
-        final String TEST_NAME = "test110AddKateWithRoleEmployee";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = createEmployeeUser(USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);

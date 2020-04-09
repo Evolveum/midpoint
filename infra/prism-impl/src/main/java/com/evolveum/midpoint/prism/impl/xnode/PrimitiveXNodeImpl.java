@@ -67,25 +67,23 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         return value;
     }
 
-    @Deprecated
-    public T getParsedValue(@NotNull QName typeName) throws SchemaException {
-        return getParsedValue(typeName, null, XNodeProcessorEvaluationMode.STRICT);
-    }
-
     // @post: return value is type-compliant with expectedClass (if both are non-null)
-    public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException {
+    public <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass) throws SchemaException {
         return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
     }
 
     // @post: return value is type-compliant with expectedClass (if both are non-null)
-    public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
-        T parsedValue;
+    public <X> X getParsedValue(@NotNull QName typeName, @Nullable Class<X> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
+        X parsedValue;
         if (isParsed()) {
-            parsedValue = value;
+            //noinspection unchecked
+            parsedValue = (X) value;
         } else {
-            parsedValue = valueParser.parse(typeName, mode);
+            //noinspection unchecked
+            parsedValue = (X) valueParser.parse(typeName, mode);
             if (!immutable) {
-                value = parsedValue;
+                //noinspection unchecked
+                value = (T) parsedValue;
                 valueParser = null;     // Necessary. It marks that the value is parsed. It also frees some memory.
             }
         }
@@ -192,15 +190,15 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         if (isParsed()) {
             return getFormattedValue();
         }
-        if (getTypeQName() == null) {
+        QName typeName = getTypeQName();
+        if (typeName == null) {
             throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
         }
-        // brutal hack - fix this! MID-3616
-        try {
-            T value = valueParser.parse(getTypeQName(), XNodeProcessorEvaluationMode.STRICT);
+        if (valueParser.canParseAs(typeName)) {
+            T value = valueParser.parse(typeName, XNodeProcessorEvaluationMode.STRICT);
             return formatValue(value);
-        } catch (SchemaException e) {
-            return (String) valueParser.parse(DOMUtil.XSD_STRING, XNodeProcessorEvaluationMode.COMPAT);
+        } else {
+            return valueParser.getStringValue();
         }
     }
 

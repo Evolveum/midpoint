@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -44,7 +44,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 
     private static final String DOT_CLASS = PrismObjectWrapperFactoryImpl.class.getName() + ".";
-    private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = DOT_CLASS + "determineVirtualContainers";
 
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
     private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
@@ -57,12 +56,13 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         try {
             applySecurityConstraints(object, context);
         } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
-            context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An eeror occured: " + e.getMessage(), e);
+            context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
         if (context.getObjectStatus() == null) {
             context.setObjectStatus(status);
         }
+        context.setObject(object);
 
         Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(object, context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);
@@ -79,6 +79,32 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismContainerPanel.class);
         return objectWrapper;
 
+    }
+
+    public void updateWrapper(PrismObjectWrapper<O> wrapper, WrapperContext context) throws SchemaException {
+        try {
+            applySecurityConstraints(wrapper.getObject(), context);
+        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
+            context.getResult().recordFatalError("Cannot create object wrapper for " + wrapper.getObject() + ". An error occurred: " + e.getMessage(), e);
+            throw new SchemaException(e.getMessage(), e);
+        }
+        if (context.getObjectStatus() == null) {
+            context.setObjectStatus(wrapper.getStatus());
+        }
+        context.setObject(wrapper.getObject());
+
+        Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(wrapper.getObject(), context.getTask(), context.getResult());
+        context.setVirtualContainers(virtualContainers);
+        context.setShowEmpty(ItemStatus.ADDED == wrapper.getStatus());
+        wrapper.setExpanded(true);
+
+        wrapper.getValue().getItems().clear();
+
+        PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(wrapper, wrapper.getObject().getValue(), ItemStatus.ADDED == wrapper.getStatus() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+        wrapper.getValues().clear();
+        wrapper.getValues().add(valueWrapper);
+
+        registry.registerWrapperPanel(wrapper.getObject().getDefinition().getTypeName(), PrismContainerPanel.class);
     }
 
     @Override
@@ -122,6 +148,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             WrapperContext ctx = context.clone();
             ctx.setVirtualItemSpecification(virtualContainer.getItem());
             ItemWrapper iw = factory.createWrapper(objectValueWrapper, def, ctx);
+            iw.setVisibleOverwrite(virtualContainer.getVisibility());
 
             if (iw == null) {
                 continue;
@@ -133,64 +160,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         return objectValueWrapper;
     }
 
-//    private List<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, WrapperContext context) {
-//
-//        OperationResult result = context.getResult().createMinorSubresult(OPERATION_DETERMINE_VIRTUAL_CONTAINERS);
-//        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-//
-//            try {
-//                ArchetypePolicyType archetypePolicyType = modelInteractionService.determineArchetypePolicy((PrismObject) object, result);
-//                if (archetypePolicyType != null) {
-//                    ArchetypeAdminGuiConfigurationType archetyAdminGui = archetypePolicyType.getAdminGuiConfiguration();
-//                    if (archetyAdminGui != null) {
-//                        GuiObjectDetailsPageType guiDetails = archetyAdminGui.getObjectDetails();
-//                        if (guiDetails != null) {
-//                            return guiDetails.getContainer();
-//                        }
-//                    }
-//                }
-//            } catch (SchemaException | ConfigurationException e) {
-//                LOGGER.error("Cannot determine virtual containers for {}, reason: {}", object, e.getMessage(), e);
-//                result.recordPartialError("Cannot determine virtual containers for " + object + ", reason: " + e.getMessage(), e);
-//                return null;
-//            }
-//
-//        }
-//
-//        QName objectType = object.getDefinition().getTypeName();
-//        try {
-//            CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
-//            GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
-//            if (objectDetailsSetType == null) {
-//                result.recordSuccess();
-//                return null;
-//            }
-//            List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
-//            for (GuiObjectDetailsPageType detailsPage : detailsPages) {
-//                if (objectType == null) {
-//                    LOGGER.trace("Object type is not known, skipping considering custom details page settings.");
-//                    continue;
-//                }
-//                if (detailsPage.getType() == null) {
-//                    LOGGER.trace("Object type for details page {} not know, skipping considering custom details page settings.", detailsPage);
-//                    continue;
-//                }
-//
-//                if (QNameUtil.match(objectType, detailsPage.getType())) {
-//                    result.recordSuccess();
-//                    return detailsPage.getContainer();
-//                }
-//            }
-//            result.recordSuccess();
-//            return null;
-//        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
-//            LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
-//            result.recordPartialError("Cannot determine virtual containers for " + objectType + ", reason: " + e.getMessage(), e);
-//            return null;
-//        }
-//
-//    }
-
     /**
      * @param object apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
      */
@@ -199,14 +168,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         Task task = context.getTask();
         OperationResult result = context.getResult();
 
-//        ObjectReferenceType archetypesToBeAdded = null;
-//        if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
-//            archetypesToBeAdded = listArchetypes((PrismObject) object);
-//            if (archetypesToBeAdded != null) {
-//                applyArchetypes((PrismObject) object, archetypesToBeAdded);
-//            }
-//        }
-
         try {
             PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef, true);
@@ -214,72 +175,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
                 | CommunicationException | SecurityViolationException e) {
             throw e;
         }
-//        finally {
-//            if (archetypesToBeAdded != null) {
-//                cleanupArchetypesToBeAdded((PrismObject) object, archetypesToBeAdded);
-//            }
-//        }
-
-    }
-
-    private <AH extends AssignmentHolderType> void applyArchetypes(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
-        PrismReference archetypeRef = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
-
-        if (archetypeRef == null) {
-            archetypeRef = object.findOrCreateReference(AssignmentHolderType.F_ARCHETYPE_REF);
-        }
-
-        if (CollectionUtils.isNotEmpty(archetypeRef.getValues())) {
-            throw new SchemaException("Cannot apply new archetype to the object with already assigned archetype.");
-        }
-
-        archetypeRef.getValues().add(ref.asReferenceValue());
-    }
-
-    private <AH extends AssignmentHolderType> void cleanupArchetypesToBeAdded(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
-        //Now we expect thet object can have just one archetyperef, so if something was added, we just remove it.
-
-        PrismReference archetype = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
-        if (archetype == null) {
-            return;
-        }
-
-        if (archetype.getValues() != null && archetype.getValues().size() > 1) {
-            throw new SchemaException("More then one archetype ref found, but this is not supported.");
-        }
-
-        object.removeReference(AssignmentHolderType.F_ARCHETYPE_REF);
-    }
-
-    private <AH extends AssignmentHolderType> ObjectReferenceType listArchetypes(PrismObject<AH> object) throws SchemaException {
-        PrismContainer<AssignmentType> assignmentContainer = object.findContainer(AssignmentHolderType.F_ASSIGNMENT);
-        Collection<AssignmentType> assignments = null;
-        if (assignmentContainer != null) {
-            assignments = assignmentContainer.getRealValues();
-        }
-
-        if (CollectionUtils.isEmpty(assignments)) {
-            return null;
-        }
-
-        List<AssignmentType> archetypeAssignments = assignments.stream().filter(a -> a.getTargetRef() != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, a.getTargetRef().getType())).collect(Collectors.toList());
-
-        if (archetypeAssignments.size() > 1) {
-            throw new SchemaException("More then one archetype assignment not supported.");
-        }
-
-        if (CollectionUtils.isEmpty(archetypeAssignments)) {
-            return null;
-        }
-
-        AssignmentType archetypeAssignment = archetypeAssignments.iterator().next();
-
-        PrismReference existingArchetypeRefs = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
-        if (existingArchetypeRefs == null || CollectionUtils.isEmpty(existingArchetypeRefs.getRealValues())) {
-            return archetypeAssignment.getTargetRef();
-        }
-
-        return null;
 
     }
 

@@ -64,7 +64,7 @@ public class ObjectPolicyAspectPart {
     @Autowired protected LocalizationService localizationService;
 
     <T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-            @Nullable PrismObject<UserType> requester, @NotNull List<PcpStartInstruction> instructions,
+            @Nullable PrismObject<? extends FocusType> requester, @NotNull List<PcpStartInstruction> instructions,
             @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
 
@@ -151,7 +151,7 @@ public class ObjectPolicyAspectPart {
         }
     }
 
-    private <T extends ObjectType> void buildSchemaForObject(PrismObject<UserType> requester,
+    private <T extends ObjectType> void buildSchemaForObject(PrismObject<? extends FocusType> requester,
             List<PcpStartInstruction> instructions, ModelInvocationContext<T> ctx,
             @NotNull OperationResult result, List<ObjectDelta<T>> deltasToApprove,
             ApprovalSchemaBuilder builder) throws SchemaException {
@@ -191,7 +191,7 @@ public class ObjectPolicyAspectPart {
 
     private <T extends ObjectType> void prepareObjectRelatedTaskInstructions(
             List<PcpStartInstruction> instructions, ApprovalSchemaBuilder.Result builderResult,
-            List<ObjectDelta<T>> deltasToApprove, PrismObject<UserType> requester, ModelInvocationContext<T> ctx,
+            List<ObjectDelta<T>> deltasToApprove, PrismObject<? extends FocusType> requester, ModelInvocationContext<T> ctx,
             OperationResult result) throws SchemaException {
 
         ModelContext<T> modelContext = ctx.modelContext;

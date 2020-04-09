@@ -90,7 +90,7 @@ public class TestDummyExtra extends TestDummy {
         Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
         assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
         RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
-        assertNotNull("No definitin for crew assocation", crewAssociationDef);
+        assertNotNull("No definition for crew association", crewAssociationDef);
     }
 
     @Override
@@ -104,10 +104,8 @@ public class TestDummyExtra extends TestDummy {
 
     @Test
     public void test400AddAccountElizabeth() throws Exception {
-        final String TEST_NAME = "test400AddAccountElizabeth";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
@@ -116,17 +114,13 @@ public class TestDummyExtra extends TestDummy {
 
         display("Adding shadow", account);
 
-        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
-
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
-
-        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 
         assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
@@ -136,8 +130,6 @@ public class TestDummyExtra extends TestDummy {
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_ELIZABETH_OID, null, task, result);
-
-        XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
 
         display("Account will from provisioning", accountProvisioning);
 
@@ -154,26 +146,23 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test410AssociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -182,7 +171,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-        display("Dummy account will", dummyAccountWill);
+        displayDumpable("Dummy account will", dummyAccountWill);
         assertNotNull("No dummy account will", dummyAccountWill);
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
@@ -200,26 +189,23 @@ public class TestDummyExtra extends TestDummy {
      */
     @Test
     public void test419DisassociateCrewWillElizabeth() throws Exception {
-        final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         syncServiceMock.reset();
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
                 new OperationProvisioningScriptsType(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
@@ -228,7 +214,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-        display("Dummy account will", dummyAccountWill);
+        displayDumpable("Dummy account will", dummyAccountWill);
         assertNotNull("No dummy account will", dummyAccountWill);
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
@@ -245,19 +231,17 @@ public class TestDummyExtra extends TestDummy {
 
     @Test
     public void test499DeleteAccountElizabeth() throws Exception {
-        final String TEST_NAME = "test499DeleteAccountElizabeth";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         syncServiceMock.assertNotifySuccessOnly();

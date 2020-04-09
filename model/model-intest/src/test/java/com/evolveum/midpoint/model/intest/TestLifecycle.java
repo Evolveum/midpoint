@@ -16,7 +16,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -24,15 +23,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author Radovan Semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
@@ -54,15 +47,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     //no subtype, forced in draft state
     public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
-    protected static final String ROLE_CROUPIER_OID = "a7b8de9a-20a1-84f6-b452-01254a1256e3";
 
     public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
-    protected static final String ROLE_PIT_BOSS_OID = "c4525ef8-31d4-95e6-d542-745e263f596c";
 
     public static final String SUBTYPE_EMPLOYEE = "employee";
     private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
-
-    private String accontJackOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -90,14 +79,11 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test050SetupJack() throws Exception {
-        final String TEST_NAME = "test050SetupJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_GAMBLER_OID, task, result);
@@ -107,7 +93,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, USER_JACK_TELEPHONE_NUMBER);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -122,16 +108,12 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test052PrincipalJackDraft() throws Exception {
-        final String TEST_NAME = "test052AutzJackDraft";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertNotAuthorized(principal, AUTZ_GAMBLE_URL);
         assertNotAuthorized(principal, AUTZ_APPARATE_URL);
@@ -145,18 +127,15 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test060TransitionJackToProposed() throws Exception {
-        final String TEST_NAME = "test060TransitionJackToProposed";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -168,21 +147,17 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
         // considered active.
-        accontJackOid = getSingleLinkOid(userAfter);
+        getSingleLinkOid(userAfter);
     }
 
     @Test
     public void test062PrincipalJackProposed() throws Exception {
-        final String TEST_NAME = "test062PrincipalJackProposed";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         // Although we are in the proposed lifecycle and assignments would not be active by default
         // the proposed lifecycle is forcing activation to enabled. Therefore also assignments are
@@ -201,18 +176,15 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test090TransitionJackToDefaultActive() throws Exception {
-        final String TEST_NAME = "test090TransitionJackToDefaultActive";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -227,47 +199,40 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test092PrincipalJackDefaultActive() throws Exception {
-        final String TEST_NAME = "test092PrincipalJackDefaultActive";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-
         // WHEN
-        displayWhen(TEST_NAME);
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        when();
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
-     // Forced assignment not specified for active lifecycle state
+        // Forced assignment not specified for active lifecycle state
         assertNotAuthorized(principal, AUTZ_PIT_BOSS_URL);
         assertNotAuthorized(principal, AUTZ_CROUPIER_URL);
     }
 
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
-        assertEquals("Wrong telephoe number in "+user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
+        assertEquals("Wrong telephoe number in " + user, expectedTelephoneNumber, user.asObjectable().getTelephoneNumber());
     }
 
     protected <O extends ObjectType> void assertLifecycleState(PrismObject<O> object, String expectedLifecycleState) {
-        assertEquals("Wrong lifecycle state in "+object, expectedLifecycleState, object.asObjectable().getLifecycleState());
+        assertEquals("Wrong lifecycle state in " + object, expectedLifecycleState, object.asObjectable().getLifecycleState());
     }
 
     @Test
     public void test100AssignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test100AssignJackCaretaker";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -280,19 +245,16 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test102UnassignJackHeadmaster() throws Exception {
-        final String TEST_NAME = "test102UnassignJackHeadmaster";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -309,19 +271,16 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test110UnassignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignRole(USER_JACK_OID, ROLE_CARETAKER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -337,19 +296,16 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test112UnassignJackCaretaker() throws Exception {
-        final String TEST_NAME = "test110UnassignJackCaretaker";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignRole(USER_JACK_OID, ROLE_HEADMASTER_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

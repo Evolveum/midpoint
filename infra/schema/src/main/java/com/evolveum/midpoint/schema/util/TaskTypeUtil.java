@@ -9,6 +9,9 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.statistics.ActionsExecutedInformation;
+import com.evolveum.midpoint.schema.statistics.IterativeTaskInformation;
+import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -76,5 +79,74 @@ public class TaskTypeUtil {
             return 0;
         }
         return iterativeStats.getTotalSuccessCount() + iterativeStats.getTotalFailureCount();
+    }
+
+    public static int getObjectsProcessedFailures(TaskType task, PrismContext prismContext) {
+        OperationStatsType stats = getAggregatedOperationStats(task, prismContext);
+        if (stats == null) {
+            return 0;
+        }
+        IterativeTaskInformationType iterativeStats = stats.getIterativeTaskInformation();
+        if (iterativeStats == null) {
+            return 0;
+        }
+        return iterativeStats.getTotalFailureCount();
+    }
+
+    public static OperationStatsType getAggregatedOperationStats(TaskType task, PrismContext prismContext) {
+        if (!isPartitionedMaster(task) && !isWorkStateHolder(task)) {
+           return task.getOperationStats();
+        }
+
+        IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
+        SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
+        ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+
+        Stream<TaskType> subTasks = TaskTypeUtil.getAllTasksStream(task);
+        subTasks.forEach(subTask -> {
+            OperationStatsType operationStatsType = subTask.getOperationStats();
+            if (operationStatsType != null) {
+                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), true);
+                SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
+                ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
+            }
+        });
+
+        return new OperationStatsType(prismContext)
+                .iterativeTaskInformation(iterativeTaskInformation)
+                .synchronizationInformation(synchronizationInformation)
+                .actionsExecutedInformation(actionsExecutedInformation);
+    }
+
+    public static TaskType findChild(TaskType parent, String childOid) {
+        for (TaskType subtask : getResolvedSubtasks(parent)) {
+            if (childOid.equals(subtask.getOid())) {
+                return subtask;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isWorkStateHolder(TaskType taskType) {
+        return (isCoordinator(taskType) || hasBuckets(taskType)) && !isCoordinatedWorker(taskType);
+    }
+
+    private static boolean hasBuckets(TaskType taskType) {
+        if (taskType.getWorkState() == null) {
+            return false;
+        }
+        if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+            return true;
+        }
+        List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+        if (buckets.size() > 1) {
+            return true;
+        } else {
+            return buckets.size() == 1 && buckets.get(0).getContent() != null;
+        }
+    }
+
+    private static boolean isCoordinatedWorker(TaskType taskType) {
+        return taskType.getWorkManagement() != null && TaskKindType.WORKER == taskType.getWorkManagement().getTaskKind();
     }
 }

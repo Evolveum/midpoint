@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <modelHooks>
+        <change>
+            <hook> <!-- MID-6122 -->
+                <name>delete-fragile-assignments</name>
+                <state>primary</state>
+                <focusType>UserType</focusType>
+                <script>
+                    <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                    object = modelContext?.focusContext?.objectOld
+                    currentAssignments = object.asObjectable().assignment
+
+                    changed = false
+                    for (assignment in currentAssignments) {
+                        if (assignment.subtype.contains('fragile')) {
+                            log.info('Going to delete fragile assignment {}', assignment)
+                            assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(UserType.F_ASSIGNMENT, UserType.class, assignment.clone())
+                            modelContext.getFocusContext().swallowToPrimaryDelta(assignmentDelta)
+                            changed = true
+                        }
+                    }
+                    if (changed) {
+                        modelContext.focusContext.secondaryDeltas?.clear() // workaround for MID-6122
+                        modelContext.evaluatedAssignmentTriple = null // workaround for MID-6122
+                        modelContext.rot()
+                    }
+                    </code>
+                </script>
+            </hook>
+        </change>
+    </modelHooks>
+    <logging>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
+        <classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
+        <c:classLogger>
+            <c:level>TRACE</c:level>
+            <c:package>com.evolveum.midpoint.notifications</c:package>
+        </c:classLogger>
+        <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+            <fileName>target/test.log</fileName>
+            <append>true</append>
+        </appender>
+    </logging>
+</systemConfiguration>

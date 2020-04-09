@@ -13,7 +13,6 @@ import java.io.File;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.testng.AssertJUnit;
-import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator;
@@ -48,7 +47,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals101() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals101",
                 createVariables(
@@ -60,7 +59,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals102() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals102",
                 createVariables(
@@ -72,7 +71,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals111() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals111",
                 createVariables(
@@ -85,7 +84,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals112() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals112",
                 createVariables(
@@ -97,7 +96,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals121() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals121",
                 createVariables(
@@ -109,7 +108,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals122() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-1.xml",
                 "testExpressionPolyStringEquals122",
                 createVariables(
@@ -121,7 +120,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals201() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals201",
                 createVariables(
@@ -133,7 +132,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals202() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals202",
                 createVariables(
@@ -145,7 +144,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals211() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals211",
                 createVariables(
@@ -157,7 +156,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals212() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals212",
                 createVariables(
@@ -169,7 +168,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals221() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals221",
                 createVariables(
@@ -181,7 +180,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEquals222() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-2.xml",
                 "testExpressionPolyStringEquals222",
                 createVariables(
@@ -193,7 +192,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify101() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify101",
                 createVariables(
@@ -205,7 +204,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify102() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify102",
                 createVariables(
@@ -217,7 +216,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify111() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify111",
                 createVariables(
@@ -229,7 +228,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify112() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify112",
                 createVariables(
@@ -241,7 +240,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify121() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify121",
                 createVariables(
@@ -253,7 +252,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify122() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-1.xml",
                 "testExpressionPolyStringEqualsStringify122",
                 createVariables(
@@ -265,7 +264,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify201() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify201",
                 createVariables(
@@ -277,7 +276,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify202() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify202",
                 createVariables(
@@ -289,7 +288,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify211() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify211",
                 createVariables(
@@ -301,7 +300,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify212() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify212",
                 createVariables(
@@ -313,7 +312,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify221() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify221",
                 createVariables(
@@ -325,7 +324,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
     @Test
     public void testExpressionPolyStringEqualsStringify222() throws Exception {
-        evaluateAndAssertBooleanScalarExpresssion(
+        evaluateAndAssertBooleanScalarExpression(
                 "expression-polystring-equals-stringify-2.xml",
                 "testExpressionPolyStringEqualsStringify222",
                 createVariables(
@@ -340,7 +339,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-look.xml",
                 "testLookAtPoison",
                 createPoisonVariables(poison),
@@ -358,7 +357,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell.xml",
                 "testSmellPoison",
                 createPoisonVariables(poison),
@@ -376,7 +375,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-tricky.xml",
                 "testSmellPoisonTricky",
                 createPoisonVariables(poison),
@@ -395,7 +394,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-dynamic.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison),
@@ -414,7 +413,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-very-dynamic.xml",
                 "testSmellPoisonVeryDynamic",
                 createPoisonVariables(poison),
@@ -433,7 +432,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-poison-smell-reflection.xml",
                 "testSmellPoisonReflection",
                 createPoisonVariables(poison),
@@ -454,7 +453,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpresssion(
+            evaluateAndAssertStringScalarExpression(
                     "expression-poison-drink.xml",
                     "testDrinkPoison",
                     createPoisonVariables(poison),
@@ -486,7 +485,7 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpresssion(
+            evaluateAndAssertStringScalarExpression(
                     "expression-syntax-error.xml",
                     "testSyntaxError",
                     createPoisonVariables(poison),
@@ -504,12 +503,10 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testStringExec() throws Exception {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            throw new SkipException("Skipped for Windows");
-        }
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-string-exec.xml",
                 "testStringExec",
                 null,
@@ -524,12 +521,10 @@ public class TestGroovyExpressions extends AbstractScriptTest {
      */
     @Test
     public void testListExec() throws Exception {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            throw new SkipException("Skipped for Windows");
-        }
+        skipTestIf(SystemUtils.IS_OS_WINDOWS, "'echo' used in script is not available Windows");
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssion(
+        evaluateAndAssertStringScalarExpression(
                 "expression-list-exec.xml",
                 "testListExec",
                 null,

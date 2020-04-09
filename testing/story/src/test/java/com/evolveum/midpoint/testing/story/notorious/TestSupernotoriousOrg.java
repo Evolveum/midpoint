@@ -6,37 +6,38 @@
  */
 package com.evolveum.midpoint.testing.story.notorious;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import java.io.File;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import java.io.File;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * Testing bushy roles hierarchy. Especially reuse of the same role
  * in the rich role hierarchy. It looks like this:
- *
- *                    user
- *                     |
- *       +------+------+-----+-----+-....
- *       |      |      |     |     |
- *       v      v      v     v     v
- *      Ra1    Ra2    Ra3   Ra4   Ra5
- *       |      |      |     |     |
- *       +------+------+-----+-----+
- *                     |
- *                     v
- *  +--assignment--> supernotorious org
- *  |                  |
- *  |    +------+------+-----+-----+-....
- *  |    |      |      |     |     |
- *  |    v      v      v     v     v
- *  +-- Rb1    Rb2    Rb3   Rb4   Rb5 ---..
- *
+ * <p>
+ * user
+ * |
+ * +------+------+-----+-----+-....
+ * |      |      |     |     |
+ * v      v      v     v     v
+ * Ra1    Ra2    Ra3   Ra4   Ra5
+ * |      |      |     |     |
+ * +------+------+-----+-----+
+ * |
+ * v
+ * +--assignment--> supernotorious org
+ * |                  |
+ * |    +------+------+-----+-----+-....
+ * |    |      |      |     |     |
+ * |    v      v      v     v     v
+ * +-- Rb1    Rb2    Rb3   Rb4   Rb5 ---..
+ * <p>
  * Naive mode of evaluation would imply cartesian product of all Rax and Rbx
  * combinations. That's painfully inefficient. Therefore make sure that the
  * notorious roles is evaluated only once and the results of the evaluation
@@ -44,7 +45,7 @@ import java.io.File;
  *
  * @author Radovan Semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSupernotoriousOrg extends TestNotoriousOrg {
@@ -65,23 +66,18 @@ public class TestSupernotoriousOrg extends TestNotoriousOrg {
     @Override
     protected void fillLevelBRole(RoleType roleType, int i) {
         super.fillLevelBRole(roleType, i);
-        roleType
-            .beginAssignment()
+        roleType.beginAssignment()
                 .targetRef(getNotoriousOid(), getNotoriousType())
-//                .focusType(RoleType.COMPLEX_TYPE)
-            .end();
+                .end();
     }
 
     @Test
     public void test010LevelBRolesSanity() throws Exception {
-        final String TEST_NAME = "test010LevelBRolesSanity";
-        displayTestTitle(TEST_NAME);
-
-        ObjectQuery query = queryFor(RoleType.class).item(RoleType.F_ROLE_TYPE).eq(ROLE_LEVEL_B_ROLETYPE).build();
+        ObjectQuery query = queryFor(RoleType.class)
+                .item(RoleType.F_ROLE_TYPE).eq(ROLE_LEVEL_B_ROLETYPE)
+                .build();
         searchObjectsIterative(RoleType.class, query,
-                role -> {
-                    assertRoleMembershipRef(role, getNotoriousOid());
-                }, NUMBER_OF_LEVEL_B_ROLES);
+                role -> assertRoleMembershipRef(role, getNotoriousOid()), NUMBER_OF_LEVEL_B_ROLES);
     }
 
     @Override

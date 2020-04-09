@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
@@ -47,8 +46,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * A complex policy-drive role lifecycle scenario (see https://wiki.evolveum.com/display/midPoint/Sample+scenario).
- *
- * @author mederly
  */
 @ContextConfiguration(locations = {"classpath:ctx-certification-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -111,17 +108,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test010AttemptToActivateIncompleteRoleC1345() throws Exception {
-        final String TEST_NAME = "test010AttemptToActivateIncompleteRoleC1345";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
-        TestUtil.displayThen(TEST_NAME);
+        when();
+        then();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleEmptyOid, contextHolder, result, task);
 
@@ -146,17 +140,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test020AttemptToActivateIncompleteRoleC234() throws Exception {
-        final String TEST_NAME = "test020AttemptToActivateIncompleteRoleC234";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
-        TestUtil.displayThen(TEST_NAME);
+        when();
+        then();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleHighRiskEmptyOid, contextHolder, result, task);
 
@@ -169,17 +160,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test030AttemptToActivateCorrectRoleC34() throws Exception {
-        final String TEST_NAME = "test030AttemptToActivateCorrectRoleC34";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
-        TestUtil.displayThen(TEST_NAME);
+        when();
+        then();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRoleAssertFailure(roleCorrectOid, contextHolder, result, task);
 
@@ -196,17 +184,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test040AssignOwnerAndApproverToCorrectRole() throws Exception {
-        final String TEST_NAME = "test040AssignOwnerAndApproverToCorrectRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
-        TestUtil.displayThen(TEST_NAME);
+        when();
+        then();
         ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_OWNER, noApprovals, task, result);
@@ -217,21 +202,18 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test050ActivateCorrectRole() throws Exception {
-        final String TEST_NAME = "test050ActivateCorrectRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRole(roleCorrectOid, contextHolder, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<RoleType> roleAfter = getRole(roleCorrectOid);
         display("role after", roleAfter);
@@ -276,17 +258,14 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test060AssignOwnerAndApproverToCorrectHighRiskRole() throws Exception {
-        final String TEST_NAME = "test060AssignOwnerAndApproverToCorrectHighRiskRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN+THEN
-        TestUtil.displayWhen(TEST_NAME);
-        TestUtil.displayThen(TEST_NAME);
+        when();
+        then();
         ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(userJackOid, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
@@ -298,21 +277,18 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
     @Test
     public void test070ActivateCorrectHighRiskRole() throws Exception {
-        final String TEST_NAME = "test070ActivateCorrectHighRiskRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Holder<LensContext<?>> contextHolder = new Holder<>();
         activateRole(roleCorrectHighRiskOid, contextHolder, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<RoleType> roleAfter = getRole(roleCorrectHighRiskOid);
         display("role after", roleAfter);
@@ -377,73 +353,4 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
             }
         }
     }
-
-//    @Test
-//    public void test010HireIndigo() throws Exception {
-//        final String TEST_NAME = "test010HireIndigo";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
-//        task.setOwner(userAdministrator.asPrismObject());
-//        OperationResult result = task.getResult();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        assignOrg(USER_INDIGO_OID, ORG_LABORATORY_OID, task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = repositoryService
-//                .searchObjects(AccessCertificationCampaignType.class, null, null, result);
-//        assertEquals("Wrong # of campaigns", 1, campaigns.size());
-//        AccessCertificationCampaignType campaign = campaigns.get(0).asObjectable();
-//
-//        campaign = getCampaignWithCases(campaign.getOid());
-//        display("campaign", campaign);
-//        assertSanityAfterCampaignStart(campaign, assignmentCertificationDefinition, 1);        // beware, maybe not all details would match (in the future) - then adapt this test
-//        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
-//        assertCasesCount(campaign.getOid(), 1);
-//    }
-//
-//    @Test
-//    public void test020ModifyIndigo() throws Exception {
-//        final String TEST_NAME = "test020ModifyIndigo";
-//        TestUtil.displayTestTitle(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestPolicyDrivenRoleLifecycle.class.getName() + "." + TEST_NAME);
-//        task.setOwner(userAdministrator.asPrismObject());
-//        OperationResult result = task.getResult();
-//
-//        // WHEN
-//        TestUtil.displayWhen(TEST_NAME);
-//        @SuppressWarnings({ "unchecked", "raw" })
-//        ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
-//                .item(UserType.F_DESCRIPTION).replace("new description")
-//                .item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
-//                .asObjectDelta(USER_INDIGO_OID);
-//        executeChanges(delta, null, task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        result.computeStatus();
-//        TestUtil.assertSuccess(result);
-//
-//        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = repositoryService
-//                .searchObjects(AccessCertificationCampaignType.class, null, null, result);
-//        assertEquals("Wrong # of campaigns", 2, campaigns.size());
-//        AccessCertificationCampaignType campaign = campaigns.stream()
-//                .filter(c -> MODIFICATION_CERT_DEF_OID.equals(c.asObjectable().getDefinitionRef().getOid()))
-//                .findFirst()
-//                .orElseThrow(() -> new AssertionError("No modification-triggered campaign")).asObjectable();
-//
-//        campaign = getCampaignWithCases(campaign.getOid());
-//        display("campaign", campaign);
-//        assertSanityAfterCampaignStart(campaign, modificationCertificationDefinition, 1);        // beware, maybe not all details would match (in the future) - then adapt this test
-//        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
-//    }
 }

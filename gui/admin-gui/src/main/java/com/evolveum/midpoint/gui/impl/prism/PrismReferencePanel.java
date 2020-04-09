@@ -60,7 +60,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory,
+            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         item.add(feedback);
@@ -153,14 +154,12 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 
         target.add(PrismReferencePanel.this);
     }
-
-//    @Override
-//    protected EnableBehaviour getEnableBehaviourOfValuePanel(PrismReferenceWrapper<R> iw) {
-//        return new EnableBehaviour(() -> !iw.isReadOnly() || isLink(iw));
-//    }
-
+    
     @Override
     public boolean isEnabled() {
+        if (getEditabilityHandler() != null && !getEditabilityHandler().isEditable(getModelObject())) {
+            return false;
+        }
         return !getModelObject().isReadOnly() || isLink(getModelObject());
     }
 

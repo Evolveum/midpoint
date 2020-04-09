@@ -10,18 +10,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
@@ -33,9 +27,11 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -44,7 +40,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -64,36 +61,13 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         super(id, objectModel, parentPage);
         Validate.notNull(projectionModel, "Null projection model");
         this.projectionModel = projectionModel;
-        initLayout(parentPage);
-    }
-
-    private void initLayout(final PageAdminObjectDetails<F> parentPage) {
-        getMainForm().setMultiPart(true);
-
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        StringValue oidValue = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
-    }
-
-    private ObjectQuery createTaskQuery(String oid, PageBase page) {
-        if (oid == null) {
-            oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-        }
-        return page.getPrismContext().queryFor(CaseType.class)
-                .item(CaseType.F_OBJECT_REF).ref(oid)
-                .and()
-                .item(CaseType.F_ARCHETYPE_REF)
-                .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
-                .and()
-                .not()
-                .item(CaseType.F_STATE)
-                .eq(SchemaConstants.CASE_STATE_CLOSED)
-                .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-                .build();
+        getMainForm().setMultiPart(true);
     }
 
     @Override
@@ -129,7 +103,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
-                            return createTabPanel(panelId, formSpecificationType, parentPage);
+                            return createTabPanel(panelId, formSpecificationType);
                         }
                     });
         }
@@ -137,8 +111,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         return tabs;
     }
 
-    protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType,
-            PageAdminObjectDetails<F> parentPage) {
+    protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType) {
         String panelClassName = formSpecificationType.getPanelClass();
 
         Class<?> panelClass;
@@ -181,15 +154,11 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
         }
     }
 
-    protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-        return new AssignmentHolderTypeDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel());
-    }
-
-    protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+    protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId) {
         return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
     }
 
-    protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+    protected WebMarkupContainer createObjectHistoryTabPanel(String panelId) {
         return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel()){
             protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date){
                 viewObjectHistoricalDataPerformed(target, object, date);
@@ -201,13 +170,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     protected IModel<PrismObject<F>> unwrapModel() {
-        return new IModel<PrismObject<F>>() {
-
-                @Override
-            public PrismObject<F> getObject() {
-                return getObjectWrapper().getObject();
-            }
-        };
+        return (IModel<PrismObject<F>>) () -> getObjectWrapper().getObject();
     }
 
     protected void addSpecificTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
@@ -223,7 +186,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return createFocusProjectionsTabPanel(panelId, parentPage);
+                        return createFocusProjectionsTabPanel(panelId);
                     }
 
                     @Override
@@ -241,7 +204,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                         @Override
                         public WebMarkupContainer createPanel(String panelId) {
-                            return createObjectHistoryTabPanel(panelId, parentPage);
+                            return createObjectHistoryTabPanel(panelId);
                         }
                     });
         }
@@ -254,7 +217,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(),
+                        return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(),
                                 countFocusObjectTasks(parentPage) > 0);
                     }
 
@@ -272,7 +235,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTriggersTabPanel<F>(panelId, getMainForm(), getObjectModel());
+                        return new FocusTriggersTabPanel<>(panelId, getMainForm(), getObjectModel());
                     }
 
                     @Override
@@ -284,7 +247,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     private int countFocusObjectTasks(PageBase parentPage){
-        String oid = null;
+        String oid;
         if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
             oid = "non-existent";
         } else {
@@ -306,7 +269,6 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     @Override
-    @Deprecated
     protected boolean areSavePreviewButtonsEnabled() {
         PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
         PrismContainerWrapper<AssignmentType> assignmentsWrapper;

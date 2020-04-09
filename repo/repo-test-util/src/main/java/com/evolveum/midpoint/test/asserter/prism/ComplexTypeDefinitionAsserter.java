@@ -11,14 +11,15 @@ import static org.testng.AssertJUnit.assertEquals;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * @author semancik
+ * Related to PrismContainerDefinitionAsserter
  *
+ * @author semancik
  */
 public class ComplexTypeDefinitionAsserter<RA> extends AbstractAsserter<RA> {
 
@@ -62,7 +63,7 @@ public class ComplexTypeDefinitionAsserter<RA> extends AbstractAsserter<RA> {
     }
 
     public ComplexTypeDefinitionAsserter<RA> display(String message) {
-        IntegrationTestTools.display(message, complexTypeDefinition);
+        PrismTestUtil.display(message, complexTypeDefinition);
         return this;
     }
 }

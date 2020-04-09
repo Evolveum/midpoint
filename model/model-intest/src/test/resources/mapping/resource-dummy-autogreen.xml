@@ -80,6 +80,7 @@
             <attribute>
                 <ref>ri:title</ref>
                 <inbound>
+                    <name>Assignment from title</name>
                     <strength>strong</strength>
                     <expression>
                         <assignmentTargetSearch>
@@ -137,6 +138,7 @@
             <association>
                 <ref>ri:group</ref>
                 <inbound>
+                    <name>Assignment from group</name>
                     <authoritative>true</authoritative>
                     <strength>strong</strength>
                     <expression>
@@ -208,7 +210,6 @@
                 <valueAttribute>icfs:name</valueAttribute>
             </association>
 
-
             <activation>
                 <administrativeStatus>
                     <inbound/>
@@ -256,7 +257,6 @@
             <default>false</default>
             <objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
-
 
     </schemaHandling>
 

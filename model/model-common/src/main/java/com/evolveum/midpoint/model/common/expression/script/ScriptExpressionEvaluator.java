@@ -73,6 +73,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
         sCtx.setTask(task);
         sCtx.setResult(result);
 
+        //noinspection unchecked
         return (List<V>) scriptExpression.evaluate(sCtx);
     }
 

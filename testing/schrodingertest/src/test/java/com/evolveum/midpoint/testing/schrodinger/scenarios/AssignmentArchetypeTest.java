@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -14,7 +14,7 @@ import java.io.File;
 /**
  * Created by honchar
  */
-public class AssignmentArchetypeTest extends TestBase {
+public class AssignmentArchetypeTest extends AbstractSchrodingerTest {
 
     private static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File("src/test/resources/configuration/objects/archetypes/archetype-business-role.xml");
     private static final String RELATIONS_CONTAINER_HEADER_KEY = "Relations";

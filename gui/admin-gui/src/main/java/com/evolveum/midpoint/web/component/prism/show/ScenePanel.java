@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -35,6 +38,9 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
@@ -200,28 +206,28 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 return getModelObject().isWrapper();
             }
         };
-        VisibleEnableBehaviour visibleIfExistingObject = new VisibleEnableBehaviour() {
+        VisibleEnableBehaviour visibleIfExistingObjectAndAuthorized = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 if (getModelObject().isWrapper()) {
                     return false;
                 }
-                return isExistingViewableObject();
+                return isExistingViewableObject() && isAutorized();
             }
         };
-        VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObject = new VisibleEnableBehaviour() {
+        VisibleEnableBehaviour visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 if (getModelObject().isWrapper()) {
                     return false;
                 }
-                return !isExistingViewableObject();
+                return !isExistingViewableObject() || !isAutorized();
             }
         };
         headerChangeType.add(visibleIfNotWrapper);
         headerObjectType.add(visibleIfNotWrapper);
-        headerNameLabel.add(visibleIfNotWrapperAndNotExistingObject);
-        headerNameLink.add(visibleIfExistingObject);
+        headerNameLabel.add(visibleIfNotWrapperAndNotExistingObjectAndNotAuthorized);
+        headerNameLink.add(visibleIfExistingObjectAndAuthorized);
         headerDescription.add(visibleIfNotWrapper);
         headerWrapperDisplayName.add(visibleIfWrapper);
 
@@ -396,5 +402,17 @@ public class ScenePanel extends BasePanel<SceneDto> {
             return false;
         }
         return sceneDtoModel.getObject().isOperational();
+    }
+
+    private boolean isAutorized() {
+        Scene scene = getModelObject().getScene();
+        PrismContainerValue<?> value = scene.getSourceValue();
+        if (value == null || !(value.getParent() instanceof PrismObject)) {
+            return true;
+        }
+
+        Class<? extends ObjectType> clazz = ((PrismObject<? extends ObjectType>) value.getParent()).getCompileTimeClass();
+
+        return WebComponentUtil.isAuthorized(clazz);
     }
 }

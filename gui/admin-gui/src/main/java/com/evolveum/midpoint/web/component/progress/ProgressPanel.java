@@ -15,16 +15,17 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.web.application.AsyncWebProcessModel;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -50,8 +49,6 @@ import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -77,9 +74,6 @@ import java.util.concurrent.Future;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
-
-import static java.util.Collections.singleton;
 
 /**
  * @author mederly
@@ -428,7 +422,7 @@ public class ProgressPanel extends BasePanel {
 
         if (!reporter.isAsynchronousExecution() && page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
-            aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
+            aware.finishProcessing(target, reporter.getObjectDeltaOperation(), reporter.isAsynchronousExecution(), result);
         }
     }
 
@@ -442,7 +436,7 @@ public class ProgressPanel extends BasePanel {
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
             } else {
-                task.setOwner(user.getUser().asPrismObject());
+                task.setOwner(user.getFocus().asPrismObject());
             }
 
             List<ObjectDeltaType> deltasBeans = new ArrayList<>();
@@ -465,6 +459,15 @@ public class ProgressPanel extends BasePanel {
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
             task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
+
+            PrismObject<TaskType> taskType = task.getUpdatedTaskObject();
+            AssignmentType archetypeAssignment = new AssignmentType();
+            archetypeAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    ObjectTypes.ARCHETYPE));
+            taskType.asObjectable().getAssignment().add(archetypeAssignment);
+            taskType.asObjectable().getArchetypeRef().add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
+                    ObjectTypes.ARCHETYPE));
+
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());
         } catch (Exception e) {
@@ -474,7 +477,7 @@ public class ProgressPanel extends BasePanel {
         }
         if (page instanceof ProgressReportingAwarePage) {
             ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
-            aware.finishProcessing(target, result, reporter.isAsynchronousExecution());
+            aware.finishProcessing(target, reporter.getObjectDeltaOperation(), reporter.isAsynchronousExecution(), result);
         }
     }
 
@@ -556,7 +559,7 @@ public class ProgressPanel extends BasePanel {
 
                     if (page instanceof ProgressReportingAwarePage) {
                         ProgressReportingAwarePage aware = (ProgressReportingAwarePage) page;
-                        aware.finishProcessing(target, asyncOperationResult, true);
+                        aware.finishProcessing(target, reporter.getObjectDeltaOperation() , true, asyncOperationResult);
                     }
 
                     reporter.setAsyncOperationResult(null);
@@ -613,6 +616,7 @@ public class ProgressPanel extends BasePanel {
 
     private void executeChangesSync(ProgressReporter reporter, Collection<ObjectDelta<? extends ObjectType>> deltas,
                                     boolean previewOnly, ModelExecuteOptions options, Task task, OperationResult result) {
+
         try {
             MidPointApplication application = MidPointApplication.get();
 
@@ -622,7 +626,8 @@ public class ProgressPanel extends BasePanel {
                 reporter.setPreviewResult(previewResult);
             } else {
                 ModelService service = application.getModel();
-                service.executeChanges(deltas, options, task, result);
+                Collection<ObjectDeltaOperation<? extends ObjectType>>executedDeltas = service.executeChanges(deltas, options, task, result);
+                reporter.setObjectDeltaOperation(executedDeltas);
             }
             result.computeStatusIfUnknown();
         } catch (CommonException | RuntimeException e) {
@@ -660,7 +665,8 @@ public class ProgressPanel extends BasePanel {
                                 .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
                         reporter.setPreviewResult(previewResult);
                     } else if (deltas != null && deltas.size() > 0){
-                        model.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
+                        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = model.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
+                        reporter.setObjectDeltaOperation(executedDeltas);
                     }
                 } catch (CommonException | RuntimeException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Error executing changes", e);

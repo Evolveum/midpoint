@@ -19,13 +19,19 @@
 
     <artifactId>schrodingertest</artifactId>
 
+    <name>midPoint Testing - Schrodinger</name>
+
     <properties>
+        <!--
+        TODO: consider ${maven.multiModuleProjectDirectory}
+        How do we run this anyway? From midpoint root with -pl? From this directory? Or GUI?
+        -->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
-        <skipTests>false</skipTests>
-        <server.port>8180</server.port>
+        <server.port>8080</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
         <midpoint.home></midpoint.home>
+        <schrodinger.properties></schrodinger.properties>
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
@@ -38,7 +44,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>schrodinger</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -84,178 +90,103 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-exec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcpkix-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-test-util</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.netty</groupId>
-                <artifactId>netty-all</artifactId>
-                <exclusions>
-                    <exclusion>
-                        <groupId>ch.qos.logback</groupId>
-                        <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <!--<exclusions>-->
+            <!--    <exclusion>-->
+            <!--        <groupId>org.hibernate</groupId>-->
+            <!--        <artifactId>hibernate-core</artifactId>-->
+            <!--    </exclusion>-->
+            <!--</exclusions>-->
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <!--
-                TODO remove in 2021 if it works - all the configuration/executions should already come from parent
-                and skip works this way anyway.
-                -->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <!--<configuration>-->
-                <!--    <skipITs>${skipTests}</skipITs>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                <!--    <execution>-->
-                <!--        <goals>-->
-                <!--            <goal>integration-test</goal>-->
-                <!--            <goal>verify</goal>-->
-                <!--        </goals>-->
-                <!--    </execution>-->
-                <!--</executions>-->
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Doesn't have any unit tests, only integration. -->
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>${antrun.version}</version>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skipSchrodingerTests}</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>pre-integration-test</phase>
-                        <configuration>
-                            <skip>${skipTests}</skip>
-                            <target name="Midpoint ${project.version} booting up for integration testing, embedded Tomcat instance configured to listen on port: ${server.port}">
-                                <exec dir="." executable="cmd" osfamily="windows" spawn="true">
-                                    <arg value="/c"/>
-                                    <arg value="mvn"/>
-                                    <arg value="-f"/>
-                                    <arg value="${project.starter.module}/pom.xml"/>
-                                    <arg value="spring-boot:run"/>
-                                    <arg value="-Dmidpoint.schrodinger=true"/>
-                                    <arg value="-Dmidpoint.home=${midpoint.home}"/>
-                                    <arg value="-Dserver.port=${server.port}"/>
-                                    <arg value="-Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}"/>
-                                    <arg value="-Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore}"/>
-                                </exec>
-                                <exec dir="." executable="sh" osfamily="unix" spawn="true">
-                                    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run  -Dmidpoint.schrodinger=true -Dmidpoint.home=${midpoint.home} -Dserver.port=${server.port} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore}'"/>
-                                </exec>
-                                <waitfor maxwait="600" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
-                                    <socket server="${midpoint.host}" port="${server.port}"/>
-                                </waitfor>
-                            </target>
-                        </configuration>
+                        <id>analyze</id>
                         <goals>
-                            <goal>run</goal>
+                            <goal>analyze-only</goal>
                         </goals>
-                    </execution>
-                    <!--Shut down divided into execution blocks for cleanup purposes, not cool ... (check https://issues.apache.org/jira/browse/MANTRUN-86)-->
-                    <execution>
-                        <id>Attempt to execute the Shut-down-process</id>
-                        <phase>post-integration-test</phase>
                         <configuration>
-                            <skip>${skipTests}</skip>
-                            <target name="Shutting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
-                                <exec executable="jps">
-                                    <arg value="-l"/>
-                                    <redirector outputproperty="process.pid">
-                                        <outputfilterchain>
-                                            <linecontains>
-                                                <contains value="${project.app.package.name}"/>
-                                            </linecontains>
-                                            <replacestring from="${project.app.package.name}"/>
-                                            <trim/>
-                                        </outputfilterchain>
-                                    </redirector>
-                                </exec>
-                                <exec executable="taskkill" osfamily="windows" failonerror="true">
-                                    <arg value="/PID"/>
-                                    <arg value="${process.pid}"/>
-                                    <arg value="/F"/>
-                                </exec>
-                                <exec executable="kill" osfamily="unix" failonerror="true">
-                                    <arg value="-15"/>
-                                    <arg value="${process.pid}"/>
-                                </exec>
-                            </target>
+                            <ignoredDependencies>
+                                <ignoredDependency>org.hibernate:hibernate-core</ignoredDependency>
+                            </ignoredDependencies>
                         </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>Shut-down-process and attempt to execute clean up</id>
-                        <phase>post-integration-test</phase>
-                        <configuration>
-                            <skip>${skipTests}</skip>
-                            <target name="Shutting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
-                                <exec executable="jps">
-                                    <arg value="-l"/>
-                                    <redirector outputproperty="process.pid">
-                                        <outputfilterchain>
-                                            <linecontains>
-                                                <contains value="${project.app.package.name}"/>
-                                            </linecontains>
-                                            <replacestring from="${project.app.package.name}"/>
-                                            <trim/>
-                                        </outputfilterchain>
-                                    </redirector>
-                                </exec>
-                                <exec executable="taskkill" osfamily="windows" failonerror="true">
-                                    <arg value="/PID"/>
-                                    <arg value="${process.pid}"/>
-                                    <arg value="/F"/>
-                                </exec>
-                                <exec executable="kill" osfamily="unix" failonerror="true">
-                                    <arg value="-15"/>
-                                    <arg value="${process.pid}"/>
-                                </exec>
-                                <waitfor maxwait="20" maxwaitunit="second" checkevery="500">
-                                    <not>
-                                        <socket port="${server.port}" server="${midpoint.host}"/>
-                                    </not>
-                                </waitfor>
-                                <property environment="env"/>
-                                <condition property="e.home" value="${env.HOMEPATH}\midpoint" else="${env.HOME}/midpoint">
-                                    <and>
-                                        <os family="windows"/>
-                                        <not>
-                                            <os family="unix"/>
-                                        </not>
-                                    </and>
-                                </condition>
-                                <condition property="home" value="${midpoint.home}" else="${e.home}">
-                                    <and>
-                                        <isset property="midpoint.home"/>
-                                        <not>
-                                            <length string="${midpoint.home}" trim="true" when="lt" length="1"/>
-                                        </not>
-                                    </and>
-                                </condition>
-                                <exec executable="cmd" osfamily="windows" failonerror="true">
-                                    <arg line=' /c rmdir "${home}" /S /Q '/>
-                                </exec>
-                                <!--<exec executable="rm" osfamily="unix" failonerror="true">-->
-                                <!--<arg line="-rf ${home}"/>-->
-                                <!--</exec>-->
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.cleanup;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,17 +67,16 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
     }
 
     @Override
-    protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler,
+            TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 
     @Override
-    protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = super.createQuery(handler, runResult, coordinatorTask, opResult);
+    protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult,
+            Task coordinatorTask, OperationResult opResult) throws SchemaException {
+        ObjectQuery query = createQueryFromTask(handler, runResult, coordinatorTask, opResult);
 
-        if (query == null) {
-            query = getPrismContext().queryFactory().createQuery();
-        }
         if (query.getFilter() == null) {
             ObjectFilter filter = prismContext.queryFor(ShadowType.class)
                     .exists(ShadowType.F_PENDING_OPERATION)
@@ -84,12 +85,6 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
         }
 
         return query;
-    }
-
-    @Override
-    protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, RunningTask task, OperationResult opResult)
-            throws SchemaException {
-        super.finish(handler, runResult, task, opResult);
     }
 
     @Override
@@ -112,4 +107,8 @@ public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowT
         return handler;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
 }

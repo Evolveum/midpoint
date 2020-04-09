@@ -6,14 +6,11 @@ package com.evolveum.midpoint.testing.story;
  * and European Union Public License. See LICENSE file for details.
  */
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,18 +20,17 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.impl.polystring.Ascii7PolyStringNormalizer;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Radovan Semancik
- *
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -43,7 +39,6 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "normalizers");
 
     public static final File SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_FILE = new File(TEST_DIR, "system-configuration-normalizer-ascii7.xml");
-    public static final String SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final File USER_TELEKE_FILE = new File(TEST_DIR, "user-teleke.xml");
     protected static final String USER_TELEKE_OID = "e1b0b0a4-17c6-11e8-bfc9-efaa710b614a";
@@ -77,28 +72,23 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
         PolyStringNormalizer prismNormalizer = prismContext.getDefaultPolyStringNormalizer();
-        assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was "+prismNormalizer.getClass(),
+        assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was " + prismNormalizer.getClass(),
                 prismNormalizer instanceof Ascii7PolyStringNormalizer);
     }
 
     @Test
     public void test100AddUserJack() throws Exception {
-        final String TEST_NAME = "test100AddUserJack";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(AbstractStoryTest.USER_JACK_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(AbstractStoryTest.USER_JACK_OID);
@@ -108,18 +98,16 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
 
     @Test
     public void test110AddUserTeleke() throws Exception {
-        final String TEST_NAME = "test110AddUserTeleke";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         addObject(USER_TELEKE_FILE, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_TELEKE_OID);
@@ -132,7 +120,8 @@ public class TestNormalizers extends AbstractModelIntegrationTest {
     private void assertPolyString(PrismObject<UserType> user, QName propName, String expectedOrig, String expectedNorm) {
         PrismProperty<PolyString> prop = user.findProperty(ItemName.fromQName(propName));
         PolyString polyString = prop.getRealValue();
-        assertEquals("Wrong user "+propName.getLocalPart()+".orig", expectedOrig, polyString.getOrig());
+        assertNotNull(polyString);
+        assertEquals("Wrong user " + propName.getLocalPart() + ".orig", expectedOrig, polyString.getOrig());
         assertEquals("Wrong user \"+propName.getLocalPart()+\".norm", expectedNorm, polyString.getNorm());
     }
 }

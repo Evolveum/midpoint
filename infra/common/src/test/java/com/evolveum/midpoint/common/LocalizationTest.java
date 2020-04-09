@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import org.testng.AssertJUnit;
@@ -21,7 +23,8 @@ import java.util.Locale;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class LocalizationTest {
+@UnusedTestElement("1 test failing, not in suite")
+public class LocalizationTest extends AbstractUnitTest {
 
     private static String midpointHome;
 
@@ -46,7 +49,7 @@ public class LocalizationTest {
     }
 
     @Test
-    public void localization() throws Exception {
+    public void localization() {
         assertTranslation(service, "standardKey", "standardKeyCustomValue");
         assertTranslation(service, "customMidpointKey", "customMidpointValue");
         assertTranslation(service, "otherKey", "otherValue");
@@ -56,7 +59,7 @@ public class LocalizationTest {
     }
 
     @Test
-    public void localizationParams2() throws Exception {
+    public void localizationParams2() {
         Object[] params = new Object[2];
         params[0] = "John";
         params[1] = "Couldn't find user with name 'John'";
@@ -68,12 +71,12 @@ public class LocalizationTest {
     }
 
     @Test
-    public void localizationDefaults() throws Exception {
+    public void localizationDefaults() {
         assertTranslation(service, "unknownKey", "expectedValues", "expectedValues");
     }
 
     @Test
-    public void localizationParams() throws Exception {
+    public void localizationParams() {
         Object[] params = new Object[3];
         params[0] = 123;
         params[1] = new LocalizableMessageBuilder().key("someunknownkey").fallbackMessage("fallback").build();

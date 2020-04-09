@@ -9,7 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,8 +67,6 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 /**
  * Part of PolicyRuleBasedAspect related to assignments.
- *
- * @author mederly
  */
 @Component
 public class AssignmentPolicyAspectPart {
@@ -85,7 +82,7 @@ public class AssignmentPolicyAspectPart {
     @Autowired protected LocalizationService localizationService;
     @Autowired protected ModelInteractionService modelInteractionService;
 
-    void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
+    void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<? extends FocusType> requester,
             List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException {
 
@@ -128,9 +125,9 @@ public class AssignmentPolicyAspectPart {
                 }
             }
             instructions.addAll(newInstructions);
-            CompiledUserProfile adminGuiConfiguration;
+            CompiledGuiProfile adminGuiConfiguration;
             try {
-                adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
+                adminGuiConfiguration = modelInteractionService.getCompiledGuiProfile(ctx.task, result);
             } catch (CommunicationException | ConfigurationException | SecurityViolationException
                     | ExpressionEvaluationException e) {
                 throw new SystemException(e.getMessage(), e);
@@ -158,7 +155,7 @@ public class AssignmentPolicyAspectPart {
 
     private PcpStartInstruction createInstructionFromAssignment(
             EvaluatedAssignment<?> evaluatedAssignment, PlusMinusZero assignmentMode, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
-            PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         // We collect all target rules; hoping that only relevant ones are triggered.
         // For example, if we have assignment policy rule on induced role, it will get here.
@@ -308,7 +305,7 @@ public class AssignmentPolicyAspectPart {
     private PcpStartInstruction prepareAssignmentRelatedStartInstruction(
             ApprovalSchemaBuilder.Result builderResult,
             EvaluatedAssignment<?> evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
-            PlusMinusZero assignmentMode, PrismObject<UserType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
+            PlusMinusZero assignmentMode, PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         ModelContext<?> modelContext = ctx.modelContext;
         @SuppressWarnings("unchecked")

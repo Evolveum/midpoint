@@ -8,11 +8,8 @@ package com.evolveum.midpoint.testing.story;
 
 import java.io.File;
 import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,10 +17,12 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,13 +30,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -50,15 +43,12 @@ public class TestNullAttribute extends AbstractStoryTest {
 
     protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
     //see
-    protected static final String RESOURCE_DUMMY_ID = "DUMMY";
     protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000001";
-    protected static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME = "fullname";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_SHIP = "ship";
     private static final String DUMMY_ACCOUNT_ATTRIBUTE_WEAPON = "weapon";
 
-    public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
     public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 
     public static final File ROLE_ACCOUNTONLY_FILE = new File(TEST_DIR, "role-accountonly.xml");
@@ -70,18 +60,13 @@ public class TestNullAttribute extends AbstractStoryTest {
     public static final File USER_SMACK_FILE = new File(TEST_DIR, "user-smack.xml");
     public static final String USER_SMACK_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 
-    @Autowired private ReconciliationTaskHandler reconciliationTaskHandler;
-
     protected static DummyResource dummyResource;
     protected static DummyResourceContoller dummyResourceCtl;
-    protected ResourceType resourceDummyType;
     protected PrismObject<ResourceType> resourceDummy;
-
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
 
         // Resources
         //default instance, no instance id
@@ -103,39 +88,34 @@ public class TestNullAttribute extends AbstractStoryTest {
         //
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-
         // Object Templates
         importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
         setDefaultUserTemplate(OBJECT_TEMPLATE_USER_OID);
-
 
         // Role
         importObjectFromFile(ROLE_ACCOUNTONLY_FILE, initResult);
         importObjectFromFile(ROLE_SHIPNWEAPON_FILE, initResult);
 
         PrismObject<RoleType> rolesw = getRole(ROLE_SHIPNWEAPON_OID);
-         display("role shipNWeapon initial", rolesw);
+        display("role shipNWeapon initial", rolesw);
 
         //User
-         importObjectFromFile(USER_SMACK_FILE, initResult);
+        importObjectFromFile(USER_SMACK_FILE, initResult);
 
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
         TestUtil.assertSuccess(testResult);
 
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
         PrismContainerDefinition<?> userExtensionDef = userDefinition.getExtensionDefinition();
-        display("User extension definition", userExtensionDef);
+        displayDumpable("User extension definition", userExtensionDef);
         PrismAsserts.assertPropertyDefinition(userExtensionDef,
                 new QName(NS_PIRACY, "ship"), DOMUtil.XSD_STRING, 0, 1);
-
 
     }
 
@@ -145,11 +125,8 @@ public class TestNullAttribute extends AbstractStoryTest {
      */
     @Test
     public void test010UserSmackAssignAccountOnlyRole() throws Exception {
-        final String TEST_NAME = "test010UserSmackAssignAccountOnlyRole";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -175,10 +152,9 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after role account only assignment", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME),"Smack Sparrow");
+        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
         PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP));
         PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON));
-
 
     }
 
@@ -189,24 +165,20 @@ public class TestNullAttribute extends AbstractStoryTest {
      */
     @Test
     public void test020UserSmackSetAttribute() throws Exception {
-        final String TEST_NAME = "test020UserSmackSetAttribute";
-        displayTestTitle(TEST_NAME);
-
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         PrismObject<UserType> smack = getUser(USER_SMACK_OID);
-        display("smack initial: "+smack.debugDump());
+        display("smack initial: " + smack.debugDump());
 
-
-         // WHEN
+        // WHEN
         @SuppressWarnings("unchecked, raw")
         Collection<ObjectDelta<? extends ObjectType>> deltas =
                 (Collection) prismContext.deltaFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName(NS_PIRACY, "ship")).add("Black Pearl")
-                .asObjectDeltas(USER_SMACK_OID);
+                        .item(UserType.F_EXTENSION, new QName(NS_PIRACY, "ship")).add("Black Pearl")
+                        .asObjectDeltas(USER_SMACK_OID);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
@@ -228,8 +200,8 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after role shipnweapon assignment", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME),"Smack Sparrow");
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_SHIP),"Black Pearl");
+        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
+        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP), "Black Pearl");
         // weapon is not in user's extension (MID-3326)
         //PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON),"pistol");
 
@@ -243,36 +215,31 @@ public class TestNullAttribute extends AbstractStoryTest {
      */
     @Test // MID-3325
     public void test030UserSmackRemoveAttribute() throws Exception {
-        final String TEST_NAME = "test030UserSmackRemoveAttribute";
-        displayTestTitle(TEST_NAME);
-
-         // GIVEN
-        Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-
 
         //TODO: best way to set extension properties?
         PrismObject<UserType> userBefore = getUser(USER_SMACK_OID);
         display("User before", userBefore);
         PrismObject<UserType> userNewPrism = userBefore.clone();
         prismContext.adopt(userNewPrism);
-        if (userNewPrism.getExtension()==null)userNewPrism.createExtension();
+        if (userNewPrism.getExtension() == null) { userNewPrism.createExtension(); }
         PrismContainer<?> ext = userNewPrism.getExtension();
         ext.setPropertyRealValue(PIRACY_SHIP_QNAME, null);
 
         ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
-        display("Modifying user with delta", delta);
+        displayDumpable("Modifying user with delta", delta);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
-
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_SMACK_OID);
@@ -291,10 +258,9 @@ public class TestNullAttribute extends AbstractStoryTest {
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("accountModel jack after attribute deletion", accountModel);
 
-        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath( DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME),"Smack Sparrow");
+        PrismAsserts.assertPropertyValue(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME), "Smack Sparrow");
         PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_WEAPON));
         PrismAsserts.assertNoItem(accountModel, dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_SHIP));
-
 
     }
 

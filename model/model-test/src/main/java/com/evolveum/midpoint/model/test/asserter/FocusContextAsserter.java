@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.model.test.asserter;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -86,7 +86,7 @@ public class FocusContextAsserter<F extends ObjectType,RA> extends ElementContex
 
     @Override
     public FocusContextAsserter<F,RA> display(String message) {
-        IntegrationTestTools.display(message, getFocusContext());
+        PrismTestUtil.display(message, getFocusContext());
         return this;
     }
 }

@@ -82,14 +82,11 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test100AssignJackDummyAccounts() throws Exception {
-        final String TEST_NAME = "test100AssignJackDummyAccounts";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
@@ -97,7 +94,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackPirateAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -112,21 +109,18 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test105ModifyJackTitleCaptain() throws Exception {
-        final String TEST_NAME = "test105ModifyJackTitleCaptain";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         setAccountQuotes();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_CAPTAIN));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
@@ -185,19 +179,16 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test110ModifyJackTitleWhatever() throws Exception {
-        final String TEST_NAME = "test110ModifyJackTitleWhatever";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_UPPER));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         // Mappings return null, which means no value.
@@ -259,19 +250,16 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test112ReconcileJackWhatever() throws Exception {
-        final String TEST_NAME = "test112ReconcileJackWhatever";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(USER_JACK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
@@ -315,10 +303,7 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test120MadJack() throws Exception {
-        final String TEST_NAME = "test120MadJack";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Make sure that quotes are re-set. Especially in the nontolerant resource.
@@ -329,12 +314,12 @@ public class TestMappingMadness extends AbstractStoryTest {
         setAccountMad(getDummyAccount(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         reconcileUser(USER_JACK_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -354,19 +339,16 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test130ModifyJackTitleWhateverLower() throws Exception {
-        final String TEST_NAME = "test130ModifyJackTitleWhateverLower";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, createPolyString(JACK_TITLE_WHATEVER_LOWER));
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -385,19 +367,16 @@ public class TestMappingMadness extends AbstractStoryTest {
      */
     @Test
     public void test140ModifyJackTitleEmpty() throws Exception {
-        final String TEST_NAME = "test140ModifyJackTitleEmpty";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result /* no value */);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
@@ -421,14 +400,11 @@ public class TestMappingMadness extends AbstractStoryTest {
 
     @Test
     public void test199UnassignJackDummyAccount() throws Exception {
-        final String TEST_NAME = "test199UnassignJackDummyAccount";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
@@ -436,7 +412,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoDummyAccount(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME);
@@ -513,5 +489,4 @@ public class TestMappingMadness extends AbstractStoryTest {
     private String drinkize(String title) {
         return "Drink like a " + title;
     }
-
 }

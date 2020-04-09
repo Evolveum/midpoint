@@ -9,7 +9,7 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
-import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -30,7 +30,7 @@ public class ResourceTaskQuickAccessDropDown<T> extends DropDown<T> {
         return this.getParent();
     }
 
-    public NewTaskPage clickCreateNew() {
+    public TaskPage clickCreateNew() {
 
         ElementsCollection elements = $$(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "Create new"));
         for (SelenideElement element : elements) {
@@ -41,7 +41,7 @@ public class ResourceTaskQuickAccessDropDown<T> extends DropDown<T> {
             }
         }
 
-        return new NewTaskPage();
+        return new TaskPage();
     }
 
 }

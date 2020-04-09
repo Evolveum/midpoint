@@ -6,6 +6,29 @@
  */
 package com.evolveum.midpoint.notifications.impl;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import com.evolveum.midpoint.notifications.impl.formatters.ValueFormatter;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -15,33 +38,13 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.util.AbstractSpringTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
- * @author mederly
+ *
  */
 @ContextConfiguration(locations = {"classpath:ctx-task.xml",
         "classpath:ctx-repo-cache.xml",
@@ -57,16 +60,16 @@ import static org.testng.AssertJUnit.assertTrue;
         "classpath:ctx-model-common.xml",
         "classpath:ctx-notifications-test.xml",
         "classpath*:ctx-notifications.xml"})
-public class TestTextFormatter extends AbstractTestNGSpringContextTests {
+public class TestTextFormatter extends AbstractSpringTest {
 
-    public static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
-    public static final String USER_JACK_FILE = OBJECTS_DIR_NAME + "/user-jack.xml";
-    public static final String ACCOUNT_JACK_FILE = OBJECTS_DIR_NAME + "/account-jack.xml";
+    private static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
+    private static final String USER_JACK_FILE = OBJECTS_DIR_NAME + "/user-jack.xml";
+    private static final String ACCOUNT_JACK_FILE = OBJECTS_DIR_NAME + "/account-jack.xml";
 
-    public static final String CHANGES_DIR_NAME = "src/test/resources/changes";
-    public static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
+    private static final String CHANGES_DIR_NAME = "src/test/resources/changes";
+    private static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
 
-    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+    private static final List<ItemPath> auxiliaryPaths = Arrays.asList(
             UserType.F_FAMILY_NAME,               // for testing purposes
             ShadowType.F_METADATA,
             ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
@@ -81,24 +84,15 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
             ShadowType.F_TRIGGER
     );
 
-    private static final List<ItemPath> synchronizationPaths = Arrays.asList(
-            ShadowType.F_SYNCHRONIZATION_SITUATION,
-            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
-            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
-            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP);
-
-
-    @Autowired
-    private TextFormatter textFormatter;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private TextFormatter textFormatter;
+    @Autowired private ValueFormatter valueFormatter;
+    @Autowired private PrismContext prismContext;
 
     static {
         // We set the locale to US to avoid translation of item names.
         // It is crucial that this method is called before TextFormatter class is loaded.
         // Currently this solution suffices but it is quite fragile. If something would change
-        // in this respect and breaking it, a different mechanism to set correct locale would need to be used.
+        // in this respect and breaks it, a different mechanism to set correct locale would need to be used.
         Locale.setDefault(Locale.US);
     }
 
@@ -108,6 +102,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
+    @SuppressWarnings("SimplifiedTestNGAssertion")
     @Test
     public void test010FormatUser() throws Exception {
 
@@ -155,20 +150,20 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains(EFFECTIVE_STATUS));
         assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains(FAMILY_NAME));
         assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains(SHIP));
-
     }
 
-
+    @SuppressWarnings("SimplifiedTestNGAssertion")
     @Test
-    public void test020FormatUserModification() throws Exception {
+    public void test020FormatUserDelta() throws Exception {
 
-        // GIVEN
+        given();
 
         ObjectDelta<UserType> delta = parseDelta(USER_JACK_MODIFICATION_FILE);
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
 
         System.out.println(delta.debugDump());
-        // WHEN
+
+        when();
 
         String deltaFormattedHideNone = textFormatter.formatObjectModificationDelta(delta, null, true, jack, null);
         System.out.println("no hidden paths + show operational attributes: " + deltaFormattedHideNone);
@@ -182,7 +177,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         String deltaFormattedHideAuxAndOper = textFormatter.formatObjectModificationDelta(delta, auxiliaryPaths, false, jack, null);
         System.out.println("hide auxiliary paths + hide operational attributes: " + deltaFormattedHideAuxAndOper);
 
-        // THEN
+        then();
 
         checkNotes(deltaFormattedHideAux);
         checkNotes(deltaFormattedHideAuxAndOper);
@@ -209,7 +204,6 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !deltaFormattedHideAuxAndOper.contains(CREATE_TIMESTAMP));
         assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !deltaFormattedHideAuxAndOper.contains("SPARROW"));
         assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", deltaFormattedHideAuxAndOper.contains("BLACK PEARL"));
-
     }
 
     private void checkNotes(String notification) {
@@ -227,22 +221,24 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertFalse(notes.contains("Assignment[3]"));
     }
 
+    @SuppressWarnings("SimplifiedTestNGAssertion")
     @Test
     public void test030FormatAccount() throws Exception {
 
-        // GIVEN
+        given();
 
         PrismObject<ShadowType> jack = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_FILE));
         System.out.println(jack.debugDump());
-        // WHEN
 
-        String jackFormattedHideNone = textFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
+        when();
+
+        String jackFormattedHideNone = valueFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
         System.out.println("no hidden paths + show operational attributes: " + jackFormattedHideNone);
 
-        String jackFormattedHideAux = textFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
+        String jackFormattedHideAux = valueFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
         System.out.println("hide auxiliary paths + show operational attributes: " + jackFormattedHideAux);
 
-        // THEN
+        then();
 
         final String NAME = "Name: jack";
         final String PASSWORD = "(protected string)";
@@ -258,31 +254,91 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         assertTrue("account password is not shown", jackFormattedHideAux.contains(PASSWORD));
         assertTrue("administrative status is not shown", jackFormattedHideAux.contains(ADMINISTRATIVE_STATUS));
         assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains(EFFECTIVE_STATUS));
+    }
 
-//        AssertJUnit.assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux')", jackFormattedHideAux.contains("ship: Black Pearl"));
-//
-//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("createTimestamp:"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Effective Status: ENABLED"));
-//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Family Name: Sparrow"));
-//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains("ship: Black Pearl"));
+    @Test
+    public void test050FormatDeltaWithOperAndAuxItems() throws Exception {
+
+        given();
+
+        PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
+        displayValue("jack", jack.debugDump());
+
+        // @formatter:off
+        ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                    .add(ObjectTypeUtil.createObjectRef("some-account-oid", ObjectTypes.SHADOW))
+                .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
+                    .replace(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+                .asObjectDelta("some-user-oid");
+        // @formatter:on
+
+        displayValue("delta", delta.debugDump());
+
+        when();
+
+        String deltaFormattedHideNone = textFormatter.formatObjectModificationDelta(delta, null, true, jack, null);
+        System.out.println("no hidden paths + show operational attributes:\n" + deltaFormattedHideNone);
+
+        String deltaFormattedHideOper = textFormatter.formatObjectModificationDelta(delta, null, false, jack, null);
+        System.out.println("no hidden paths + hide operational attributes:\n" + deltaFormattedHideOper);
+
+        String deltaFormattedHideAux = textFormatter.formatObjectModificationDelta(delta, auxiliaryPaths, true, jack, null);
+        System.out.println("hide auxiliary paths + show operational attributes:\n" + deltaFormattedHideAux);
+
+        String deltaFormattedHideAuxAndOper = textFormatter.formatObjectModificationDelta(delta, auxiliaryPaths, false, jack, null);
+        System.out.println("hide auxiliary paths + hide operational attributes:\n" + deltaFormattedHideAuxAndOper);
+
+        then();
+
+        // TODO create some asserts here
 
     }
 
+    /**
+     * Delta formatter cannot correctly deal with a situation when we are replacing empty container value with one
+     * that contains only hidden items.
+     *
+     * An example:
+     * - BEFORE: assignment[1]/activation = (empty)
+     * - DELTA: REPLACE assignment[1]/activation with (effectiveStatus: ENABLED) -- i.e. with seemingly empty PCV
+     *
+     * We should hide such modification. But we do not do this now. (See MID-5350.)
+     *
+     * We fixed that issue by changing the delta that is created.
+     * But this behavior of delta formatter should be eventually fixed. See MID-6111.
+     */
+    @Test(enabled = false)
+    public void test060FormatDeltaWithSingleOperationalItemContainer() throws Exception {
 
-    private ObjectDelta<UserType> parseDelta(String filename) throws JAXBException, SchemaException, IOException {
+        given();
+
+        PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
+        displayValue("jack", jack.debugDump());
+
+        // @formatter:off
+        ObjectDelta<Objectable> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
+                    .replace(ActivationStatusType.ENABLED)
+                // see MID-5350
+                .item(UserType.F_ASSIGNMENT, 1, UserType.F_ACTIVATION)
+                    .replace(new ActivationType(prismContext).effectiveStatus(ActivationStatusType.ENABLED))
+                .asObjectDelta("some-user-oid");
+        // @formatter:on
+
+        displayValue("delta", delta.debugDump());
+
+        when();
+
+        boolean hasVisible = textFormatter.containsVisibleModifiedItems(delta.getModifications(), false, false);
+
+        then();
+
+        assertFalse("There should be no visible modified items", hasVisible);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private ObjectDelta<UserType> parseDelta(String filename) throws SchemaException, IOException {
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(new File(filename), ObjectModificationType.COMPLEX_TYPE);
         return DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
     }

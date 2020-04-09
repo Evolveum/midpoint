@@ -48,11 +48,19 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
 
     <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
+
+    <logger name="com.evolveum.midpoint.model.impl.sync" level="DEBUG" />
+
     <!--
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
 
+    <logger name="org.identityconnectors.framework.api.operations" level="TRACE" />
+    <logger name="org.identityconnectors.framework.spi.operations" level="TRACE" />
+    <logger name="org.identityconnectors.framework.common.objects.ResultsHandler" level="DEBUG" />
+
     <logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
+    <logger name="com.evolveum.polygon.connector.ldap.OperationLog" level="TRACE" />
     <logger name="com.evolveum.polygon.connector.ldap.schema" level="DEBUG" />
     <!-- <logger name="org.apache.http.impl.auth.CredSspScheme" level="TRACE" /> -->
     <logger name="org.apache.directory.api" level="INFO" />

@@ -18,7 +18,7 @@
     <artifactId>test-util</artifactId>
     <packaging>jar</packaging>
 
-    <name>midPoint Infrastructure - testing mock utils</name>
+    <name>midPoint Infrastructure - testing utils (lvl 2)</name>
 
     <repositories>
         <repository>
@@ -50,10 +50,6 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>stax</groupId>
-            <artifactId>stax-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
         </dependency>
@@ -65,6 +61,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+
         <!-- Do we need this? Why? -->
         <dependency>
             <groupId>org.apache.felix</groupId>
@@ -104,7 +105,10 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>4.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.qpid</groupId>

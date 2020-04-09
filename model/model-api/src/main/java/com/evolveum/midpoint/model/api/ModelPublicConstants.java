@@ -16,7 +16,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  */
 public class ModelPublicConstants {
 
-    public static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
+    private static final String NS_SYNCHRONIZATION_PREFIX = SchemaConstants.NS_MODEL +"/synchronization";
     public static final String NS_SYNCHRONIZATION_TASK_PREFIX = NS_SYNCHRONIZATION_PREFIX + "/task";
 
     public static final String DELETE_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/delete/handler-3";    // TODO why "synchronization"?
@@ -40,5 +40,11 @@ public class ModelPublicConstants {
     public static final String SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/scripting/handler-3";
     public static final String ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/iterative-scripting/handler-3";
     public static final String EXECUTE_DELTAS_TASK_HANDLER_URI = SchemaConstants.NS_MODEL + "/execute-deltas/handler-3";
+    public static final String EXECUTE_CHANGES_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
     public static final String DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/delete-not-updated-shadow/handler-3";
+    public static final String RECOMPUTE_HANDLER_URI = NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
+
+    //not sure if this is correct place
+    public static final String CLUSTER_REPORT_FILE_PATH = "/reportFiles";
+    public static final String CLUSTER_REPORT_FILE_FILENAME_PARAMETER = "filename";
 }

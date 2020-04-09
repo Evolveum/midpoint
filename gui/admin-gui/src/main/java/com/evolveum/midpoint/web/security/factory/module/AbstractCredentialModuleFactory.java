@@ -55,6 +55,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(moduleType, configuration);
+        moduleAuthentication.setFocusType(moduleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
@@ -66,9 +67,11 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
 
 
             List<CredentialPolicyType> credentialPolicies = new ArrayList<CredentialPolicyType>();
-            credentialPolicies.add(credentialsPolicy.getPassword());
-            credentialPolicies.add(credentialsPolicy.getSecurityQuestions());
-            credentialPolicies.addAll(credentialsPolicy.getNonce());
+            if (credentialsPolicy != null) {
+                credentialPolicies.add(credentialsPolicy.getPassword());
+                credentialPolicies.add(credentialsPolicy.getSecurityQuestions());
+                credentialPolicies.addAll(credentialsPolicy.getNonce());
+            }
 
             for (CredentialPolicyType processedPolicy : credentialPolicies) {
                 if (processedPolicy != null) {
@@ -99,7 +102,7 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
         }
 
         return getObjectObjectPostProcessor().postProcess(createProvider(usedPolicy));
-    };
+    }
 
     protected abstract ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, C configuration);
 

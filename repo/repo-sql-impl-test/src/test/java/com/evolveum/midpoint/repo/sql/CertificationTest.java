@@ -27,8 +27,6 @@ import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,17 +54,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CertificationTest extends BaseSQLRepoTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CertificationTest.class);
     private static final File TEST_DIR = new File("src/test/resources/cert");
     public static final File CAMPAIGN_1_FILE = new File(TEST_DIR, "cert-campaign-1.xml");
-    public static final String CAMPAIGN_1_OID = "e8c07a7a-1b11-11e8-9b32-1715a2e8273b";
     public static final File CAMPAIGN_2_FILE = new File(TEST_DIR, "cert-campaign-2.xml");
     public static final long CASE_9_ID = 105L;
     public static final long NEW_CASE_ID = 200L;
@@ -208,11 +201,10 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     @Test
     public void test250DeleteCase() throws Exception {
-        final String TEST_NAME = "test250DeleteCase";
-        OperationResult result = createResult(TEST_NAME);
+        OperationResult result = createOperationResult();
 
         PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
-        display("Campaign 10 before", campaign10Before);
+        displayValue("Campaign 10 before", campaign10Before);
 
         AccessCertificationCaseType case9 = new AccessCertificationCaseType();
         case9.setId(CASE_9_ID);
@@ -226,7 +218,7 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         // THEN
         PrismObject<AccessCertificationCampaignType> campaign10After = getFullCampaign(campaign1Oid);
-        display("Campaign 10 after", campaign10After);
+        displayValue("Campaign 10 after", campaign10After);
 
         checkCasesForCampaign(campaign1Oid, 8, result);
         checkCasesTotal(8, result);
@@ -557,7 +549,7 @@ public class CertificationTest extends BaseSQLRepoTest {
                 }
             }
             if (emptyDecisionFound) {
-                LOGGER.info("Expecting case of {}:{}", campaign.getOid(), aCase.getId());
+                logger.info("Expecting case of {}:{}", campaign.getOid(), aCase.getId());
                 expectedCases.add(aCase);
             }
         }
@@ -582,7 +574,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         }
     }
 
-    private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaign(String oid, int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -596,7 +588,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of certification work items", expected, count);
     }
 
-    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsForCampaignAndCase(String oid, long caseId, int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                 .exists(T_PARENT)
                 .block()
@@ -611,7 +603,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of certification work items", expected, count);
     }
 
-    private void checkCasesTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkCasesTotal(int expected, OperationResult result) throws SchemaException {
         ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                 .build();
         List<AccessCertificationCaseType> cases = repositoryService.searchContainers(AccessCertificationCaseType.class, query, null, result);
@@ -628,7 +620,7 @@ public class CertificationTest extends BaseSQLRepoTest {
         }
     }
 
-    private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void checkWorkItemsTotal(int expected, OperationResult result) throws SchemaException {
         List<AccessCertificationWorkItemType> workItems = repositoryService.searchContainers(AccessCertificationWorkItemType.class, null, null, result);
         assertWorkItemsCount(expected, workItems, "");
         int count = repositoryService.countContainers(AccessCertificationWorkItemType.class, null, null, result);
@@ -645,7 +637,7 @@ public class CertificationTest extends BaseSQLRepoTest {
     private PrismObject<AccessCertificationCampaignType> getOwningCampaignChecked(AccessCertificationCaseType aCase) {
         PrismContainer caseContainer = (PrismContainer) aCase.asPrismContainerValue().getParent();
         assertNotNull("campaign is not fetched (case parent is null)", caseContainer);
-        PrismContainerValue campaignValue = (PrismContainerValue) caseContainer.getParent();
+        PrismContainerValue campaignValue = caseContainer.getParent();
         assertNotNull("campaign is not fetched (case container parent is null)", caseContainer);
         PrismObject<AccessCertificationCampaignType> campaign = (PrismObject) campaignValue.getParent();
         assertNotNull("campaign is not fetched (campaign PCV parent is null)", campaign);
@@ -681,7 +673,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             ItemDeltaCollectionsUtil.applyTo(modifications, expectedObject);
         }
 
-        LOGGER.trace("Expected object = \n{}", expectedObject.debugDump());
+        logger.trace("Expected object = \n{}", expectedObject.debugDump());
 
         boolean casesExpected = !expectedObject.asObjectable().getCase().isEmpty();
 
@@ -691,7 +683,7 @@ public class CertificationTest extends BaseSQLRepoTest {
             assertFalse("campaign.case is marked as incomplete", caseContainerFull.isIncomplete());
         }
 
-        LOGGER.trace("Actual object from repo = \n{}", campaignFull.debugDump());
+        logger.trace("Actual object from repo = \n{}", campaignFull.debugDump());
 
         PrismAsserts.assertEquivalent("Campaign is not as expected", expectedObject, campaignFull);
         if (expectedVersion != null) {

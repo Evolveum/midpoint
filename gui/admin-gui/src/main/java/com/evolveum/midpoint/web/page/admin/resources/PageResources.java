@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -408,7 +409,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
                 ObjectDelta<ResourceType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ResourceType.class,
                         resource.getOid());
-                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
+                getModelService().executeChanges(MiscUtil.createCollection(delta), null, task,
                         result);
             } catch (Exception ex) {
                 result.recordPartialError(createStringResource("PageResources.message.deleteResourceConfirmedPerformed.partialError").getString(), ex);

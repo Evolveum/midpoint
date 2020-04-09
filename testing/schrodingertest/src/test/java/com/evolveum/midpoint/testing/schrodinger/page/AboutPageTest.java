@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -15,7 +17,7 @@ import org.testng.annotations.Test;
 /**
  * Created by matus on 3/16/2018.
  */
-public class AboutPageTest extends TestBase {
+public class AboutPageTest extends AbstractSchrodingerTest {
 
     private static final String VERSION_EXPECTED = "4.1-SNAPSHOT"; // Static value, should be changed each version change.
     private static final String HIBERNATE_DIALECT_EXPECTED = "org.hibernate.dialect.H2Dialect";
@@ -39,18 +41,14 @@ public class AboutPageTest extends TestBase {
 
     @Test
     public void checkGitDescribeValue() {
-        Assert.assertTrue(!aboutPage
-                .gitDescribe()
-                .isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.gitDescribe().isEmpty());
     }
 
     @Test
     public void checkBuildAt() {
-        Assert.assertTrue(!aboutPage
-                .buildAt()
-                .isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.buildAt().isEmpty());
     }
 
     @Test // TODO fix select the right element
@@ -96,6 +94,7 @@ public class AboutPageTest extends TestBase {
 
     @Test
     public void checkReindexRepositoryObjectsDisplayName() {
+        // @formatter:off
         Assert.assertEquals(aboutPage
                         .reindexRepositoryObjects()
                             .feedback()
@@ -104,29 +103,23 @@ public class AboutPageTest extends TestBase {
                                         .summary()
                                         .fetchDisplayName()
                 , REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
+        // @formatter:on
     }
 
-    @Test
+    @Test (enabled = false)
     public void checkJVMPropertiesMidpointHome(){
-
-        Assert.assertTrue(
-        !aboutPage.getJVMproperty(TestBase.PROPERTY_NAME_MIDPOINT_HOME).isEmpty()
-    );
-
+        Assert.assertFalse(
+                aboutPage.getJVMproperty(AbstractSchrodingerTest.PROPERTY_NAME_MIDPOINT_HOME).isEmpty());
     }
 
     @Test
     public void checkJVMPropertiesXmx(){
-
-        Assert.assertTrue(
-                !aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty()
-        );
-
+        Assert.assertFalse(
+                aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty());
     }
     @Test
     public void checkSystemProperty(){
-        Assert.assertTrue(
-                !aboutPage.getSystemProperty(TestBase.PROPERTY_NAME_USER_HOME).isEmpty()
-        );
+        Assert.assertFalse(
+                aboutPage.getSystemProperty(AbstractSchrodingerTest.PROPERTY_NAME_USER_HOME).isEmpty());
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -7,13 +7,15 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Condition;
+
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.page.org.NewOrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
 import org.openqa.selenium.By;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -23,7 +25,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by honchar.
  */
-public class OrgMembersTests extends TestBase {
+public class OrgMembersTests extends AbstractSchrodingerTest {
 
     private static final String ORG_NAME = "TestOrgWithMembers";
     private static final String USER_NAME = "OrgMembersWithDefaultRelation";
@@ -34,15 +36,15 @@ public class OrgMembersTests extends TestBase {
         AssignmentHolderBasicTab<NewOrgPage> basicTab = newOrgPage
                 .selectTabBasic()
                     .form()
-                    .addAttributeValue("Name", ORG_NAME)
+                    .addAttributeValue("name", ORG_NAME)
                     .and();
 
 
         basicTab
                 .and()
                 .clickSave();
-
-        $(Schrodinger.byElementAttributeValue("a", "class", "tab-label")).find(By.linkText(ORG_NAME)).shouldBe(Condition.visible);
+        Selenide.sleep(2000);
+        $(Schrodinger.byDataId("tabs-container")).find(By.linkText(ORG_NAME)).shouldBe(Condition.visible);
     }
 
     @Test

@@ -9,10 +9,16 @@ package com.evolveum.midpoint.model.impl.security;
 import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
@@ -45,18 +51,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * @author semancik
@@ -72,9 +66,10 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private AuditHelper auditHelper;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private PrismContext prismContext;
 
     @Override
-    public void auditLoginSuccess(@NotNull UserType user, @NotNull ConnectionEnvironment connEnv) {
+    public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
         auditLogin(user.getName().getOrig(), user, connEnv, OperationResultStatus.SUCCESS, null);
     }
 
@@ -83,11 +78,11 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     @Override
-    public void auditLoginFailure(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, String message) {
-        auditLogin(username, user, connEnv, OperationResultStatus.FATAL_ERROR, message);
+    public void auditLoginFailure(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, String message) {
+        auditLogin(username, focus, connEnv, OperationResultStatus.FATAL_ERROR, message);
     }
 
-    private void auditLogin(@Nullable String username, @Nullable UserType user, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
+    private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
                             @Nullable String message) {
         Task task = taskManager.createTaskInstance();
         task.setChannel(connEnv.getChannel());
@@ -98,8 +93,8 @@ public class SecurityHelper implements ModelAuditRecorder {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
-        if (user != null ) {
-            record.setInitiator(user.asPrismObject());
+        if (focus != null ) {
+            record.setInitiator(focus.asPrismObject());
         }
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
@@ -217,6 +212,48 @@ public class SecurityHelper implements ModelAuditRecorder {
             return null;
         }
     }
+
+    public SecurityPolicyType locateProjectionSecurityPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        LOGGER.trace("Finishing loading of projection context: security policy");
+        ObjectReferenceType securityPolicyRef = structuralObjectClassDefinition.getSecurityPolicyRef();
+        if (securityPolicyRef == null || securityPolicyRef.getOid() == null) {
+            LOGGER.trace("Security policy not defined for the projection context.");
+            return loadProjectionLegacyPasswordPolicy(structuralObjectClassDefinition, task, result);
+        }
+        LOGGER.trace("Loading security policy {} from: {}", securityPolicyRef, structuralObjectClassDefinition);
+        SecurityPolicyType securityPolicy = objectResolver.resolve(securityPolicyRef, SecurityPolicyType.class, null, " projection security policy", task, result);
+        if (securityPolicy == null) {
+            LOGGER.debug("Security policy {} defined for the projection does not exist", securityPolicyRef);
+            return null;
+        }
+        postProcessSecurityPolicy(securityPolicy, task, result);
+        return securityPolicy;
+    }
+
+
+    private SecurityPolicyType loadProjectionLegacyPasswordPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectReferenceType passwordPolicyRef = structuralObjectClassDefinition.getPasswordPolicy();
+        if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
+            LOGGER.trace("Legacy password policy not defined for the projection context.");
+            return null;
+        }
+        LOGGER.trace("Loading legacy password policy {} from: {}", passwordPolicyRef, structuralObjectClassDefinition);
+        ValuePolicyType passwordPolicy = objectResolver.resolve(passwordPolicyRef,
+                ValuePolicyType.class, null, " projection legacy password policy ", task, result);
+        if (passwordPolicy == null) {
+            LOGGER.debug("Legacy password policy {} defined for the projection does not exist", passwordPolicyRef);
+            return null;
+        }
+        ObjectReferenceType dummyPasswordPolicyRef = new ObjectReferenceType();
+        dummyPasswordPolicyRef.asReferenceValue().setObject(passwordPolicy.asPrismObject());
+        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
+        securityPolicy.asObjectable()
+                .beginCredentials()
+                    .beginPassword()
+                        .valuePolicyRef(dummyPasswordPolicyRef);
+        return securityPolicy.asObjectable();
+    }
+
 
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> focus,
             SystemConfigurationType systemConfiguration, Task task, OperationResult result)

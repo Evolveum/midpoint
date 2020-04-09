@@ -14,7 +14,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.expression.ExpressionPermissionProfile;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 
@@ -58,7 +57,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-poison-smell.xml",
                 "testSmellPoison",
                 createPoisonVariables(poison));
@@ -77,7 +76,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-poison-smell-tricky.xml",
                 "testDrinkPoisonTricky",
                 createPoisonVariables(poison));
@@ -94,7 +93,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-poison-smell-dynamic.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison));
@@ -115,7 +114,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
 
         // WHEN
         try {
-            evaluateAndAssertStringScalarExpresssion(
+            evaluateAndAssertStringScalarExpression(
                     "expression-poison-smell-very-dynamic.xml",
                     "testSmellPoisonVeryDynamic",
                     createPoisonVariables(poison),
@@ -138,7 +137,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-poison-smell-reflection.xml",
                 "testSmellPoisonDynamic",
                 createPoisonVariables(poison));
@@ -156,7 +155,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
         Poison poison = new Poison();
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-poison-drink.xml",
                 "testDrinkPoison",
                 createPoisonVariables(poison));
@@ -171,7 +170,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
     public void testStringExec() throws Exception {
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-string-exec.xml",
                 "testStringExec",
                 null);
@@ -188,7 +187,7 @@ public class TestGroovyExpressionsSandbox extends TestGroovyExpressions {
     public void testListExec() throws Exception {
 
         // WHEN
-        evaluateAndAssertStringScalarExpresssionRestricted(
+        evaluateAndAssertStringScalarExpressionRestricted(
                 "expression-list-exec.xml",
                 "testListExec",
                 null);

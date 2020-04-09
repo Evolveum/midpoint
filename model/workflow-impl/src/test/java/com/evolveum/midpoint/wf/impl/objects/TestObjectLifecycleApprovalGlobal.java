@@ -74,8 +74,8 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
     public void test500CreateRoleJudge() throws Exception {
         login(userAdministrator);
 
-        Task task = getTask();
-        OperationResult result = getResult();
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
 
         RoleType judge = new RoleType(prismContext)
                 .name("judge")
@@ -83,7 +83,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(judge.asPrismObject());
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -176,7 +176,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                         .replace("hi")
                 .asObjectDeltaCast(roleJudgeOid);
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -268,7 +268,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         ObjectDelta<RoleType> deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(RoleType.class, roleJudgeOid
         );
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -332,7 +332,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .inducement(createAssignmentTo("oid2", ObjectTypes.ROLE, prismContext));
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(captain.asPrismObject());
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -432,7 +432,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                         .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleCaptainOid);
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -519,7 +519,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
 
         ObjectDelta<RoleType> addObjectDelta = DeltaFactory.Object.createAddDelta(thief.asPrismObject());
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -618,7 +618,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                 .delete(cloneCollectionMembers(thiefBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
                 .asObjectDeltaCast(roleThiefOid);
 
-        executeTest(null, new TestDetails() {
+        executeTest(new TestDetails() {
             @Override
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
@@ -692,10 +692,4 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
     }
 
     // TODO test that contains task0 that adds an object (i.e. rule for 'add' is not applied)
-
-    @Test
-    public void zzzMarkAsNotInitialized() {
-        display("Setting class as not initialized");
-        unsetSystemInitialized();
-    }
 }

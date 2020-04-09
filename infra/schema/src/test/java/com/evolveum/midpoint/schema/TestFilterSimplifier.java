@@ -6,40 +6,23 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-/**
- * @author mederly
- *
- */
-public class TestFilterSimplifier {
+import org.testng.annotations.Test;
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+public class TestFilterSimplifier extends AbstractSchemaTest {
 
     @Test
-    public void test010All() throws Exception {
-        System.out.println("===[ test010All ]===");
-
+    public void test010All() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -55,9 +38,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test020None() throws Exception {
-        System.out.println("===[ test020None ]===");
-
+    public void test020None() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -73,9 +54,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test030Undefined() throws Exception {
-        System.out.println("===[ test030Undefined ]===");
-
+    public void test030Undefined() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -91,9 +70,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test100AndLevel1() throws Exception {
-        System.out.println("===[ test100AndLevel1 ]===");
-
+    public void test100AndLevel1() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -112,9 +89,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test110AndLevel1WithoutNone() throws Exception {
-        System.out.println("===[ test110AndLevel1WithoutNone ]===");
-
+    public void test110AndLevel1WithoutNone() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -132,9 +107,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test120AndEmpty() throws Exception {
-        System.out.println("===[ test120AndEmpty ]===");
-
+    public void test120AndEmpty() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -149,9 +122,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test150OrLevel1() throws Exception {
-        System.out.println("===[ test150OrLevel1 ]===");
-
+    public void test150OrLevel1() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -170,9 +141,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test160OrLevel1WithoutAll() throws Exception {
-        System.out.println("===[ test160OrLevel1WithoutAll ]===");
-
+    public void test160OrLevel1WithoutAll() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -190,9 +159,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test170OrLevel1Undefined() throws Exception {
-        System.out.println("===[ test170OrLevel1Undefined ]===");
-
+    public void test170OrLevel1Undefined() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -207,9 +174,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test180OrEmpty() throws Exception {
-        System.out.println("===[ test180OrEmpty ]===");
-
+    public void test180OrEmpty() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -224,9 +189,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test200AndLevel2() throws Exception {
-        System.out.println("===[ test200AndLevel2 ]===");
-
+    public void test200AndLevel2() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -235,13 +198,13 @@ public class TestFilterSimplifier {
                 .all()
                 .and().undefined()
                 .and()
-                    .block()
-                        .none().or().none()
-                    .endBlock()
+                .block()
+                .none().or().none()
+                .endBlock()
                 .and()
-                    .block()
-                        .none().or().none()
-                    .endBlock()
+                .block()
+                .none().or().none()
+                .endBlock()
                 .buildFilter();
         System.out.println("Original filter:\n" + filter.debugDump());
 
@@ -252,9 +215,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test210OrLevel2() throws Exception {
-        System.out.println("===[ test210OrLevel2 ]===");
-
+    public void test210OrLevel2() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -263,13 +224,13 @@ public class TestFilterSimplifier {
                 .none()
                 .or().undefined()
                 .or()
-                    .block()
-                        .none().or().none()
-                    .endBlock()
+                .block()
+                .none().or().none()
+                .endBlock()
                 .or()
-                    .block()
-                        .none().or().none()
-                    .endBlock()
+                .block()
+                .none().or().none()
+                .endBlock()
                 .buildFilter();
         System.out.println("Original filter:\n" + filter.debugDump());
 
@@ -280,9 +241,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test300NotAll() throws Exception {
-        System.out.println("===[ test300NotAll ]===");
-
+    public void test300NotAll() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -299,9 +258,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test310NotNone() throws Exception {
-        System.out.println("===[ test310NotNone ]===");
-
+    public void test310NotNone() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -318,9 +275,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test320NotNotAll() throws Exception {
-        System.out.println("===[ test320NotNotAll ]===");
-
+    public void test320NotNotAll() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -337,9 +292,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test330NotNotNone() throws Exception {
-        System.out.println("===[ test330NotNotNone ]===");
-
+    public void test330NotNotNone() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -356,9 +309,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test400TypeAll() throws Exception {
-        System.out.println("===[ test400TypeAll ]===");
-
+    public void test400TypeAll() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -378,9 +329,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test410TypeNone() throws Exception {
-        System.out.println("===[ test410TypeNone ]===");
-
+    public void test410TypeNone() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -397,9 +346,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test420TypeUndefined() throws Exception {
-        System.out.println("===[ test420TypeUndefined ]===");
-
+    public void test420TypeUndefined() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -419,9 +366,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test500ExistsAll() throws Exception {
-        System.out.println("===[ test500ExistsAll ]===");
-
+    public void test500ExistsAll() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -436,14 +381,12 @@ public class TestFilterSimplifier {
         System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
         assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
         ExistsFilter existsSimplified = (ExistsFilter) simplified;
-        assertEquals("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
+        PrismAsserts.assertEquivalent("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
         assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
     }
 
     @Test
-    public void test510ExistsNone() throws Exception {
-        System.out.println("===[ test510ExistsNone ]===");
-
+    public void test510ExistsNone() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -460,9 +403,7 @@ public class TestFilterSimplifier {
     }
 
     @Test
-    public void test520ExistsUndefined() throws Exception {
-        System.out.println("===[ test520ExistsUndefined ]===");
-
+    public void test520ExistsUndefined() {
         // GIVEN
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -477,8 +418,7 @@ public class TestFilterSimplifier {
         System.out.println("Simplified filter:\n" + DebugUtil.debugDump(simplified));
         assertTrue("Wrong simplified filter: " + simplified, simplified instanceof ExistsFilter);
         ExistsFilter existsSimplified = (ExistsFilter) simplified;
-        assertEquals("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
+        PrismAsserts.assertEquivalent("Wrong simplified filter path", UserType.F_ASSIGNMENT, existsSimplified.getFullPath());
         assertTrue("Wrong simplified filter subfilter: " + existsSimplified.getFilter(), ObjectQueryUtil.isAll(existsSimplified.getFilter()));
     }
-
 }

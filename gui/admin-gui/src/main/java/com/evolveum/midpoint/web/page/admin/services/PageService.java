@@ -6,15 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -24,13 +20,8 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
-import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
@@ -80,8 +71,8 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
     }
 
     @Override
-    protected FocusSummaryPanel<ServiceType> createSummaryPanel() {
-        return new ServiceSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    protected FocusSummaryPanel<ServiceType> createSummaryPanel(IModel<ServiceType> summaryModel) {
+        return new ServiceSummaryPanel(ID_SUMMARY_PANEL, summaryModel, this);
     }
 
     @Override
@@ -98,6 +89,15 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
             @Override
             protected boolean isFocusHistoryPage(){
                 return PageService.this.isFocusHistoryPage();
+            }
+
+            @Override
+            protected boolean getOptionsPanelVisibility() {
+                if (isSelfProfile()){
+                    return false;
+                } else {
+                    return super.getOptionsPanelVisibility();
+                }
             }
 
         };

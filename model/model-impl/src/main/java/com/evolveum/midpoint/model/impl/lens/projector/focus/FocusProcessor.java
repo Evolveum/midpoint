@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -141,38 +140,26 @@ public class FocusProcessor {
         // We care only about existing assignments here. New assignments will be taken care of in the executor
         // (OperationalDataProcessor). And why care about deleted assignments?
         Collection<EvaluatedAssignmentImpl<?>> zeroSet = evaluatedAssignmentTriple.getZeroSet();
-        if (zeroSet == null) {
-            return;
-        }
         LensFocusContext<F> focusContext = context.getFocusContext();
         for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
             if (evaluatedAssignment.isVirtual()) {
                 continue;
             }
-            AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
-            ActivationType currentActivationType = assignmentType.getActivation();
-            ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType, null);
-            if (currentActivationType == null) {
-                PrismContainerDefinition<ActivationType> activationDef = focusContext.getObjectDefinition().findContainerDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION);
-                ContainerDelta<ActivationType> activationDelta = activationDef.createEmptyDelta(
-                        ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION));
-                ActivationType newActivationType = new ActivationType();
-                activationDelta.setValuesToReplace(newActivationType.asPrismContainerValue());
-                newActivationType.setEffectiveStatus(expectedEffectiveStatus);
-                focusContext.swallowToSecondaryDelta(activationDelta);
-            } else {
-                ActivationStatusType currentEffectiveStatus = currentActivationType.getEffectiveStatus();
-                if (!expectedEffectiveStatus.equals(currentEffectiveStatus)) {
-                    PrismPropertyDefinition<ActivationStatusType> effectiveStatusPropertyDef = focusContext.getObjectDefinition().findPropertyDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS);
-                    PropertyDelta<ActivationStatusType> effectiveStatusDelta = effectiveStatusPropertyDef.createEmptyDelta(
-                            ItemPath.create(FocusType.F_ASSIGNMENT, assignmentType.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-                    effectiveStatusDelta.setRealValuesToReplace(expectedEffectiveStatus);
-                    focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
-                }
+            AssignmentType assignment = evaluatedAssignment.getAssignmentType();
+            ActivationType currentActivation = assignment.getActivation();
+            ActivationStatusType currentEffectiveStatus = currentActivation != null ? currentActivation.getEffectiveStatus() : null;
+            ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignment.getLifecycleState(),
+                    currentActivation, null);
+            if (currentEffectiveStatus != expectedEffectiveStatus) {
+                PrismPropertyDefinition<ActivationStatusType> effectiveStatusPropertyDef = focusContext.getObjectDefinition()
+                        .findPropertyDefinition(SchemaConstants.PATH_ASSIGNMENT_ACTIVATION_EFFECTIVE_STATUS);
+                PropertyDelta<ActivationStatusType> effectiveStatusDelta = effectiveStatusPropertyDef.createEmptyDelta(
+                        ItemPath.create(FocusType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+                effectiveStatusDelta.setRealValuesToReplace(expectedEffectiveStatus);
+                focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
             }
         }
     }
-
 
     private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now,
             OperationResult result)
@@ -405,7 +392,8 @@ public class FocusProcessor {
 
     private PrismContainerDefinition<ActivationType> getActivationDefinition() {
         if (activationDefinition == null) {
-            ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+            ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry()
+                    .findComplexTypeDefinitionByType(FocusType.COMPLEX_TYPE);
             activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
         }
         return activationDefinition;

@@ -51,15 +51,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-
-/**
- *
- * @author mederly
- *
- */
 
 @SuppressWarnings("FieldCanBeLocal")
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
@@ -129,11 +122,8 @@ public class TestStrings extends AbstractStoryTest {
 
     private static final File CONFIG_WITH_GLOBAL_RULES_FILE = new File(ROLES_DIR, "global-policy-rules.xml");
 
-    public static final String NS_STRINGS_EXT = "http://midpoint.evolveum.com/xml/ns/strings";
-
     private static final String DUMMY_WORK_ITEM_LIFECYCLE = "dummy:workItemLifecycle";
     private static final String DUMMY_WORK_ITEM_ALLOCATION = "dummy:workItemAllocation";
-    private static final String DUMMY_WORK_ITEM_CUSTOM = "dummy:workItemCustom";
     private static final String DUMMY_PROCESS = "dummy:process";
 
     protected static final int CASE_WAIT_TIMEOUT = 40000;
@@ -149,7 +139,7 @@ public class TestStrings extends AbstractStoryTest {
         // and we don't need validity scanner
         taskManager.suspendAndDeleteTasks(Collections.singletonList(TASK_VALIDITY_SCANNER_OID), 60000L, true, initResult);
 
-        Task triggerScanner = taskManager.getTask(TASK_TRIGGER_SCANNER_OID, initResult);
+        Task triggerScanner = taskManager.getTaskPlain(TASK_TRIGGER_SCANNER_OID, initResult);
         display("triggerScanner", triggerScanner);
 
         // import of story objects
@@ -196,30 +186,24 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-
         // TODO
     }
 
     //region Basic approval
     @Test
     public void test100SimpleAssignmentStart() throws Exception {
-        final String TEST_NAME = "test100SimpleAssignmentStart";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userBobOid, roleATest1Oid, task, task.getResult());
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
 
         CaseWorkItemType workItem = getWorkItem(task, result);
@@ -267,14 +251,12 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
                 "Process instance name: Assigning role \"a-test-1\" to user \"bob\"");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test102SimpleAssignmentApproveByLechuck() throws Exception {
-        final String TEST_NAME = "test102SimpleAssignmentApproveByLechuck";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -285,7 +267,7 @@ public class TestStrings extends AbstractStoryTest {
         CaseWorkItemType workItem = getWorkItem(task, result);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
         login(lechuck);
         workflowService.completeWorkItem(WorkItemId.of(workItem),
@@ -293,7 +275,7 @@ public class TestStrings extends AbstractStoryTest {
                 task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         login(userAdministrator);
 
         List<CaseWorkItemType> workItems = getWorkItems(task, result);
@@ -354,16 +336,14 @@ public class TestStrings extends AbstractStoryTest {
 
         // events
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
+        assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test104SimpleAssignmentApproveByAdministrator() throws Exception {
-        final String TEST_NAME = "test104SimpleAssignmentApproveByAdministrator";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -437,14 +417,12 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"bob\"", "Role approvers (all) (3/3)",
                 "Allocated to: Scumm Bar Chef (chef)", "^Result:", "(in 5 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test106SimpleAssignmentApproveByCheese() throws Exception {
-        final String TEST_NAME = "test106SimpleAssignmentApproveByCheese";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -496,14 +474,12 @@ public class TestStrings extends AbstractStoryTest {
                 "Allocated to: Ignatius Cheese (cheese)", "Carried out by: Ignatius Cheese (cheese)",
                 "Result: APPROVED", "^Deadline:");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test108SimpleAssignmentApproveByChef() throws Exception {
-        final String TEST_NAME = "test108SimpleAssignmentApproveByChef";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // GIVEN
@@ -556,7 +532,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
                 "Process instance name: Assigning role \"a-test-1\" to user \"bob\"", "Result: APPROVED");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
 
         // TODO after audit is OK
 //        List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
@@ -579,9 +555,7 @@ public class TestStrings extends AbstractStoryTest {
     //region Testing escalation
     @Test
     public void test200EscalatedApprovalStart() throws Exception {
-        final String TEST_NAME = "test200EscalatedApprovalStart";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -622,16 +596,11 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has been started",
                 "Process instance name: Assigning role \"a-test-1\" to user \"carla\"");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test202FourDaysLater() throws Exception {
-        final String TEST_NAME = "test202FourDaysLater";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -654,15 +623,13 @@ public class TestStrings extends AbstractStoryTest {
                 "Stage: Line managers (1/3)", "Allocated to (before escalation): Guybrush Threepwood (guybrush)");
         assertNull("process messages", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     // escalation should occur here
     @Test
     public void test204SixDaysLater() throws Exception {
-        final String TEST_NAME = "test204SixDaysLater";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -698,7 +665,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
 
         List<CaseEventType> events = assertEvents(aCase, 2);
-        assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
+        assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1,
                 Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
                 1, "Line manager escalation");
 
@@ -723,16 +690,11 @@ public class TestStrings extends AbstractStoryTest {
                 "|Allocated to (after escalation): Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to (after escalation): Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test205EightDaysLater() throws Exception {
-        final String TEST_NAME = "test205EightDaysLater";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -754,6 +716,7 @@ public class TestStrings extends AbstractStoryTest {
         assertNull("process messages", processMessages);
         assertEquals("Wrong # of work items allocation messages", 4, allocationMessages.size());
         ArrayListValuedHashMap<String, Message> sorted = sortByRecipients(allocationMessages);
+        // FIXME The following assertions fail when daylight saving switch is approaching. We should fix it somehow, some day ...
         assertMessage(sorted.get("guybrush@evolveum.com").get(0), "guybrush@evolveum.com", "Work item will be automatically completed in 2 days 12 hours",
                 "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Line managers (1/3)",
                 "Escalation level: Line manager escalation (1)",
@@ -775,14 +738,12 @@ public class TestStrings extends AbstractStoryTest {
                 "|Allocated to: Guybrush Threepwood (guybrush), Ignatius Cheese (cheese)|Allocated to: Ignatius Cheese (cheese), Guybrush Threepwood (guybrush)",
                 "(in 9 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test206ApproveByCheese() throws Exception {
-        final String TEST_NAME = "test206ApproveByCheese";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -868,15 +829,13 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item: Assigning role \"a-test-1\" to user \"carla\"", "Stage: Security (2/3)",
                 "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     // notification should be send
     @Test
     public void test208SixDaysLater() throws Exception {
-        final String TEST_NAME = "test208SixDaysLater";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -904,6 +863,7 @@ public class TestStrings extends AbstractStoryTest {
         assertEquals("Wrong # of work items allocation messages", 2, allocationMessages.size());
         Map<String, Message> sorted = sortByRecipientsSingle(allocationMessages);
 
+        // FIXME The following assertions fail when daylight saving switch is approaching. We should fix it somehow, some day ...
         assertMessage(sorted.get("elaine@evolveum.com"), "elaine@evolveum.com",
                 "Work item will be automatically completed in 2 days",
                 "Security (2/3)", "Allocated to: Elaine Marley (elaine)", "(in 7 days)");
@@ -911,16 +871,11 @@ public class TestStrings extends AbstractStoryTest {
                 "Work item will be automatically completed in 2 days",
                 "Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test209EightDaysLater() throws Exception {
-        final String TEST_NAME = "test209EightDaysLater";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
         dummyAuditService.clear();
         dummyTransport.clearMessages();
 
@@ -948,7 +903,7 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(processMessages.get(0), "administrator@evolveum.com", "Workflow process instance has finished",
                 "Process instance name: Assigning role \"a-test-1\" to user \"carla\"", "Result: REJECTED");
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     private void checkTwoCompleted(List<Message> lifecycleMessages) {
@@ -960,7 +915,6 @@ public class TestStrings extends AbstractStoryTest {
         assertMessage(sorted.get("barkeeper@evolveum.com"), "barkeeper@evolveum.com",
                 null,
                 "Security (2/3)", "Allocated to: Horridly Scarred Barkeep (barkeeper)");
-        int completed;
         assertMessage(lifecycleMessages.get(0), null, "Work item has been completed",
                 "^Carried out by:",
                 "Reason: Timed action",
@@ -973,12 +927,10 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test220FormRoleAssignmentStart() throws Exception {
-        final String TEST_NAME = "test220FormRoleAssignmentStart";
-        displayTestTitle(TEST_NAME);
         PrismObject<UserType> bob = getUserFromRepo(userBobOid);
         login(bob);
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         task.setOwner(bob);
         OperationResult result = task.getResult();
 
@@ -1013,14 +965,12 @@ public class TestStrings extends AbstractStoryTest {
         display("work items allocation notifications", allocationMessages);
         display("processes notifications", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
     @Test
     public void test221FormApproveByLechuck() throws Exception {
-        final String TEST_NAME = "test221FormApproveByLechuck";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -1058,15 +1008,13 @@ public class TestStrings extends AbstractStoryTest {
         display("processes notifications", processMessages);
         dummyTransport.clearMessages();
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
 
     @Test
     public void test222FormApproveByCheese() throws Exception {
-        final String TEST_NAME = "test222FormApproveByCheese";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -1111,7 +1059,7 @@ public class TestStrings extends AbstractStoryTest {
         display("processes notifications", processMessages);
 
         // audit
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecords();
         assertEquals("Wrong # of audit records", 4, records.size());
         AuditEventRecord record = records.get(0);
@@ -1135,9 +1083,7 @@ public class TestStrings extends AbstractStoryTest {
 
     @Test
     public void test250ApproverAssignment() throws Exception {
-        final String TEST_NAME = "test250ApproverAssignment";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         dummyAuditService.clear();
@@ -1168,7 +1114,7 @@ public class TestStrings extends AbstractStoryTest {
         display("work items allocation notifications", allocationMessages);
         display("processes notifications", processMessages);
 
-        display("audit", dummyAuditService);
+        displayDumpable("audit", dummyAuditService);
     }
 
 
@@ -1221,11 +1167,6 @@ public class TestStrings extends AbstractStoryTest {
         return rv;
     }
 
-    private Task getParentTask(PrismObject<TaskType> task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
-    }
-
     private void assertTriggers(CaseType aCase, int count) {
         assertEquals("Wrong # of triggers", count, aCase.getTrigger().size());
     }
@@ -1258,13 +1199,13 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
-            int stageNumber, String stageName, List<String> assigneesBefore, List<String> delegatedTo,
+            int stageNumber, List<String> assigneesBefore, List<String> delegatedTo,
             WorkItemDelegationMethodType methodType, int newEscalationLevelNumber, String newEscalationLevelName) throws SchemaException {
         if (!(wfProcessEventType instanceof WorkItemEscalationEventType)) {
             fail("Wrong event class: expected: " + WorkItemEscalationEventType.class + ", real: " + wfProcessEventType.getClass());
         }
         WorkItemEscalationEventType event = (WorkItemEscalationEventType) wfProcessEventType;
-        assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
+        assertEvent(event, initiator, originalAssignee, stageNumber);
         PrismAsserts.assertReferenceValues(ref(event.getAssigneeBefore()), assigneesBefore.toArray(new String[0]));
         PrismAsserts.assertReferenceValues(ref(event.getDelegatedTo()), delegatedTo.toArray(new String[0]));
         assertEquals("Wrong delegation method", methodType, event.getDelegationMethod());
@@ -1273,18 +1214,18 @@ public class TestStrings extends AbstractStoryTest {
     }
 
     private void assertCompletionEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,
-            int stageNumber, String stageName, WorkItemOutcomeType outcome, String comment) throws SchemaException {
+            int stageNumber, WorkItemOutcomeType outcome, String comment) throws SchemaException {
         if (!(wfProcessEventType instanceof WorkItemCompletionEventType)) {
             fail("Wrong event class: expected: " + WorkItemCompletionEventType.class + ", real: " + wfProcessEventType.getClass());
         }
         WorkItemCompletionEventType event = (WorkItemCompletionEventType) wfProcessEventType;
-        assertEvent(event, initiator, originalAssignee, stageNumber, stageName);
+        assertEvent(event, initiator, originalAssignee, stageNumber);
         assertEquals("Wrong outcome", outcome, ApprovalUtils.fromUri(event.getOutput().getOutcome()));
         assertEquals("Wrong comment", comment, event.getOutput().getComment());
     }
 
-    private void assertEvent(CaseEventType processEvent, String initiator, String originalAssignee, Integer stageNumber,
-            String stageName) throws SchemaException {
+    private void assertEvent(CaseEventType processEvent,
+            String initiator, String originalAssignee, Integer stageNumber) throws SchemaException {
         if (!(processEvent instanceof WorkItemEventType)) {
             fail("Wrong event class: expected: " + WorkItemEventType.class + ", real: " + processEvent.getClass());
         }
@@ -1297,5 +1238,4 @@ public class TestStrings extends AbstractStoryTest {
             PrismAsserts.assertReferenceValue(ref(event.getOriginalAssigneeRef()), originalAssignee);
         }
     }
-
 }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -63,7 +64,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
 
     private LensContext<AH> context;
-    private ObjectType source;
+    private AssignmentHolderType source;
     private AssignmentEvaluator<AH> assignmentEvaluator;
     private ActivationComputer activationComputer;
     private PrismContext prismContext;
@@ -87,11 +88,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-    public ObjectType getSource() {
+    public AssignmentHolderType getSource() {
         return source;
     }
 
-    public void setSource(ObjectType source) {
+    public void setSource(AssignmentHolderType source) {
         this.source = source;
     }
 
@@ -197,19 +198,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 prismContext, task, result);
 
         LOGGER.trace("Task for process: {}", task.debugDumpLazily());
-        AssignmentType taskAssignment;
-        if (task.hasAssignments()) {
-            taskAssignment = new AssignmentType(prismContext);
-            ObjectReferenceType targetRef = new ObjectReferenceType();
-            targetRef.asReferenceValue().setObject(task.getUpdatedOrClonedTaskObject());
-            taskAssignment.setTargetRef(targetRef);
-        } else {
-            taskAssignment = null;
-        }
 
-        LOGGER.trace("Task assignment: {}", taskAssignment);
+        Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
+        Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
+                .filter(taskPath -> taskPath.hasAssignments())
+                .map(taskPath -> createTaskAssignment(taskPath))
+                .collect(Collectors.toList());
 
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
+        LOGGER.trace("Task assignment: {}", taskAssignments);
+
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignments);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -226,6 +224,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
 
         return evaluatedAssignmentTriple;
+    }
+
+    private AssignmentType createTaskAssignment(Task fromTask) {
+        AssignmentType taskAssignment = new AssignmentType(prismContext);
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.asReferenceValue().setObject(fromTask.getUpdatedOrClonedTaskObject());
+        taskAssignment.setTargetRef(targetRef);
+        return taskAssignment;
     }
 
     private String getNewObjectLifecycleState(LensFocusContext<AH> focusContext) {
@@ -568,11 +574,10 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         try {
             // Evaluate assignment. This follows to the assignment targets, follows to the inducements,
             // evaluates all the expressions, etc.
-            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
+            EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld,
+                    source, assignmentPlacementDesc, smartAssignment.getOrigin(), task, subResult);
             subResult.recordSuccess();
             LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
-            evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
-            evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
             if (evaluatedAssignment.getTarget() != null) {
                 subResult.addContext("assignmentTargetName", PolyString.getOrig(evaluatedAssignment.getTarget().getName()));
             }

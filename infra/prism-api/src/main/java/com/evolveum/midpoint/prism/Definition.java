@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -74,7 +73,7 @@ public interface Definition extends PrismContextSensitive, Serializable, DebugDu
      *
      * Semantics of this flag for complex type definitions is to be defined yet.
      */
-    @Deprecated
+    @Deprecated // Remove in 4.2
     boolean isIgnored();
 
     ItemProcessing getProcessing();
@@ -178,10 +177,10 @@ public interface Definition extends PrismContextSensitive, Serializable, DebugDu
      * This may be annotation stored in the schema definition file (e.g. XSD)
      * or it may be a dynamic annotation determined at run-time.
      *
-     * Annotation value should be a prism-suported object. E.g. a prims "bean"
+     * Annotation value should be a prism-supported object. E.g. a prims "bean"
      * (JAXB annotated class), prism item, prism value or something like that.
      *
-     * EXPERIMENTAL. Hic sunt liones. This may change at any moment.
+     * EXPERIMENTAL. Hic sunt leones. This may change at any moment.
      *
      * Note: annotations are only partially supported now (3.8).
      * They are somehow transient. E.g. they are not serialized to

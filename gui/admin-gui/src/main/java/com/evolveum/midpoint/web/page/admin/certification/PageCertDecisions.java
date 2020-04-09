@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.session.CertDecisionsStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -66,9 +67,6 @@ import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHel
 import static com.evolveum.midpoint.web.page.admin.certification.CertDecisionHelper.WhichObject.TARGET;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 
-/**
- * @author mederly
- */
 @PageDescriptor(url = "/admin/certification/decisions",
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -95,9 +93,16 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private CertDecisionHelper helper = new CertDecisionHelper();
 
-    private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
+    boolean isDisplayingAllItems() {
+        return false;
+    }
 
     public PageCertDecisions() {
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -107,6 +112,8 @@ public class PageCertDecisions extends PageAdminCertification {
         provider.setQuery(createCaseQuery());
         provider.setCampaignQuery(createCampaignQuery());
         provider.setReviewerOid(getCurrentUserOid());
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         provider.setSort(SearchingUtils.CURRENT_REVIEW_DEADLINE, SortOrder.ASCENDING);        // default sorting
         return provider;
     }
@@ -141,7 +148,8 @@ public class PageCertDecisions extends PageAdminCertification {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this, showNotDecidedOnlyModel);
+                return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertDecisions.this,
+                        Model.of(getCertDecisionsStorage().getShowNotDecidedOnly()));
             }
         };
         table.setShowPaging(true);
@@ -182,6 +190,11 @@ public class PageCertDecisions extends PageAdminCertification {
 
         column = helper.createTargetNameColumn(this, "PageCertDecisions.table.targetName");
         columns.add(column);
+
+        if (isDisplayingAllItems()) {
+            column = helper.createReviewerNameColumn(this, "PageCertDecisions.table.reviewer");
+            columns.add(column);
+        }
 
         column = helper.createDetailedInfoColumn(this);
         columns.add(column);
@@ -512,7 +525,8 @@ public class PageCertDecisions extends PageAdminCertification {
         DataTable table = panel.getDataTable();
         CertWorkItemDtoProvider provider = (CertWorkItemDtoProvider) table.getDataProvider();
         provider.setQuery(query);
-        provider.setNotDecidedOnly(Boolean.TRUE.equals(showNotDecidedOnlyModel.getObject()));
+        provider.setNotDecidedOnly(getCertDecisionsStorage().getShowNotDecidedOnly());
+        provider.setAllItems(isDisplayingAllItems());
         table.setCurrentPage(0);
 
         target.add(getFeedbackPanel());
@@ -542,6 +556,10 @@ public class PageCertDecisions extends PageAdminCertification {
 //        }
 //    }
 
+    private CertDecisionsStorage getCertDecisionsStorage(){
+        return getSessionStorage().getCertDecisions();
+    }
+
     private static class SearchFragment extends Fragment {
 
         public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
@@ -570,7 +588,9 @@ public class PageCertDecisions extends PageAdminCertification {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     PageCertDecisions page = (PageCertDecisions) getPage();
+                    page.getCertDecisionsStorage().setShowNotDecidedOnly((Boolean) getDefaultModelObject());
                     page.searchFilterPerformed(target);
+
                 }
             };
         }

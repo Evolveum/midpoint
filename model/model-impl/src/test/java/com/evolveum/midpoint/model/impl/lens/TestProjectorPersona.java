@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -24,19 +21,10 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjectorPersona extends AbstractLensTest {
 
@@ -46,16 +34,12 @@ public class TestProjectorPersona extends AbstractLensTest {
         setDefaultUserTemplate(USER_TEMPLATE_OID);
         addObject(ROLE_PERSONA_ADMIN_FILE);
         InternalMonitor.reset();
-//        InternalMonitor.setTraceShadowFetchOperation(true);
     }
 
     @Test
     public void test100AssignRolePersonaAdminToJack() throws Exception {
-        final String TEST_NAME = "test100AssignRolePersonaAdminToJack";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestProjectorPersona.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -65,7 +49,7 @@ public class TestProjectorPersona extends AbstractLensTest {
                 ROLE_PERSONA_ADMIN_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
         addFocusDeltaToContext(context, focusDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -74,10 +58,10 @@ public class TestProjectorPersona extends AbstractLensTest {
         projector.project(context, "test", task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertTrue("Unexpected projection changes", context.getProjectionContexts().isEmpty());
 
@@ -89,10 +73,10 @@ public class TestProjectorPersona extends AbstractLensTest {
         assertNotNull("No evaluatedAssignmentTriple plus set", evaluatedAssignmentTriple.getPlusSet());
         assertEquals("Wrong size of evaluatedAssignmentTriple plus set", 1, evaluatedAssignmentTriple.getPlusSet().size());
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = (EvaluatedAssignmentImpl<UserType>) evaluatedAssignmentTriple.getPlusSet().iterator().next();
-        display("evaluatedAssignment", evaluatedAssignment);
+        displayDumpable("evaluatedAssignment", evaluatedAssignment);
         assertNotNull("No evaluatedAssignment", evaluatedAssignment);
         DeltaSetTriple<PersonaConstruction<UserType>> personaConstructionTriple = evaluatedAssignment.getPersonaConstructionTriple();
-        display("personaConstructionTriple", personaConstructionTriple);
+        displayDumpable("personaConstructionTriple", personaConstructionTriple);
         assertNotNull("No personaConstructionTriple", personaConstructionTriple);
         assertFalse("Empty personaConstructionTriple", personaConstructionTriple.isEmpty());
         assertTrue("Unexpected personaConstructionTriple plus set", personaConstructionTriple.getPlusSet().isEmpty());
@@ -103,11 +87,7 @@ public class TestProjectorPersona extends AbstractLensTest {
         assertNotNull("No personaConstruction", personaConstruction);
         PersonaConstructionType personaConstructionType = personaConstruction.getConstructionType();
         assertNotNull("No personaConstructionType", personaConstructionType);
-        assertTrue("Wrong type: "+personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
+        assertTrue("Wrong type: " + personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
         PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype", personaConstructionType.getTargetSubtype(), "admin");
-
     }
-
-
-
 }

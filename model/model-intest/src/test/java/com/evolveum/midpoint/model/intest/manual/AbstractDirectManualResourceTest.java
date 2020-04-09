@@ -13,6 +13,8 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -31,16 +33,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -100,11 +92,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
     protected static final File ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE = new File(TEST_DIR, "role-two-semi-manual-disable-slow-proposed.xml");
     protected static final String ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID = "5ecd6fa6-a200-11e7-b0cb-af5e1792d327";
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractDirectManualResourceTest.class);
-
     private XMLGregorianCalendar roleTwoValidFromTimestamp;
-
-    protected String accountBarbossaOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -124,20 +112,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test220ModifyUserWillDisable() throws Exception {
-        final String TEST_NAME = "test220ModifyUserWillDisable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(userWillOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -202,10 +188,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test230ModifyAccountWillChangePasswordAndEnable() throws Exception {
-        final String TEST_NAME = "test230ModifyAccountWillChangePasswordAndEnable";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -214,16 +198,16 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         ProtectedStringType ps = new ProtectedStringType();
         ps.setClearValue(USER_WILL_PASSWORD_NEW);
         delta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_VALUE, ps);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -274,7 +258,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
         assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
         assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-        assertShadowSanity(shadowProvisioningFuture);
+        new PrismObjectAsserter<>(shadowProvisioningFuture)
+                .assertSanity();
 
         assertNotNull("No async reference in result", willSecondLastCaseOid);
 
@@ -291,10 +276,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test240CloseDisableCaseAndReadAccountWill() throws Exception {
-        final String TEST_NAME = "test240CloseDisableCaseAndReadAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -302,12 +285,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -382,10 +365,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test250RecomputeWillAfter5min() throws Exception {
-        final String TEST_NAME = "test250RecomputeWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
@@ -394,11 +375,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -470,21 +451,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test252UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test252UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.DISABLED, USER_WILL_PASSWORD_OLD);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Model shadow", shadowModel);
@@ -529,10 +508,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test260ClosePasswordChangeCaseAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test260ClosePasswordChangeCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willSecondLastCaseOid);
@@ -540,11 +517,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -634,10 +611,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test270RecomputeWillAfter7min() throws Exception {
-        final String TEST_NAME = "test130RefreshAccountWillAfter7min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT7M");
@@ -646,11 +621,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -733,21 +708,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
                 accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter.forShadow(shadowModel, "model")
@@ -792,10 +765,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test274RecomputeWillAfter22min() throws Exception {
-        final String TEST_NAME = "test292RecomputeWillAfter22min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
@@ -804,11 +775,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         display("Shadow before", shadowBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -878,20 +849,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test280RecomputeWillAfter27min() throws Exception {
-        final String TEST_NAME = "test280RecomputeWillAfter27min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
@@ -952,20 +921,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test290RecomputeWillAfter32min() throws Exception {
-        final String TEST_NAME = "test290RecomputeWillAfter32min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
@@ -1015,10 +982,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test300UnassignAccountWill() throws Exception {
-        final String TEST_NAME = "test300UnassignAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertSteadyResources();
@@ -1026,11 +991,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -1092,18 +1057,16 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test302RecomputeWill() throws Exception {
-        final String TEST_NAME = "test302RecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1163,10 +1126,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test310CloseCaseAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test310CloseCaseAndReconcileWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -1174,12 +1135,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1229,20 +1190,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test320RecomputeWillAfter5min() throws Exception {
-        final String TEST_NAME = "test320RecomputeWillAfter5min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
@@ -1283,24 +1242,22 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test330UpdateBackingStoreAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test330UpdateBackingStoreAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreDeprovisionWill();
         displayBackingStore();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // Reconcile is needed here. Recompute means noFetch which means that we won't
         // discover that an account is missing from backing store which means that the
         // quantum state won't collapse.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
@@ -1347,20 +1304,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test340RecomputeWillAfter25min() throws Exception {
-        final String TEST_NAME = "test340RecomputeWillAfter25min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1389,20 +1344,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test342RecomputeWillAfter35min() throws Exception {
-        final String TEST_NAME = "test342RecomputeWillAfter35min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT10M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid);
@@ -1428,20 +1381,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test344RecomputeWillAfter165min() throws Exception {
-        final String TEST_NAME = "test344RecomputeWillAfter165min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT130M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         recomputeUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         UserAsserter<Void> userAfterAsserter = assertUserAfter(userWillOid);
@@ -1467,13 +1418,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test349CleanUp() throws Exception {
-        final String TEST_NAME = "test349CleanUp";
-        displayTestTitle(TEST_NAME);
-
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
     }
 
-    protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
+    protected void cleanupUser(String userOid, String username, String accountOid) throws Exception {
         // nothing to do here
     }
 
@@ -1482,7 +1430,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test500AssignWillRoleOne() throws Exception {
-        assignWillRoleOne("test500AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     /**
@@ -1495,20 +1443,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test510UnassignWillRoleOne() throws Exception {
-        final String TEST_NAME = "test510UnassignWillRoleOne";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(userWillOid, getRoleOneOid(), task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1566,18 +1512,16 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test512ReconcileWill() throws Exception {
-        final String TEST_NAME = "test512ReconcileWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1637,10 +1581,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test515CloseCasesAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test515CloseCasesAndReconcileWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -1649,12 +1591,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -1738,20 +1680,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test516RecomputeWillAfter20min() throws Exception {
-        final String TEST_NAME = "test516RecomputeWillAfter20min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT20M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1773,20 +1713,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test517RecomputeWillAfter50min() throws Exception {
-        final String TEST_NAME = "test517RecomputeWillAfter50min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT15M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertRepoShadow(accountWillOid);
@@ -1810,20 +1748,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test518RecomputeWillAfter180min() throws Exception {
-        final String TEST_NAME = "test518RecomputeWillAfter180min";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT130M");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(userWillOid)
@@ -1842,12 +1778,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test519CleanUp() throws Exception {
-        final String TEST_NAME = "test519CleanUp";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
 
         // Make sure that all pending operations are expired
         clockForward("PT1H");
@@ -1862,7 +1796,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test520AssignWillRoleOne() throws Exception {
-        assignWillRoleOne("test520AssignWillRoleOne", USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
 
@@ -1873,10 +1807,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test522AssignWillRoleTwoValidFrom() throws Exception {
-        final String TEST_NAME = "test522AssignWillRoleTwoValidFrom";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ActivationType activationType = new ActivationType();
@@ -1884,11 +1816,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         activationType.setValidFrom(roleTwoValidFromTimestamp);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignRole(userWillOid, getRoleTwoOid(), activationType, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillOid = assertUserAfter(userWillOid)
@@ -1897,7 +1829,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME_PIRATE, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
 
@@ -1907,23 +1839,21 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test524TwoHoursForRoleTwo() throws Exception {
-        final String TEST_NAME = "test524TwoHoursForRoleTwo";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         clockForward("PT2H5M");
 
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willSecondLastCaseOid = assertInProgress(result);
 
@@ -1976,10 +1906,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test525CloseCasesAndReconcileWill() throws Exception {
-        final String TEST_NAME = "test525CloseCasesAndReconcileWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -1988,12 +1916,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -2014,10 +1942,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test526UnassignWillBothRoles() throws Exception {
-        final String TEST_NAME = "test526UnassignWillBothRoles";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(userWillOid);
@@ -2025,12 +1951,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillSecondReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignAll(userBefore, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         willLastCaseOid = assertInProgress(result);
 
@@ -2074,10 +2000,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
     @Test
     public void test528CloseCaseAndRecomputeWill() throws Exception {
-        final String TEST_NAME = "test528CloseCaseAndRecomputeWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -2085,12 +2009,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         assertSuccess(result);
 
@@ -2134,12 +2058,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test529CleanUp() throws Exception {
-        final String TEST_NAME = "test529CleanUp";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
+        cleanupUser(userWillOid, USER_WILL_NAME, accountWillOid);
 
         // Make sure that all pending operations are expired
         clockForward("PT3H");
@@ -2157,25 +2079,21 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
      */
     @Test
     public void test800ImportShadowRefreshTask() throws Exception {
-        final String TEST_NAME = "test800ImportShadowRefreshTask";
-        displayTestTitle(TEST_NAME);
         // GIVEN
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addTask(TASK_SHADOW_REFRESH_FILE);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
 
         waitForTaskStart(TASK_SHADOW_REFRESH_OID, false);
     }
 
     @Test
     public void test810AssignAccountWill() throws Exception {
-        final String TEST_NAME = "test810AssignAccountWill";
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         assertUserBefore(userWillOid)
@@ -2185,21 +2103,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));
 
         // WHEN
-        assignWillRoleOne(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assignWillRoleOne(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     @Test
     public void test820AssignAccountJack() throws Exception {
-        final String TEST_NAME = "test820AssignAccountJack";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         clockForward("PT5M");
@@ -2207,11 +2123,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         display("result", result);
         jackLastCaseOid = assertInProgress(result);
 
@@ -2221,23 +2137,21 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
 
         // THEN
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
 
-        assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+        assertAccountWillAfterAssign(USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
     }
 
     @Test
     public void test830CloseCaseWillAndWaitForRefresh() throws Exception {
-        final String TEST_NAME = "test830CloseCaseWillAndWaitForRefresh";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         closeCase(willLastCaseOid);
@@ -2245,37 +2159,35 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
         accountWillCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         restartTask(TASK_SHADOW_REFRESH_OID);
         waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-        assertWillAfterCreateCaseClosed(TEST_NAME, false);
+        assertWillAfterCreateCaseClosed(false);
 
-        assertAccountJackAfterAssign(TEST_NAME);
+        assertAccountJackAfterAssign();
     }
 
     @Test
     public void test840AddToBackingStoreAndGetAccountWill() throws Exception {
-        final String TEST_NAME = "test840AddToBackingStoreAndGetAccountWill";
-        displayTestTitle(TEST_NAME);
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         backingStoreProvisionWill(INTEREST_ONE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         ShadowAsserter.forShadow(shadowModel, "model")

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.menu.cog;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import org.apache.wicket.model.IModel;
 
 /**

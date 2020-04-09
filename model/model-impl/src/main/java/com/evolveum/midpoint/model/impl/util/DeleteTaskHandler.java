@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 import org.jetbrains.annotations.NotNull;
@@ -140,15 +141,10 @@ public class DeleteTaskHandler implements TaskHandler {
             return runResult;
         }
 
-        boolean optionRaw = true;
         PrismProperty<Boolean> optionRawPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OPTION_RAW);
-        if (optionRawPrismProperty != null && optionRawPrismProperty.getRealValue() != null && !optionRawPrismProperty.getRealValue()) {
-            optionRaw = false;
-        }
+        boolean optionRaw = optionRawPrismProperty == null || optionRawPrismProperty.getRealValue() == null || optionRawPrismProperty.getRealValue();
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Deleting {}, raw={} using query:\n{}", objectType.getSimpleName(), optionRaw, query.debugDump());
-        }
+        LOGGER.trace("Deleting {}, raw={} using query:\n{}", objectType.getSimpleName(), optionRaw, query.debugDumpLazily());
 
         boolean countObjectsOnStart = true; // TODO
 
@@ -157,32 +153,31 @@ public class DeleteTaskHandler implements TaskHandler {
         query.setPaging(paging);
         query.setAllowPartialResults(true);
 
-        Collection<SelectorOptions<GetOperationOptions>> searchOptions = null;
-        ModelExecuteOptions execOptions = null;
+        Collection<SelectorOptions<GetOperationOptions>> searchOptions;
+        ModelExecuteOptions execOptions;
         if (optionRaw) {
             searchOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
             execOptions = ModelExecuteOptions.createRaw();
+        } else {
+            searchOptions = null;
+            execOptions = null;
         }
 
         try {
 
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
-            Long expectedTotal = null;
+
+            //noinspection ConstantConditions
             if (countObjectsOnStart) {
-                Integer expectedTotalInt = modelService.countObjects(objectType, query, searchOptions, task, opResult);
-                LOGGER.trace("Expecting {} objects to be deleted", expectedTotalInt);
-                if (expectedTotalInt != null) {
-                    expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
+                Integer expectedTotal = modelService.countObjects(objectType, query, searchOptions, task, opResult);
+                LOGGER.trace("Expecting {} objects to be deleted", expectedTotal);
+                if (expectedTotal != null) {
+                    task.setExpectedTotalImmediate((long) expectedTotal, opResult);
                 }
             }
 
-            if (expectedTotal != null) {
-                task.setExpectedTotalImmediate(expectedTotal, opResult);
-            }
-
-            SearchResultList<PrismObject<O>> objects;
             while (task.canRun()) {
-                objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
+                SearchResultList<PrismObject<O>> objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
                 if (objects.isEmpty()) {
                     break;
                 }
@@ -236,7 +231,7 @@ public class DeleteTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         } catch (CommunicationException e) {
-            LOGGER.error("{}-{}", new Object[]{e.getMessage(), e});
+            LOGGER.error("{}-{}", e.getMessage(), e);
             opResult.recordFatalError("Object not found " + e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
@@ -278,5 +273,10 @@ public class DeleteTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
 }

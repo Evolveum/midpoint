@@ -11,8 +11,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
 import com.evolveum.midpoint.model.api.ScriptingService;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
@@ -25,6 +23,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +35,6 @@ import javax.annotation.PostConstruct;
 /**
  * @author mederly
  */
-
 @Component
 public class ScriptExecutionTaskHandler implements TaskHandler {
 
@@ -61,15 +59,10 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
         TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
-        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
-                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
-            throw new IllegalStateException("There's no script to be run in task " + task + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
-        }
-
+        ExecuteScriptType executeScriptRequest = IterativeScriptExecutionTaskHandler.getExecuteScriptRequest(task);
         try {
-            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), VariablesMap.emptyMap(),
-                    true, task, result);
+            ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest,
+                    VariablesMap.emptyMap(), true, task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();
@@ -93,5 +86,10 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value();
     }
 }

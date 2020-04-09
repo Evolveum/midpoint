@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.notifications.impl.handlers;
 
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.notifications.api.events.ModelEvent;
+import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.impl.helpers.NotificationExpressionHelper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -27,13 +30,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageA
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.NOTIFICATIONS;
+import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+
 /**
- * @author mederly
+ *
  */
 @Component
-public abstract class BaseHandler implements EventHandler {
+public abstract class BaseHandler<E extends Event, C extends EventHandlerType> implements EventHandler<E, C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
@@ -43,26 +50,28 @@ public abstract class BaseHandler implements EventHandler {
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected TextFormatter textFormatter;
     @Autowired protected NotificationExpressionHelper expressionHelper;
+    @Autowired protected EventHandlerRegistry eventHandlerRegistry;
 
-    protected void register(Class<? extends EventHandlerType> clazz) {
-        notificationManager.registerEventHandler(clazz, this);
+    @PostConstruct
+    protected void register() {
+        eventHandlerRegistry.registerEventHandler(getEventHandlerConfigurationType(), this);
     }
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType) {
-        logStart(LOGGER, event, eventHandlerType, null);
+    protected void logStart(Trace LOGGER, E event, C handlerConfiguration) {
+        logStart(LOGGER, event, handlerConfiguration, null);
     }
 
-    protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType, Object additionalData) {
+    protected void logStart(Trace LOGGER, E event, C handlerConfiguration, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event.shortDump() + " with handler " +
-                    getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
+                    getHumanReadableHandlerDescription(handlerConfiguration) + "\n  parameters: " +
                     (additionalData != null ? ("\n  parameters: " + additionalData) :
-                        ("\n  configuration: " + eventHandlerType)));
+                        ("\n  configuration: " + handlerConfiguration)));
 
         }
     }
 
-    protected void logNotApplicable(Event event, String reason) {
+    protected void logNotApplicable(E event, String reason) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace(
                 "{} is not applicable for event {}, continuing in the handler chain; reason: {}",
@@ -70,26 +79,16 @@ public abstract class BaseHandler implements EventHandler {
         }
     }
 
-    protected String getHumanReadableHandlerDescription(EventHandlerType eventHandlerType) {
-        if (eventHandlerType.getName() != null) {
-            return eventHandlerType.getName();
+    protected String getHumanReadableHandlerDescription(C handlerConfiguration) {
+        if (handlerConfiguration.getName() != null) {
+            return handlerConfiguration.getName();
         } else {
-            return eventHandlerType.getClass().getSimpleName();
+            return handlerConfiguration.getClass().getSimpleName();
         }
     }
 
-    public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing event " + event + " with handler " +
-                    description +
-                    (additionalData != null ? (", parameters: " + additionalData) : ""));
-        }
-    }
-
-    public void logEnd(Trace LOGGER, Event event, EventHandlerType eventHandlerType, boolean result) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Finishing processing event " + event + " result = " + result);
-        }
+    public void logEnd(Trace logger, E event, boolean result) {
+        logger.trace("Finishing processing event {}, result = {}", event, result);
     }
 
     protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
@@ -102,7 +101,19 @@ public abstract class BaseHandler implements EventHandler {
         return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
     }
 
-    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
+    protected ExpressionVariables getDefaultVariables(E event, OperationResult result) {
         return expressionHelper.getDefaultVariables(event, result);
+    }
+
+    protected void reportNotificationStart(E event) {
+        if (event instanceof ModelEvent) {
+            ((ModelEvent) event).getModelContext().reportProgress(new ProgressInformation(NOTIFICATIONS, ENTERING));
+        }
+    }
+
+    protected void reportNotificationEnd(E event, OperationResult result) {
+        if (event instanceof ModelEvent) {
+            ((ModelEvent) event).getModelContext().reportProgress(new ProgressInformation(NOTIFICATIONS, result));
+        }
     }
 }

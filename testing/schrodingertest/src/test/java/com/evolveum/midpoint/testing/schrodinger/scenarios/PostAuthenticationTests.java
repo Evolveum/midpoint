@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
@@ -6,20 +6,20 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
-import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.testing.schrodinger.TestBase;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.io.File;
-
 import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.sleep;
 
-public class PostAuthenticationTests extends TestBase {
+import java.io.File;
+
+import com.codeborne.selenide.Selenide;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
+
+public class PostAuthenticationTests extends AbstractSchrodingerTest {
 
     private static final File SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-post-auth-active.xml");
     private static final File SYSTEM_CONFIGURATION_POST_AUTH_NON_ACTIVE_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-post-auth-non-active.xml");
@@ -115,7 +115,7 @@ public class PostAuthenticationTests extends TestBase {
         Selenide.refresh();
 
         midPoint.formLogin()
-                .loginWithReloadLoginPage(midPoint.getUsername(),midPoint.getPassword());
+                .loginWithReloadLoginPage(getUsername(), getPassword());
 
         //todo midpoint opens the previous page before logout
         open("/self/dashboard");

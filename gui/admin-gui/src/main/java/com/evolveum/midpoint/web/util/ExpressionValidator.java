@@ -42,18 +42,14 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
     private static final long serialVersionUID = 1L;
 
-//    private InputPanel inputPanel;
     private IModel<ExpressionType> expressionTypeModel;
     private ModelServiceLocator serviceLocator;
-//    private T realValue;
 
     private static final String OPERATION_EVALUATE_EXPRESSION = ExpressionValidator.class.getName() + ".evaluateValidationExpression";
 
     public ExpressionValidator(IModel<ExpressionType> expressionType, ModelServiceLocator serviceLocator) {
-//        this.inputPanel = inputPanel;
         this.expressionTypeModel = expressionType;
         this.serviceLocator = serviceLocator;
-//        this.realValue = realValue;
     }
 
 
@@ -83,15 +79,12 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot make expression: " + e.getMessage());
             validatable.error(error);
-//            form.error("Cannot make expression: " + e.getMessage());
             return;
         }
         ExpressionVariables variables = new ExpressionVariables();
-        if (valueToValidate != null) {
-            variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, valueToValidate.getClass());
-        }
+        Class typeClass = (valueToValidate == null ? String.class : valueToValidate.getClass());
+        variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, typeClass);
         variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
-//        addAdditionalExpressionVariables(variables);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
         try {
@@ -101,7 +94,6 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
             ValidationError error = new ValidationError();
             error.setMessage("Cannot evaluate expression: " + e.getMessage());
             validatable.error(error);
-//            form.error("Cannot evaluate expression: " + e.getMessage());
             return;
         }
         if (outputTriple == null) {
@@ -115,7 +107,6 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
             ValidationError error = new ValidationError();
             error.setMessage("Expression "+contextDesc+" produced more than one value");
             validatable.error(error);
-//            form.error("Expression "+contextDesc+" produced more than one value");
         }
 
         OperationResultType operationResultType = outputValues.iterator().next().getRealValue();

@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.sql.query2.restriction;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -16,8 +23,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
@@ -29,12 +36,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -47,7 +48,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
     @NotNull private final JpaLinkDefinition<JpaReferenceDefinition> linkDefinition;
 
     public ReferenceRestriction(InterpretationContext context, RefFilter filter, JpaEntityDefinition baseEntityDefinition,
-                                Restriction parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
+            Restriction parent, @NotNull JpaLinkDefinition<JpaReferenceDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         this.linkDefinition = linkDefinition;
     }
@@ -120,28 +121,28 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
             Collection<String> oids, QName relation, QName targetType) {
         String hqlPath = hqlDataInstance.getHqlPath();
 
-        final String TARGET_OID_HQL_PROPERTY, RELATION_HQL_PROPERTY, TARGET_TYPE_HQL_PROPERTY;
+        final String targetOidHqlProperty, relationHqlProperty, targetTypeHqlProperty;
         if (linkDefinition.getTargetDefinition() instanceof JpaAnyReferenceDefinition) {
-            TARGET_OID_HQL_PROPERTY = ROExtReference.F_TARGET_OID;
-            RELATION_HQL_PROPERTY = ROExtReference.F_RELATION;
-            TARGET_TYPE_HQL_PROPERTY = ROExtReference.F_TARGET_TYPE;
+            targetOidHqlProperty = ROExtReference.F_TARGET_OID;
+            relationHqlProperty = ROExtReference.F_RELATION;
+            targetTypeHqlProperty = ROExtReference.F_TARGET_TYPE;
         } else {
-            TARGET_OID_HQL_PROPERTY = RObjectReference.F_TARGET_OID;
-            RELATION_HQL_PROPERTY = RObjectReference.F_RELATION;
-            TARGET_TYPE_HQL_PROPERTY = RObjectReference.F_TARGET_TYPE;
+            targetOidHqlProperty = RObjectReference.F_TARGET_OID;
+            relationHqlProperty = RObjectReference.F_RELATION;
+            targetTypeHqlProperty = RObjectReference.F_TARGET_TYPE;
         }
 
         AndCondition conjunction = hibernateQuery.createAnd();
         if (CollectionUtils.isNotEmpty(oids)) {
-            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + targetOidHqlProperty, oids));
         }
 
         List<String> relationsToTest = getRelationsToTest(relation, getContext());
         if (!relationsToTest.isEmpty()) {
-            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
+            conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + relationHqlProperty, relationsToTest));
         }
         if (targetType != null) {
-            conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + TARGET_TYPE_HQL_PROPERTY,
+            conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + targetTypeHqlProperty,
                     ClassMapper.getHQLTypeForQName(targetType)));
         }
         return conjunction;

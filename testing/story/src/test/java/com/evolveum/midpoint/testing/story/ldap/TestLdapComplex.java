@@ -7,19 +7,13 @@
 
 package com.evolveum.midpoint.testing.story.ldap;
 
-
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -45,20 +39,18 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Complex LDAP tests:
- *
+ * <p>
  * Testing PolyString all the way to LDAP connector. The PolyString data should be translated
  * to LDAP "language tag" attributes (attribute options).
  * MID-5210
- *
+ * <p>
  * search scope limited to "one" (MID-5485)
- *
- *
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapComplex extends AbstractLdapTest {
 
@@ -77,19 +69,19 @@ public class TestLdapComplex extends AbstractLdapTest {
     private static final String[] JACK_FULL_NAME_LANG_EN_SK = {
             "en", "Jack Sparrow",
             "sk", "Džek Sperou"
-        };
+    };
 
     private static final String[] JACK_FULL_NAME_LANG_EN_SK_RU_HR = {
             "en", "Jack Sparrow",
             "sk", "Džek Sperou",
             "ru", "Джек Воробей",
             "hr", "Ðek Sperou"
-        };
+    };
 
     private static final String[] JACK_FULL_NAME_LANG_CZ_HR = {
             "cz", "Džek Sperou",
             "hr", "Ðek Sperou"
-        };
+    };
 
     protected static final String USER_JACK_FULL_NAME_CAPTAIN = "Captain Jack Sparrow";
 
@@ -97,31 +89,31 @@ public class TestLdapComplex extends AbstractLdapTest {
             "en", "Captain Jack Sparrow",
             "cz", "Kapitán Džek Sperou",
             "sk", "Kapitán Džek Sperou"
-        };
+    };
 
     private static final String TITLE_CAPTAIN = "captain";
     private static final String[] TITLE_EN_SK_RU = {
             "en", "captain",
             "sk", "kapitán",
             "ru", "капитан"
-        };
+    };
     private static final String[] TITLE_HR = {
             "hr", "kapetan"
-        };
+    };
     private static final String[] TITLE_EN_SK_RU_HR = {
             "en", "captain",
             "sk", "kapitán",
             "ru", "капитан",
             "hr", "kapetan"
-        };
+    };
     private static final String[] TITLE_RU = {
             "ru", "капитан"
-        };
+    };
     private static final String[] TITLE_EN_SK_HR = {
             "en", "captain",
             "sk", "kapitán",
             "hr", "kapetan"
-        };
+    };
 
     private static final String USER_JACK_BLAHBLAH = "BlahBlahBlah!";
 
@@ -134,9 +126,6 @@ public class TestLdapComplex extends AbstractLdapTest {
     private static final String PROJECT_KEELHAUL_NAME = "Keelhaul";
     private static final String PROJECT_WALK_THE_PLANK_NAME = "Walk the Plank";
     private static final String ORG_RUM_DEPARTMENT_NAME = "Rum department";
-
-
-    private PrismObject<ResourceType> resourceOpenDj;
 
     private String accountJackOid;
     private String projectKeelhaulOid;
@@ -152,7 +141,7 @@ public class TestLdapComplex extends AbstractLdapTest {
     }
 
     @AfterClass
-    public static void stopResources() throws Exception {
+    public static void stopResources() {
         openDJController.stop();
     }
 
@@ -161,11 +150,11 @@ public class TestLdapComplex extends AbstractLdapTest {
         super.initSystem(initTask, initResult);
 
         // Resources
-        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+        PrismObject<ResourceType> resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
         openDJController.setResource(resourceOpenDj);
 
-        openDJController.addEntry("dn: ou=orgStruct,dc=example,dc=com\n"+
-                "objectClass: organizationalUnit\n"+
+        openDJController.addEntry("dn: ou=orgStruct,dc=example,dc=com\n" +
+                "objectClass: organizationalUnit\n" +
                 "ou: orgStruct");
 
         importObjectFromFile(ORG_PROJECT_TOP_FILE);
@@ -181,9 +170,7 @@ public class TestLdapComplex extends AbstractLdapTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
@@ -198,19 +185,17 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test010Shadows() throws Exception {
-        final String TEST_NAME = "test010Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -222,25 +207,23 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test050AssignAccountOpenDjSimple() throws Exception {
-        final String TEST_NAME = "test050AssignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid)
-            .display();
+                .display();
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
         display("Jack LDAP entry", accountEntry);
@@ -256,20 +239,18 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test055Shadows() throws Exception {
-        final String TEST_NAME = "test055Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
-        display("Query", query);
+        displayDumpable("Query", query);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -278,21 +259,19 @@ public class TestLdapComplex extends AbstractLdapTest {
 
     @Test
     public void test059UnassignAccountOpenDjSimple() throws Exception {
-        final String TEST_NAME = "test059UnassignAccountOpenDjSimple";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .links()
+                .links()
                 .assertNone();
 
         assertNoShadow(accountJackOid);
@@ -309,29 +288,27 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test100ModifyJackFullNameLang() throws Exception {
-        final String TEST_NAME = "test100ModifyJackFullNameLang";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_EN_SK));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .display()
                 .assertOrig(USER_JACK_FULL_NAME)
                 .assertLangs(JACK_FULL_NAME_LANG_EN_SK)
                 .end()
-            .links()
+                .links()
                 .assertNone();
 
     }
@@ -343,25 +320,23 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test110AssignAccountOpenDjLang() throws Exception {
-        final String TEST_NAME = "test110AssignAccountOpenDjLang";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME)
                 .assertLangs(JACK_FULL_NAME_LANG_EN_SK)
                 .end()
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -379,29 +354,27 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test112ModifyJackFullNameLangEnSkRuHr() throws Exception {
-        final String TEST_NAME = "test112ModifyJackFullNameLangEnSkRuHr";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_EN_SK_RU_HR));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .display()
                 .assertOrig(USER_JACK_FULL_NAME)
                 .assertLangs(JACK_FULL_NAME_LANG_EN_SK_RU_HR)
                 .end()
-            .singleLink()
+                .singleLink()
                 .assertOid(accountJackOid);
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -417,29 +390,27 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test114ModifyJackFullNameLangCzHr() throws Exception {
-        final String TEST_NAME = "test114ModifyJackFullNameLangCzHr";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME);
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CZ_HR));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .display()
                 .assertOrig(USER_JACK_FULL_NAME)
                 .assertLangs(JACK_FULL_NAME_LANG_CZ_HR)
                 .end()
-            .singleLink()
+                .singleLink()
                 .assertOid(accountJackOid);
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -455,29 +426,27 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test116ModifyJackFullNameLangCaptain() throws Exception {
-        final String TEST_NAME = "test116ModifyJackFullNameLangCaptain";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
         newFullName.setLang(MiscUtil.paramsToMap(JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .display()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertLangs(JACK_FULL_NAME_LANG_CAPTAIN_EN_CZ_SK)
                 .end()
-            .singleLink()
+                .singleLink()
                 .assertOid(accountJackOid);
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -492,28 +461,26 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test118ModifyJackFullNameCaptain() throws Exception {
-        final String TEST_NAME = "test118ModifyJackFullNameCaptain";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PolyString newFullName = new PolyString(USER_JACK_FULL_NAME_CAPTAIN);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, newFullName);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .display()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .singleLink()
+                .singleLink()
                 .assertOid(accountJackOid);
 
         Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -525,21 +492,19 @@ public class TestLdapComplex extends AbstractLdapTest {
 
     @Test
     public void test119UnassignAccountOpenDjLang() throws Exception {
-        final String TEST_NAME = "test119UnassignAccountOpenDjLang";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .links()
+                .links()
                 .assertNone();
 
         assertNoShadow(accountJackOid);
@@ -556,33 +521,31 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test120ModifyJackTitleMap() throws Exception {
-        final String TEST_NAME = "test120ModifyJackTitleMap";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
-            .item(PATH_EXTENSION_TITLE_MAP)
+                .item(PATH_EXTENSION_TITLE_MAP)
                 .replace(cvals)
-            .asObjectDelta(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_RU.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_RU.length / 2)
                 .end()
-            .links()
+                .end()
+                .links()
                 .assertNone();
     }
 
@@ -594,30 +557,28 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test130AssignAccountOpenDjTitleMap() throws Exception {
-        final String TEST_NAME = "test130AssignAccountOpenDjTitleMap";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_RU.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_RU.length / 2)
                 .end()
-            .singleLink()
+                .end()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -635,37 +596,35 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test132AssignAccountOpenDjTitleMapAdd() throws Exception {
-        final String TEST_NAME = "test132AssignAccountOpenDjTitleMapAdd";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_HR);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
-            .item(PATH_EXTENSION_TITLE_MAP)
+                .item(PATH_EXTENSION_TITLE_MAP)
                 .add(cvals)
-            .asObjectDelta(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_RU_HR.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_RU_HR.length / 2)
                 .end()
-            .singleLink()
+                .end()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -683,37 +642,35 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test134AssignAccountOpenDjTitleMapDelete() throws Exception {
-        final String TEST_NAME = "test134AssignAccountOpenDjTitleMapDelete";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_RU);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
-            .item(PATH_EXTENSION_TITLE_MAP)
+                .item(PATH_EXTENSION_TITLE_MAP)
                 .delete(cvals)
-            .asObjectDelta(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_HR.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_HR.length / 2)
                 .end()
-            .singleLink()
+                .end()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -731,37 +688,35 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test138AssignAccountOpenDjTitleMapReplace() throws Exception {
-        final String TEST_NAME = "test138AssignAccountOpenDjTitleMapReplace";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         List<PrismContainerValue<?>> cvals = createTitleMapValues(TITLE_EN_SK_RU);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
-            .item(PATH_EXTENSION_TITLE_MAP)
+                .item(PATH_EXTENSION_TITLE_MAP)
                 .replace(cvals)
-            .asObjectDelta(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(delta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_RU.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_RU.length / 2)
                 .end()
-            .singleLink()
+                .end()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -775,21 +730,19 @@ public class TestLdapComplex extends AbstractLdapTest {
 
     @Test
     public void test139UnassignAccountOpenDjTitleMap() throws Exception {
-        final String TEST_NAME = "test139UnassignAccountOpenDjTitleMap";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .links()
+                .links()
                 .assertNone();
 
         assertNoShadow(accountJackOid);
@@ -805,30 +758,28 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test150AssignAccountOpenDj() throws Exception {
-        final String TEST_NAME = "test150AssignAccountOpenDj";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         accountJackOid = assertUserAfter(USER_JACK_OID)
-            .fullName()
+                .fullName()
                 .assertOrig(USER_JACK_FULL_NAME_CAPTAIN)
                 .assertNoLangs()
                 .end()
-            .extension()
+                .extension()
                 .container(TITLE_MAP_QNAME)
-                    .assertSize(TITLE_EN_SK_RU.length/2)
-                    .end()
+                .assertSize(TITLE_EN_SK_RU.length / 2)
                 .end()
-            .singleLink()
+                .end()
+                .singleLink()
                 .getOid();
 
         assertModelShadow(accountJackOid);
@@ -850,9 +801,7 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test152JackMultivalueDescriptionGet() throws Exception {
-        final String TEST_NAME = "test152JackMultivalueDescriptionGet";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // Let's ruing Jack's description in LDAP.
@@ -869,25 +818,25 @@ public class TestLdapComplex extends AbstractLdapTest {
                 USER_JACK_FULL_NAME_CAPTAIN, USER_JACK_BLAHBLAH);
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
-            .singleLink()
+                .singleLink()
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PolyString descriptionShadowAttribute = (PolyString) assertShadow(shadow, "Jack's shadow after read")
-            .attributes()
+                .attributes()
                 .attribute(LDAP_ATTRIBUTE_DESCRIPTION)
-                    .assertIncomplete()
-                    .singleValue()
-                        .getPrismValue().getRealValue();
+                .assertIncomplete()
+                .singleValue()
+                .getPrismValue().getRealValue();
 
-        assertTrue("Unexpected value of description attribute from shadow: "+descriptionShadowAttribute,
+        assertTrue("Unexpected value of description attribute from shadow: " + descriptionShadowAttribute,
                 USER_JACK_FULL_NAME_CAPTAIN.equals(descriptionShadowAttribute.getOrig()) || USER_JACK_BLAHBLAH.equals(descriptionShadowAttribute.getOrig()));
 
         accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
@@ -905,19 +854,17 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test300Shadows() throws Exception {
-        final String TEST_NAME = "test300Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -930,36 +877,29 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test310SearchLdapAccounts() throws Exception {
-        final String TEST_NAME = "test310SearchLdapAccounts";
-        displayTestTitle(TEST_NAME);
-
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
-
     }
 
     /**
-     *
      * MID-5544
      */
     @Test
     public void test312Shadows() throws Exception {
-        final String TEST_NAME = "test312Shadows";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         display("Found shadows", shadows);
@@ -967,15 +907,15 @@ public class TestLdapComplex extends AbstractLdapTest {
         assertEquals("Unexpected number of shadows", 6, shadows.size());
         PrismObject<ShadowType> peopleShadow = null;
         for (PrismObject<ShadowType> shadow : shadows) {
-            if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(),OPENDJ_PEOPLE_SUFFIX)) {
+            if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(), OPENDJ_PEOPLE_SUFFIX)) {
                 peopleShadow = shadow;
             }
         }
         assertNotNull("No ou=people shadow", peopleShadow);
         assertShadow(peopleShadow, "ou=people shadow")
-            .display()
-            .assertObjectClass(new QName(MidPointConstants.NS_RI, "organizationalUnit"))
-            .assertKind(ShadowKindType.UNKNOWN);
+                .display()
+                .assertObjectClass(new QName(MidPointConstants.NS_RI, "organizationalUnit"))
+                .assertKind(ShadowKindType.UNKNOWN);
     }
 
     /**
@@ -985,9 +925,6 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test320SearchLdapAccountsBelow() throws Exception {
-        final String TEST_NAME = "test320SearchLdapAccountsBelow";
-        displayTestTitle(TEST_NAME);
-
         openDJController.addEntry("dn: ou=below,ou=People,dc=example,dc=com\n" +
                 "ou: below\n" +
                 "objectclass: top\n" +
@@ -1006,7 +943,7 @@ public class TestLdapComplex extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
 
     }
@@ -1017,16 +954,12 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test400SearchLdapProjectGroups() throws Exception {
-        final String TEST_NAME = "test400SearchLdapProjectGroups";
-        displayTestTitle(TEST_NAME);
-
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         // Group "pirates" already exists
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
-
     }
 
     /**
@@ -1035,15 +968,11 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test401SearchLdapOrgGroups() throws Exception {
-        final String TEST_NAME = "test401SearchLdapOrgGroups";
-        displayTestTitle(TEST_NAME);
-
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
-
     }
 
     /**
@@ -1051,26 +980,23 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test410CreateProjectKeelhaul() throws Exception {
-        final String TEST_NAME = "test410CreateProjectKeelhaul";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_KEELHAUL_NAME);
         projectKeelhaul.asObjectable()
                 .beginAssignment()
-                    .targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
+                .targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(projectKeelhaul);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<OrgType> orgKeelhaul = findObjectByName(OrgType.class, PROJECT_KEELHAUL_NAME);
         projectKeelhaulOid = orgKeelhaul.getOid();
         groupKeelhaulOid = assertOrg(orgKeelhaul, "after")
                 .links()
-                    .single()
-                    .getOid();
+                .single()
+                .getOid();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 2);
@@ -1081,26 +1007,23 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test412CreateProjectWalkThePlank() throws Exception {
-        final String TEST_NAME = "test412CreateProjectWalkThePlank";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
         projectKeelhaul.asObjectable()
                 .beginAssignment()
                 .targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(projectKeelhaul);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<OrgType> orgWalkThePlank = findObjectByName(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
         projectWalkThePlankOid = orgWalkThePlank.getOid();
         groupWalkThePlankOid = assertOrg(orgWalkThePlank, "after")
                 .links()
-                    .single()
-                    .getOid();
+                .single()
+                .getOid();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
@@ -1114,27 +1037,24 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test415CreateOrgRumDepartment() throws Exception {
-        final String TEST_NAME = "test415CreateOrgRumDepartment";
-        displayTestTitle(TEST_NAME);
-
         PrismObject<OrgType> orgBefore = createObject(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
         orgBefore.asObjectable()
                 .beginAssignment()
                 .targetRef(ORG_FUNCTIONAL_TOP_OID, OrgType.COMPLEX_TYPE);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         addObject(orgBefore);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         PrismObject<OrgType> orgAfter = findObjectByName(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
         orgRumDepartmentOid = orgAfter.getOid();
         assertNotNull("Null org oid", orgRumDepartmentOid);
         groupRumDepartmentOid = assertOrg(orgAfter, "after")
                 .links()
-                    .single()
-                    .getOid();
+                .single()
+                .getOid();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
         searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
@@ -1149,39 +1069,36 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test420AssignJackToKeelhaul() throws Exception {
-        final String TEST_NAME = "test412AssignJackToKeelhaul";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
                 .singleLink()
-                    .target()
-                        .assertResource(RESOURCE_OPENDJ_OID)
-                        .end()
+                .target()
+                .assertResource(RESOURCE_OPENDJ_OID)
+                .end()
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_JACK_OID, projectKeelhaulOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
-        openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
-        openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com" /* no value */);
-        openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com" /* no value */);
+        openDJController.assertUniqueMembers("cn=" + PROJECT_KEELHAUL_NAME + ",ou=groups,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + PROJECT_WALK_THE_PLANK_NAME + ",ou=groups,dc=example,dc=com" /* no value */);
+        openDJController.assertUniqueMembers("cn=" + ORG_RUM_DEPARTMENT_NAME + ",ou=orgStruct,dc=example,dc=com" /* no value */);
 
         assertModelShadow(accountJackOid)
                 .associations()
-                    .association(ASSOCIATION_LDAP_PROJECT_GROUP)
-                        .assertShadowOids(groupKeelhaulOid)
-                        .end()
-                    .association(ASSOCIATION_LDAP_ORG_GROUP)
-                        // MID-5790
-                        .assertNone();
+                .association(ASSOCIATION_LDAP_PROJECT_GROUP)
+                .assertShadowOids(groupKeelhaulOid)
+                .end()
+                .association(ASSOCIATION_LDAP_ORG_GROUP)
+                // MID-5790
+                .assertNone();
     }
 
     /**
@@ -1190,39 +1107,36 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test422AssignJackToWalkThePlank() throws Exception {
-        final String TEST_NAME = "test414AssignJackToWalkThePlank";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
                 .singleLink()
-                    .target()
-                        .assertResource(RESOURCE_OPENDJ_OID)
-                        .end()
+                .target()
+                .assertResource(RESOURCE_OPENDJ_OID)
+                .end()
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_JACK_OID, projectWalkThePlankOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
-        openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
-        openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
-        openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com" /* no value */);
+        openDJController.assertUniqueMembers("cn=" + PROJECT_KEELHAUL_NAME + ",ou=groups,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + PROJECT_WALK_THE_PLANK_NAME + ",ou=groups,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + ORG_RUM_DEPARTMENT_NAME + ",ou=orgStruct,dc=example,dc=com" /* no value */);
 
         assertModelShadow(accountJackOid)
                 .associations()
-                    .association(ASSOCIATION_LDAP_PROJECT_GROUP)
-                        .assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
-                        .end()
-                    .association(ASSOCIATION_LDAP_ORG_GROUP)
-                        // MID-5790
-                        .assertNone();
+                .association(ASSOCIATION_LDAP_PROJECT_GROUP)
+                .assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
+                .end()
+                .association(ASSOCIATION_LDAP_ORG_GROUP)
+                // MID-5790
+                .assertNone();
     }
 
     /**
@@ -1231,44 +1145,41 @@ public class TestLdapComplex extends AbstractLdapTest {
      */
     @Test
     public void test424AssignJackToRumDepartment() throws Exception {
-        final String TEST_NAME = "test424AssignJackToRumDepartment";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         String accountJackOid = assertUserBefore(USER_JACK_OID)
                 .singleLink()
-                    .target()
-                        .assertResource(RESOURCE_OPENDJ_OID)
-                        .end()
+                .target()
+                .assertResource(RESOURCE_OPENDJ_OID)
+                .end()
                 .getOid();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignOrg(USER_JACK_OID, orgRumDepartmentOid, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
-        openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
-        openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
-        openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + PROJECT_KEELHAUL_NAME + ",ou=groups,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + PROJECT_WALK_THE_PLANK_NAME + ",ou=groups,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
+        openDJController.assertUniqueMembers("cn=" + ORG_RUM_DEPARTMENT_NAME + ",ou=orgStruct,dc=example,dc=com", "uid=" + USER_JACK_USERNAME + ",ou=people,dc=example,dc=com");
 
         assertModelShadow(accountJackOid)
                 .associations()
-                    .association(ASSOCIATION_LDAP_PROJECT_GROUP)
-                        .assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
-                        .end()
-                    .association(ASSOCIATION_LDAP_ORG_GROUP)
-                        // MID-5790
-                        .assertShadowOids(groupRumDepartmentOid);
+                .association(ASSOCIATION_LDAP_PROJECT_GROUP)
+                .assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
+                .end()
+                .association(ASSOCIATION_LDAP_ORG_GROUP)
+                // MID-5790
+                .assertShadowOids(groupRumDepartmentOid);
     }
 
     private List<PrismContainerValue<?>> createTitleMapValues(String... params) throws SchemaException {
         List<PrismContainerValue<?>> cvals = new ArrayList<>();
-        for(int i = 0; i < params.length; i+=2) {
+        for (int i = 0; i < params.length; i += 2) {
             PrismContainerValue<?> cval = prismContext.itemFactory().createContainerValue();
 
             PrismProperty<String> keyProp = prismContext.itemFactory().createProperty(TITLE_MAP_KEY_QNAME);
@@ -1276,7 +1187,7 @@ public class TestLdapComplex extends AbstractLdapTest {
             cval.add(keyProp);
 
             PrismProperty<String> valueProp = prismContext.itemFactory().createProperty(TITLE_MAP_VALUE_QNAME);
-            valueProp.setRealValue(params[i+1]);
+            valueProp.setRealValue(params[i + 1]);
             cval.add(valueProp);
 
             cvals.add(cval);
@@ -1291,6 +1202,5 @@ public class TestLdapComplex extends AbstractLdapTest {
     private void assertTitle(Entry entry, String expectedOrigValue, String... params) {
         OpenDJController.assertAttributeLang(entry, "title", expectedOrigValue, params);
     }
-
 
 }

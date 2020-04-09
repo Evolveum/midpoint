@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +23,6 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,12 +31,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
  * @author semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
@@ -57,18 +56,15 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_ORANGE_OID, task);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         TestUtil.assertSuccess("Test orange resource", testResult);
 
         DummyResource dummyResourceOrange = getDummyResource(RESOURCE_DUMMY_ORANGE_NAME);
@@ -77,11 +73,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test101ModifyUserSubtypePirate() throws Exception {
-        final String TEST_NAME = "test101ModifyUserSubtypePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
@@ -92,75 +85,69 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                 .createXMLGregorianCalendar(System.currentTimeMillis()));
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         jackEmployeeNumber = assertUserAfter(USER_JACK_OID)
-            .assertDescription("Where's the rum?")
-            .assignments()
+                .assertDescription("Where's the rum?")
+                .assignments()
                 .single()
-                    .assertRole(ROLE_PIRATE_GREEN_OID)
-                    .metadata()
-                        .assertOriginMappingName("pirate-assignment")
-                        .end()
-                    .end()
+                .assertRole(ROLE_PIRATE_GREEN_OID)
+                .metadata()
+                .assertOriginMappingName("pirate-assignment")
                 .end()
-            .assertLinks(1)
-            .assertOrganizationalUnits("The crew of pirate")
-            .assertEmployeeNumber()
-            .getObject().asObjectable().getEmployeeNumber();
+                .end()
+                .end()
+                .assertLinks(1)
+                .assertOrganizationalUnits("The crew of pirate")
+                .assertEmployeeNumber()
+                .getObject().asObjectable().getEmployeeNumber();
     }
 
     /**
      * Switch subtype from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-     * true. For the same role assignement value. So nothing should be changed.
+     * true. For the same role assignment value. So nothing should be changed.
      */
     @Test
     public void test102ModifyUserSubtypeBuccaneer() throws Exception {
-        final String TEST_NAME = "test102ModifyUserSubtypeBuccaneer";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
                 USER_JACK_OID, UserType.F_SUBTYPE, "BUCCANEER");
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         executeChanges(userDelta, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertUserAfter(USER_JACK_OID)
-            .assertDescription("Where's the rum?")
-            .assignments()
+                .assertDescription("Where's the rum?")
+                .assignments()
                 .single()
-                    .assertRole(ROLE_BUCCANEER_GREEN_OID)
-                    .metadata()
-                        .assertOriginMappingName("buccaneer-assignment")
-                        .end()
-                    .end()
+                .assertRole(ROLE_BUCCANEER_GREEN_OID)
+                .metadata()
+                .assertOriginMappingName("buccaneer-assignment")
                 .end()
-            .assertLinks(1)
-            .assertOrganizationalUnits("The crew of buccaneer")
-            .assertEmployeeNumber(jackEmployeeNumber);
+                .end()
+                .end()
+                .assertLinks(1)
+                .assertOrganizationalUnits("The crew of buccaneer")
+                .assertEmployeeNumber(jackEmployeeNumber);
     }
 
     @Test
     public void test103DeleteUserEmployeeTypeBartender() throws Exception {
-        final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
@@ -197,22 +184,19 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test200AssignAccountOrange() throws Exception {
-        final String TEST_NAME = "test200AssignAccountOrange";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -226,7 +210,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -240,11 +224,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test202ModifyAccountOrangeGossip() throws Exception {
-        final String TEST_NAME = "test202ModifyAccountOrangeGossip";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -271,7 +252,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -285,11 +266,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test204AssignAccountOrangeAgain() throws Exception {
-        final String TEST_NAME = "test204AssignAccountOrangeAgain";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -313,7 +291,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -329,11 +307,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test209ModifyAccountOrangeGossipRemove() throws Exception {
-        final String TEST_NAME = "test209ModifyAccountOrangeGossipRemove";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -359,7 +334,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -375,11 +350,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test210ModifyAccountOrangeQuoteMonkey() throws Exception {
-        final String TEST_NAME = "test210ModifyAccountOrangeQuoteMonkey";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -399,7 +371,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
@@ -410,7 +382,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "Look behind you, a Three-Headed Monkey!");
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -426,11 +398,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test211ModifyAccountOrangeQuotePirate() throws Exception {
-        final String TEST_NAME = "test211ModifyAccountOrangeQuotePirate";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -461,7 +430,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_TALES), "I wanna be a pirrrrrrate!");
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -477,11 +446,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test214ModifyAccountOrangeQuoteWoodchuck() throws Exception {
-        final String TEST_NAME = "test214ModifyAccountOrangeQuoteWoodchuck";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -501,7 +467,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedNoRole(userAfter);
@@ -509,7 +475,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 2);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -524,11 +490,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test250UnlinkAccountDefaultDummy() throws Exception {
-        final String TEST_NAME = "test250UnlinkAccountDefaultDummy";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -554,7 +517,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -569,11 +532,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test252ModifyAccountOrangeGossipRecon() throws Exception {
-        final String TEST_NAME = "test252ModifyAccountOrangeGossipRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -582,7 +542,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
                 ROLE_THIEF_OID);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -601,7 +561,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -615,11 +575,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test259ModifyAccountOrangeGossipRemoveRecon() throws Exception {
-        final String TEST_NAME = "test259ModifyAccountOrangeGossipRemoveRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -627,7 +584,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME /* no value */);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -648,7 +605,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -662,21 +619,18 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test260ModifyAccountOrangeQuoteMonkeyRecon() throws Exception {
-        final String TEST_NAME = "test260ModifyAccountOrangeQuoteMonkeyRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
-        assertEquals("Wrong description", null, userBefore.asObjectable().getDescription());
+        assertNull("Wrong description", userBefore.asObjectable().getDescription());
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "Look behind you, a Three-Headed Monkey!");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -695,7 +649,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
@@ -703,7 +657,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -717,11 +671,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test261ModifyAccountOrangeQuotePirateRecon() throws Exception {
-        final String TEST_NAME = "test261ModifyAccountOrangeQuotePirateRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -730,7 +681,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "I wanna be a pirrrrrrate!");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -752,8 +703,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Account orange after", dummyAccount);
-        display("Orange account", dummyAccount);
+        displayDumpable("Account orange after", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -767,11 +718,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test264ModifyAccountOrangeQuoteWoodchuckRecon() throws Exception {
-        final String TEST_NAME = "test264ModifyAccountOrangeQuoteWoodchuckRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -780,14 +728,14 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME,
                 "How much wood could a woodchuck chuck if a woodchuck could chuck wood?");
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -795,7 +743,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertUser(userAfter, USER_GUYBRUSH_OID, USER_GUYBRUSH_USERNAME,
                 USER_GUYBRUSH_FULL_NAME, USER_GUYBRUSH_GIVEN_NAME, USER_GUYBRUSH_FAMILY_NAME);
 
-        assertEquals("Wrong description", null, userAfter.asObjectable().getDescription());
+        assertNull("Wrong description", userAfter.asObjectable().getDescription());
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         assertAssignedRole(userAfter, ROLE_THIEF_OID);
@@ -803,7 +751,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -815,11 +763,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test297ModifyAccountOrangeGossipRecon() throws Exception {
-        final String TEST_NAME = "test297ModifyAccountOrangeGossipRecon";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -827,14 +772,14 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME /* no value */);
-        display("Account orange before", dummyAccountBefore);
+        displayDumpable("Account orange before", dummyAccountBefore);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignRole(USER_GUYBRUSH_OID, ROLE_THIEF_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -848,7 +793,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 1);
 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
-        display("Orange account", dummyAccount);
+        displayDumpable("Orange account", dummyAccount);
 
         guybrushShadowOrangeOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_ORANGE_OID);
         PrismObject<ShadowType> shadowOrange = getShadowModel(guybrushShadowOrangeOid);
@@ -857,11 +802,8 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test299UnassignAccountOrange() throws Exception {
-        final String TEST_NAME = "test299UnassignAccountOrange";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
@@ -869,11 +811,11 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userBefore, 1);
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
         unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);

@@ -14,6 +14,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -93,4 +95,30 @@ public interface UniformItemPath extends Serializable, Cloneable, ShortDumpable,
     void setNamespaceMap(Map<String, String> namespaceMap);
 
     Map<String, String> getNamespaceMap();
+
+    static UniformItemPath empty() {
+        return UniformItemPathImpl.EMPTY_PATH;
+    }
+
+    static UniformItemPath create(Object... segments) {
+        return UniformItemPathImpl.create(segments);
+    }
+
+    static @NotNull UniformItemPath from(ItemPath path) {
+        return UniformItemPathImpl.fromItemPath(path);
+    }
+
+    static ItemPathSegment createSegment(QName qname, boolean variable) {
+        if (ParentPathSegment.QNAME.equals(qname)) {
+            return new ParentPathSegment();
+        } else if (ObjectReferencePathSegment.QNAME.equals(qname)) {
+            return new ObjectReferencePathSegment();
+        } else if (IdentifierPathSegment.QNAME.equals(qname)) {
+            return new IdentifierPathSegment();
+        } else if (variable) {
+            return new VariableItemPathSegment(qname);
+        } else {
+            return new NameItemPathSegment(qname);
+        }
+    }
 }

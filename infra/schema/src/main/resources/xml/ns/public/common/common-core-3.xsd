@@ -68,14 +68,45 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                Free-form textual description of the object. It is supposed to describe
-                the object or a construct that it is attached to.
+                    Free-form textual description of the object. It is supposed to describe
+                    the object or a construct that it is attached to.
                 </p>
-
                 <p>
-                Anything that the system administrator wants may be here. The system
-                will not interpret the information except for displaying it and allow
-                user to edit it.
+                    This information may be presented to midPoint users, even to ordinary end users.
+                    For example role description may be presented to users when they are selecting
+                    roles to request. Therefore the description should be written in a language that
+                    the users can understand.
+                </p>
+                <p>
+                    Description is assumed to be a plan, non-formatted text.
+                    Amount of white space is considered insignificant. E.g. leading and trailing
+                    white space may be skipped, multiple spaces can be collapsed to one and so on.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="documentation" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Technical documentation for a particular object or construct.
+                </p>
+                <p>
+                    The purpose of this element is to document system configuration and behavior.
+                    The documentation will not be presented to end users. In fact, it will probably
+                    not be presented at all in midPoint user interface. This documentation element
+                    is supposed to be a part of the technical documentation of midPoint deployment.
+                    The tools than generate deployment configuration will look for these elements
+                    and combine them to compiled documentation document.
+                </p>
+                <p>
+                    AsciiDoc formatting is assumed for this element. Any leading or trailing
+                    whitespace is skipped. Indentation equivalent to he indentation of the first
+                    non-blank line of text is also skipped.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
@@ -180,6 +211,20 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.description</a:displayName>
                         <a:displayOrder>10</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element ref="tns:documentation" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            AsciiDoc-formatted technical documentation of the object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.documentation</a:displayName>
+                        <a:displayOrder>11</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -531,6 +576,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2546,12 +2592,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType">
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The user that owns this task. It usually means the user that started the task
                                 or a system user that is used to execute the task. The owner will be used to
-                                determine access rights of the task, will be used for auditing, etc.
+                                determine access rights of the task, will be used for auditing, etc. If owner
+                                isn't set, currently logged in user is used.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -2569,18 +2616,6 @@
                                 task that has no parent.
                                 Task identifier (not OID) is used here.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="subtask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Set of task's subtasks.
-                                TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
-                                TODO: do we still need this?
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReference>tns:subtaskRef</a:objectReference>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="subtaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -2613,7 +2648,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
+                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
@@ -2854,11 +2889,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
+                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether the task activity is to be executed only once (single-run tasks)
-                                or periodically (recurring tasks).
+                                or periodically (recurring tasks). If nothing set explicitly, single-run
+                                task is created.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -3754,6 +3790,9 @@
                     <xsd:documentation>
                         Earliest time when the task is allowed to start.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>200</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="latestStartTime" type="xsd:dateTime" minOccurs="0">
@@ -3761,6 +3800,9 @@
                     <xsd:documentation>
                         Latest time when the task is allowed to start.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>210</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="latestFinishTime" type="xsd:dateTime" minOccurs="0">
@@ -3772,6 +3814,10 @@
 
                         NOTE: This attribute is currently not used; its use is planned.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>220</a:displayOrder>
+                        <a:ignore>true</a:ignore>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="interval" type="xsd:int" minOccurs="0">
@@ -3779,6 +3825,9 @@
                     <xsd:documentation>
                         Interval in seconds between task runs.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>100</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="cronLikePattern" type="xsd:string" minOccurs="0">
@@ -3787,6 +3836,9 @@
                         Cron-like pattern specifying time(s) when the task is to be run.
                         Currently only loosely-bound recurring tasks can use this feature.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>110</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="misfireAction" type="tns:MisfireActionType" minOccurs="0">
@@ -3795,6 +3847,9 @@
                         What is to be done when the planned start time arrives without
                         the task actually starting.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayOrder>300</a:displayOrder>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -4029,6 +4084,9 @@
                     <xsd:documentation>
                         Work management configuration to use for partition task.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
@@ -4103,6 +4161,9 @@
                         Work management configuration to use for partition task.
                         Overrides the value specified in the parent element.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:elaborate>true</a:elaborate>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
@@ -5392,6 +5453,15 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="documentation" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AssignmentType.documentation</a:displayName>
+                        <a:help>AssignmentType.documentation.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="subtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5473,7 +5543,7 @@
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.target</a:displayName>
                             <a:help>AssignmentType.target.help</a:help>
-                            <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                            <a:objectReferenceTargetType>tns:AssignmentHolderType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -5636,6 +5706,11 @@
                         The assignment is applied only if the condition is evaluated to true.
                         If condition is not present, it is assumed to be true.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <xsd:appinfo>
+                            <a:displayName>AssignmentType.condition</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
@@ -5797,6 +5872,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+               <xsd:element ref="tns:documentation" minOccurs="0"/>
                <xsd:element name="holderType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                    <xsd:annotation>
                     <xsd:documentation>
@@ -5838,6 +5914,7 @@
         </xsd:annotation>
            <xsd:sequence>
                <xsd:element ref="tns:description" minOccurs="0"/>
+               <xsd:element ref="tns:documentation" minOccurs="0"/>
                <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
                    </xsd:element>
        </xsd:sequence>
@@ -6242,6 +6319,16 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
+                    <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Previous values of the operationalState item.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6347,7 +6434,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Structure containing metadata about operational state of the resource.
-                E.g. if resource is up or down, when it was last checked, etc.
+                E.g. if resource is up or down, when it was last changed, etc.
                 It should not contain configuration, just the operational state.
             </xsd:documentation>
             <xsd:appinfo>
@@ -6356,8 +6443,38 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" minOccurs="0"/>
+            <xsd:element name="message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The reason for the last change of availability status.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The time of the last change of availability status.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nodeId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The node that recorded the last change of availability status.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AvailabilityStatusType">
@@ -6406,8 +6523,8 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="1" />
-            <xsd:element name="description" type="xsd:string"
-                minOccurs="0" />
+            <xsd:element name="description" type="xsd:string" minOccurs="0" />
+            <xsd:element ref="tns:documentation" minOccurs="0" />
             <xsd:element name="connectorRef" type="c:ObjectReferenceType"
                 minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -6587,6 +6704,7 @@
             <xsd:element name="intent" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6968,7 +7086,7 @@
                         Generic errors means that midPoint has absolutely no idea what is going on. Otherwise the
                         error would be classified to a more specific category. Continuing an operation where midPoint
                         has no idea what is going on may have severe consequences. The results are unpredictable.
-                        If you use this setting then you are on your own. Hic sunt liones.
+                        If you use this setting then you are on your own. Hic sunt leones.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
@@ -7609,6 +7727,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="displayOrder" type="xsd:int" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -8336,6 +8455,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -9464,6 +9584,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -9677,6 +9798,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="referenceTime" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
                <xsd:element name="offset" type="xsd:duration" minOccurs="0"/>
                <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
@@ -9705,6 +9827,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                    <xsd:annotation>
                        <xsd:documentation>
@@ -9840,6 +9963,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="parameter" type="tns:ExpressionParameterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -10091,6 +10215,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
                <xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
             <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -10359,6 +10484,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="trace" type="xsd:boolean" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -10770,6 +10896,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1">
             </xsd:element>
         </xsd:sequence>
@@ -10902,6 +11029,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -11272,6 +11400,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="situation" type="tns:SynchronizationSituationType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -11354,6 +11483,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="order" type="tns:BeforeAfterType" minOccurs="0" default="before"/>
             <!-- TODO: ordering? -->
@@ -13111,6 +13241,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" minOccurs="0" type="tns:AuthorizationDecisionType" default="allow">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13486,6 +13617,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="type" minOccurs="0" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13718,6 +13850,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                <xsd:annotation>
                    <xsd:documentation>
@@ -13838,6 +13971,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="all" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13912,6 +14046,9 @@
                         trigger. This is usually approver or owner.
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.subjectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectRelation" minOccurs="0" maxOccurs="1" type="xsd:QName">
@@ -13921,6 +14058,9 @@
                         trigger. This is usually default relation (member).
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.objectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeMembers" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
@@ -13931,6 +14071,9 @@
                         If set to false then the members of reference role is excluded from the scope
                         (objectRelation is not used in this case).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeMembers</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeReferenceRole" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
@@ -13940,6 +14083,9 @@
                         in the scope.
                         If set to false then the reference role is excluded from the scope.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeReferenceRole</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -14137,6 +14283,7 @@
                    </xsd:appinfo>
                </xsd:annotation>
            </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
            <xsd:element name="strength" type="tns:ConstructionStrengthType" minOccurs="0" maxOccurs="1" default="strong">
                <xsd:annotation>
                    <xsd:documentation>
@@ -14793,10 +14940,23 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="itemConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <a:displayName>ObjectPolicyConfigurationType.itemConstraint</a:displayName>
+                        <a:since>4.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="propertyConstraint" type="tns:ItemConstraintType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        DEPRECATED. Use itemConstraint instead.
+                    </xsd:documentation>
+                    <xsd:appinfo>
                         <a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.1</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14868,7 +15028,7 @@
                     <xsd:documentation>
                         <p>
                             Definition of GUI-related configuration for the archetyped objects. This is using
-                            principle similar to adminGuiConfiguration in system configuraiton.
+                            principle similar to adminGuiConfiguration in system configuration.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -14877,12 +15037,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assignmentRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
+            <xsd:element name="assignmentHolderRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Configures overall assignmentRelation approach for archetypes objects. This essentially means
-                            that is allows or disables the use of "generic" assignments for archetyped objects.
+                            Configures overall assignmentRelation approach for archetyped objects (assignment holders).
+                            This essentially means that is allows or disables the use of "generic" assignments for archetyped objects.
                             If the generic assignments are allowed (open approach), the archetyped object can be a holder
                             of any assignment that targets any assignable type with any relation
                             (Note: this is still subject to authorizations).
@@ -14891,10 +15051,18 @@
                             If this property is set to "closed" then GUI will not render that button. In that case
                             only those assignments that are explicitly allowed by assignmentRelation statements are possible.
                         </p>
+                        <p>
+                            This setting controls behavior of midPoint user interface.
+                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's the "Assignments" tab.
+                            But it will not disable similar button in the "Members" tab of the role.
+                            This setting is only about controlling uni-directional behavior of GUI.
+                            It does not constraint the entire assignment model.
+                            That will be too complex to implement (at least for now).
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
-                        <a:displayName>ArchetypePolicyType.assignmentRelationApproach</a:displayName>
+                        <a:displayName>ArchetypePolicyType.assignmentHolderRelationApproach</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15199,6 +15367,7 @@
 
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="limitations" type="tns:LimitationsType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
@@ -15260,6 +15429,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
@@ -15453,6 +15623,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationKind" type="tns:OperationKindType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
+                        for easy navigation, result filtering, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -16255,6 +16437,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="expressionProfile" type="tns:ExpressionProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16312,6 +16495,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16363,10 +16547,11 @@
                         Free-form description (comment).
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>ExpressionEvaluatorProfileType.name</a:displayName>
+                        <a:displayName>ExpressionEvaluatorProfileType.description</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16424,6 +16609,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16500,6 +16686,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16569,6 +16756,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16616,6 +16804,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -16672,6 +16861,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="decision" type="tns:AuthorizationDecisionType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -18887,7 +19077,7 @@
                            <xsd:documentation>
                                <p>
                                    Free-form description (comment) intended for system administrator. Description will NOT be displayed as
-                                   any part of the UI feature. The purpose is to explain the purpose or configuraiton details.
+                                   any part of the UI feature. The purpose is to explain the purpose or configuration details.
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
@@ -18895,6 +19085,7 @@
                         </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -19059,6 +19250,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="icon" type="tns:IconType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -19372,21 +19564,28 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="PropertyConstraintType">
+    <xsd:complexType name="ItemConstraintType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of a property constraints.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:displayName>PropertyConstraintType.details</a:displayName>
+                <a:displayName>ItemConstraintType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <a:displayName>PropertyConstraintType.path</a:displayName>
+                        <a:displayName>ItemConstraintType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemConstraintType.visibility</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19584,6 +19783,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="state" type="tns:ModelStateType" minOccurs="0"/>
             <xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
@@ -20149,6 +20349,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="roleCatalogRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20254,6 +20455,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="allowSameTarget" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20358,6 +20560,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20770,6 +20973,7 @@
                        </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
              <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -20799,7 +21003,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Policy threshold specification. It determines thresholds settings
-                        such as count after which the action is beeing executed, refresh
+                        such as count after which the action is being executed, refresh
                         interval for counter, ...
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -21271,6 +21475,97 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_TRACE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_RECONCILIATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000502">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_RECOMPUTATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000503">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_IMPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000504">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_LIVE_SYNC_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000505">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_ASYNC_UPDATE_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000506">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLEANUP_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000507">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000508">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SINGLE_BULK_ACTION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000509">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_ITERATIVE_BULK_ACTION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000520">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000521">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000528">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_UTILITY_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000529">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -22813,7 +23108,7 @@
     <xsd:complexType name="JasperReportEngineConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuraiton of jasper-based reports.
+                Configuration of jasper-based reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23007,7 +23302,7 @@
     <xsd:complexType name="DashboardReportEngineConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Configuraiton of dashboard-based reports.
+                Configuration of dashboard-based reports.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23532,7 +23827,7 @@
                                <xsd:documentation>
                                    <p>
                                        Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
-                                       The name is used to detect whether a particular view is overriden, e.g. if view defined in system configuraiton
+                                       The name is used to detect whether a particular view is overridden, e.g. if view defined in system configuration
                                        is overridden in the role. It may also be used by other system components (e.g. dashboard widgets, reports)
                                        to refer to this view. It will also be used for diagnostics, logging and so on.
                                    </p>
@@ -23578,10 +23873,10 @@
                                <xsd:appinfo>
                                    <a:since>3.9</a:since>
                                    <a:deprecated>true</a:deprecated>
-                                   <!-- Reference target type defeinition is NOT here by purpose. Later on we might want
+                                   <!-- Reference target type definition is NOT here by purpose. Later on we might want
                                         archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
                                         this reference may point to various object types. By NOT specifying default ObjectCollectionType
-                                        here we will force everybody to specify it explicitly. So their configuraiton will work in
+                                        here we will force everybody to specify it explicitly. So their configuration will work in
                                         future versions when we add support for implicit collections. -->
                                 <a:displayName>GuiObjectListViewType.collectionRef</a:displayName>
                                </xsd:appinfo>
@@ -23848,6 +24143,7 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -23959,6 +24255,7 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -24048,32 +24345,33 @@
                 <a:since>3.7</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-               <xsd:sequence>
-                   <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            <p>
-                                Definition of object with respect to subject relation to a role.
-                                Used to specify role approvers, owners and so on.
-                            </p>
-                            <p>
-                                EXPERIMENTAL. Use at your own risk.
-                            </p>
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                            <a:since>3.9</a:since>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-                   <!-- TODO: object filter -->
-               </xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AbstractObjectTypeConfigurationType.type</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleRelation" type="tns:RoleRelationObjectSpecificationType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of object with respect to subject relation to a role.
+                            Used to specify role approvers, owners and so on.
+                        </p>
+                        <p>
+                            EXPERIMENTAL. Use at your own risk.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: object filter -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GuiObjectDetailsPageType">
@@ -24604,7 +24902,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24667,7 +24965,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24689,7 +24987,7 @@
                             MidPoint 3.x compatibility:
                             Plain string or a localization key may be used in
                             this field. The value of this field will be interpreted
-                            as a localizaton key and looked up in the localization
+                            as a localization key and looked up in the localization
                             tables. If no translation is found, then the literal
                             value is displayed.
                         </p>
@@ -24705,7 +25003,7 @@
                         <p>
                             Usual color of the display element that this data structure describes.
                             This color may be used in situation when colorful presentation
-                            of the lement is appropriate. The color
+                            of the element is appropriate. The color
                             may be used to color the decorations, background, icon, etc.
                             The color may also be ignored if monochrome presentation is
                             more appropriate.
@@ -24844,6 +25142,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
             <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
             <!-- Note: available values are defined by the "set" in the binding. -->
@@ -25353,6 +25652,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="item" type="tns:ItemRefMergeConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25578,6 +25878,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="headerColor" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25747,7 +26048,7 @@
                         that is used by midPoint when it creates redirect URL for client.
                         The pattern is in fact an URL prefix pointing to root URL of the application.
                         Specific paths will be appended to the URL.
-                        Example: https://$host/midpoint
+                        Example: 'https://$host/midpoint', where 'defaultHostname' element is used as '$host'.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>

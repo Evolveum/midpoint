@@ -11,9 +11,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -122,7 +124,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         SearchPanel search = new SearchPanel(ID_SEARCH,
                 Model.of(getRoleCatalogStorage().getSearch() != null ? getRoleCatalogStorage().getSearch() :
-                        SearchFactory.createSearch((Class<R>)WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType()), getPageBase())),
+                        SearchFactory.createSearch(getQueryClass(), getPageBase())),
                 false) {
             private static final long serialVersionUID = 1L;
 
@@ -247,7 +249,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
         List<QName> assignableRelationsList = getAvailableRelationsList();
         if (CollectionUtils.isNotEmpty(assignableRelationsList)){
-            getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
+            if (assignableRelationsList.contains(SchemaConstants.ORG_DEFAULT)){
+                getRoleCatalogStorage().setSelectedRelation(SchemaConstants.ORG_DEFAULT);
+            } else {
+                getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
+            }
         }
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
                 assignableRelationsList, false){
@@ -339,7 +345,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         if (usersList == null || usersList.size() == 0){
             return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
         } else if (usersList.size() == 1){
-            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalUser().getOid())){
+            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalFocus().getOid())){
                 return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
             } else {
                 return usersList.get(0).getName().getOrig();
@@ -404,6 +410,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 return createContentQuery();
             }
         };
+        provider.setType(getQueryClass());
         return provider;
     }
 
@@ -433,13 +440,16 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected ObjectQuery createContentQuery() {
-        ObjectQuery memberQuery = getPrismContext().queryFactory().createQuery();
-        memberQuery.addFilter(getAssignableRolesFilter());
-        if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
-            ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(getPrismContext().queryFactory().createType(getQueryType(), null), memberQuery.getFilter(),
-                    getPrismContext());
-            memberQuery.addFilter(typeFilter);
+        ObjectQuery memberQuery = getPrismContext().queryFor(getQueryClass())
+                .type(getQueryClass())
+                .build();
+        ObjectFilter assignableRolesFilter = getAssignableRolesFilter();
+        if (assignableRolesFilter != null && !(assignableRolesFilter instanceof NoneFilter)){
+            memberQuery.addFilter(assignableRolesFilter);
         }
+//        if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
+//            memberQuery.addFilter(getPrismContext().queryFactory().createType(getQueryType(), null));
+//        }
 
         SearchPanel searchPanel = getSearchPanel();
         ObjectQuery searchQuery = searchPanel.getModelObject().createObjectQuery(getPageBase().getPrismContext());
@@ -468,11 +478,15 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 getNewAssignmentRelation(), WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
     }
 
+    private Class<R> getQueryClass(){
+        return (Class<R>)WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType());
+    }
+
     protected abstract QName getQueryType();
 
     private UserType getTargetUser(){
         String targetUserOid = getRoleCatalogStorage().isSelfRequest() ?
-                getPageBase().getPrincipalUser().getOid()
+                getPageBase().getPrincipalFocus().getOid()
                 : getRoleCatalogStorage().getTargetUserOidsList().get(0);
         if (StringUtils.isEmpty(targetUserOid)){
             return null;

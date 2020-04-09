@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -41,12 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- *  @author shood
- * */
 public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeDependencyType>> {
 
-    private static enum ChangeState{
+    private enum ChangeState{
         SKIP, FIRST, LAST
     }
 

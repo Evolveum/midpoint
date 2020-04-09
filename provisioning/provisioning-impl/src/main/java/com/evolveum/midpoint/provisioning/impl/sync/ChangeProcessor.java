@@ -77,23 +77,24 @@ public class ChangeProcessor {
      * @param workerTask Task in context of which the worker task is executing.
      * @param coordinatorTask Coordinator task. Might be null.
      */
-    public void execute(ProcessChangeRequest request, Task workerTask, Task coordinatorTask, TaskPartitionDefinitionType partition) {
+    public void execute(ProcessChangeRequest request, Task workerTask, Task coordinatorTask,
+            TaskPartitionDefinitionType partition, OperationResult parentResult) {
 
         ProvisioningContext globalCtx = request.getGlobalContext();
         Change change = request.getChange();
-
-        OperationResult result = request.getParentResult().createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
 
         long started = 0;
         String objectName = null;
         String objectDisplayName = null;
         String objectOid = null;
 
+        OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
         try {
 
-            ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, result);
+            ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, workerTask, result);
             if (ctx == null) {
                 request.setSuccess(true);
+                request.onSuccess();
                 return;
             }
 
@@ -145,6 +146,7 @@ public class ChangeProcessor {
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
                 request.setSuccess(true);
+                request.onSuccess();
                 // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }
@@ -170,7 +172,7 @@ public class ChangeProcessor {
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
 
-            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
+            if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError() || notifyChangeResult.isNotApplicable()) {
                 // Do not delete dead shadows. Keep dead shadow around because they contain results
                 // of the synchronization. Usual shadow refresh process should delete them eventually.
                 // TODO: review. Maybe make this configuration later on.
@@ -213,9 +215,7 @@ public class ChangeProcessor {
         } finally {
             request.setDone(true);
             result.computeStatusIfUnknown();
-            if (!result.isTraced()) {
-                result.cleanupResult();
-            }
+            result.cleanupResult();
             request.onCompletion(workerTask, coordinatorTask, result);
         }
     }
@@ -227,7 +227,7 @@ public class ChangeProcessor {
      */
     @Nullable
     private ProvisioningContext determineProvisioningContext(ProvisioningContext globalCtx, Change change,
-            OperationResult parentResult)
+            Task workerTask, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, EncryptionException {
         if (change.getObjectClassDefinition() == null) {
@@ -246,10 +246,10 @@ public class ChangeProcessor {
                         change.setOldRepoShadow(existing);
                     }
                 }
-                return globalCtx.spawn(change.getOldRepoShadow());
+                return globalCtx.spawn(change.getOldRepoShadow(), workerTask);
             }
         } else {
-            return globalCtx.spawn(change.getObjectClassDefinition().getTypeName());
+            return globalCtx.spawn(change.getObjectClassDefinition().getTypeName(), workerTask);
         }
     }
 
@@ -385,7 +385,7 @@ public class ChangeProcessor {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
             PreconditionViolationException {
 
-        if (result.isSuccess() || result.isHandledError()) {
+        if (result.isSuccess() || result.isHandledError() || result.isNotApplicable()) {
             return;
         }
 

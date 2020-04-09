@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.gui.impl.prism.ExpressionWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import net.sf.jasperreports.olap.mapping.Mapping;
@@ -29,7 +30,7 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return QNameUtil.match(ExpressionType.COMPLEX_TYPE, def.getTypeName()) ;
+        return QNameUtil.match(ExpressionType.COMPLEX_TYPE, def.getTypeName());
     }
 
     @PostConstruct
@@ -45,13 +46,10 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
 
     @Override
     protected PrismPropertyWrapper<ExpressionType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
-                                                                 ItemStatus status) {
+                                                                 ItemStatus status, WrapperContext ctx) {
+
         ExpressionWrapper propertyWrapper = new ExpressionWrapper(parent, item, status);
-//        if (propertyWrapper.isAttributeExpression() || propertyWrapper.isAssociationExpression()) {
-            getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), ExpressionPropertyPanel.class);
-//        } else {
-//            getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
-//        }
+        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), ExpressionPropertyPanel.class);
         return propertyWrapper;
     }
 

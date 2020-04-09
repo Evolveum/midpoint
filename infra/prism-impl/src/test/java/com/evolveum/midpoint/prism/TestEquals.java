@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.prism;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import org.testng.annotations.Test;
 
@@ -17,44 +15,38 @@ import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
 
 /**
- * @see TestCompare
  * @author semancik
+ * @see TestCompare
  */
 public class TestEquals extends AbstractPrismTest {
 
     @Test
     public void testContainsEquivalentValue01() throws Exception {
-        final String TEST_NAME="testContainsEquivalentValue01";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
 
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFactory().object()
                 .createModificationDeleteContainer(UserType.class, USER_FOO_OID,
-                UserType.F_ASSIGNMENT,
+                        UserType.F_ASSIGNMENT,
                         createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null));
-        display("userDelta", userDelta);
+        displayValue("userDelta", userDelta);
 
         PrismObject<UserType> user = createUserFoo();
         addAssignment(user, ASSIGNMENT_PATLAMA_ID, ASSIGNMENT_PATLAMA_DESCRIPTION);
         addAssignment(user, ASSIGNMENT_ABRAKADABRA_ID, ASSIGNMENT_ABRAKADABRA_DESCRIPTION);
-        display("user", user);
+        displayValue("user", user);
 
         PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
 
         // WHEN, THEN
-        displayWhen(TEST_NAME);
-        assertTrue(ASSIGNMENT_PATLAMA_ID+":null", assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null)));
-        assertTrue("null:"+ASSIGNMENT_PATLAMA_DESCRIPTION, assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION)));
+        when();
+        assertTrue(ASSIGNMENT_PATLAMA_ID + ":null", assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null)));
+        assertTrue("null:" + ASSIGNMENT_PATLAMA_DESCRIPTION, assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION)));
         assertFalse("364576:null", assignmentContainer.containsEquivalentValue(createAssignmentValue(364576L, null)));
         assertFalse("null:never ever never", assignmentContainer.containsEquivalentValue(createAssignmentValue(null, "never ever never")));
     }
 
     @Test(enabled = false)                // normalization no longer removes empty values
     public void testEqualsBrokenAssignmentActivation() throws Exception {
-        final String TEST_NAME="testEqualsBrokenAssignmentActivation";
-        displayTestTitle(TEST_NAME);
-
         // GIVEN
         PrismObjectDefinition<UserType> userDef = PrismInternalTestUtil.getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);

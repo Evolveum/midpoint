@@ -790,9 +790,8 @@ public class BasicExpressionFunctions {
     }
 
     public XMLGregorianCalendar fromNow(String timeSpec) {
-        return XmlTypeConverter.fromNow(XmlTypeConverter.createDuration(timeSpec));
+        return XmlTypeConverter.fromNow(timeSpec);
     }
-
 
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
         if (now == null) {

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,7 +40,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements TaskTabPanel {
+public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OPERATION_RESULT = "operationResult";
@@ -61,26 +62,7 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
 
     private void initLayout() {
 
-        LoadableModel<List<OperationResult>> resultModel= new LoadableModel<List<OperationResult>>() {
-            @Override
-            protected List<OperationResult> load() {
-                PrismObject<TaskType> taskPrism = getModelObject().getObject();
-                if (taskPrism == null) {
-                    return null;
-                }
-
-                OperationResultType result = taskPrism.asObjectable().getResult();
-                if (result == null) {
-                    return null;
-                }
-
-                List<OperationResult> results = new ArrayList<>();
-                OperationResult opResult = OperationResult.createOperationResult(result);
-                results.add(opResult);
-                results.addAll(opResult.getSubresults());
-                return results;
-            }
-        };
+        IModel<List<OperationResult>> resultModel= new ReadOnlyModel<>(() -> createOperationResultList());
 
         SelectableListDataProvider<SelectableBean<OperationResult>, OperationResult> provider = new SelectableListDataProvider<>(this, resultModel);
         BoxedTablePanel<SelectableBean<OperationResult>> resultTablePanel = new BoxedTablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
@@ -92,6 +74,10 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
 
             @Override
             public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
+                if (optionalTarget.isPresent()) {
+                    LOGGER.warn("Cannot show result in interactive way, request target not present.");
+                    return;
+                }
                 AjaxRequestTarget target = optionalTarget.get();
                 PrismObjectWrapper<TaskType> taskWrapper = TaskResultTabPanel.this.getModelObject();
                 TaskType taskType = taskWrapper.getObject().asObjectable();
@@ -109,6 +95,24 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
         showResult.setOutputMarkupId(true);
         add(showResult);
 
+    }
+
+    private List<OperationResult> createOperationResultList() {
+        PrismObject<TaskType> taskPrism = getModelObject().getObject();
+        if (taskPrism == null) {
+            return null;
+        }
+
+        OperationResultType result = taskPrism.asObjectable().getResult();
+        if (result == null) {
+            return null;
+        }
+
+        List<OperationResult> results = new ArrayList<>();
+        OperationResult opResult = OperationResult.createOperationResult(result);
+        results.add(opResult);
+        results.addAll(opResult.getSubresults());
+        return results;
     }
 
     private List<IColumn<SelectableBean<OperationResult>, String>> initResultColumns() {
@@ -154,9 +158,4 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
         return Collections.singleton(get(ID_OPERATION_RESULT));
     }
 
-    @Override
-    protected void detachModel() {
-        super.detachModel();
-        ((LoadableModel) getModel()).reset();
-    }
 }

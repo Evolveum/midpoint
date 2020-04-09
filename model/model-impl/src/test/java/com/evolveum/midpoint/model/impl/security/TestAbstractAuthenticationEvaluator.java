@@ -20,12 +20,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
@@ -41,8 +41,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.model.api.authentication.UserProfileService;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -61,8 +60,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
@@ -82,12 +79,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "security");
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestAbstractAuthenticationEvaluator.class);
-
     protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
     @Autowired private LocalizationMessageSource messageSource;
-    @Autowired private UserProfileService userProfileService;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
 
     private MessageSourceAccessor messages;
@@ -116,42 +111,42 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
+        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                return userProfileService.resolveOwner(object);
+                return focusProfileService.resolveOwner(object);
             }
 
             @Override
-            public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
-                userProfileService.updateUser(principal, itemDeltas);
+            public void updateFocus(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
+                focusProfileService.updateFocus(principal, itemDeltas);
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 return getPrincipal(user, null, null);
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(PrismObject<UserType> user,
+            public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
                     AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(user);
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipal(username);
+            public GuiProfiledPrincipal getPrincipal(String username, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipal(username, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }
 
             @Override
-            public MidPointUserProfilePrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-                MidPointUserProfilePrincipal principal = userProfileService.getPrincipalByOid(oid);
+            public GuiProfiledPrincipal getPrincipalByOid(String oid, Class<? extends FocusType> clazz) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+                GuiProfiledPrincipal principal = focusProfileService.getPrincipalByOid(oid, clazz);
                 addFakeAuthorization(principal);
                 return principal;
             }
@@ -171,29 +166,23 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test000Sanity() throws Exception {
-        final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         assertNotNull(getAuthenticationEvaluator());
-        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = focusProfileService.getPrincipal(USER_JACK_USERNAME, UserType.class);
         assertPrincipalJack(principal);
     }
 
     @Test
     public void test100PasswordLoginGoodPasswordJack() throws Exception {
-        final String TEST_NAME = "test100PasswordLoginGoodPasswordJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 
@@ -205,9 +194,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test101PasswordLoginBadPasswordJack() throws Exception {
-        final String TEST_NAME = "test101PasswordLoginBadPasswordJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -215,19 +201,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -240,28 +223,22 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test102PasswordLoginNullPasswordJack() throws Exception {
-        final String TEST_NAME = "test102PasswordLoginNullPasswordJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, null));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertPasswordEncodingException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertPasswordEncodingException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -273,28 +250,22 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test103PasswordLoginEmptyPasswordJack() throws Exception {
-        final String TEST_NAME = "test103PasswordLoginEmptyPasswordJack";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, get103EmptyPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertPasswordEncodingException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertPasswordEncodingException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -304,87 +275,67 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     @Test
-    public void test105PasswordLoginNullUsernameNullPassword() throws Exception {
-        final String TEST_NAME = "test105PasswordLoginNullUsernameNullPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test105PasswordLoginNullUsernameNullPassword() {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(null, null));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertPasswordEncodingException(e, null);
+            then();
+            displayExpectedException(e);
+            assertPasswordEncodingException(e);
         }
 
     }
 
     @Test
-    public void test106PasswordLoginEmptyUsernameBadPassword() throws Exception {
-        final String TEST_NAME = "test106PasswordLoginEmptyUsernameBadPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test106PasswordLoginEmptyUsernameBadPassword() {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("", getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertNoUserException(e, null);
+            then();
+            displayExpectedException(e);
+            assertNoUserException(e);
         }
-
     }
 
     @Test
-    public void test107PasswordLoginBadUsernameBadPassword() throws Exception {
-        final String TEST_NAME = "test107PasswordLoginBadUsernameBadPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
+    public void test107PasswordLoginBadUsernameBadPassword() {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext("NoSuchUser", getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (UsernameNotFoundException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertNoUserException(e, null);
+            then();
+            displayExpectedException(e);
+            assertNoUserException(e);
         }
-
     }
 
     /**
@@ -393,9 +344,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
      */
     @Test
     public void test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration() throws Exception {
-        final String TEST_NAME = "test125PasswordLoginBadPasswordJackAfterLockoutFailedAttemptsDuration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("PT5M");
 
@@ -405,7 +353,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
@@ -415,9 +363,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             // This is expected
 
             // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -431,25 +379,20 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test130PasswordLoginLockout() throws Exception {
-        final String TEST_NAME = "test130PasswordLoginLockout";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
@@ -463,17 +406,15 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
 
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("user after", userAfter);
@@ -484,26 +425,20 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test132PasswordLoginLockedoutGoodPassword() throws Exception {
-        final String TEST_NAME = "test132PasswordLoginLockedoutGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertLockedException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertLockedException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -514,29 +449,23 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test133PasswordLoginLockedoutBadPassword() throws Exception {
-        final String TEST_NAME = "test133PasswordLoginLockedoutBadPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
+            then();
+            displayExpectedException(e);
 
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-
-            // this is important. The exception should give no indication whether the password is
-            // good or bad
-            assertLockedException(e, USER_JACK_USERNAME);
+            // This is important.
+            // The exception should give no indication whether the password is good or bad.
+            assertLockedException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -547,9 +476,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test135PasswordLoginLockedoutLockExpires() throws Exception {
-        final String TEST_NAME = "test135PasswordLoginLockedoutLockExpires";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("PT30M");
 
@@ -557,11 +483,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 
@@ -574,27 +500,21 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test136PasswordLoginLockoutAgain() throws Exception {
-        final String TEST_NAME = "test136PasswordLoginLockoutAgain";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getBadPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
@@ -608,12 +528,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
 
         userBetween = getUser(USER_JACK_OID);
@@ -627,12 +544,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
 
 
@@ -647,26 +561,20 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test137PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
-        final String TEST_NAME = "test137PasswordLoginLockedoutGoodPasswordAgain";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (LockedException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertLockedException(e, USER_JACK_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertLockedException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -677,21 +585,18 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test138UnlockUserGoodPassword() throws Exception {
-        final String TEST_NAME = "test138UnlockUserGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
@@ -702,11 +607,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 
@@ -722,27 +627,20 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
      */
     @Test
     public void test139TryToLockByModelService() throws Exception {
-        final String TEST_NAME = "test139TryToLockByModelService";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.LOCKED);
 
             AssertJUnit.fail("Unexpected success");
         } catch (SchemaException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-
+            then();
+            displayExpectedException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -753,37 +651,28 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test150PasswordLoginDisabledGoodPassword() throws Exception {
-        final String TEST_NAME = "test150PasswordLoginDisabledGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test152PasswordLoginEnabledGoodPassword() throws Exception {
-        final String TEST_NAME = "test152PasswordLoginEnabledGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
-        loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectSuccess();
     }
 
     @Test
     public void test154PasswordLoginNotValidYetGoodPassword() throws Exception {
-        final String TEST_NAME = "test154PasswordLoginNotValidYetGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar validFrom = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "PT1H");
@@ -793,142 +682,109 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_FROM_PATH, task, result, validFrom);
         modifyUserReplace(USER_JACK_OID, ACTIVATION_VALID_TO_PATH, task, result, validTo);
 
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test155PasswordLoginValidGoodPassword() throws Exception {
-        final String TEST_NAME = "test155PasswordLoginValidGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("PT2H");
 
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectSuccess();
     }
 
     @Test
     public void test156PasswordLoginNotValidAnyLongerGoodPassword() throws Exception {
-        final String TEST_NAME = "test156PasswordLoginNotValidAnyLongerGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("P2D");
 
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
-
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test159PasswordLoginNoLongerValidEnabledGoodPassword() throws Exception {
-        final String TEST_NAME = "test159PasswordLoginNoLongerValidEnabledGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
-        loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectSuccess();
     }
 
     @Test
     public void test160PasswordLoginLifecycleActiveGoodPassword() throws Exception {
-        final String TEST_NAME = "test160PasswordLoginLifecycleActiveGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ACTIVE);
 
-        loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectSuccess();
     }
 
     @Test
     public void test162PasswordLoginLifecycleDraftGoodPassword() throws Exception {
-        final String TEST_NAME = "test162PasswordLoginLifecycleDraftGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_DRAFT);
 
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test164PasswordLoginLifecycleDeprecatedGoodPassword() throws Exception {
-        final String TEST_NAME = "test164PasswordLoginLifecycleDeprecatedGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_DEPRECATED);
 
-        loginJackGoodPasswordExpectSuccess(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectSuccess();
     }
 
     @Test
     public void test166PasswordLoginLifecycleProposedGoodPassword() throws Exception {
-        final String TEST_NAME = "test166PasswordLoginLifecycleProposedGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_PROPOSED);
 
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test168PasswordLoginLifecycleArchivedGoodPassword() throws Exception {
-        final String TEST_NAME = "test168PasswordLoginLifecycleArchivedGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
                 SchemaConstants.LIFECYCLE_ARCHIVED);
 
-        loginJackGoodPasswordExpectDenied(TEST_NAME, task, result);
+        loginJackGoodPasswordExpectDenied();
     }
 
     @Test
     public void test200UserGuybrushSetCredentials() throws Exception {
-        final String TEST_NAME = "test200UserGuybrushSetPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
-        Task task = createTask(TestAbstractAuthenticationEvaluator.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modifyUserCredential(task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
@@ -942,19 +798,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test201UserGuybrushPasswordLoginGoodPassword() throws Exception {
-        final String TEST_NAME = "test201UserGuybrushPasswordLoginGoodPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_GUYBRUSH_USERNAME);
 
@@ -966,9 +819,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test202UserGuybrushPasswordLoginBadPassword() throws Exception {
-        final String TEST_NAME = "test202UserGuybrushPasswordLoginBadPassword";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -976,19 +826,16 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getBadPasswordGuybrush()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (BadCredentialsException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertBadPasswordException(e, USER_GUYBRUSH_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertBadPasswordException(e);
         }
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -1000,9 +847,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration() throws Exception {
-        final String TEST_NAME = "test209UserGuybrushPasswordLoginGoodPasswordBeforeExpiration";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("P29D");
 
@@ -1010,11 +854,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_GUYBRUSH_USERNAME);
 
@@ -1026,33 +870,25 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test210UserGuybrushPasswordLoginGoodPasswordExpired() throws Exception {
-        final String TEST_NAME = "test210UserGuybrushPasswordLoginGoodPasswordExpired";
-        TestUtil.displayTestTitle(TEST_NAME);
-
         // GIVEN
         clock.overrideDuration("P2D");
 
         ConnectionEnvironment connEnv = createConnectionEnvironment();
-        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         try {
 
             // WHEN
-            TestUtil.displayWhen(TEST_NAME);
+            when();
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_GUYBRUSH_USERNAME, getGoodPasswordGuybrush()));
 
             AssertJUnit.fail("Unexpected success");
 
         } catch (CredentialsExpiredException e) {
-            // This is expected
-
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-            assertExpiredException(e, USER_GUYBRUSH_USERNAME);
+            then();
+            displayExpectedException(e);
+            assertExpiredException(e);
         }
-        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("user after", userAfter);
@@ -1066,7 +902,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal)authentication.getPrincipal()).getUsername());
     }
 
-    private void assertBadPasswordException(BadCredentialsException e, String username) {
+    private void assertBadPasswordException(BadCredentialsException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
     }
 
@@ -1074,27 +910,23 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         return localizationService.translate(t.getMessage(), new Object[0], Locale.getDefault());
     }
 
-    private void assertPasswordEncodingException(BadCredentialsException e, String principal) {
+    private void assertPasswordEncodingException(BadCredentialsException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.password.encoding"), getTranslatedMessage(e));
     }
 
-    private void assertDeniedException(AccessDeniedException e, String principal) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.access.denied"), getTranslatedMessage(e));
-    }
-
-    private void assertLockedException(LockedException e, String principal) {
+    private void assertLockedException(LockedException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.locked"), getTranslatedMessage(e));
     }
 
-    private void assertDisabledException(DisabledException e, String principal) {
+    private void assertDisabledException(DisabledException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.disabled"), getTranslatedMessage(e));
     }
 
-    private void assertExpiredException(CredentialsExpiredException e, String principal) {
+    private void assertExpiredException(CredentialsExpiredException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.credential.expired"), getTranslatedMessage(e));
     }
 
-    private void assertNoUserException(UsernameNotFoundException e, String principal) {
+    private void assertNoUserException(UsernameNotFoundException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
     }
 
@@ -1139,25 +971,27 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertPrincipalJack(MidPointPrincipal principal) {
-        display("principal", principal);
+        displayDumpable("principal", principal);
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
-        UserType user = principal.getUser();
+        FocusType user = principal.getFocus();
         assertNotNull("No user in principal",user);
         assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
     }
 
-    private void loginJackGoodPasswordExpectSuccess(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("now", clock.currentTimeXMLGregorianCalendar());
+    private void loginJackGoodPasswordExpectSuccess()
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 
@@ -1167,28 +1001,24 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertLastSuccessfulLogin(userAfter, startTs, endTs);
     }
 
-    private void loginJackGoodPasswordExpectDenied(final String TEST_NAME, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        display("now", clock.currentTimeXMLGregorianCalendar());
+    private void loginJackGoodPasswordExpectDenied() throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        displayValue("now", clock.currentTimeXMLGregorianCalendar());
         ConnectionEnvironment connEnv = createConnectionEnvironment();
-        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         try {
 
             getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
             AssertJUnit.fail("Unexpected success");
         } catch (DisabledException e) {
-            // This is expected
+            then();
+            displayExpectedException(e);
 
-            // THEN
-            TestUtil.displayThen(TEST_NAME);
-            display("expected exception", e);
-
-            // this is important. The exception should give no indication whether the password is
-            // good or bad
-            assertDisabledException(e, USER_JACK_USERNAME);
+            // This is important.
+            // The exception should give no indication whether the password is good or bad.
+            assertDisabledException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);

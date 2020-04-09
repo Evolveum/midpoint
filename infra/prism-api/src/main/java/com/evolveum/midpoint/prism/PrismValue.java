@@ -12,7 +12,12 @@ import com.evolveum.midpoint.prism.metadata.MidpointOriginMetadata;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import com.google.common.annotations.VisibleForTesting;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +32,7 @@ import java.util.Map;
  */
 public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable, Freezable, PrismContextSensitive, MidpointOriginMetadata {      // todo ShortDumpable?
 
+    @VisibleForTesting
     void setPrismContext(PrismContext prismContext);
 
     Map<String, Object> getUserData();
@@ -52,8 +58,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     void applyDefinition(ItemDefinition definition) throws SchemaException;
 
     void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
-
-    void revive(PrismContext prismContext) throws SchemaException;
 
     /**
      * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
@@ -107,6 +111,8 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
+    // TODO: No caller found
+    @Deprecated
     boolean equals(PrismValue thisValue, PrismValue otherValue);
 
     /**
@@ -121,15 +127,26 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
 
-    boolean isImmutable();
-
-    void freeze();
-
     @Nullable
     Class<?> getRealClass();
 
+    @Experimental // todo reconsider method name
+    default boolean hasRealClass() {
+        return getRealClass() != null;
+    }
+
     @Nullable
     <T> T getRealValue();
+
+    @Nullable
+    @Experimental // todo reconsider method name
+    default Object getRealValueOrRawType(PrismContext prismContext) {
+        if (hasRealClass()) {
+            return getRealValue();
+        } else {
+            return new RawType(this, getTypeName(), prismContext);
+        }
+    }
 
     // Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
     // of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV

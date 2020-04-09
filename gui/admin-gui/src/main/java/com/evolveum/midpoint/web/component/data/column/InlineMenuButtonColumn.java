@@ -72,7 +72,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
-        List<InlineMenuItem> cloneMenuItems = cloneColumnMenuActionIfUse(menuItems);
+        List<InlineMenuItem> cloneMenuItems = cloneColumnMenuActionIfUse(menuItems, rowModel);
         for (InlineMenuItem menuItem : (rowModel != null && rowModel.getObject() instanceof InlineMenuable ?
                 ((InlineMenuable)rowModel.getObject()).getMenuItems() : cloneMenuItems)){
             if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
@@ -97,14 +97,17 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
         menuItems.forEach(menuItem -> {
             if (menuItem instanceof ButtonInlineMenuItem){
-                if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
+                if (isHeaderPanel && !menuItem.isHeaderMenuItem() || !menuItem.getVisible().getObject()) {
+                    return;
+                }
+                if (menuItem.getVisibilityChecker() != null && !menuItem.getVisibilityChecker().isVisible(rowModel, isHeaderPanel)) {
                     return;
                 }
                 buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
             }
         });
 
-        return new MenuMultiButtonPanel<T>(componentId, rowModel, numberOfButtons, Model.ofList(filteredMenuItems)) {
+        return new MenuMultiButtonPanel<T>(componentId, rowModel, buttonMenuItems.size(), Model.ofList(filteredMenuItems)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -247,10 +250,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return false;
     }
 
-    private List<InlineMenuItem> cloneColumnMenuActionIfUse(List<InlineMenuItem> menuItems) {
+    private List<InlineMenuItem> cloneColumnMenuActionIfUse(List<InlineMenuItem> menuItems, IModel<T> rowModel) {
         List<InlineMenuItem> clonedMenuItems = new ArrayList<InlineMenuItem>(menuItems.size());
         for (InlineMenuItem item : menuItems) {
             if (item.getAction() instanceof ColumnMenuAction) {
+                ((ColumnMenuAction)item.getAction()).setRowModel(rowModel);
                 InlineMenuItem clonedItem;
                 ColumnMenuAction clonedAction = new ColumnMenuAction() {
 
@@ -273,6 +277,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                     }
 
                 };
+                clonedAction.setRowModel(rowModel);
                 if (item instanceof ButtonInlineMenuItem) {
                     clonedItem = new ButtonInlineMenuItem(item.getLabel(), item.isSubmit()) {
 

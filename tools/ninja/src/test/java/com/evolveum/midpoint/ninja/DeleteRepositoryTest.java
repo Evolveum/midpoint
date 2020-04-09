@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -13,27 +17,23 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import java.lang.reflect.Method;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class DeleteRepositoryTest extends BaseTest {
 
-    @Override
-    protected void beforeMethodInternal(Method method) throws Exception {
+    @BeforeMethod
+    public void initMidpointHome() throws Exception {
         setupMidpointHome();
     }
 
     @Test
-    public void deleteByOid() throws Exception {
+    public void deleteByOid() {
         String type = ObjectTypes.ROLE.name();
         String oid = SystemObjectsType.ROLE_DELEGATOR.value();
 
-        String[] input = new String[]{"-m", getMidpointHome(), "delete", "-o", oid, "-t", type};
+        String[] input = new String[] { "-m", getMidpointHome(), "delete", "-o", oid, "-t", type };
 
         OperationResult result = new OperationResult("delete by oid");
 

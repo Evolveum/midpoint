@@ -81,7 +81,7 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
                         " Application mode:" + mode + " context:" + applicationContext);
             }
 
-            if (applicationContext != null && mode != null && "stop".equals(mode)) {
+            if (applicationContext != null && "stop".equals(mode)) {
                 System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
 
                     @Override

@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.impl.events.CustomEventImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -49,21 +50,19 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executor;
 
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
 
-/**
- * @author mederly
- *
- */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/notifications");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+    private static final TestResource ARCHETYPE_DUMMY = new TestResource(TEST_DIR, "archetype-dummy.xml", "c97780b7-6b07-4a25-be95-60125af6f650");
+    private static final TestResource ROLE_DUMMY = new TestResource(TEST_DIR, "role-dummy.xml", "8bc6d827-6ea6-4671-a506-a8388f117880");
 
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
@@ -72,9 +71,10 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     private MyHttpHandler httpHandler;
 
     @Override
-    public void initSystem(Task initTask, OperationResult initResult)
-            throws Exception {
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        repoAdd(ARCHETYPE_DUMMY, initResult);
+        repoAdd(ROLE_DUMMY, initResult);
         InternalMonitor.reset();
     }
 
@@ -123,9 +123,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {
-        final String TEST_NAME = "test100ModifyUserAddAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
         task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
@@ -135,11 +132,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE, task, result);
+        when();
+        ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
+        // This is to test for MID-5849. The applicability checking was not correct, so it passed even if there we no items
+        // to show in the notification.
+        userDelta.addModification(
+                deltaFor(UserType.class)
+                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace("dummy")
+                        .asItemDelta());
+        executeChanges(userDelta, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -149,7 +154,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
         UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        assertEquals("Unexpected number of linkRefs", 1, userJackType.getLinkRef().size());
         ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
         accountJackOid = accountRefType.getOid();
         assertFalse("No accountRef oid", StringUtils.isBlank(accountJackOid));
@@ -172,7 +177,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Dummy transport messages", dummyTransport);
+        displayDumpable("Dummy transport messages", dummyTransport);
 
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
@@ -214,11 +219,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test119ModifyUserDeleteAccount() throws Exception {
-        final String TEST_NAME = "test119ModifyUserDeleteAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -233,11 +236,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result, 2);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
@@ -260,7 +263,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("jack");
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -288,22 +291,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test131ModifyUserJackAssignAccount() throws Exception {
-        final String TEST_NAME = "test131ModifyUserJackAssignAccount";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
@@ -331,7 +331,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 1);
@@ -358,25 +358,21 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "\n"
                 + "Channel: ";
         assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
-
     }
 
     @Test
     public void test140ModifyUserJackAssignRole() throws Exception {
-        final String TEST_NAME = "test135ModifyUserJackAssignRole";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -387,7 +383,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJack, 2);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -416,16 +412,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test150ModifyUserJackModifyAssignment() throws Exception {
-        final String TEST_NAME = "test150ModifyUserJackModifyAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -436,7 +429,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -445,7 +438,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertUserJack(jackAfter);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -478,16 +471,13 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160ModifyUserJackDeleteAssignment() throws Exception {
-        final String TEST_NAME = "test160ModifyUserJackDeleteAssignment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = createPlainTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         AssignmentType assignment = findAssignmentByTargetRequired(jack, ROLE_SUPERUSER_OID);
         Long id = assignment.getId();
@@ -498,7 +488,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -507,7 +497,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertUserJack(jackAfter);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
@@ -537,21 +527,18 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test200SendSmsUsingGet() {
-        final String TEST_NAME = "test200SendSmsUsingGet";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get", null,
+        when();
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -562,21 +549,18 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test210SendSmsUsingPost() {
-        final String TEST_NAME = "test210SendSmsUsingPost";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "post", null,
+        when();
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -595,21 +579,18 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test215SendSmsUsingGeneralPost() {
-        final String TEST_NAME = "test215SendSmsUsingGeneralPost";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "general-post", null,
+        when();
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "general-post", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -628,49 +609,43 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test220SendSmsViaProxy() {
-        final String TEST_NAME = "test220SendSmsViaProxy";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
+        when();
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "get-via-proxy", null,
                 "hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
         assertNotNull("No http request found", httpHandler.lastRequest);
         assertEquals("Wrong HTTP method", "GET", httpHandler.lastRequest.method);
-        assertTrue("Header proxy-connection not found in request headers", httpHandler.lastRequest.headers.keySet().contains("proxy-connection"));
+        assertTrue("Header proxy-connection not found in request headers", httpHandler.lastRequest.headers.containsKey("proxy-connection"));
         assertEquals("Wrong proxy-connection header", "Keep-Alive", httpHandler.lastRequest.headers.get("proxy-connection").get(0));
     }
 
     @Test
     public void test300CheckVariables() {
-        final String TEST_NAME = "test300CheckVariables";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         prepareNotifications();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
-        Event event = new CustomEvent(lightweightIdentifierGenerator, "check-variables", null,
+        when();
+        Event event = new CustomEventImpl(lightweightIdentifierGenerator, "check-variables", null,
                 "hello world", EventOperationType.ADD, EventStatusType.SUCCESS, null);
         notificationManager.processEvent(event, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("processEvent result", result);
 
@@ -680,28 +655,25 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test400StringAttachment() throws Exception {
-        final String TEST_NAME = "test400StringAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testStringAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("string-attachment", 1);
@@ -712,33 +684,30 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         Object content = RawType.getValue(message.getAttachments().get(0).getContent());
         assertEquals("Wrong content of attachments", "Hello world", content);
         assertEquals("Wrong fileName of attachments", "plain.txt", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     @Test
     public void test410ByteAttachment() throws Exception {
-        final String TEST_NAME = "test410ByteAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testByteAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("byte-attachment", 1);
@@ -760,36 +729,33 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         byte[] origJPEG = Base64.getDecoder().decode(origJPEGString);
         Object content = RawType.getValue(message.getAttachments().get(0).getContent());
         if(!(content instanceof byte[]) || !Arrays.equals(origJPEG, (byte[])content)) {
-            throw new AssertionError("Wrong content of attachments expected:" + origJPEG  + " but was:" + content);
+            throw new AssertionError("Wrong content of attachments expected:" + Arrays.toString(origJPEG) + " but was:" + content);
         }
         assertEquals("Wrong fileName of attachments", "alf.jpg", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     @Test
     public void test420AttachmentFromFile() throws Exception {
-        final String TEST_NAME = "test420AttachmentFromFile";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testAttachmentFromFileUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("attachment-from-file", 1);
@@ -799,33 +765,30 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong contentType of attachment", "image/png", message.getAttachments().get(0).getContentType());
         assertEquals("Wrong fileName of attachments", "alf.png", message.getAttachments().get(0).getFileName());
         assertEquals("Wrong fileName of attachments", "/home/user/example.png", message.getAttachments().get(0).getContentFromFile());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContent());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContent());
     }
 
     @Test
     public void test430ExpressionAttachment() throws Exception {
-        final String TEST_NAME = "test430ExpressionAttachment";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        when();
         PrismObject<UserType> user = new UserType(prismContext)
                 .name("testExpressionAttachmentUser")
                 .asPrismObject();
         addObject(user);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        then();
         result.computeStatus();
         TestUtil.assertSuccess("addObject result", result);
 
         // Check notifications
-        display("Notifications", dummyTransport);
+        displayDumpable("Notifications", dummyTransport);
 
         notificationManager.setDisabled(true);
         checkDummyTransportMessages("expression-attachment", 1);
@@ -835,10 +798,45 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong contentType of attachment", "text/html", message.getAttachments().get(0).getContentType());
         assertEquals("Wrong content of attachments", "<!DOCTYPE html><html><body>Hello World!</body></html>", message.getAttachments().get(0).getContent());
         assertEquals("Wrong fileName of attachments", "hello_world.html", message.getAttachments().get(0).getFileName());
-        assertEquals("Wrong fileName of attachments", null, message.getAttachments().get(0).getContentFromFile());
+        assertNull("Wrong fileName of attachments", message.getAttachments().get(0).getContentFromFile());
     }
 
     // TODO binary attachment, attachment from file, attachment from expression
+
+    /**
+     * MID-5350
+     */
+    @Test
+    public void test500RecomputeRole() throws Exception {
+
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+        when();
+        recomputeFocus(RoleType.class, ROLE_DUMMY.oid, task, result);
+
+        then();
+        result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+
+        // Check notifications
+        displayDumpable("Notifications", dummyTransport);
+
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("simpleRoleNotifier", 0); // MID-5350 (other asserts are just for sure)
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        assertSteadyResources();
+    }
 
     @SuppressWarnings("Duplicates")
     private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -851,11 +849,11 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
     private static class MyHttpHandler implements HttpHandler {
 
-        private class Request {
-            URI uri;
-            String method;
-            Map<String, List<String>> headers;
-            List<String> body;
+        private static class Request {
+            private URI uri;
+            private String method;
+            private Map<String, List<String>> headers;
+            private List<String> body;
         }
 
         private Request lastRequest;

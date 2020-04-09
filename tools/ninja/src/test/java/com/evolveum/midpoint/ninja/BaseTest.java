@@ -6,28 +6,27 @@
  */
 package com.evolveum.midpoint.ninja;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.beust.jcommander.JCommander;
-import com.evolveum.midpoint.ninja.impl.NinjaContext;
-import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
-import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.AssertJUnit;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 
-import java.io.*;
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.ninja.impl.NinjaContext;
+import com.evolveum.midpoint.ninja.opts.ConnectionOptions;
+import com.evolveum.midpoint.ninja.util.NinjaUtils;
+import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class BaseTest {
+public class BaseTest extends AbstractUnitTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(BaseTest.class);
 
@@ -38,29 +37,7 @@ public class BaseTest {
     private List<String> systemOut;
     private List<String> systemErr;
 
-    @BeforeMethod
-    public final void beforeMethod(Method method) throws Exception {
-        LOG.info(">>>>>>>>>>>>>>>> Start " + method.getDeclaringClass().getSimpleName() + "."
-                + method.getName() + "<<<<<<<<<<<<<<<<<<<");
-
-        beforeMethodInternal(method);
-    }
-
-    @AfterMethod
-    public final void afterMethod(Method method) throws Exception {
-        afterMethodInternal(method);
-        LOG.info(">>>>>>>>>>>>>>>> Finished " + method.getDeclaringClass().getSimpleName() + "."
-                + method.getName() + "<<<<<<<<<<<<<<<<<<<");
-    }
-
-    protected void beforeMethodInternal(Method method) throws Exception {
-
-    }
-
-    protected void afterMethodInternal(Method method) throws Exception {
-
-    }
-
+    // add @BeforeMethod calling this into test classes that need this
     protected void setupMidpointHome() throws IOException {
         FileUtils.deleteDirectory(TARGET_HOME);
 
@@ -90,14 +67,14 @@ public class BaseTest {
     }
 
     protected void executeTest(ExecutionValidator preExecutionValidator,
-                               ExecutionValidator postExecutionValidator, String... args) {
+            ExecutionValidator postExecutionValidator, String... args) {
         executeTest(null, preExecutionValidator, postExecutionValidator, false, false, args);
     }
 
     protected void executeTest(ExecutionValidator preInit,
-                               ExecutionValidator preExecution,
-                               ExecutionValidator postExecution,
-                               boolean saveOut, boolean saveErr, String... args) {
+            ExecutionValidator preExecution,
+            ExecutionValidator postExecution,
+            boolean saveOut, boolean saveErr, String... args) {
 
         systemOut = new ArrayList<>();
         systemErr = new ArrayList<>();

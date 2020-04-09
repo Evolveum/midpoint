@@ -28,7 +28,7 @@
         <enabled>true</enabled>
         <focus>
             <mapping>
-                <name>autoassign-worker</name>
+                <name>autoassign-walker</name>
                 <trace>true</trace>
                 <source>
                     <path>organizationalUnit</path>

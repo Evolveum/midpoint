@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Tests for weird activation existence mappings, delayed deletes and similar existential issues.
- *
+ * <p>
  * MID-4564
  *
  * @author Radovan Semancik
@@ -42,8 +42,6 @@ public class TestExistentialIssues extends AbstractStoryTest {
     protected static final String USER_DESCARTES_USERNAME = "descartes";
     protected static final String USER_DESCARTES_FULL_NAME = "René Descartes";
 
-    protected PrismObject<UserType> userAdministrator;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -59,18 +57,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test100DisableUserDescartes() throws Exception {
-        final String TEST_NAME = "test100DisableUserDescartes";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -88,18 +84,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test110DescartesAssignLazyAccount() throws Exception {
-        final String TEST_NAME = "test110DescartesAssignLazyAccount";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         assignAccountToUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -117,18 +111,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test112EnableDescartes() throws Exception {
-        final String TEST_NAME = "test112EnableDescartes";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -146,18 +138,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test114DisableDescartes() throws Exception {
-        final String TEST_NAME = "test112EnableDescartes";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -175,18 +165,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test116ReenableDescartes() throws Exception {
-        final String TEST_NAME = "test116ReenableDescartes";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         modifyUserReplace(USER_DESCARTES_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -204,18 +192,16 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test120DescartesUnassignLazyAccount() throws Exception {
-        final String TEST_NAME = "test120DescartesUnassignLazyAccount";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         unassignAccountFromUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUserFromRepo(USER_DESCARTES_OID);
@@ -233,23 +219,20 @@ public class TestExistentialIssues extends AbstractStoryTest {
      */
     @Test
     public void test129DeleteDescartes() throws Exception {
-        final String TEST_NAME = "test129DeleteDescartes";
-        displayTestTitle(TEST_NAME);
-        Task task = createTask(TEST_NAME);
+        Task task = getTestTask();
         OperationResult result = task.getResult();
 
         // WHEN
-        displayWhen(TEST_NAME);
+        when();
 
         deleteObject(UserType.class, USER_DESCARTES_OID, task, result);
 
         // THEN
-        displayThen(TEST_NAME);
+        then();
         assertSuccess(result);
 
         assertNoObject(UserType.class, USER_DESCARTES_OID);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAZY_NAME, USER_DESCARTES_USERNAME);
     }
-
 }

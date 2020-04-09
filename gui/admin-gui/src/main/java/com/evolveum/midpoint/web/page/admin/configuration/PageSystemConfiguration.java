@@ -8,11 +8,13 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +25,6 @@ import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.Profili
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigurationSummaryPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -54,7 +54,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 /**
@@ -315,7 +314,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
     }
 
     @Override
-    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
         if (!isKeepDisplayingResults()) {
             showResult(result);
             redirectBack();
@@ -333,8 +332,8 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
     }
 
     @Override
-    protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel() {
-        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel(IModel<SystemConfigurationType> summaryModel) {
+        return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, summaryModel, this);
     }
 
     @Override

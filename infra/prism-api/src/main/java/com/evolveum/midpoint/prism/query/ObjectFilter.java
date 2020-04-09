@@ -34,6 +34,4 @@ public interface ObjectFilter extends DebugDumpable, Serializable, Revivable, Pr
     void checkConsistence(boolean requireDefinitions);
 
     boolean equals(Object o, boolean exact);
-
-    void setPrismContext(PrismContext prismContext);
 }

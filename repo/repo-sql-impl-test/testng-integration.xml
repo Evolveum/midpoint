@@ -29,7 +29,6 @@
             <class name="com.evolveum.midpoint.repo.sql.ModifyUser"/>
             <class name="com.evolveum.midpoint.repo.sql.ModifyAssignmentTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ResourceModifyTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.ListAccountShadowOwnerTest"/>
             <class name="com.evolveum.midpoint.repo.sql.OrgStructTest"/>
             <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureCorrectnessTest"/>
             <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureOverwriteAddTest"/>
@@ -48,14 +47,6 @@
             <class name="com.evolveum.midpoint.repo.sql.ExtensionTestSafeInsertionAndDeletion"/>
             <class name="com.evolveum.midpoint.repo.sql.UserPhotoTest"/>
             <class name="com.evolveum.midpoint.repo.sql.OrgPhotoTest"/>
-        </classes>
-    </test>
-    <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">        <!-- enabled only for dbtest -->
-        <classes>
-            <class name="com.evolveum.midpoint.repo.sql.ConcurrencyTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.SequenceTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.closure.OrgClosureConcurrencyTest"/>
-            <class name="com.evolveum.midpoint.repo.sql.ExtDictionaryTest"/>
         </classes>
     </test>
     <test name="Utils Tests" parallel="false" preserve-order="true" verbose="10" enabled="true">

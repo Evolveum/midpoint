@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.prism;
 
-import java.util.List;
-
 import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -20,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainerWrapper<O> {
 
-//    List<PrismContainerWrapper<?>> getContainers();
 
     ObjectDelta<O> getObjectDelta() throws SchemaException;
 

@@ -18,19 +18,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * @author mederly
  *
  */
-public class PartitionedMockWorkBucketsTaskHandlerCreator {
+class PartitionedMockWorkBucketsTaskHandlerCreator {
 
     private TaskManager taskManager;
     private PrismContext prismContext;
 
-    public PartitionedMockWorkBucketsTaskHandlerCreator(TaskManager taskManager,
+    PartitionedMockWorkBucketsTaskHandlerCreator(TaskManager taskManager,
             PrismContext prismContext) {
         this.taskManager = taskManager;
         this.prismContext = prismContext;
     }
 
     @SuppressWarnings("Duplicates")
-    public void initializeAndRegister(String handlerUri) {
+    void initializeAndRegister(String handlerUri) {
         taskManager.createAndRegisterPartitioningTaskHandler(handlerUri, this::createPartitioningDefinition);
     }
 
