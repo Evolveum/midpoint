@@ -46,7 +46,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
     private static final String TEST_DIR = "src/test/resources/processor/";
 
     private static final String RESOURCE_SCHEMA_SIMPLE_FILENAME = TEST_DIR + "resource-schema-simple.xsd";
-    private static final String RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME = TEST_DIR + "resource-schema-simple-deprecated.xsd";
 
     private static final String SCHEMA_NAMESPACE = "http://schema.foo.com/bar";
 
@@ -63,21 +62,6 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // THEN
         assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_FILENAME);
-    }
-
-    @Test
-    public void testParseSchemaDeprecated() throws Exception {
-        // GIVEN
-
-        Document schemaDom = DOMUtil.parseFile(RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
-
-        // WHEN
-
-        ResourceSchema schema = ResourceSchemaImpl.parse(DOMUtil.getFirstChildElement(schemaDom), "http://schema.foo.com/bar",
-                RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME, PrismTestUtil.getPrismContext());
-
-        // THEN
-        assertSimpleSchema(schema, RESOURCE_SCHEMA_SIMPLE_DEPRECATED_FILENAME);
     }
 
     private void assertSimpleSchema(ResourceSchema schema, String filename) {
@@ -172,7 +156,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
 
         // WHEN
 
-        String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
+        String marshalledResource = prismContext.xmlSerializer().serialize(resource);
 
         System.out.println("Marshalled resource");
         System.out.println(marshalledResource);
@@ -237,7 +221,7 @@ public class TestResourceSchema extends AbstractSchemaTest {
         Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
 
         PrismObject<ResourceType> resource = wrapInResource(xsdElement);
-        String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
+        String resourceXmlString = PrismTestUtil.getPrismContext().xmlSerializer().serialize(resource);
 
         System.out.println("Serialized resource");
         System.out.println(resourceXmlString);

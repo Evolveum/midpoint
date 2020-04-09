@@ -87,9 +87,6 @@ public interface OperationResultBuilder {
     @SuppressWarnings("unused")
     OperationResultBuilder addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue);
 
-    @Deprecated
-    OperationResultBuilder setMinor(boolean value);
-
     OperationResultBuilder setMinor();
 
     OperationResult setImportance(OperationResultImportanceType value);

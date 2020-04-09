@@ -162,7 +162,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         userNew.setHonorificPrefix(new PolyStringType("Princess"));
 
         ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
-        display("Modifying user with delta", delta);
+        displayDumpable("Modifying user with delta", delta);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
@@ -214,7 +214,7 @@ public class TestReconNullValue extends AbstractStoryTest {
         userNew.setGivenName(null);
 
         ObjectDelta<UserType> delta = userBefore.diff(userNewPrism);
-        display("Modifying user with delta", delta);
+        displayDumpable("Modifying user with delta", delta);
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 

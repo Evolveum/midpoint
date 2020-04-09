@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 
@@ -66,11 +67,16 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     }
 
     protected Panel getBasicContainerValuePanel(String idPanel){
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+        ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
                 .showOnTopLevel(true)
-                .editabilityHandler(wrapper -> getBasicTabEditability(wrapper))
-                .build();
+                .editabilityHandler(wrapper -> getBasicTabEditability(wrapper));
+
+        if (getMandatoryHandler() != null) {
+            builder.mandatoryHandler(getMandatoryHandler());
+        }
+
+        ItemPanelSettings settings = builder.build();
         Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), settings);
         return containerValue;
     }
@@ -81,6 +87,10 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 
     protected boolean getBasicTabEditability(ItemWrapper<?,?,?,?> itemWrapper) {
         return true;
+    }
+
+    protected ItemMandatoryHandler getMandatoryHandler() {
+        return null;
     }
 
 }

@@ -129,7 +129,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
         Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
-        display("Evaluated construction", construction);
+        displayDumpable("Evaluated construction", construction);
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
@@ -162,7 +162,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         TestUtil.assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment);
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
@@ -194,7 +194,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
         assignmentIdi.setSubItemDeltas(userDelta.getModifications());
         assignmentIdi.recompute();
-        display("Assignment IDI", assignmentIdi);
+        displayDumpable("Assignment IDI", assignmentIdi);
 
         // WHEN
         when();
@@ -207,7 +207,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment);
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
@@ -217,7 +217,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
                 (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) construction.getAttributeMappings().iterator().next();
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = attributeMapping.getOutputTriple();
-        display("output triple", outputTriple);
+        displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple, "The best captain the world has ever seen");
         PrismAsserts.assertTripleMinus(outputTriple, "The best pirate the world has ever seen");
@@ -268,7 +268,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertSuccess(result);
 
         assertNotNull(evaluatedAssignment);
-        display("Evaluated assignment", evaluatedAssignment);
+        displayDumpable("Evaluated assignment", evaluatedAssignment);
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 

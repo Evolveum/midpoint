@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -40,7 +41,7 @@ public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluatio
             @NotNull EvaluatedAssignmentImpl<?> evaluatedAssignment,
             @NotNull PlusMinusZero relativeMode, AssignmentPathVariables assignmentPathVariables,
             String sourceDescription) {
-        super(mapping, originObject);
+        super(mapping, MappingKindType.ASSIGNED, originObject);
         this.evaluatedAssignment = evaluatedAssignment;
         this.relativeMode = relativeMode;
         this.assignmentPathVariables = assignmentPathVariables;

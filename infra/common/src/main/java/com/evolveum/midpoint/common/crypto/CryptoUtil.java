@@ -15,12 +15,11 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.Cipher;
@@ -45,24 +44,24 @@ public class CryptoUtil {
 
     /**
      * Encrypts all encryptable values in the object.
+     *
+     * Note: We could use TunnelException here (it would be cleaner) but the tunneled exception could be
+     * other than EncryptionException! For example, it could come from RawType, carrying a SchemaException.
+     * See MID-6086. So we use throwExceptionAsUnchecked hack instead.
      */
+    @SuppressWarnings("RedundantThrows")
     public static <T extends ObjectType> void encryptValues(Protector protector, PrismObject<T> object) throws EncryptionException {
-        try {
-            object.accept(createEncryptingVisitor(protector));
-        } catch (TunnelException e) {
-            throw (EncryptionException) e.getCause();
-        }
+        //noinspection unchecked
+        object.accept(createEncryptingVisitor(protector));
     }
 
     /**
      * Encrypts all encryptable values in delta.
      */
+    @SuppressWarnings("RedundantThrows")
     public static <T extends ObjectType> void encryptValues(Protector protector, ObjectDelta<T> delta) throws EncryptionException {
-        try {
-            delta.accept(createEncryptingVisitor(protector));
-        } catch (TunnelException e) {
-            throw (EncryptionException) e.getCause();
-        }
+        //noinspection unchecked
+        delta.accept(createEncryptingVisitor(protector));
     }
 
     @NotNull
@@ -76,7 +75,8 @@ public class CryptoUtil {
                 try {
                     protector.encrypt(protectedString);
                 } catch (EncryptionException e) {
-                    throw new EncryptionException("Failed to encrypt value for field " + propertyName + ": " + e.getMessage(), e);
+                    MiscUtil.throwExceptionAsUnchecked(
+                            new EncryptionException("Failed to encrypt value for field " + propertyName + ": " + e.getMessage(), e));
                 }
             }
         });
@@ -85,6 +85,7 @@ public class CryptoUtil {
     // Checks that everything is encrypted
     public static <T extends ObjectType> void checkEncrypted(final PrismObject<T> object) {
         try {
+            //noinspection unchecked
             object.accept(createCheckingVisitor());
         } catch (IllegalStateException e) {
             throw new IllegalStateException(e.getMessage() + " in " + object, e);
@@ -95,6 +96,7 @@ public class CryptoUtil {
     // Checks that everything is encrypted
     public static <T extends ObjectType> void checkEncrypted(final ObjectDelta<T> delta) {
         try {
+            //noinspection unchecked
             delta.accept(createCheckingVisitor());
         } catch (IllegalStateException e) {
             throw new IllegalStateException(e.getMessage() + " in delta " + delta, e);
@@ -184,19 +186,18 @@ public class CryptoUtil {
     /**
      * Re-encrypts all encryptable values in the object.
      */
+    @SuppressWarnings("RedundantThrows")
     public static <T extends ObjectType> int reencryptValues(Protector protector, PrismObject<T> object) throws EncryptionException {
-        try {
-            Holder<Integer> modCountHolder = new Holder<>(0);
-            object.accept(createVisitor((ps, propName) -> reencryptProtectedStringType(ps, propName, modCountHolder, protector)));
-            return modCountHolder.getValue();
-        } catch (TunnelException e) {
-            throw (EncryptionException) e.getCause();
-        }
+        Holder<Integer> modCountHolder = new Holder<>(0);
+        //noinspection unchecked
+        object.accept(createVisitor((ps, propName) -> reencryptProtectedStringType(ps, propName, modCountHolder, protector)));
+        return modCountHolder.getValue();
     }
 
     @NotNull
     public static <T extends ObjectType> Collection<String> getEncryptionKeyNames(PrismObject<T> object) {
         Set<String> keys = new HashSet<>();
+        //noinspection unchecked
         object.accept(createVisitor((ps, propName) -> {
             if (ps.getEncryptedDataType() != null && ps.getEncryptedDataType().getKeyInfo() != null) {
                 keys.add(ps.getEncryptedDataType().getKeyInfo().getKeyName());
@@ -208,6 +209,7 @@ public class CryptoUtil {
     @SuppressWarnings("unused") // used externally
     public static <T extends ObjectType> boolean containsCleartext(PrismObject<T> object) {
         Holder<Boolean> result = new Holder<>(false);
+        //noinspection unchecked
         object.accept(createVisitor((ps, propName) -> {
             if (ps.getClearValue() != null) {
                 result.setValue(true);
@@ -219,6 +221,7 @@ public class CryptoUtil {
     @SuppressWarnings("unused") // used externally
     public static <T extends ObjectType> boolean containsHashedData(PrismObject<T> object) {
         Holder<Boolean> result = new Holder<>(false);
+        //noinspection unchecked
         object.accept(createVisitor((ps, propName) -> {
             if (ps.getHashedDataType() != null) {
                 result.setValue(true);
@@ -232,12 +235,12 @@ public class CryptoUtil {
         void apply(ProtectedStringType protectedString, String propertyName) throws EncryptionException;
     }
 
-    private static class CombinedVisitor implements Visitor, JaxbVisitor {
+    private static class CombinedVisitor implements ConfigurableVisitor, JaxbVisitor {
 
         private ProtectedStringProcessor processor;
         private String lastPropName = "?";
 
-        CombinedVisitor(ProtectedStringProcessor processor) {
+        private CombinedVisitor(ProtectedStringProcessor processor) {
             this.processor = processor;
         }
 
@@ -247,7 +250,7 @@ public class CryptoUtil {
                 try {
                     processor.apply(((ProtectedStringType) visitable), lastPropName);
                 } catch (EncryptionException e) {
-                    throw new TunnelException(e);
+                    MiscUtil.throwExceptionAsUnchecked(e);
                 }
             } else {
                 JaxbVisitable.visitPrismStructure(visitable, this);
@@ -257,7 +260,7 @@ public class CryptoUtil {
         @Override
         public void visit(Visitable visitable) {
             if (visitable instanceof PrismPropertyValue) {
-                PrismPropertyValue<?> pval = ((PrismPropertyValue) visitable);
+                PrismPropertyValue<?> pval = (PrismPropertyValue<?>) visitable;
                 Object realValue = pval.getRealValue();
                 if (realValue instanceof JaxbVisitable) {
                     String oldLastPropName = lastPropName;
@@ -266,6 +269,11 @@ public class CryptoUtil {
                     lastPropName = oldLastPropName;
                 }
             }
+        }
+
+        @Override
+        public boolean shouldVisitEmbeddedObjects() {
+            return true; // Needed to encrypt secrets in embedded objects. See also 60328c40b2b99c6cf41ab6ce90145fae941d07bd.
         }
     }
 
@@ -290,7 +298,7 @@ public class CryptoUtil {
                 protector.encrypt(ps);
                 increment(modCountHolder);
             } catch (EncryptionException e) {
-                throw new TunnelException(new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e));
+                MiscUtil.throwExceptionAsUnchecked(new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e));
             }
         } else if (ps.getEncryptedDataType() != null) {
             try {
@@ -300,7 +308,7 @@ public class CryptoUtil {
                     increment(modCountHolder);
                 }
             } catch (EncryptionException e) {
-                throw new TunnelException(new EncryptionException("Failed to check/reencrypt value for field " + propName + ": " + e.getMessage(), e));
+                MiscUtil.throwExceptionAsUnchecked(new EncryptionException("Failed to check/reencrypt value for field " + propName + ": " + e.getMessage(), e));
             }
         } else {
             // no clear nor encrypted value
@@ -311,6 +319,7 @@ public class CryptoUtil {
         countHolder.setValue(countHolder.getValue() + 1);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static void securitySelfTestAlgorithm(String algorithmName, String transformationName,
             Integer keySize, boolean critical, OperationResult parentResult) {
         OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);

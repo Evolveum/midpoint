@@ -44,7 +44,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  * @author semancik
  */
 public class TestScriptCaching extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
     protected static final File OBJECTS_DIR = new File("src/test/resources/objects");
@@ -73,7 +73,7 @@ public class TestScriptCaching extends AbstractUnitTest
 
     @BeforeClass
     public void setupFactory() {
-        System.out.println("Setting up expression factory and evaluator");
+        display("Setting up expression factory and evaluator");
         PrismContext prismContext = getPrismContext();
         ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
         Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
@@ -144,13 +144,21 @@ public class TestScriptCaching extends AbstractUnitTest
 
         // WHEN
         long startTime = System.currentTimeMillis();
-        List<PrismPropertyValue<String>> scripResults =
-                scriptExpression.evaluate(variables, null, false, desc, null, result);
+
+        ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
+        context.setVariables(variables);
+        context.setEvaluateNew(false);
+        context.setScriptExpression(scriptExpression);
+        context.setContextDescription(desc);
+        context.setResult(result);
+
+        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(context);
         long endTime = System.currentTimeMillis();
 
         // THEN
-        System.out.println("Script results " + desc + ", etime: " + (endTime - startTime) + " ms");
-        System.out.println(scripResults);
+        displayValue(
+                "Script results " + desc + ", etime: " + (endTime - startTime) + " ms",
+                scripResults);
 
         String scriptResult = asScalarString(scripResults);
         assertEquals("Wrong script " + desc + " result", expectedResult, scriptResult);

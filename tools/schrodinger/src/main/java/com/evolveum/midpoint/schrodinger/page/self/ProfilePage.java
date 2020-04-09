@@ -7,9 +7,10 @@
 package com.evolveum.midpoint.schrodinger.page.self;
 
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProfilePage extends BasicPage {
+public class ProfilePage extends UserPage {
 }

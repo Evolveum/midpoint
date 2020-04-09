@@ -137,7 +137,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -159,7 +159,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -177,7 +177,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         // No records. There are no auth headers so this is not considered to be a login attempt
         getDummyAuditService().assertRecords(0);
     }
@@ -195,7 +195,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -213,7 +213,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -231,7 +231,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -249,7 +249,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -267,7 +267,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -285,7 +285,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 401);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -303,7 +303,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         then();
         assertStatus(response, 403);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -326,7 +326,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -346,7 +346,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertStatus(response, 201);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, ObjectTemplateType.class);
@@ -371,7 +371,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -408,7 +408,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             // the repository
         }
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, ShadowType.class);
@@ -428,7 +428,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 201);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, RoleType.class);
@@ -448,7 +448,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 201);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, UserType.class);
@@ -468,7 +468,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 201);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, RoleType.class);
@@ -492,7 +492,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         logger.info("Returned result: {}", result);
         assertEquals("Unexpected operation result status", OperationResultStatusType.FATAL_ERROR, result.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertExecutionOutcome(1, OperationResultStatus.FATAL_ERROR);
@@ -512,7 +512,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 204);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -536,7 +536,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 204);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -560,7 +560,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -579,7 +579,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 204);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -605,7 +605,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertNotNull("Returned entity in body must not be null.", userType);
         logger.info("Returned entity: {}", userType.asPrismObject().debugDump());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -624,7 +624,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayResponse(response);
         assertStatus(response, 201);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, UserType.class);
@@ -644,7 +644,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -663,7 +663,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         assertStatus(response, 401);
 //        assertNoEmptyResponse(response);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(1);
         getDummyAuditService().assertFailedLogin(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -683,7 +683,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertStatus(response, 200);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -711,7 +711,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
                 expected,
                 location);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, ObjectTemplateType.class);
@@ -743,7 +743,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
                 expected,
                 location);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.ADD, FunctionLibraryType.class);
@@ -771,7 +771,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         displayValue("Code", code);
         assertEquals("Wrong hello code", HELLO_CODE, code);
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -793,7 +793,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -813,7 +813,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 400 but got " + response.getStatus(), 400, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -834,7 +834,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -877,7 +877,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -902,7 +902,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -966,7 +966,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -987,7 +987,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1007,7 +1007,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1028,7 +1028,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1049,7 +1049,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1071,7 +1071,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1093,7 +1093,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1115,7 +1115,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1141,7 +1141,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
             assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-            display("Audit", getDummyAuditService());
+            displayDumpable("Audit", getDummyAuditService());
             getDummyAuditService().assertRecords(2);
             getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         } finally {
@@ -1196,7 +1196,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         display("jack after", jackAfter);
         assertNotNull("password not set", jackAfter.getCredentials().getPassword().getValue());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 
@@ -1219,7 +1219,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
 
@@ -1350,7 +1350,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -1392,7 +1392,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -1426,7 +1426,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -1460,7 +1460,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -1489,7 +1489,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 409 but got " + response.getStatus(), 409, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1509,7 +1509,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(2);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
     }
@@ -1580,7 +1580,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 204 but got " + response.getStatus(), 204, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);
@@ -1620,7 +1620,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
 
         assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
 
-        display("Audit", getDummyAuditService());
+        displayDumpable("Audit", getDummyAuditService());
         getDummyAuditService().assertRecords(4);
         getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         getDummyAuditService().assertHasDelta(1, ChangeType.MODIFY, UserType.class);

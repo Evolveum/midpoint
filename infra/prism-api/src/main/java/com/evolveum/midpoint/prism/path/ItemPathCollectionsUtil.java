@@ -52,11 +52,11 @@ public class ItemPathCollectionsUtil {
     /**
      * Returns true if the collection contains a superpath of or equivalent path to the given path.
      * I.e. having collection = { A/B, A/C }
-     * then the method for this collection and 'path' returns:
-     *  - path = A/B -&gt; true
-     *  - path = A -&gt; true
-     *  - path = A/B/C -&gt; false
-     *  - path = X -&gt; false
+     * then the method for this collection and 'pathToBeFound' returns:
+     *  - pathToBeFound = A/B -&gt; true
+     *  - pathToBeFound = A -&gt; true
+     *  - pathToBeFound = A/B/C -&gt; false
+     *  - pathToBeFound = X -&gt; false
      */
     public static boolean containsSuperpathOrEquivalent(Collection<? extends ItemPath> paths, ItemPath pathToBeFound) {
         for (ItemPath path : paths) {

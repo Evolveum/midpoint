@@ -30,6 +30,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -231,11 +232,13 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
         return TaskCategory.WORKFLOW;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value();
+    }
+
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(HANDLER_URI, this);
     }
-
-
-
 }

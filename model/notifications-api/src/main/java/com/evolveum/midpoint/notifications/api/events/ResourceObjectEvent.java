@@ -28,7 +28,7 @@ public interface ResourceObjectEvent extends Event {
     @NotNull
     ResourceOperationDescription getOperationDescription();
 
-    @Deprecated
+    @Deprecated // Remove in 4.2.
     default ResourceOperationDescription getAccountOperationDescription() {
         return getOperationDescription();
     }

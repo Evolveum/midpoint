@@ -25,7 +25,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -80,8 +79,8 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
     protected static final File ROLE_PIRATE_RECORD_ONLY_FILE = new File(TEST_DIR, "role-pirate-record-only.xml");
     protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
 
-    protected static final File ROLE_MUTINIER_FILE = new File(TEST_DIR, "role-mutinier.xml");
-    protected static final String ROLE_MUTINIER_OID = "12345678-d34d-b33f-f00d-555555556668";
+    protected static final File ROLE_MUTINEER_FILE = new File(TEST_DIR, "role-mutineer.xml");
+    protected static final String ROLE_MUTINEER_OID = "12345678-d34d-b33f-f00d-555555556668";
 
     protected static final File ROLE_JUDGE_FILE = new File(TEST_DIR, "role-judge.xml");
     protected static final File ROLE_JUDGE_RECORD_ONLY_FILE = new File(TEST_DIR, "role-judge-record-only.xml");
@@ -197,7 +196,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
             }
-            display("Selected trigger", trigger);
+            displayDumpable("Selected trigger", trigger);
             triggers.add(trigger);
         });
         assertEquals("Unexpected number of triggers (" + selectedConstraintKind + ") in the context", expectedCount, triggers.size());
@@ -212,7 +211,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
             }
-            display("Selected trigger", trigger);
+            displayDumpable("Selected trigger", trigger);
             triggersFound.add(trigger);
             namesFound.add(trigger.getConstraint().getName());
         });
@@ -227,7 +226,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
             }
-            display("Selected trigger", trigger);
+            displayDumpable("Selected trigger", trigger);
             triggers.add(trigger);
         });
         assertEquals("Unexpected number of focus triggers (" + selectedConstraintKind + ") in the context", expectedCount, triggers.size());
@@ -242,7 +241,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             if (selectedConstraintKind != null && trigger.getConstraintKind() != selectedConstraintKind) {
                 return;
             }
-            display("Selected trigger", trigger);
+            displayDumpable("Selected trigger", trigger);
             triggersFound.add(trigger);
             namesFound.add(trigger.getConstraint().getName());
         });
@@ -257,7 +256,7 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             if (!exclusive && trigger.getConstraintKind() != expectedConstraintKind) {
                 return;
             }
-            display("Triggered rule", trigger);
+            displayDumpable("Triggered rule", trigger);
             triggers.add(trigger);
             if (expectedConstraintKind != null) {
                 assertEquals("Wrong trigger constraint type in " + trigger, expectedConstraintKind, trigger.getConstraintKind());
@@ -358,19 +357,5 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
                 assertEquals("Wrong OID in target #" + (i + 1), targetOids[i], target.getOid());
             }
         }
-    }
-
-    protected void assertAssignmentPolicySituation(
-            LensContext<? extends FocusType> context, String roleOid, String... uris) {
-        AssignmentType assignment = findAssignmentByTargetRequired(
-                context.getFocusContext().getObjectNew(), roleOid);
-        PrismAsserts.assertEqualsCollectionUnordered(
-                "Wrong assignment policy situation", assignment.getPolicySituation(), uris);
-    }
-
-    protected void assertFocusPolicySituation(
-            LensContext<? extends FocusType> context, String... uris) {
-        PrismAsserts.assertEqualsCollectionUnordered("Wrong focus policy situation",
-                context.getFocusContext().getObjectNew().asObjectable().getPolicySituation(), uris);
     }
 }

@@ -194,14 +194,14 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
 
     @Test
     public void test001Sanity() throws Exception {
-        display("Dummy resource azure", dummyResourceSteelBlue);
+        displayDumpable("Dummy resource azure", dummyResourceSteelBlue);
 
         // WHEN
         ResourceSchema resourceSchemaSteelBlue = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelBlueType, prismContext);
         ResourceSchema resourceSchemaSteelGrey = RefinedResourceSchemaImpl.getResourceSchema(resourceDummySteelGreyType, prismContext);
 
-        display("Dummy steel blue resource schema", resourceSchemaSteelBlue);
-        display("Dummy steel grey resource schema", resourceSchemaSteelGrey);
+        displayDumpable("Dummy steel blue resource schema", resourceSchemaSteelBlue);
+        displayDumpable("Dummy steel grey resource schema", resourceSchemaSteelGrey);
 
         // THEN
         dummyResourceCtlSteelBlue.assertDummyResourceSchemaSanityExtended(resourceSchemaSteelBlue);
@@ -214,8 +214,8 @@ public class TestParallelDiscovery extends AbstractInitializedModelIntegrationTe
         RefinedResourceSchema refinedSchemaSteelBlue = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelBlueType, prismContext);
         RefinedResourceSchema refinedSchemaSteelGrey = RefinedResourceSchemaImpl.getRefinedSchema(resourceDummySteelGreyType, prismContext);
 
-        display("Dummy steel blue refined schema", refinedSchemaSteelBlue);
-        display("Dummy steel grey refined schema", refinedSchemaSteelGrey);
+        displayDumpable("Dummy steel blue refined schema", refinedSchemaSteelBlue);
+        displayDumpable("Dummy steel grey refined schema", refinedSchemaSteelGrey);
 
         // THEN
         dummyResourceCtlSteelBlue.assertRefinedSchemaSanity(refinedSchemaSteelBlue);

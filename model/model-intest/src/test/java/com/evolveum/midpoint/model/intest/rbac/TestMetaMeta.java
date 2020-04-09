@@ -215,7 +215,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         readAndAssertGreekGroupMember(USER_JACK_OID, GROUP_ALPHA_NAME);
     }
@@ -232,7 +232,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
@@ -258,7 +258,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         readAndAssertGreekGroupMember(USER_JACK_OID, GROUP_A_NAME);
     }
@@ -278,7 +278,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         readAndAssertGreekGroupMember(USER_JACK_OID, GROUP_BETA_NAME, GROUP_A_NAME);
     }
@@ -301,7 +301,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
@@ -430,7 +430,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         // THEN
         assertSuccess(result);
 
-        display("Dummy resource", getDummyResource());
+        displayDumpable("Dummy resource", getDummyResource());
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);

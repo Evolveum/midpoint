@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.web;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -83,7 +82,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public <T extends Servlet> T createServlet(Class<T> c) throws ServletException {
+            public <T extends Servlet> T createServlet(Class<T> c) {
                 return null;
             }
 
@@ -113,7 +112,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public <T extends Filter> T createFilter(Class<T> c) throws ServletException {
+            public <T extends Filter> T createFilter(Class<T> c) {
                 return null;
             }
 
@@ -163,7 +162,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public <T extends EventListener> T createListener(Class<T> c) throws ServletException {
+            public <T extends EventListener> T createListener(Class<T> c) {
                 return null;
             }
 
@@ -241,12 +240,12 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public Enumeration getServlets() {
+            public Enumeration<Servlet> getServlets() {
                 return null;
             }
 
             @Override
-            public Enumeration getServletNames() {
+            public Enumeration<String> getServletNames() {
                 return null;
             }
 
@@ -256,7 +255,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public Servlet getServlet(String arg0) throws ServletException {
+            public Servlet getServlet(String arg0) {
                 return null;
             }
 
@@ -266,7 +265,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public Set getResourcePaths(String arg0) {
+            public Set<String> getResourcePaths(String arg0) {
                 return null;
             }
 
@@ -276,7 +275,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public URL getResource(String name) throws MalformedURLException {
+            public URL getResource(String name) {
                 return this.getClass().getClassLoader().getResource(name);
             }
 
@@ -311,7 +310,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public Enumeration getInitParameterNames() {
+            public Enumeration<String> getInitParameterNames() {
                 return null;
             }
 
@@ -331,7 +330,7 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
             }
 
             @Override
-            public Enumeration getAttributeNames() {
+            public Enumeration<String> getAttributeNames() {
                 return null;
             }
 
@@ -351,6 +350,6 @@ public class TestDescriptorLoader extends AbstractGuiUnitTest {
         descriptorLoader.loadData(midPointApplication);
 
         // THEN
-        display("initialized loader", descriptorLoader);
+        displayDumpable("initialized loader", descriptorLoader);
     }
 }

@@ -2460,6 +2460,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void recordIterativeOperationStart(String objectName, String objectDisplayName, QName objectType, String objectOid) {
+        LOGGER.trace("recordIterativeOperationStart: {} in {}", objectDisplayName, this);
         statistics.recordIterativeOperationStart(objectName, objectDisplayName, objectType, objectOid);
     }
 
@@ -2483,6 +2484,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid,
             long started, Throwable exception, SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", objectDisplayName, this);
         statistics.recordSynchronizationOperationEnd(objectName, objectDisplayName, objectType, objectOid, started, exception, originalStateIncrement, newStateIncrement);
     }
 
@@ -2490,28 +2492,33 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public void recordSynchronizationOperationEnd(ShadowType shadow, long started, Throwable exception,
             SynchronizationInformation.Record originalStateIncrement,
             SynchronizationInformation.Record newStateIncrement) {
+        LOGGER.trace("recordSynchronizationOperationEnd: {} in {}", shadow, this);
         statistics.recordSynchronizationOperationEnd(shadow, started, exception, originalStateIncrement, newStateIncrement);
     }
 
     @Override
     public void recordObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid,
             ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, objectDisplayName, this);
         statistics.recordObjectActionExecuted(objectName, objectDisplayName, objectType, objectOid, changeType, channel, exception);
     }
 
     @Override
     public void recordObjectActionExecuted(PrismObject<? extends ObjectType> object, ChangeType changeType, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, changeType, getChannel(), exception);
     }
 
     @Override
     public <T extends ObjectType> void recordObjectActionExecuted(PrismObject<T> object, Class<T> objectTypeClass,
             String defaultOid, ChangeType changeType, String channel, Throwable exception) {
+        LOGGER.trace("recordObjectActionExecuted: {} {} in {}", changeType, object, this);
         statistics.recordObjectActionExecuted(object, objectTypeClass, defaultOid, changeType, channel, exception);
     }
 
     @Override
     public void markObjectActionExecutedBoundary() {
+        LOGGER.trace("markObjectActionExecutedBoundary: {}", this);
         statistics.markObjectActionExecutedBoundary();
     }
 
@@ -2580,6 +2587,56 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public Collection<? extends AssignmentType> getAssignments() {
         synchronized (prismAccess) {
             return taskPrism.asObjectable().getAssignment();
+        }
+    }
+
+    @Override
+    public Collection<Task> getPathToRootTask(OperationResult parentResult) throws SchemaException {
+            List<Task> allTasksToRoot = new ArrayList<>();
+            allTasksToRoot.add(this);
+
+            if (getParent() == null) {
+                return allTasksToRoot;
+            }
+
+            Task parent = getParentTaskSafe(parentResult);
+            if (parent == null) {
+                return allTasksToRoot;
+            }
+
+            allTasksToRoot.addAll(parent.getPathToRootTask(parentResult));
+            return allTasksToRoot;
+    }
+
+    public String getTaskTreeId(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return getOid();
+        }
+
+        Task parent = getParentTaskSafe(parentResult);
+        if (parent == null) {
+            return getOid();
+        }
+
+        return parent.getTaskTreeId(parentResult);
+    }
+
+    private Task getParentTaskSafe(OperationResult parentResult) throws SchemaException {
+        if (getParent() == null) {
+            return null;
+        }
+
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "getPathToRootTask");
+        result.addContext(OperationResult.CONTEXT_OID, getOid());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
+        try {
+            Task parent = getParentTask(result);
+            result.recordSuccess();
+            return parent;
+        } catch (ObjectNotFoundException e) {
+            LOGGER.error("Cannot find parent identified by {}, {}", getParent(), e.getMessage(), e);
+            result.recordFatalError("Cannot find parent identified by " + getParent() + ". Reason: " + e.getMessage(), e);
+            return null;
         }
     }
 

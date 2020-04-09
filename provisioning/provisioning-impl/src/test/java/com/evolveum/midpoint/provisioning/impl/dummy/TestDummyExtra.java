@@ -153,7 +153,7 @@ public class TestDummyExtra extends TestDummy {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -171,7 +171,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-        display("Dummy account will", dummyAccountWill);
+        displayDumpable("Dummy account will", dummyAccountWill);
         assertNotNull("No dummy account will", dummyAccountWill);
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
@@ -196,7 +196,7 @@ public class TestDummyExtra extends TestDummy {
 
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
                 ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
         // WHEN
@@ -214,7 +214,7 @@ public class TestDummyExtra extends TestDummy {
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-        display("Dummy account will", dummyAccountWill);
+        displayDumpable("Dummy account will", dummyAccountWill);
         assertNotNull("No dummy account will", dummyAccountWill);
         assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
         assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);

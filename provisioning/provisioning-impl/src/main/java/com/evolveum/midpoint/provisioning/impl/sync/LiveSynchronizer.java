@@ -101,7 +101,7 @@ public class LiveSynchronizer {
             public boolean handleChange(Change change, OperationResult result) {
                 int sequentialNumber = oldestTokenWatcher.changeArrived(change.getToken());
                 if (ctx.canRun()) {
-                    ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, isSimulate, result) {
+                    ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, isSimulate) {
                         /**
                          * This is a success reported by change processor. It is hopefully the usual case.
                          */
@@ -135,7 +135,7 @@ public class LiveSynchronizer {
                         }
                     };
                     try {
-                        coordinator.submit(request);
+                        coordinator.submit(request, result);
                     } catch (InterruptedException e) {
                         LOGGER.trace("Got InterruptedException, probably the coordinator task was suspended. Let's stop fetching changes.");
                         syncResult.setSuspendEncountered(true);     // ok?

@@ -457,7 +457,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         if (typeSchema == null) {
             throw new IllegalArgumentException("Schema for namespace "+typeName.getNamespaceURI()+" is not known in the prism context");
         }
-        ComplexTypeDefinition typeDefinition = typeSchema.findComplexTypeDefinition(typeName);
+        ComplexTypeDefinition typeDefinition = typeSchema.findComplexTypeDefinitionByType(typeName);
         if (typeDefinition == null) {
             throw new IllegalArgumentException("Type "+typeName+" is not known in the schema");
         }

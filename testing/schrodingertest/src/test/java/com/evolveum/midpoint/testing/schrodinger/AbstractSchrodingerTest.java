@@ -46,7 +46,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
+@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })//, "webdriverLocation=234234234" })
 @Listeners({ BrowserPerClass.class })
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
@@ -108,11 +108,25 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
         EnvironmentConfiguration config = new EnvironmentConfiguration();
         config.driver(WebDriver.valueOf(props.getProperty("webdriver")));
-        config.driverLocation(props.getProperty("webdriverLocation"));
 
-        config.headless(Boolean.parseBoolean(props.getProperty("headlessStart")));
+        String webdriverLocation = System.getProperty("webdriverLocation");
+        if (webdriverLocation == null) {
+            webdriverLocation = props.getProperty("webdriverLocation");
+        }
+        config.driverLocation(webdriverLocation);
 
-        config.baseUrl(props.getProperty("base_url"));
+        String headlessStart = System.getProperty("headlessStart");
+        if (headlessStart == null) {
+            headlessStart = props.getProperty("headlessStart");
+        }
+
+        config.headless(Boolean.parseBoolean(headlessStart));
+
+        String baseUrl = System.getProperty("base_url");
+        if (baseUrl == null) {
+            baseUrl = props.getProperty("base_url");
+        }
+        config.baseUrl(baseUrl);
 
         return config;
     }

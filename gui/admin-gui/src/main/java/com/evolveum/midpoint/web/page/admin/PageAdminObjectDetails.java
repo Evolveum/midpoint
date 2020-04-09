@@ -16,12 +16,12 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -127,6 +127,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     private boolean editingFocus = false;             //before we got isOidParameterExists status depending only on oid parameter existence
                                                     //we should set editingFocus=true not only when oid parameter exists but also
                                                     //when object is given as a constructor parameter
+
+    // TODO put this into correct place
+    protected boolean previewRequested;
+
+    public boolean isPreviewRequested() {
+        return previewRequested;
+    }
 
     public boolean isEditingFocus() {
         return editingFocus;
@@ -394,20 +401,31 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return false;
    }
 
-    public void refresh(AjaxRequestTarget target) {
-        getObjectModel().reset();
+   public void refresh(AjaxRequestTarget target) {
+        refresh(target, true);
+   }
+
+    public void refresh(AjaxRequestTarget target, boolean soft) {
+
+        if (!isAdd()) {
+            getObjectModel().reset();
+        }
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
 
-        for (Component component : getMainPanel().getTabbedPanel()) {
-            if (component instanceof RefreshableTabPanel) {
-                for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
-                    target.add(c);
+        if (soft) {
+            for (Component component : getMainPanel().getTabbedPanel()) {
+                if (component instanceof RefreshableTabPanel) {
+                    for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
+                        target.add(c);
+                    }
                 }
             }
+        } else {
+            target.add(getMainPanel().getTabbedPanel());
         }
-   }
+    }
 
    public int getRefreshInterval() {
         return 30;
@@ -460,7 +478,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             ObjectDelta<O> archetypeDelta = getObjectWrapper().getObjectDelta();
                             if (!archetypeDelta.isEmpty()) {
                                 archetypeDelta.revive(getPrismContext());
-                                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(archetypeDelta), null, task, result);
+                                getModelService().executeChanges(MiscUtil.createCollection(archetypeDelta), null, task, result);
                                 result.computeStatus();
                             }
                         } catch (Exception e) {
@@ -728,9 +746,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected abstract Class<? extends Page> getRestartResponsePage();
 
-    // TODO put this into correct place
-    protected boolean previewRequested;
-
     /**
      * This will be called from the main form when save button is pressed.
      */
@@ -802,12 +817,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     if (!delta.isEmpty()) {
                         delta.revive(getPrismContext());
 
-                        final Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                        final Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                         final Collection<SimpleValidationError> validationErrors = performCustomValidation(objectToAdd, deltas);
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -856,7 +871,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -866,13 +881,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
                     } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        if (isSaveInBackground()){
+                        if (isSaveInBackground() && !previewOnly){
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -1058,7 +1073,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     //TODO moved from PageAdminFocus.. maybe we need PageAssignmentHolderDetails?
     @Override
-    public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
+    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
 
         if (previewRequested) {
             finishPreviewProcessing(target, result);

@@ -82,7 +82,7 @@ public class TestClockwork extends AbstractLensTest {
         when();
         clockwork.click(context, task, result);     // one round - compute projections
 
-        display("Context before serialization", context);
+        displayDumpable("Context before serialization", context);
 
         LensContextType lensContextType = context.toLensContextType();
         String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
@@ -93,7 +93,7 @@ public class TestClockwork extends AbstractLensTest {
         LensContext<?> context2 = LensContext.fromLensContextType(
                 unmarshalledContainer, context.getPrismContext(), provisioningService, task, result);
 
-        display("Context after deserialization", context);
+        displayDumpable("Context after deserialization", context);
 
         // THEN
         then();
@@ -117,7 +117,7 @@ public class TestClockwork extends AbstractLensTest {
 
             LensContext<UserType> context = createJackAssignAccountContext(result);
 
-            display("Input context", context);
+            displayDumpable("Input context", context);
 
             assertFocusModificationSanity(context);
             mockClockworkHook.reset();
@@ -131,8 +131,8 @@ public class TestClockwork extends AbstractLensTest {
             // THEN
             then();
             mockClockworkHook.setRecord(false);
-            display("Output context", context);
-            display("Hook contexts", mockClockworkHook);
+            displayDumpable("Output context", context);
+            displayDumpable("Hook contexts", mockClockworkHook);
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
             assertJackAssignAccountContext(context);
@@ -191,7 +191,7 @@ public class TestClockwork extends AbstractLensTest {
                 context, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -201,7 +201,7 @@ public class TestClockwork extends AbstractLensTest {
 
         // THEN
         then();
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
@@ -264,7 +264,7 @@ public class TestClockwork extends AbstractLensTest {
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
             if (serialize) {
-                display("Context before serialization", context);
+                displayDumpable("Context before serialization", context);
 
                 LensContextType lensContextType = context.toLensContextType();
                 String xml = prismContext.xmlSerializer().serializeRealValue(

@@ -572,7 +572,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         for (PrismValue pval: pvalues) {
             SourceTriple<?,?> sourceTriple = sourceTriplesIterator.next();
             sb.append(sourceTriple.getName().getLocalPart()).append('=');
-            sb.append(pval==null?null:(Object)pval.getRealValue());
+            sb.append(pval==null?null:(Object)pval.getRealValueOrRawType(prismContext));
             if (sourceTriplesIterator.hasNext()) {
                 sb.append(", ");
             }

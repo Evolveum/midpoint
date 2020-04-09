@@ -168,6 +168,11 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                             </condition>
                         </set>
                     </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
                 </inbound>
             </attribute>
             <attribute>
@@ -179,7 +184,107 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
                     </target>
                 </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:controllerName</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.DataProtectionType
 
+                            new DataProtectionType(prismContext)
+                                .controllerName(input)
+                                .controllerContact(input + '@evolveum.com')
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/dataProtection</path>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <!-- MID-5846 -->
+            <attribute>
+                <ref>ri:roleName</ref>
+                <inbound>
+                    <name>Role by name</name>
+                    <strength>strong</strength>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>RoleType</targetType>
+                            <filter>
+                                <q:equal>
+                                    <q:path>name</q:path>
+                                    <expression>
+                                        <script>
+                                            <code>input</code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <assignmentProperties>
+                                <subtype>auto-role</subtype>
+                            </assignmentProperties>
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>assignment?.subtype?.contains('auto-role')</code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <!-- MID-5846 -->
+            <attribute>
+                <ref>ri:archetypeName</ref>
+                <inbound>
+                    <name>Archetype by name</name>
+                    <strength>strong</strength>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>ArchetypeType</targetType>
+                            <filter>
+                                <q:equal>
+                                    <q:path>name</q:path>
+                                    <expression>
+                                        <script>
+                                            <code>input</code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <assignmentProperties>
+                                <subtype>auto-archetype</subtype>
+                            </assignmentProperties>
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>assignment?.subtype?.contains('auto-archetype')</code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                    <condition>
+                        <script>
+                            <code>input != null</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
             <iteration>
                 <maxIterations>5</maxIterations>
             </iteration>

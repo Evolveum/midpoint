@@ -86,14 +86,14 @@ public class JaxbDomHackImpl implements JaxbDomHack {
         }
         if (def != null) {
             return def;
-        }
-
-        if (containerDefinition.isRuntimeSchema()) {
+        } else if (containerDefinition.isRuntimeSchema()) {
             // Try to locate global definition in any of the schemas
-            def = resolveGlobalItemDefinition(containerDefinition, elementQName);
+            return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition.getComplexTypeDefinition());
+        } else {
+            return null;
         }
-        return def;
     }
+
     private ItemDefinition resolveDynamicItemDefinition(QName elementName,
             Element element, PrismContext prismContext) throws SchemaException {
         QName typeName = null;
@@ -131,15 +131,6 @@ public class JaxbDomHackImpl implements JaxbDomHack {
         propDef.setMaxOccurs(maxOccurs);
         propDef.setDynamic(true);
         return propDef;
-    }
-
-
-    private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(
-            PrismContainerDefinition<T> containerDefinition, QName elementQName)
-            throws SchemaException {
-        // Object firstElement = valueElements.get(0);
-        // QName elementQName = JAXBUtil.getElementQName(firstElement);
-        return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName, containerDefinition);
     }
 
     /**

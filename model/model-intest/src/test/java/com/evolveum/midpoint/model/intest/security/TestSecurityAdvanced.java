@@ -1384,7 +1384,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
-        display("donorFilterAll", donorFilterAll);
+        displayDumpable("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, USER_JACK_OID, USER_BARBOSSA_OID);
 
         assertAuthenticated();
@@ -1454,11 +1454,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
-        display("donorFilterAll", donorFilterAll);
+        displayDumpable("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, 0);
 
         ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
-        display("donorFilterWorkitems", donorFilterWorkitems);
+        displayDumpable("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 0);
 
         assertLoggedInUserOid(USER_JACK_OID);
@@ -1499,11 +1499,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
-        display("donorFilterAll", donorFilterAll);
+        displayDumpable("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, 4);
 
         ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
-        display("donorFilterWorkitems", donorFilterWorkitems);
+        displayDumpable("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
 
         assertLoggedInUserOid(USER_JACK_OID);
@@ -1566,11 +1566,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
-        display("donorFilterAll", donorFilterAll);
+        displayDumpable("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, 4);
 
         ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
-        display("donorFilterWorkitems", donorFilterWorkitems);
+        displayDumpable("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 4);
 
         assertLoggedInUserOid(USER_JACK_OID);
@@ -1635,11 +1635,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         OperationResult result = task.getResult();
 
         ObjectFilter donorFilterAll = modelInteractionService.getDonorFilter(UserType.class, null, null, task, result);
-        display("donorFilterAll", donorFilterAll);
+        displayDumpable("donorFilterAll", donorFilterAll);
         assertSearchFilter(UserType.class, donorFilterAll, 5);
 
         ObjectFilter donorFilterWorkitems = modelInteractionService.getDonorFilter(UserType.class, null, AUTHORIZATION_ACTION_WORKITEMS, task, result);
-        display("donorFilterWorkitems", donorFilterWorkitems);
+        displayDumpable("donorFilterWorkitems", donorFilterWorkitems);
         assertSearchFilter(UserType.class, donorFilterWorkitems, 5);
 
         assumePowerOfAttorneyAllow(USER_BARBOSSA_OID);
@@ -1955,7 +1955,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 //        display("Exclusion role def", roleExclusion.getDefinition());
 
         PrismObjectDefinition<RoleType> roleExclusionEditSchema = getEditObjectDefinition(roleExclusion);
-        display("Exclusion role edit schema", roleExclusionEditSchema);
+        displayDumpable("Exclusion role edit schema", roleExclusionEditSchema);
         assertItemFlags(roleExclusionEditSchema, RoleType.F_NAME, true, true, true);
         assertItemFlags(roleExclusionEditSchema, RoleType.F_DESCRIPTION, true, true, true);
         assertItemFlags(roleExclusionEditSchema, RoleType.F_SUBTYPE, true, true, true);
@@ -2212,7 +2212,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         display("Empty role", roleEmpty);
 
         PrismObjectDefinition<RoleType> roleEmptyEditSchema = getEditObjectDefinition(roleEmpty);
-        display("Exclusion role edit schema", roleEmptyEditSchema);
+        displayDumpable("Exclusion role edit schema", roleEmptyEditSchema);
         assertItemFlags(roleEmptyEditSchema, RoleType.F_NAME, true, true, true);
         assertItemFlags(roleEmptyEditSchema, RoleType.F_DESCRIPTION, true, true, true);
         assertItemFlags(roleEmptyEditSchema, RoleType.F_SUBTYPE, true, true, true);
@@ -2625,7 +2625,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAssignments(userJack, 0);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
@@ -2652,7 +2652,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
         assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
-        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutineer"));
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
@@ -2687,7 +2687,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAssignments(userJack, 1);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
@@ -2714,7 +2714,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
         assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
-        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutineer"));
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
@@ -2750,7 +2750,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismAsserts.assertNoItem(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
@@ -2806,7 +2806,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AHEAD);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
@@ -2867,7 +2867,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAssignments(userJack, 2);
 
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, true, false, true);
@@ -2894,7 +2894,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
         assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
-        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutineer"));
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));

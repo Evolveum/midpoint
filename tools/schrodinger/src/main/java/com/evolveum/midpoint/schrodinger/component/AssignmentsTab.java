@@ -70,7 +70,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new FocusSetAssignmentsModal<AssignmentsTab<P>>(this, modalElement);
+        return new FocusSetAssignmentsModal<>(this, modalElement);
     }
 
     public boolean assignmentExists(String assignmentName){

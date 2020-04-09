@@ -655,7 +655,7 @@ public class ConnIdUtil {
         if (ps == null) {
             return null;
         }
-        if (!protector.isEncrypted(ps)) {
+        if (!ps.isEncrypted()) {
             if (ps.getClearValue() == null) {
                 return null;
             }

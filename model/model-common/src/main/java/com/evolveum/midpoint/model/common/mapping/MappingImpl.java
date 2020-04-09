@@ -12,6 +12,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -61,6 +63,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
     // configuration properties (unmodifiable)
     private final MappingType mappingType;
+    private final MappingKindType mappingKind;
+    private final ItemPath implicitSourcePath;
+    private final ItemPath implicitTargetPath;
     private final ExpressionFactory expressionFactory;
     private final ExpressionVariables variables;
     private final PrismContext prismContext;
@@ -134,6 +139,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         expressionFactory = builder.expressionFactory;
         variables = builder.variables;
         mappingType = builder.mappingType;
+        mappingKind = builder.mappingKind;
+        implicitSourcePath = builder.implicitSourcePath;
+        implicitTargetPath = builder.implicitTargetPath;
         objectResolver = builder.objectResolver;
         securityContextManager = builder.securityContextManager;
         defaultSource = builder.defaultSource;
@@ -400,7 +408,12 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
                 .build();
         if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
             // temporary solution - to avoid checking level at too many places
-            trace = new MappingEvaluationTraceType(prismContext);
+            trace = new MappingEvaluationTraceType(prismContext)
+                    .mapping(mappingType.clone())
+                    .mappingKind(mappingKind)
+                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
+                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
+                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext));
             trace.setMapping(mappingType.clone());
             result.addTrace(trace);
         } else {
@@ -462,7 +475,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         for (Source<?, ?> source : sources) {
             MappingSourceEvaluationTraceType sourceTrace = new MappingSourceEvaluationTraceType(prismContext);
             sourceTrace.setName(source.getName());
-            sourceTrace.setItemDeltaItem(source.toItemDeltaItemType());
+            sourceTrace.setItemDeltaItem(source.toItemDeltaItemType(prismContext));
             trace.getSource().add(sourceTrace);
         }
     }
@@ -555,7 +568,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
     private void traceOutput() {
         if (outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple));
+            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, prismContext));
         }
     }
 
@@ -1270,6 +1283,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
     public PrismValueDeltaSetTripleProducer<V, D> clone() {
         MappingImpl<V, D> clone = new Builder<V, D>()
                 .mappingType(mappingType)
+                .mappingKind(mappingKind)
+                .implicitSourcePath(implicitSourcePath)
+                .implicitTargetPath(implicitTargetPath)
                 .contextDescription(contextDescription)
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
@@ -1457,6 +1473,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         private ExpressionFactory expressionFactory;
         private ExpressionVariables variables = new ExpressionVariables();
         private MappingType mappingType;
+        private MappingKindType mappingKind;
+        private ItemPath implicitSourcePath; // for tracing purposes
+        private ItemPath implicitTargetPath; // for tracing purposes
         private ObjectResolver objectResolver;
         private SecurityContextManager securityContextManager;
         private Source<?, ?> defaultSource;
@@ -1494,6 +1513,21 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
         public Builder<V, D> mappingType(MappingType val) {
             mappingType = val;
+            return this;
+        }
+
+        public Builder<V, D> mappingKind(MappingKindType val) {
+            mappingKind = val;
+            return this;
+        }
+
+        public Builder<V, D> implicitSourcePath(ItemPath val) {
+            implicitSourcePath = val;
+            return this;
+        }
+
+        public Builder<V, D> implicitTargetPath(ItemPath val) {
+            implicitTargetPath = val;
             return this;
         }
 
@@ -1827,6 +1861,11 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             return this;
         }
 
+        public Builder<V, D> stringPolicyResolver(ValuePolicyResolver stringPolicyResolver) {
+            this.valuePolicyResolver = stringPolicyResolver;
+            return this;
+        }
+
         public boolean hasVariableDefinition(String varName) {
             return variables.containsKey(varName);
         }
@@ -1838,120 +1877,6 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         public Builder<V, D> addSource(Source<?, ?> source) {
             sources.add(source);
             return this;
-        }
-
-        // traditional setters are also here, to avoid massive changes to existing code
-
-        @Deprecated
-        public void setExpressionFactory(ExpressionFactory expressionFactory) {
-            this.expressionFactory = expressionFactory;
-        }
-
-        @Deprecated
-        public void setVariables(ExpressionVariables variables) {
-            this.variables = variables;
-        }
-
-        @Deprecated
-        public void setMappingType(MappingType mappingType) {
-            this.mappingType = mappingType;
-        }
-
-        @Deprecated
-        public void setObjectResolver(ObjectResolver objectResolver) {
-            this.objectResolver = objectResolver;
-        }
-
-        @Deprecated
-        public void setDefaultSource(Source<?, ?> defaultSource) {
-            this.defaultSource = defaultSource;
-        }
-
-        @Deprecated
-        public void setDefaultTargetDefinition(D defaultTargetDefinition) {
-            this.defaultTargetDefinition = defaultTargetDefinition;
-        }
-
-        @Deprecated
-        public void setDefaultTargetPath(ItemPath defaultTargetPath) {
-            this.defaultTargetPath = defaultTargetPath;
-        }
-
-        @Deprecated
-        public void setSourceContext(ObjectDeltaObject<?> sourceContext) {
-            this.sourceContext = sourceContext;
-        }
-
-        @Deprecated
-        public void setTargetContext(PrismObjectDefinition<?> targetContext) {
-            this.targetContext = targetContext;
-        }
-
-        @Deprecated
-        public void setSources(Collection<Source<?, ?>> sources) {
-            this.sources = sources;
-        }
-
-        @Deprecated
-        public void setOriginType(OriginType originType) {
-            this.originType = originType;
-        }
-
-        @Deprecated
-        public void setOriginObject(ObjectType originObject) {
-            this.originObject = originObject;
-        }
-
-        @Deprecated
-        public void setStringPolicyResolver(
-                ValuePolicyResolver stringPolicyResolver) {
-            this.valuePolicyResolver = stringPolicyResolver;
-        }
-
-        @Deprecated
-        public void setConditionMaskOld(boolean conditionMaskOld) {
-            this.conditionMaskOld = conditionMaskOld;
-        }
-
-        @Deprecated
-        public void setConditionMaskNew(boolean conditionMaskNew) {
-            this.conditionMaskNew = conditionMaskNew;
-        }
-
-        @Deprecated
-        public void setNow(XMLGregorianCalendar now) {
-            this.now = now;
-        }
-
-        @Deprecated
-        public void setDefaultReferenceTime(XMLGregorianCalendar defaultReferenceTime) {
-            this.defaultReferenceTime = defaultReferenceTime;
-        }
-
-        @Deprecated
-        public void setProfiling(boolean profiling) {
-            this.profiling = profiling;
-        }
-
-        @Deprecated
-        public void setContextDescription(String contextDescription) {
-            this.contextDescription = contextDescription;
-        }
-
-        @Deprecated
-        public void setMappingQName(QName mappingQName) {
-            this.mappingQName = mappingQName;
-        }
-
-        @Deprecated
-        public void setRefinedObjectClassDefinition(
-                RefinedObjectClassDefinition refinedObjectClassDefinition) {
-            this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-        }
-
-        @Deprecated
-        public void setPrismContext(PrismContext prismContext) {
-            this.prismContext = prismContext;
         }
 
         public MappingStrengthType getStrength() {

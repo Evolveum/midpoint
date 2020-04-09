@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -197,20 +198,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 prismContext, task, result);
 
         LOGGER.trace("Task for process: {}", task.debugDumpLazily());
-        AssignmentType taskAssignment;
-        if (task.hasAssignments()) {
-            taskAssignment = new AssignmentType(prismContext);
-            ObjectReferenceType targetRef = new ObjectReferenceType();
-            targetRef.asReferenceValue().setObject(task.getUpdatedOrClonedTaskObject());
-            taskAssignment.setTargetRef(targetRef);
-        } else {
-            taskAssignment = null;
-        }
 
-        LOGGER.trace("Task assignment: {}", taskAssignment);
+        Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
+        Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
+                .filter(taskPath -> taskPath.hasAssignments())
+                .map(taskPath -> createTaskAssignment(taskPath))
+                .collect(Collectors.toList());
 
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta,
-                forcedAssignments, taskAssignment);
+        LOGGER.trace("Task assignment: {}", taskAssignments);
+
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignments);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -227,6 +224,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
 
         return evaluatedAssignmentTriple;
+    }
+
+    private AssignmentType createTaskAssignment(Task fromTask) {
+        AssignmentType taskAssignment = new AssignmentType(prismContext);
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.asReferenceValue().setObject(fromTask.getUpdatedOrClonedTaskObject());
+        taskAssignment.setTargetRef(targetRef);
+        return taskAssignment;
     }
 
     private String getNewObjectLifecycleState(LensFocusContext<AH> focusContext) {

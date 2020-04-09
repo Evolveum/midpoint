@@ -10,7 +10,11 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
@@ -24,6 +28,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
@@ -56,19 +61,41 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
-    public boolean computeWorkManagementVisible(){
-        workManagementVisible = true;   //todo when work management should be visible?
+    public boolean computeWorkManagementVisible(TaskType taskType){
+        String taskHandler = taskType.getHandlerUri();
+        if (WebComponentUtil.hasArchetypeAssignment(taskType, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) || (taskHandler != null &&
+                (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
+                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
+                || taskHandler.endsWith("task/generic-partitioning/handler-3")
+                || taskHandler.endsWith("task/workers-creation/handler-3")))) {
+            workManagementVisible = true;
+        }
         return workManagementVisible;
     }
 
     public boolean computeCleanupPolicyVisible(){
-        cleanupPolicyVisible = true;   //todo when cleanup policy should be visible?
+        cleanupPolicyVisible = false;   //todo when cleanup policy should be visible?
         return cleanupPolicyVisible;
     }
 
-    public boolean computeSubtasksAndThreadsVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
+    public boolean computeSubtasksAndThreadsVisible(TaskType task) {
 
-        return subtasksAndThreadsVisible = taskWrapper.getObject().findReference(TaskType.F_SUBTASK_REF) != null;
+        List<ObjectReferenceType> subtasks =  task.getSubtaskRef();
+        if (CollectionUtils.isEmpty(subtasks)) {
+            return subtasksAndThreadsVisible = false;
+        }
+
+        boolean allEmpty = true;
+        for (ObjectReferenceType subtask : subtasks) {
+            if (!subtask.asReferenceValue().isEmpty()){
+                allEmpty = false;
+            }
+        }
+
+        return subtasksAndThreadsVisible = !allEmpty;
+
+
 
         // TODO we want to show subtasks always when subtasks exist. Following should be the behavior for tables on subtasks tab.
 //        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
@@ -129,17 +156,18 @@ class TaskTabsVisibility implements Serializable {
     }
 
     public void computeAll(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
-        computeBasicVisible(parentPage, taskWrapper.getObject().asObjectable());
-        computeSchedulingVisible(parentPage, taskWrapper.getObject().asObjectable());
-        computeWorkManagementVisible();
+        TaskType taskType = taskWrapper.getObject().asObjectable();
+        computeBasicVisible(parentPage, taskType);
+        computeSchedulingVisible(parentPage, taskType);
+        computeWorkManagementVisible(taskType);
         computeCleanupPolicyVisible();
-        computeSubtasksAndThreadsVisible(parentPage, taskWrapper);
+        computeSubtasksAndThreadsVisible(taskType);
         computeProgressVisible(parentPage);
         computeEnvironmentalPerformanceVisible(parentPage, taskWrapper);
         computeInternalPerformanceVisible(parentPage, taskWrapper);
         computeOperationVisible(parentPage, taskWrapper);
         computeResultVisible(parentPage, taskWrapper);
-        computeErrorsVisible(parentPage, taskWrapper.getObject().asObjectable());
+        computeErrorsVisible(parentPage, taskType);
     }
 
     public boolean computeProgressVisible(PageTask parentPage) {
@@ -183,7 +211,8 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
-    public boolean isWorkManagementVisible() {
+    public boolean isWorkManagementVisible(TaskType task) {
+        workManagementVisible = computeWorkManagementVisible(task);
         return workManagementVisible;
     }
 
@@ -191,7 +220,8 @@ class TaskTabsVisibility implements Serializable {
         return cleanupPolicyVisible;
     }
 
-    public boolean isSubtasksAndThreadsVisible() {
+    public boolean isSubtasksAndThreadsVisible(TaskType task) {
+        subtasksAndThreadsVisible = computeSubtasksAndThreadsVisible(task);
         return subtasksAndThreadsVisible;
     }
 
@@ -236,6 +266,8 @@ class TaskTabsVisibility implements Serializable {
             return false;
         if (progressVisible != that.progressVisible)
             return false;
+        if (workManagementVisible != that.workManagementVisible)
+            return false;
         if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
             return false;
         if (operationVisible != that.operationVisible)
@@ -252,6 +284,7 @@ class TaskTabsVisibility implements Serializable {
         result = 31 * result + (schedulingVisible ? 1 : 0);
         result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
         result = 31 * result + (progressVisible ? 1 : 0);
+        result = 31 * result + (workManagementVisible ? 1 : 0);
         result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
         result = 31 * result + (operationVisible ? 1 : 0);
         result = 31 * result + (resultVisible ? 1 : 0);

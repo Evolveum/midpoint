@@ -44,6 +44,13 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     private static final long WAIT_FOR_THREAD_NATURAL_STOP_TIME = 300000;
 
+    @Override
+    public void initSystem() throws Exception {
+        Session session = getFactory().openSession();
+        session.doWork(connection -> System.out.println(">>>> Connection.TRANSACTION_* (transaction isolation level): " + connection.getTransactionIsolation()));
+        session.close();
+    }
+
     @Test
     public void test001TwoWriters_OneAttributeEach__NoReader() throws Exception {
         PropertyModifierThread[] mts = new PropertyModifierThread[] {
@@ -122,11 +129,6 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     }
 
     private void concurrencyUniversal(String name, long duration, long waitStep, PropertyModifierThread[] modifierThreads, Checker checker) throws Exception {
-
-        Session session = getFactory().openSession();
-        session.doWork(connection -> System.out.println(">>>>" + connection.getTransactionIsolation()));
-        session.close();
-
         final File file = new File("src/test/resources/concurrency/user.xml");
         PrismObject<UserType> user = prismContext.parseObject(file);
         user.asObjectable().setName(new PolyStringType(name));
@@ -502,10 +504,6 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         int THREADS = 8;
         long DURATION = 30000L;
 
-        Session session = getFactory().openSession();
-        session.doWork(connection -> System.out.println(">>>>" + connection.getTransactionIsolation()));
-        session.close();
-
         UserType user = new UserType(prismContext).name("jack");
 
         OperationResult result = new OperationResult("test100AddOperationExecution");
@@ -597,7 +595,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test120AddApproverRef() throws Exception {
 
         int THREADS = 4;
-        long DURATION = 30000L;
+        long DURATION = 30_000L;
         final String DELEGATED_REF_FORMAT = "oid-%d-%s";
 
         RoleType role = new RoleType(prismContext).name("judge");

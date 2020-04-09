@@ -96,6 +96,7 @@ public class TestAutoassign extends AbstractRbacTest {
                 .single()
                     .assertTargetOid(ROLE_UNIT_WORKER_OID)
                     .assertTargetType(RoleType.COMPLEX_TYPE)
+                    .assertOriginMappingName("autoassign-worker") // MID-5846
                     .end()
                 .end()
             .links()
@@ -155,11 +156,14 @@ public class TestAutoassign extends AbstractRbacTest {
                     .targetOid(ROLE_UNIT_SLEEPER_OID)
                 .find()
                     .assertTargetType(RoleType.COMPLEX_TYPE)
+                    .assertOriginMappingName("autoassign-sleeper") // MID-5846
                     .activation()
                         .assertValidTo(ROLE_SLEEPER_AUTOASSIGN_VALID_TO)
                         .end()
                     .end()
-                .assertRole(ROLE_UNIT_WALKER_OID)
+                .forRole(ROLE_UNIT_WALKER_OID)
+                    .assertOriginMappingName("autoassign-walker") // MID-5846
+                    .end()
                 .end()
             .links()
                 .single();

@@ -535,7 +535,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             @Override
             protected QName getPredefinedRelation(){
                 if (assignmentTargetRelation == null){
-                    return null;
+                    return AssignmentPanel.this.getPredefinedRelation();
                 }
                 return !CollectionUtils.isEmpty(assignmentTargetRelation.getRelations()) ? assignmentTargetRelation.getRelations().get(0) : null;
             }
@@ -568,6 +568,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         popupPanel.setOutputMarkupId(true);
         popupPanel.setOutputMarkupPlaceholderTag(true);
         getPageBase().showMainPopup(popupPanel, target);
+    }
+
+    //this is here just becasue we want to override default behaviour for GDPR assignment panel
+    protected QName getPredefinedRelation() {
+        return null;
     }
 
     protected List<ObjectTypes> getObjectTypesList(){

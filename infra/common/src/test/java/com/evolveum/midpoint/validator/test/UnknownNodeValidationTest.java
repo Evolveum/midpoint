@@ -16,14 +16,14 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 // TODO testing: missing from suite, all passing
 public class UnknownNodeValidationTest extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     public static final String BASE_PATH = "src/test/resources/validator/unknown/";
     private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
@@ -92,7 +92,7 @@ public class UnknownNodeValidationTest extends AbstractUnitTest
     protected void validateNodeFailure(String name, String file, String expected) throws Exception {
         OperationResult result = createOperationResult();
         validateFile(file, result);
-        System.out.println(result.debugDump());
+        displayDumpable("result", result);
         AssertJUnit.assertFalse("Result should not be successful", result.isSuccess());
         String message = result.getMessage();
         AssertJUnit.assertTrue(message.contains("undeclared"));
@@ -114,7 +114,6 @@ public class UnknownNodeValidationTest extends AbstractUnitTest
     }
 
     protected void customizeValidator(LegacyValidator validator) {
-
     }
 
     private void validateFile(String filename, LegacyValidator validator, OperationResult result) throws FileNotFoundException {
@@ -126,12 +125,9 @@ public class UnknownNodeValidationTest extends AbstractUnitTest
         fis = new FileInputStream(file);
         validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
         if (!result.isSuccess()) {
-            System.out.println("Errors:");
-            System.out.println(result.debugDump());
+            displayDumpable("Errors:", result);
         } else {
-            System.out.println("No errors");
-            System.out.println(result.debugDump());
+            displayDumpable("No errors", result);
         }
-
     }
 }

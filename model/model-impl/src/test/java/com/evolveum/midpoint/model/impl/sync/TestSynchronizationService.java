@@ -111,7 +111,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // THEN
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -162,7 +162,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         then();
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -209,7 +209,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
 
-        display("SENDING CHANGE NOTIFICATION", change);
+        displayDumpable("SENDING CHANGE NOTIFICATION", change);
 
         // WHEN
         synchronizationService.notifyChange(change, task, result);
@@ -217,7 +217,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // THEN
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -271,7 +271,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         // THEN
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -358,7 +358,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -428,7 +428,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         then();
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
 
         PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
@@ -463,7 +463,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setCurrentShadow(accountShadowCalypso);
         change.setResource(getDummyResourceObject());
 
-        display("Change notification", change);
+        displayDumpable("Change notification", change);
 
         // WHEN
         when();
@@ -473,7 +473,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         then();
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
 
         PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
@@ -507,7 +507,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Sparrow");
         getDummyResource().addAccount(dummyAccount);
 
-        display("Dummy resource before", getDummyResource());
+        displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(accountShadowJack);
@@ -522,7 +522,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -583,7 +583,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSuccess(result, 1);
         LensContext<UserType> context = cleanDebugListener();
 
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNotNull("No focus context", context.getFocusContext());
@@ -631,7 +631,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         dummyAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Jack Sparrow");
         getDummyResource().addAccount(dummyAccount);
 
-        display("Dummy resource before", getDummyResource());
+        displayDumpable("Dummy resource before", getDummyResource());
 
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
@@ -649,7 +649,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertPartialError(result);
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -691,7 +691,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertLinks(userBefore, 1);
         setDebugListener();
 
-        display("Dummy resource before", getDummyResource());
+        displayDumpable("Dummy resource before", getDummyResource());
 
         getDummyResource().setModifyBreakMode(BreakMode.SCHEMA);
 
@@ -710,7 +710,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertPartialError(result);
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -759,7 +759,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNotNull("Missing user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -805,7 +805,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNotNull("Missing user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -859,7 +859,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource(RESOURCE_DUMMY_LIMITED_NAME).getAccountByUsername(USER_JACK_USERNAME)
         .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
 
-        display("Dummy resource before", getDummyResource());
+        displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
@@ -882,7 +882,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
@@ -910,7 +910,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         assertLinks(userAfter, 2);
 
-        display("Dummy resource after", getDummyResource());
+        displayDumpable("Dummy resource after", getDummyResource());
 
         PrismObject<ShadowType> shadowDummyAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertSituation(shadowDummyAfter, SynchronizationSituationType.LINKED);
@@ -957,7 +957,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         TestUtil.assertSuccess(result);
 
         LensContext<UserType> context = cleanDebugListener();
-        display("Resulting context (as seen by debug listener)", context);
+        displayDumpable("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
 
         assertNotNull("No focus primary delta", context.getFocusContext().getPrimaryDelta());

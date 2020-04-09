@@ -21,6 +21,7 @@ public class SecurityPolicyUtil {
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
     public static final String REST_SEQUENCE_NAME = "rest-default";
     public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
+    public static final String PASSWORD_RESET_SEQUENCE_NAME = "password-reset-default";
     private static final List<String> IGNORED_LOCAL_PATH;
     static {
         List<String> list = new ArrayList<String>();
@@ -195,6 +196,7 @@ public class SecurityPolicyUtil {
         authenticationPolicy.sequence(createDefaultSequence());
         authenticationPolicy.sequence(createRestSequence());
         authenticationPolicy.sequence(createActuatorSequence());
+        authenticationPolicy.sequence(createPaswordResetSequence());
         for (String ignoredPath : IGNORED_LOCAL_PATH) {
             authenticationPolicy.ignoredLocalPath(ignoredPath);
         }
@@ -243,6 +245,22 @@ public class SecurityPolicyUtil {
         sequence.channel(channel);
         AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
         module.name(HTTP_BASIC_MODULE_NAME);
+        module.order(1);
+        module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
+        sequence.module(module);
+        return sequence;
+    }
+
+    public static AuthenticationSequenceType createPaswordResetSequence() {
+        AuthenticationSequenceType sequence = new AuthenticationSequenceType();
+        sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
+        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
+        channel.setDefault(true);
+        channel.channelId(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+        channel.setUrlSuffix("resetPassword");
+        sequence.channel(channel);
+        AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();
+        module.name(DEFAULT_MODULE_NAME);
         module.order(1);
         module.necessity(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
         sequence.module(module);

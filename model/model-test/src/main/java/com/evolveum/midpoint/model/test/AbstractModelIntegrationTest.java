@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -254,6 +255,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
         return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
+    }
+
+    protected DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid, null, task, result);
+        return resource.controller;
     }
 
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
@@ -1570,7 +1576,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
-        display("Executing delta", objectDelta);
+        displayDumpable("Executing delta", objectDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         return modelService.executeChanges(deltas, options, task, result);
     }
@@ -1596,7 +1602,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> ModelContext<O> previewChanges(ObjectDelta<O> objectDelta, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        display("Preview changes for delta", objectDelta);
+        displayDumpable("Preview changes for delta", objectDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         return modelInteractionService.previewChanges(deltas, options, task, result);
     }
@@ -3372,13 +3378,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Long origLastRunStartTimestamp = origRootTask.getLastRunStartTimestamp();
         Long origLastRunFinishTimestamp = origRootTask.getLastRunFinishTimestamp();
         long start = System.currentTimeMillis();
-        Holder<Boolean> triggered = new Holder<>(false);    // to avoid repeated checking for start-finish timestamps
+        AtomicBoolean triggered = new AtomicBoolean(false);
         OperationResult aggregateResult = new OperationResult("aggregate");
         Checker checker = () -> {
             Task freshRootTask = taskManager.getTaskWithResult(origRootTask.getOid(), waitResult);
 
-            String s = TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult);
-            displayValue("task tree", s);
+            displayValue("task tree", TaskDebugUtil.dumpTaskTree(freshRootTask, waitResult));
+            displayValue("task-tree-alt", TaskDebugUtil.dumpTaskTree(freshRootTask, freshRootTask.getResult()));
 
             long waiting = (System.currentTimeMillis() - start) / 1000;
             String description =
@@ -3386,15 +3392,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                             freshRootTask.getResultStatus() + ", p:" + freshRootTask.getProgress() + ", n:" +
                             freshRootTask.getNode() + "] (waiting for: " + waiting + ")";
             // was the whole task tree refreshed at least once after we were called?
-            if (!triggered.getValue() && (freshRootTask.getLastRunStartTimestamp() == null
-                    || freshRootTask.getLastRunStartTimestamp().equals(origLastRunStartTimestamp)
-                    || freshRootTask.getLastRunFinishTimestamp() == null
-                    || freshRootTask.getLastRunFinishTimestamp().equals(origLastRunFinishTimestamp)
-                    || freshRootTask.getLastRunStartTimestamp() >= freshRootTask.getLastRunFinishTimestamp())) {
-                display("Root (triggering) task next run has not been completed yet: " + description);
+            Long lastRunStartTimestamp = freshRootTask.getLastRunStartTimestamp();
+            Long lastRunFinishTimestamp = freshRootTask.getLastRunFinishTimestamp();
+            if (!triggered.get() &&
+                    (lastRunStartTimestamp == null
+                            || lastRunStartTimestamp.equals(origLastRunStartTimestamp)
+                            || lastRunFinishTimestamp == null
+                            || lastRunFinishTimestamp.equals(origLastRunFinishTimestamp)
+                            || lastRunStartTimestamp >= lastRunFinishTimestamp)) {
+                display("Root (triggering) task next run has not been completed yet: " + description
+                        + "\n  lastRunStartTimestamp=" + lastRunStartTimestamp
+                        + ", origLastRunStartTimestamp=" + origLastRunStartTimestamp
+                        + ", lastRunFinishTimestamp=" + lastRunFinishTimestamp
+                        + ", origLastRunFinishTimestamp=" + origLastRunFinishTimestamp);
                 return false;
             }
-            triggered.setValue(true);
+            triggered.set(true);
 
             aggregateResult.getSubresults().clear();
             List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
@@ -5165,7 +5178,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<RoleType> target = getRole(targetRoleOid);
 
         ItemSecurityConstraints constraints = modelInteractionService.getAllowedRequestAssignmentItems(user, target, task, result);
-        display("Request decisions for " + target, constraints);
+        displayDumpable("Request decisions for " + target, constraints);
 
         for (ItemPath expectedAllowedItemPath : expectedAllowedItemPaths) {
             AuthorizationDecisionType decision = constraints.findItemDecision(expectedAllowedItemPath);
@@ -5186,14 +5199,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ProtectedStringType protectedActualPassword = userType.getCredentials().getPassword().getValue();
         String actualClearPassword = protector.decryptString(protectedActualPassword);
         assertEquals("Wrong password for " + user, expectedClearPassword, actualClearPassword);
-    }
-
-    @Deprecated
-    protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
-        PrismContainer<MetadataType> metadataContainer = user.findContainer(PATH_CREDENTIALS_PASSWORD_METADATA);
-        assertNotNull("No password metadata in " + user, metadataContainer);
-        MetadataType metadataType = metadataContainer.getValue().asContainerable();
-        assertMetadata("password metadata in " + user, metadataType, create, false, start, end, actorOid, channel);
     }
 
     protected void assertPasswordMetadata(PrismObject<UserType> user, QName credentialType, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end, String actorOid, String channel) {
@@ -5789,6 +5794,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(oid);
         return assertUser(user, message);
+    }
+
+    protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
+        Task task = taskManager.getTaskWithResult(taskOid, getTestOperationResult());
+        return assertTask(task, message);
     }
 
     protected TaskAsserter<Void> assertTask(Task task, String message) {

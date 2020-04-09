@@ -166,14 +166,15 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             assertNotNull("Cannot parse schema", schema);
             assertFalse("Empty schema", schema.isEmpty());
 
-            display("Parsed connector schema " + conn, schema);
+            displayDumpable("Parsed connector schema " + conn, schema);
 
             QName configurationElementQname = new QName(conn.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
             PrismContainerDefinition configurationContainer = schema
                     .findContainerDefinitionByElementName(configurationElementQname);
             assertNotNull("No " + configurationElementQname + " element in schema of " + conn, configurationContainer);
-            PrismContainerDefinition definition = schema.findItemDefinition(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-                    PrismContainerDefinition.class);
+            PrismContainerDefinition definition = schema
+                    .findItemDefinitionByElementName(new QName(ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart()),
+                            PrismContainerDefinition.class);
             assertNotNull("Definition of <configuration> property container not found", definition);
             assertFalse("Empty definition", definition.isEmpty());
         }
@@ -410,7 +411,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Also test if the utility method returns the same thing
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
 
         // Check whether it is reusing the existing schema and not parsing it
         // all over again
@@ -433,7 +434,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         // WHEN
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType, prismContext);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
 
         // Check whether it is reusing the existing schema and not parsing it
         // all over again
@@ -524,7 +525,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Also test if the utility method returns the same thing
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", returnedSchema);
+        displayDumpable("Parsed resource schema", returnedSchema);
         assertSchemaSanity(returnedSchema, resourceType);
 
         assertResourceSchemaUnchanged(returnedSchema);
@@ -809,7 +810,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         resource.asObjectable().setFetchResult(null);
         resourceAgain.asObjectable().setFetchResult(null);
         ObjectDelta<ResourceType> dummyResourceDiff = DiffUtil.diff(resource, resourceAgain);
-        display("Dummy resource diff", dummyResourceDiff);
+        displayDumpable("Dummy resource diff", dummyResourceDiff);
         assertTrue("The resource read again is not the same as the original. diff:" + dummyResourceDiff, dummyResourceDiff.isEmpty());
 
         // Now we stick our nose deep inside the provisioning impl. But we need

@@ -97,13 +97,6 @@ public class DomLexicalWriter {
         return aggregateElement;
     }
 
-    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
-    @Deprecated
-    public Element serialize(RootXNodeImpl rootxnode, Document document) throws SchemaException {
-        initializeWithExistingDocument(document);
-        return serializeInternal(rootxnode, null);
-    }
-
     public Element serializeUnderElement(RootXNodeImpl rootxnode, Element parentElement) throws SchemaException {
         initializeWithExistingDocument(parentElement.getOwnerDocument());
         return serializeInternal(rootxnode, parentElement);

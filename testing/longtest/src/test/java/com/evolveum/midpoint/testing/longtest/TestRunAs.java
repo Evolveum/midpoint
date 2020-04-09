@@ -121,7 +121,7 @@ public class TestRunAs extends AbstractLongTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_NAME, USER_BARBOSSA_USERNAME,
                 USER_BARBOSSA_FULL_NAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_NAME, USER_BARBOSSA_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
                 "Some say robot -- administrator");

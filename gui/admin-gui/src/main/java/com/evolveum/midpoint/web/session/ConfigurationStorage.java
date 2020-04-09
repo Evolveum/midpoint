@@ -22,7 +22,6 @@ public class ConfigurationStorage implements PageStorage {
     private DebugSearchDto debugSearchDto;
 
     private ObjectPaging debugSearchPaging;
-    private ObjectPaging accountDetailsPaging;
 
     @Override
     public Search getSearch() {
@@ -52,14 +51,6 @@ public class ConfigurationStorage implements PageStorage {
         this.debugSearchPaging = debugSearchPaging;
     }
 
-    public ObjectPaging getAccountDetailsPaging() {
-        return accountDetailsPaging;
-    }
-
-    public void setAccountDetailsPaging(ObjectPaging accountDetailsPaging) {
-        this.accountDetailsPaging = accountDetailsPaging;
-    }
-
     @Override
     public String debugDump() {
         return debugDump(0);
@@ -72,7 +63,6 @@ public class ConfigurationStorage implements PageStorage {
         sb.append("ConfigurationStorage\n");
         DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
         return sb.toString();
     }
 }

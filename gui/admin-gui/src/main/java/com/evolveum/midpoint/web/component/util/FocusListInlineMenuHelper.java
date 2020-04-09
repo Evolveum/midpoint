@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -242,7 +243,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
                 ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
                         objectClass, object.getOid(), enabling, parentPage.getPrismContext());
-                parentPage.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(objectDelta), null, task, subResult);
+                parentPage.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, subResult);
                 subResult.recordSuccess();
             } catch (CommonException|RuntimeException ex) {
                 subResult.recomputeStatus();
@@ -277,7 +278,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
                         .createEmptyModifyDelta(objectClass, object.getOid()
                         );
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 parentPage.getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
                 opResult.computeStatusIfUnknown();
             } catch (CommonException|RuntimeException ex) {

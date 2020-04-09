@@ -175,7 +175,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
             for (FormComponent<T> formComponent : formComponents) {
                 IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
                 formComponent.setLabel(label);
-                formComponent.setRequired(modelObject.isMandatory());
+                formComponent.setRequired(getMandatoryHandler() == null ? modelObject.isMandatory() : getMandatoryHandler().isMandatory(modelObject));
 
                 if (formComponent instanceof TextField) {
                     formComponent.add(new AttributeModifier("size", "42"));
@@ -197,8 +197,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
                     }
 
                 });
-                formComponent.add(new EnableBehaviour(() -> itemPanelSettings == null || itemPanelSettings.getEditabilityHandler() == null ||
-                        itemPanelSettings.getEditabilityHandler().isEditable(getModelObject())));
+                formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
+                        getEditabilityHandler().isEditable(getModelObject())));
             }
 
 

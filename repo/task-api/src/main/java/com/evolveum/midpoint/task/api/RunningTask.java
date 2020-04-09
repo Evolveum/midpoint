@@ -44,8 +44,6 @@ public interface RunningTask extends Task {
      * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
      *
      * Owner is inherited from parent task to subtask.
-     *
-     * @return
      */
     RunningTask createSubtask(LightweightTaskHandler handler);
 

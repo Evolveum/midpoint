@@ -219,7 +219,7 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- Jack Sparrow");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -256,7 +256,7 @@ public class TestMapping extends AbstractMappingTest {
                 getQuote(USER_JACK_DESCRIPTION, CAPTAIN_JACK_FULL_NAME));
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -297,7 +297,7 @@ public class TestMapping extends AbstractMappingTest {
 
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -326,7 +326,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, USER_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -365,7 +365,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, USER_JACK_FULL_NAME, "Flying Dutchman", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -408,7 +408,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, USER_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -447,7 +447,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, USER_JACK_FULL_NAME, "HMS Dauntless", RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -490,7 +490,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, USER_JACK_FULL_NAME, SHIP_BLACK_PEARL, RESOURCE_DUMMY_BLUE_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -879,7 +879,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount("jack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -931,7 +931,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Wrongland");
-        display("Account before", dummyAccountBefore);
+        displayDumpable("Account before", dummyAccountBefore);
 
         // WHEN
         recomputeUser(USER_JACK_OID, task, result);
@@ -944,7 +944,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUserJack(userAfter);
 
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
     }
@@ -962,7 +962,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Wrongland");
-        display("Account before", dummyAccountBefore);
+        displayDumpable("Account before", dummyAccountBefore);
 
         // WHEN
         reconcileUser(USER_JACK_OID, task, result);
@@ -975,7 +975,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUserJack(userAfter);
 
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
     }
@@ -993,7 +993,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
-        display("Account before", dummyAccountBefore);
+        displayDumpable("Account before", dummyAccountBefore);
 
         // WHEN
         recomputeUser(USER_JACK_OID, task, result);
@@ -1006,7 +1006,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUserJack(userAfter);
 
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
     }
@@ -1147,7 +1147,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Wrongland");
-        display("Account before", dummyAccountBefore);
+        displayDumpable("Account before", dummyAccountBefore);
 
         // WHEN
         recomputeUser(USER_JACK_OID, task, result);
@@ -1160,7 +1160,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUserJack(userAfter);
 
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
     }
@@ -1178,7 +1178,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
-        display("Account before", dummyAccountBefore);
+        displayDumpable("Account before", dummyAccountBefore);
 
         // WHEN
         recomputeUser(USER_JACK_OID, task, result);
@@ -1191,7 +1191,7 @@ public class TestMapping extends AbstractMappingTest {
         assertUserJack(userAfter);
 
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_COBALT_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, USER_JACK_LOCALITY);
     }
@@ -1316,7 +1316,7 @@ public class TestMapping extends AbstractMappingTest {
                  DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- red resource");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1347,7 +1347,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, null, RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1378,7 +1378,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1419,7 +1419,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1461,7 +1461,7 @@ public class TestMapping extends AbstractMappingTest {
          assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
          // Check audit
-         display("Audit", dummyAuditService);
+         displayDumpable("Audit", dummyAuditService);
          dummyAuditService.assertSimpleRecordSanity();
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
@@ -1502,7 +1502,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1536,7 +1536,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Brethren of the Coast / Black Pearl", RESOURCE_DUMMY_RED_NAME, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1591,7 +1591,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount("jack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1635,7 +1635,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1686,7 +1686,7 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccount(null, "jack", USER_JACK_FULL_NAME, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1720,7 +1720,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, null, null, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1754,7 +1754,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1796,7 +1796,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1838,7 +1838,7 @@ public class TestMapping extends AbstractMappingTest {
          assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
          // Check audit
-         display("Audit", dummyAuditService);
+         displayDumpable("Audit", dummyAuditService);
          dummyAuditService.assertSimpleRecordSanity();
          dummyAuditService.assertRecords(2);
          dummyAuditService.assertAnyRequestDeltas();
@@ -1879,7 +1879,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountLocation(userJack, CAPTAIN_JACK_FULL_NAME, "Fountain of Youth", dummyResourceCtl, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1908,7 +1908,7 @@ public class TestMapping extends AbstractMappingTest {
         assertAccountRename(userJack, "renamedJack", CAPTAIN_JACK_FULL_NAME, dummyResourceCtl, task);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1945,7 +1945,7 @@ public class TestMapping extends AbstractMappingTest {
         assertNoDummyAccount("renamedJack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -2037,7 +2037,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
 
@@ -2056,7 +2056,7 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_VODKA, DRINK_WHISKY);
 
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2074,7 +2074,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2094,7 +2094,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2117,7 +2117,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2137,7 +2137,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2167,7 +2167,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2188,7 +2188,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2211,7 +2211,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, ACCOUNT_GUYBRUSH_DUMMY_LOCATION);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2231,7 +2231,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2254,7 +2254,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2274,7 +2274,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2301,7 +2301,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2321,7 +2321,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2350,7 +2350,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         // TODO: How? Why?
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
@@ -2373,7 +2373,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_BRANDY, DRINK_GRAPPA);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2404,7 +2404,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         // location haven't changed and recon was not requested. The mapping was not evaluated.
@@ -2467,7 +2467,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
 
@@ -2486,7 +2486,7 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL);
 
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2504,7 +2504,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2524,7 +2524,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2547,7 +2547,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2568,7 +2568,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2598,7 +2598,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2619,7 +2619,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2642,7 +2642,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2662,7 +2662,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2685,7 +2685,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2705,7 +2705,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // WHEN
         when();
@@ -2732,7 +2732,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
@@ -2752,7 +2752,7 @@ public class TestMapping extends AbstractMappingTest {
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2781,7 +2781,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         // TODO: How? Why?
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
@@ -2804,7 +2804,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_BRANDY, DRINK_GRAPPA);
-        display("Dummy account before", dummyAccountBefore);
+        displayDumpable("Dummy account before", dummyAccountBefore);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
@@ -2835,7 +2835,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         // location haven't changed and recon was not requested. The mapping was not evaluated.
@@ -2896,7 +2896,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 IntegrationTestTools.CONST_DRINK);
@@ -2930,7 +2930,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
                 "Forbidden dodecahedron");
@@ -2983,7 +2983,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
 
     }
 
@@ -3009,7 +3009,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, USER_GUYBRUSH_USERNAME.toUpperCase(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_SCABB_ISLAND);
     }
@@ -3037,7 +3037,7 @@ public class TestMapping extends AbstractMappingTest {
         // Check account in dummy resource
         DummyAccount dummyAccountAfter = assertDummyAccount(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
                 ACCOUNT_GUYBRUSH_DUMMY_FULLNAME, true);
-        display("Dummy account after", dummyAccountAfter);
+        displayDumpable("Dummy account after", dummyAccountAfter);
         assertDummyAccountAttribute(RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME.toUpperCase(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BLOOD_ISLAND);
         // location haven't changed and recon was not requested. The mapping was not evaluated.

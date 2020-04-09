@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -488,6 +490,15 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return values.add(newValue);
     }
 
+    /**
+     * Adds a given value with no checks, no definition application, and so on.
+     * For internal use only.
+     */
+    @Experimental
+    public boolean addForced(@NotNull V newValue) {
+        return values.add(newValue);
+    }
+
     public boolean removeAll(Collection<V> newValues) {
         checkMutable();
         boolean changed = false;
@@ -581,23 +592,13 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
-    public ItemDelta<V,D> diff(Item<V,D> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
-    }
-
     public ItemDelta<V,D> diff(Item<V,D> other, @NotNull ParameterizedEquivalenceStrategy strategy) {
-        List<? extends ItemDelta> itemDeltas = new ArrayList<>();
-        diffInternal(other, itemDeltas, strategy);
-        if (itemDeltas.isEmpty()) {
-            return null;
-        }
-        if (itemDeltas.size() > 1) {
-            throw new UnsupportedOperationException("Item multi-delta diff is not supported yet");
-        }
-        return itemDeltas.get(0);
+        List<ItemDelta<V, D>> itemDeltas = new ArrayList<>();
+        diffInternal(other, itemDeltas, true, strategy);
+        return MiscUtil.extractSingleton(itemDeltas);
     }
 
-    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas,
+    void diffInternal(Item<V, D> other, Collection<? extends ItemDelta> deltas, boolean rootValuesOnly,
             ParameterizedEquivalenceStrategy strategy) {
         ItemDelta delta = createDelta();
         if (other == null) {
@@ -621,7 +622,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
                 boolean found = false;
                 while (iterator.hasNext()) {
                     PrismValueImpl otherValue = (PrismValueImpl) iterator.next();
-                    if (thisValue.representsSameValue(otherValue, true)) {
+                    if (!rootValuesOnly && thisValue.representsSameValue(otherValue, true)) {
                         found = true;
                         // Matching IDs, look inside to figure out internal deltas
                         ((PrismValueImpl) thisValue).diffMatchingRepresentation(otherValue, deltas, strategy);

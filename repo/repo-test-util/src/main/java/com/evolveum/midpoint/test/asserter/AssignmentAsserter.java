@@ -84,6 +84,15 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         return this;
     }
 
+    public AssignmentAsserter<R> assertOriginMappingName(String expected) {
+        assertEquals("Wrong origin mapping name", expected, getOriginMappingName());
+        return this;
+    }
+
+    private String getOriginMappingName() {
+        return assignment.getMetadata() != null ? assignment.getMetadata().getOriginMappingName() : null;
+    }
+
     public ActivationAsserter<AssignmentAsserter<R>> activation() {
         ActivationAsserter<AssignmentAsserter<R>> asserter = new ActivationAsserter<>(assignment.getActivation(), this, getDetails());
         copySetupTo(asserter);

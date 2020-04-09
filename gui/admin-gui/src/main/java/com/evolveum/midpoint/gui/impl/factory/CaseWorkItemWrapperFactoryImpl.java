@@ -58,7 +58,7 @@ public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactory
 
     @Override
     protected PrismContainerWrapper<CaseWorkItemType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<CaseWorkItemType> item,
-                                                                 ItemStatus status) {
+                                                                 ItemStatus status, WrapperContext ctx) {
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), WorkItemDetailsPanel.class);
         CaseWorkItemTypeWrapper containerWrapper = new CaseWorkItemTypeWrapper(parent, item, status);
         return containerWrapper;

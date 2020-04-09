@@ -77,15 +77,19 @@ public class ChangeProcessingCoordinator {
         }
     }
 
-    public void submit(ProcessChangeRequest request) throws InterruptedException {
+    public void submit(ProcessChangeRequest request, OperationResult result) throws InterruptedException {
         if (multithreaded) {
             while (!waitingRequestsQueue.offer(request, REQUEST_QUEUE_OFFER_TIMEOUT, TimeUnit.MILLISECONDS)) {
                 if (!canRunSupplier.get()) {
+                    result.recordStatus(OperationResultStatus.WARNING, "Could not submit request as the processing was interrupted");
                     return;
                 }
             }
+            // This is perhaps better than IN PROGRESS (e.g. because of tests).
+            // The processing will continue in a separate thread.
+            result.recordStatus(OperationResultStatus.SUCCESS, "Request submitted for processing");
         } else {
-            changeProcessor.execute(request, coordinatorTask, null, taskPartition);
+            changeProcessor.execute(request, coordinatorTask, null, taskPartition, result);
         }
     }
 
@@ -157,16 +161,11 @@ public class ChangeProcessingCoordinator {
                         continue;
                     }
                     try {
-                        changeProcessor.execute(request, workerTask, coordinatorTask, taskPartition);
+                        changeProcessor.execute(request, workerTask, coordinatorTask, taskPartition, workerSpecificResult);
                     } finally {
                         request.setDone(true);          // probably set already -- but better twice than not at all
                         affinityController.unbind(workerTask.getTaskIdentifier(), request);
 
-                        // Subresults of request parent result (actually, there should be just one) should be closed now.
-                        // So it is safe to include them under workerSpecificResult.
-                        for (OperationResult subresult : request.getParentResult().getSubresults()) {
-                            workerSpecificResult.addSubresult(subresult);
-                        }
                         workerSpecificResult.computeStatus(true);
                         // We do NOT try to summarize/cleanup the whole results hierarchy.
                         // There could be some accesses to the request's subresult from the thread that originated it.

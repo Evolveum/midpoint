@@ -1327,6 +1327,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
         builder = builder.mappingType(condition)
+                .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
                 .contextDescription(contextDescription)
                 .sourceContext(focusOdo)
                 .originType(OriginType.ASSIGNMENTS)

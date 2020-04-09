@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="c983791f-10c7-410c-83bd-71ef85174505"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>User Template</name>
+
+    <mapping>
+        <strength>strong</strength>
+        <expression>
+            <script>
+                <code>false</code>
+            </script>
+        </expression>
+        <target>
+            <c:path>extension/booleanFlag</c:path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <c:path>extension/booleanFlag</c:path>
+        </source>
+        <expression>
+            <trace>true</trace>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType
+
+                    if (booleanFlag) {
+                        new AssignmentType(prismContext)
+                                .targetRef('c7968dad-0711-4e45-8846-b6c28fc8c71a', RoleType.COMPLEX_TYPE)
+                    } else {
+                        return null
+                    }
+                </code>
+            </script>
+        </expression>
+        <target>
+            <c:path>assignment</c:path>
+            <set>
+                <condition>
+                    <script xsi:type="c:ScriptExpressionEvaluatorType">
+                        <code>
+                            assignment?.targetRef?.oid == 'c7968dad-0711-4e45-8846-b6c28fc8c71a'
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+    </mapping>
+</objectTemplate>

@@ -7,8 +7,11 @@
 
 package com.evolveum.midpoint.repo.sql.query2.hqm.condition;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.repo.sql.query2.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -54,16 +57,15 @@ public class SimpleComparisonCondition extends PropertyCondition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         SimpleComparisonCondition that = (SimpleComparisonCondition) o;
 
-        if (ignoreCase != that.ignoreCase) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        return operator.equals(that.operator);
-
+        return ignoreCase == that.ignoreCase
+                && Objects.equals(value, that.value)
+                && operator.equals(that.operator);
     }
 
     @Override

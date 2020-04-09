@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +42,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
 
 /**
  * @author katka
@@ -63,7 +61,7 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
     @PostConstruct
     private void initialize() {
         taskManager.registerHandler(HANDLER_URI, this);
-        taskManager.registerAdditionalHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
+        taskManager.registerDeprecatedHandlerUri(TaskConstants.LIGHTWEIGHT_PARTITIONING_TASK_HANDLER_URI_DEPRECATED, this);
     }
 
     public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
@@ -198,4 +196,8 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
         return TaskCategory.UTIL;
     }
 
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
+    }
 }

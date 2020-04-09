@@ -50,7 +50,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
     private Map<Long, SmartAssignmentElement> idMap;
 
     public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta,
-            Collection<AssignmentType> forcedAssignments, AssignmentType taskAssignment) throws SchemaException {
+            Collection<AssignmentType> forcedAssignments, Collection<AssignmentType> taskAssignments) throws SchemaException {
         PrismContainer<AssignmentType> assignmentContainerCurrent;
         if (objectCurrent != null) {
             assignmentContainerCurrent = objectCurrent.findContainer(FocusType.F_ASSIGNMENT);
@@ -68,7 +68,7 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType> implement
 
         collectVirtualAssignments(forcedAssignments);
 
-        if (taskAssignment != null) {
+        for (AssignmentType taskAssignment : taskAssignments) {
             //noinspection unchecked
             collectAssignment(taskAssignment.asPrismContainerValue(), Mode.CURRENT, true, null);
         }

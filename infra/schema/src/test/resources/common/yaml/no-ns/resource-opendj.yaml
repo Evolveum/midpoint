@@ -97,7 +97,7 @@ resource:
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         >icfs:name</ra:namingAttribute>\n\t\t\t                     <ra:nativeObjectClass\
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
-        >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:account\
+        >__ACCOUNT__</ra:nativeObjectClass>\n\t\t\t                     <ra:resourceObject\
         \ xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         />\n\t\t\t                     <ra:default xmlns:ra=\"http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3\"\
         />\n\t\t\t\t\t\t\t</xsd:appinfo>\n\t\t\t\t\t\t</xsd:annotation>\n\t\t\t\t\t\

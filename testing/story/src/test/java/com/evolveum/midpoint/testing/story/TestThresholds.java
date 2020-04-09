@@ -13,7 +13,11 @@ import java.io.File;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.test.asserter.TaskAsserter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -59,6 +63,10 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     private static final int TASK_IMPORT_TIMEOUT = 60000;
 
+    public static final int RULE_CREATE_WATERMARK = 5;
+    public static final int RULE_ACTIVATION_WATERMARK = 3;
+
+
     int getDefaultUsers() {
         return 6;
     }
@@ -75,9 +83,10 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     protected abstract File getTaskFile();
     protected abstract String getTaskOid();
+    protected abstract int getWorkerThreads();
     protected abstract int getProcessedUsers();
     protected abstract void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception;
-    protected abstract void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception;
+    protected abstract void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter);
     protected abstract void assertSynchronizationStatisticsActivation(Task taskAfter);
 
     @Override
@@ -93,6 +102,7 @@ public abstract class TestThresholds extends AbstractStoryTest {
         repoAddObjectFromFile(ROLE_POLICY_RULE_CHANGE_ACTIVATION_FILE, initResult);
 
         repoAddObjectFromFile(getTaskFile(), initResult);
+        adapTaskConfig(initTask, initResult);
     }
 
     /**
@@ -258,5 +268,24 @@ public abstract class TestThresholds extends AbstractStoryTest {
 
     void dumpSynchronizationInformation(SynchronizationInformationType synchronizationInformation) {
         displayValue("Synchronization information", SynchronizationInformation.format(synchronizationInformation));
+    }
+
+    protected void adapTaskConfig(Task task, OperationResult result) throws Exception {
+        if (getWorkerThreads() == 0) {
+            return;
+        }
+
+        ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
+                .item(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS))
+                .add(getWorkerThreads()).asObjectDelta(getTaskOid());
+
+
+        executeChanges(delta, null, task, result);
+
+        PrismObject<TaskType> taskAfter = getTask(getTaskOid());
+
+        TaskAsserter.forTask(taskAfter)
+                .extension()
+                .assertPropertyValuesEqual(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, getWorkerThreads());
     }
 }

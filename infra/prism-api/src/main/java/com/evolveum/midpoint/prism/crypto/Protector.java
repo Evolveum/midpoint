@@ -61,13 +61,6 @@ public interface Protector {
      */
     ProtectedStringType encryptString(String text) throws EncryptionException;
 
-    /**
-     * Returns true if protected string contains encrypted data that seems valid.
-     * DEPRECATED. Use ProtectedStringType.isEncrypted() instead
-     */
-    @Deprecated
-    boolean isEncrypted(ProtectedStringType ps);
-
     <T> void hash(ProtectedData<T> protectedData) throws EncryptionException, SchemaException;
 
     /**

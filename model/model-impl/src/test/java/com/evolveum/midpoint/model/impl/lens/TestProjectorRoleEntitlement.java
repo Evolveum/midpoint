@@ -71,7 +71,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         // We want "shadow" so the fullname will be computed by outbound expression
         addModificationToContextAddProjection(context, RoleType.class, ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -79,7 +79,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         projector.project(context, "test", task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         assertNull("Unexpected focus primary changes " + context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
@@ -132,7 +132,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
                 ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
         addFocusDeltaToContext(context, roleAssignmentDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -159,7 +159,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
                 ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
         addFocusDeltaToContext(context, roleAssignmentDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -174,7 +174,7 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
     }
 
     private void assertAssignEntitlementToPirate(LensContext<RoleType> context) {
-        display("Output context", context);
+        displayDumpable("Output context", context);
 
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(),

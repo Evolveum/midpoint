@@ -502,7 +502,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
             // There is simulated activation capability, check if the attribute is in schema.
             QName enableAttrName = capActivation.getStatus().getAttribute();
             ResourceAttributeDefinition enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
-            display("Simulated activation attribute definition", enableAttrDef);
+            displayDumpable("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
             assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")", enableAttrDef.isIgnored());
         }
@@ -3481,7 +3481,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         for (ObjectType object : objectListHolder.value.getObject()) {
             // Marshalling may fail even though the Java object is OK so test for it
-            String xml = prismContext.serializeObjectToString(object.asPrismObject(), PrismContext.LANG_XML);
+            String xml = prismContext.xmlSerializer().serialize(object.asPrismObject());
         }
 
     }

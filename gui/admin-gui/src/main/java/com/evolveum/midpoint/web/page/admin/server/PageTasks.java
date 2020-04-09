@@ -49,7 +49,7 @@ import java.util.List;
 
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/tasks2", matchUrlForSecurity = "/admin/tasks2")
+                @Url(mountUrl = "/admin/tasks", matchUrlForSecurity = "/admin/tasks")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,

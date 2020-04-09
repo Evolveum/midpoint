@@ -629,7 +629,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
     }
 
     private void dumpItsm() {
-        display("ITSM", DummyItsm.getInstance());
+        displayDumpable("ITSM", DummyItsm.getInstance());
     }
 
 }

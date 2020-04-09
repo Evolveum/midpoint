@@ -62,6 +62,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         if (context.getObjectStatus() == null) {
             context.setObjectStatus(status);
         }
+        context.setObject(object);
 
         Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(object, context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);
@@ -78,6 +79,32 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismContainerPanel.class);
         return objectWrapper;
 
+    }
+
+    public void updateWrapper(PrismObjectWrapper<O> wrapper, WrapperContext context) throws SchemaException {
+        try {
+            applySecurityConstraints(wrapper.getObject(), context);
+        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
+            context.getResult().recordFatalError("Cannot create object wrapper for " + wrapper.getObject() + ". An error occurred: " + e.getMessage(), e);
+            throw new SchemaException(e.getMessage(), e);
+        }
+        if (context.getObjectStatus() == null) {
+            context.setObjectStatus(wrapper.getStatus());
+        }
+        context.setObject(wrapper.getObject());
+
+        Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(wrapper.getObject(), context.getTask(), context.getResult());
+        context.setVirtualContainers(virtualContainers);
+        context.setShowEmpty(ItemStatus.ADDED == wrapper.getStatus());
+        wrapper.setExpanded(true);
+
+        wrapper.getValue().getItems().clear();
+
+        PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(wrapper, wrapper.getObject().getValue(), ItemStatus.ADDED == wrapper.getStatus() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+        wrapper.getValues().clear();
+        wrapper.getValues().add(valueWrapper);
+
+        registry.registerWrapperPanel(wrapper.getObject().getDefinition().getTypeName(), PrismContainerPanel.class);
     }
 
     @Override

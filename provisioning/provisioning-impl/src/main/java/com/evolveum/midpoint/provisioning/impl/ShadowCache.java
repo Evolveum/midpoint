@@ -120,18 +120,6 @@ public class ShadowCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
-    /**
-     * Get the value of repositoryService.
-     *
-     * DO NOT USE. Only ShadowManager should access repository
-     *
-     * @return the value of repositoryService
-     */
-    @Deprecated
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
     public PrismContext getPrismContext() {
         return prismContext;
     }
@@ -171,7 +159,18 @@ public class ShadowCache {
 
         ProvisioningContext ctx = ctxFactory.create(repositoryShadow, task, parentResult);
         ctx.setGetOperationOptions(options);
-        ctx.assertDefinition();
+        try {
+            ctx.assertDefinition();
+        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException e) {
+            if (GetOperationOptions.isRaw(rootOptions)) {
+                // when using raw (repository option), return the repo shadow as it is. it's better than nothing and in this case we don't even need resource
+                //TODO maybe change assertDefinition to consider rawOption?
+                parentResult.computeStatusIfUnknown();
+                parentResult.muteError();
+                return repositoryShadow;
+            }
+            throw e;
+        }
         shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
 
         ResourceType resource = ctx.getResource();

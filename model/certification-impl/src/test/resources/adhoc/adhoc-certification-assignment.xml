@@ -24,4 +24,13 @@
         </reviewerSpecification>
     </stageDefinition>
     <adHoc>true</adHoc>
+    <scopeDefinition xsi:type="AccessCertificationAssignmentReviewScopeType">
+        <objectType>UserType</objectType>
+        <searchFilter>
+            <q:equal>
+                <q:path>name</q:path>
+                <q:value>indigo</q:value>
+            </q:equal>
+        </searchFilter>
+    </scopeDefinition>
 </accessCertificationDefinition>

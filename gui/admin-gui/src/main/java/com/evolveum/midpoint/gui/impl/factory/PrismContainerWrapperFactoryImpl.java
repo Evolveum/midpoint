@@ -109,7 +109,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     @Override
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
-            ItemStatus status) {
+            ItemStatus status, WrapperContext ctx) {
         registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
         return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
     }

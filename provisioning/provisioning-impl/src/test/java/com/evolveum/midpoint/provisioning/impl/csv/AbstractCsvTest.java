@@ -155,7 +155,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML", resourceXml);
 
         CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -201,7 +201,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
         assertNotNull("No resource schema", resourceSchema);
 
         ObjectClassComplexTypeDefinition accountDef = resourceSchema.findObjectClassDefinition(RESOURCE_CSV_ACCOUNT_OBJECTCLASS);
@@ -222,7 +222,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
         // object instance is returned
-        assertTrue("Broken caching", resourceSchema == RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
+        assertSame("Broken caching", resourceSchema, RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext));
 
     }
 
@@ -333,7 +333,7 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
 //                getAccountJackOid(), ItemPath.create(ShadowType.F_ATTRIBUTES, getQNameOfUID()), newValueOfUIDAttr);
         PropertyDelta<String> delta = prismContext.deltaFactory().property().createReplaceDelta(shadowBefore.getDefinition(),
                 ShadowType.F_PRIMARY_IDENTIFIER_VALUE, newValueOfUIDAttr);
-        display("PropertyDelta", delta);
+        displayDumpable("PropertyDelta", delta);
 
         // WHEN
         when();

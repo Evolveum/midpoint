@@ -73,7 +73,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         OperationResult result = createOperationResult();
         PrismContainerValue<ConnectorConfigurationType> configContainer =
                 resourceType.getConnectorConfiguration().asPrismContainerValue();
-        displayValue("Configuration container", configContainer);
+        displayDumpable("Configuration container", configContainer);
 
         // WHEN
         cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
@@ -142,7 +142,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results", 1, searchResults.size());
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        displayValue("stats", opStat);
+        displayDumpable("stats", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
     }
@@ -190,7 +190,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        displayValue("stats (blocked)", opStat);
+        displayDumpable("stats (blocked)", opStat);
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -206,12 +206,12 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results", 1, searchResults.size());
 
         opStat = cc.getOperationalStatus();
-        displayValue("stats (final)", opStat);
+        displayDumpable("stats (final)", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult = searchResults.get(0);
-        displayValue("Search result", searchResult);
+        displayDumpable("Search result", searchResult);
     }
 
     @Test
@@ -265,7 +265,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         ConnectorOperationalStatus opStat = cc.getOperationalStatus();
-        displayValue("stats (blocked 1)", opStat);
+        displayDumpable("stats (blocked 1)", opStat);
         assertEquals("Wrong pool active", (Integer) 1, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -290,7 +290,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread.sleep(500);
 
         opStat = cc.getOperationalStatus();
-        displayValue("stats (blocked 2)", opStat);
+        displayDumpable("stats (blocked 2)", opStat);
         assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumIdle());
 
@@ -308,15 +308,15 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         assertEquals("Unexpected number of search results 2", 1, searchResults2.size());
 
         opStat = cc.getOperationalStatus();
-        displayValue("stats (final)", opStat);
+        displayDumpable("stats (final)", opStat);
         assertEquals("Wrong pool active", (Integer) 0, opStat.getPoolStatusNumActive());
         assertEquals("Wrong pool active", (Integer) 2, opStat.getPoolStatusNumIdle());
 
         PrismObject<ShadowType> searchResult1 = searchResults1.get(0);
-        displayValue("Search result 1", searchResult1);
+        displayDumpable("Search result 1", searchResult1);
 
         PrismObject<ShadowType> searchResult2 = searchResults2.get(0);
-        displayValue("Search result 2", searchResult2);
+        displayDumpable("Search result 2", searchResult2);
     }
 
     private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {

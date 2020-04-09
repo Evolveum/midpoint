@@ -693,12 +693,26 @@ public interface TaskManager {
     /**
      * Gets a list of all task categories.
      */
+    @Deprecated // Remove in 4.2
     List<String> getAllTaskCategories();
 
     /**
      * Returns a default handler URI for a given task category.
      */
+    @Deprecated // Remove in 4.2
     String getHandlerUriForCategory(String category);
+
+    /**
+     * Returns all registered handler URIs.
+     *
+     * @param nonDeprecatedOnly If true, only non-deprecated handler URIs are returned.
+     */
+    Collection<String> getAllHandlerUris(boolean nonDeprecatedOnly);
+
+    /**
+     * Returns all registered handler URIs for given archetype.
+     */
+    Collection<String> getHandlerUrisForArchetype(String archetypeOid, boolean nonDeprecatedOnly);
 
     /**
      * Validates a cron expression for scheduling tasks - without context of any given task.
@@ -721,6 +735,11 @@ public interface TaskManager {
      * matching a given task category.
      */
     void registerAdditionalHandlerUri(String uri, TaskHandler handler);
+
+    /**
+     * Registers additional (deprecated) handler URI for a given handler.
+     */
+    void registerDeprecatedHandlerUri(String uri, TaskHandler handler);
 
     void registerTaskDeletionListener(TaskDeletionListener listener);
 

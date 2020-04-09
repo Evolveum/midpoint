@@ -49,7 +49,7 @@ public class TestProjectorPersona extends AbstractLensTest {
                 ROLE_PERSONA_ADMIN_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
         addFocusDeltaToContext(context, focusDelta);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -58,10 +58,10 @@ public class TestProjectorPersona extends AbstractLensTest {
         projector.project(context, "test", task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
         assertTrue("Unexpected projection changes", context.getProjectionContexts().isEmpty());
 
@@ -73,10 +73,10 @@ public class TestProjectorPersona extends AbstractLensTest {
         assertNotNull("No evaluatedAssignmentTriple plus set", evaluatedAssignmentTriple.getPlusSet());
         assertEquals("Wrong size of evaluatedAssignmentTriple plus set", 1, evaluatedAssignmentTriple.getPlusSet().size());
         EvaluatedAssignmentImpl<UserType> evaluatedAssignment = (EvaluatedAssignmentImpl<UserType>) evaluatedAssignmentTriple.getPlusSet().iterator().next();
-        display("evaluatedAssignment", evaluatedAssignment);
+        displayDumpable("evaluatedAssignment", evaluatedAssignment);
         assertNotNull("No evaluatedAssignment", evaluatedAssignment);
         DeltaSetTriple<PersonaConstruction<UserType>> personaConstructionTriple = evaluatedAssignment.getPersonaConstructionTriple();
-        display("personaConstructionTriple", personaConstructionTriple);
+        displayDumpable("personaConstructionTriple", personaConstructionTriple);
         assertNotNull("No personaConstructionTriple", personaConstructionTriple);
         assertFalse("Empty personaConstructionTriple", personaConstructionTriple.isEmpty());
         assertTrue("Unexpected personaConstructionTriple plus set", personaConstructionTriple.getPlusSet().isEmpty());

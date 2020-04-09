@@ -1012,7 +1012,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertJack(MidPointPrincipal principal) {
-        display("Principal jack", principal);
+        displayDumpable("Principal jack", principal);
         assertEquals("wrong username", USER_JACK_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_JACK_OID, principal.getOid());
         assertJack((UserType) principal.getFocus());
@@ -1171,7 +1171,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Pirate"));
-        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutinier"));
+        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, createPolyString("Mutineer"));
 
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, createPolyString("Brethren of the Coast"));
@@ -1194,7 +1194,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
-        display("Jack's edit schema", userJackEditSchema);
+        displayDumpable("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
         assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);

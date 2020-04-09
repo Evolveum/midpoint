@@ -93,6 +93,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
+        if (ValueStatus.DELETED == modelObject.getStatus()) {
+            return false;
+        }
+
         ItemWrapper parent = modelObject.getParent();
         if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
             return false;
@@ -102,11 +106,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
+        if (isShowOnTopLevel()) {
+            return true;
+        }
 
-        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded() && parent.isMultiValue()) {
+        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded()) { // && parent.isMultiValue()) {
             return false;
         }
-        return true;
+        return ((PrismContainerWrapper) parent).isExpanded();
     }
 
     @Override
@@ -186,7 +193,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 populateNonContainer(item);
             }
         };
-        properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         add(propertiesLabel);
            propertiesLabel.add(properties);
@@ -296,6 +302,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return settings.getEditabilityHandler();
     }
 
+    private ItemMandatoryHandler getMandatoryHandler() {
+        if (settings == null) {
+            return null;
+        }
+        return settings.getMandatoryHandler();
+    }
+
     private boolean isShowOnTopLevel() {
         if (settings == null) {
             return false;
@@ -316,6 +329,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(getVisibilityHandler())
                     .editabilityHandler(getReadabilityHandler())
+                    .mandatoryHandler(getMandatoryHandler())
                     .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);
@@ -347,13 +361,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-//            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(getVisibilityHandler());
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
-//            panel.add(new VisibleBehaviour(() -> {
-//                CVW parent = PrismContainerValuePanel.this.getModelObject();
-//                return container.getModelObject().isVisible(parent, visibilityHandler);
-//            }));
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -568,6 +577,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             @Override
             public boolean isVisible() {
+                if (getModelObject() instanceof PrismObjectValueWrapper) {
+                    return false;
+                }
                 return shouldBeButtonsShown();
             }
         });

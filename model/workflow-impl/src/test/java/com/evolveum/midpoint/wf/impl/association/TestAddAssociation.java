@@ -186,7 +186,7 @@ public class TestAddAssociation extends AbstractWfTest {
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
                 ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
-                PrismTestUtil.display("model context from the root task", taskModelContext);
+                displayDumpable("model context from the root task", taskModelContext);
                 //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
 //                assertTrue("There are modifications left in primary projection delta",
@@ -266,7 +266,7 @@ public class TestAddAssociation extends AbstractWfTest {
                     CaseType case0, List<CaseType> subcases,
                     Task opTask, OperationResult result) throws Exception {
                 ModelContext taskModelContext = miscHelper.getModelContext(rootCase, opTask, result);
-                PrismTestUtil.display("model context from the root task", taskModelContext);
+                displayDumpable("model context from the root task", taskModelContext);
                 //                assertEquals("Wrong # of projection contexts in root task", 1, taskModelContext.getProjectionContexts().size());
 //                assertTrue("There are modifications in primary focus delta", ObjectDelta.isEmpty(taskModelContext.getFocusContext().getPrimaryDelta()));
 //                assertTrue("There are modifications left in primary projection delta",
@@ -362,18 +362,19 @@ public class TestAddAssociation extends AbstractWfTest {
                 List<CaseType> subcases, Task opTask, OperationResult result) throws Exception {
         }
 
-        void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception {
+        void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) {
         }
 
-        void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
-                OperationResult result) throws Exception {
+        void assertsRootCaseFinishes(
+                CaseType aCase, List<CaseType> subcases, Task opTask, OperationResult result)
+                throws Exception {
         }
 
-        boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception {
+        boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) {
             return true;
         }
 
-        String getObjectOid(CaseType task, OperationResult result) throws SchemaException {
+        String getObjectOid(CaseType task, OperationResult result) {
             return null;
         }
 
@@ -398,7 +399,7 @@ public class TestAddAssociation extends AbstractWfTest {
 
         //noinspection unchecked
         LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(task, result);
-        display("Input context", context);
+        displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
 
         // WHEN
@@ -479,9 +480,9 @@ public class TestAddAssociation extends AbstractWfTest {
         notificationManager.setDisabled(true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
-        display("Output context", context);
+        displayDumpable("Output context", context);
     }
 
     private void assertObjectInTaskTree(CaseType rootCase, String oid, boolean checkObjectOnSubtasks, OperationResult result) throws SchemaException {

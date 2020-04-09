@@ -87,7 +87,8 @@
                     <xsd:annotation>
                         <xsd:appinfo>
                             <r:identifier ref="vr0:uid"  />
-                            <r:accountType default="true"  />
+                            <r:kind>account</r:kind>
+                            <r:default/>
                         </xsd:appinfo>
                     </xsd:annotation>
                     <xsd:complexContent>

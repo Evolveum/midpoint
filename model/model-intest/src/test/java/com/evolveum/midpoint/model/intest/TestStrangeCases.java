@@ -323,7 +323,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure("executeChanges result", result);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -387,7 +387,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("otis");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -437,7 +437,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount("navigator");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -479,7 +479,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertAccounts(USER_JACK_OID, 0);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -766,7 +766,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertAccounts(USER_DEGHOULASH_OID, 0);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

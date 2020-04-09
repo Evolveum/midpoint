@@ -161,7 +161,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         OperationResult result = task.getResult();
         ObjectDelta<UserType> emptyMancombDelta = deltaFor(UserType.class).asObjectDelta(userOid);
         ModelContext<UserType> previewContext = modelInteractionService.previewChanges(Collections.singleton(emptyMancombDelta), null, task, result);
-        display("Preview context", previewContext);
+        displayDumpable("Preview context", previewContext);
         result.computeStatus();
         if (!result.isSuccess() && !result.isHandledError() && !result.isWarning()) {
             display("Unexpected preview result", result);

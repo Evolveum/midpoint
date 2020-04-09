@@ -9,10 +9,7 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -24,7 +21,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.impl.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -76,74 +72,6 @@ public class TestParseGenericObject extends AbstractSchemaTest {
         assertGenericObject(generic);
     }
 
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxb()
-            throws JAXBException, SchemaException, IOException, DatatypeConfigurationException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        GenericObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, GenericObjectType.class);
-
-        // THEN
-        assertGenericObject(genericType.asPrismObject());
-    }
-
-    /**
-     * The definition should be set properly even if the declared type is ObjectType.
-     * The Prism should determine the actual type.
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbObjectType()
-            throws JAXBException, SchemaException, IOException, DatatypeConfigurationException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        GenericObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, GenericObjectType.class);
-
-        // THEN
-        assertGenericObject(genericType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBElement.
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElement()
-            throws JAXBException, SchemaException, IOException, DatatypeConfigurationException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<GenericObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, GenericObjectType.class);
-        GenericObjectType genericType = jaxbElement.getValue();
-
-        // THEN
-        assertGenericObject(genericType.asPrismObject());
-    }
-
-    /**
-     * Parsing in form of JAXBELement, with declared ObjectType
-     */
-    @Deprecated
-    @Test(enabled = false)
-    public void testPrismParseJaxbElementObjectType()
-            throws JAXBException, SchemaException, IOException, DatatypeConfigurationException {
-        // GIVEN
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-
-        // WHEN
-        JAXBElement<GenericObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, GenericObjectType.class);
-        GenericObjectType genericType = jaxbElement.getValue();
-
-        // THEN
-        assertGenericObject(genericType.asPrismObject());
-    }
-
     @Test
     public void testParseGenericRoundtrip() throws Exception {
         // GIVEN
@@ -158,7 +86,7 @@ public class TestParseGenericObject extends AbstractSchemaTest {
 
         // SERIALIZE
 
-        String serializedGeneric = prismContext.serializeObjectToString(generic, PrismContext.LANG_XML);
+        String serializedGeneric = prismContext.xmlSerializer().serialize(generic);
 
         System.out.println("serialized generic object:");
         System.out.println(serializedGeneric);

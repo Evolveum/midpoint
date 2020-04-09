@@ -87,7 +87,7 @@ public class TestExtraSchema extends AbstractPrismTest {
         System.out.println("Parsed user ext schema:");
         System.out.println(schema.debugDump());
 
-        ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinition(USER_EXTENSION_TYPE_QNAME);
+        ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinitionByType(USER_EXTENSION_TYPE_QNAME);
         assertEquals("Extension type ref does not match", USER_TYPE_QNAME, userExtComplexType.getExtensionForType());
 
     }

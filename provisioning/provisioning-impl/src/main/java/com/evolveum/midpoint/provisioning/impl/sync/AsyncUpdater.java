@@ -60,7 +60,7 @@ public class AsyncUpdater {
              * But we need to execute the requests in the context of the caller task or its working threads (LATs).
              * This is necessary e.g. to correctly report low-level statistics that are stored in thread-local structures.
              */
-            ProcessChangeRequest request = new ProcessChangeRequest(change, globalContext, false, listenerResult) {
+            ProcessChangeRequest request = new ProcessChangeRequest(change, globalContext, false) {
                 @Override
                 public void setDone(boolean done) {
                     super.setDone(done);
@@ -110,7 +110,7 @@ public class AsyncUpdater {
                  * will not be accurate. But there should be no other negative effects.
                  */
                 LOGGER.trace("Submitting request for processing: {}", request);
-                coordinator.submit(request);
+                coordinator.submit(request, listenerResult);
 
                 /*
                  * Let's wait for the request completion.

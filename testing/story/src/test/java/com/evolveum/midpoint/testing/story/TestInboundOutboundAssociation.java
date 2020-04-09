@@ -98,7 +98,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         // THEN
         then();
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         RoleAsserter<Void> rolePiratesAsserter = assertRoleAfterByName(groupRoleName(GROUP_PIRATES_NAME));
         rolePiratesAsserter
@@ -130,7 +130,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -155,7 +155,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         // THEN
         then();
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
                 .assertFullName(USER_JACK_FULL_NAME);
@@ -185,7 +185,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         // THEN
         then();
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -215,7 +215,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -242,7 +242,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -276,7 +276,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -309,7 +309,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -334,7 +334,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -360,7 +360,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -439,7 +439,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -469,7 +469,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
                 .assignments()
@@ -497,7 +497,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        display("dir after", getDummyResourceDir());
+        displayDumpable("dir after", getDummyResourceDir());
         assertUserAfter(USER_MANCOMB_OID)
                 .assignments()
                 .assertAssignments(1);

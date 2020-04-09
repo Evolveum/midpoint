@@ -302,7 +302,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -365,7 +365,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         // Also test if the utility method returns the same thing
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
 
-        display("Parsed resource schema", resourceSchema);
+        displayDumpable("Parsed resource schema", resourceSchema);
 
         // Check whether it is reusing the existing schema and not parsing it all over again
         // Not equals() but == ... we want to really know if exactly the same
@@ -564,7 +564,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
         assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        String resourceXml = prismContext.xmlSerializer().serialize(resourceRepoAfter);
         displayValue("Resource XML after test connection", resourceXml);
 
         CachingMetadataType schemaCachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -1008,7 +1008,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
                 accountWillOid, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_FULLNAME_QNAME),
                 USER_WILL_FULL_NAME_PIRATE);
-        display("ObjectDelta", delta);
+        displayDumpable("ObjectDelta", delta);
 
         accountWillReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 

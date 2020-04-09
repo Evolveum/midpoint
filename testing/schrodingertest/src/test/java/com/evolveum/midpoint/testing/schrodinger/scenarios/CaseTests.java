@@ -132,6 +132,8 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .clickByName(ASSIGNING_ROLE_CASE_NAME + CASE_CREATION_TEST_USER_NAME)
                 .approveButtonClick();
 
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+
         allRequestsPage = basicPage.listAllRequests();
         CasePage casePage = allRequestsPage
                 .table()
@@ -176,6 +178,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .clickByName(ASSIGNING_ROLE_CASE_NAME + REJECT_WORKITEM_TEST_USER_NAME)
                 .rejectButtonClick();
 
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         allRequestsPage = basicPage.listAllRequests();
         CasePage casePage = allRequestsPage
                 .table()

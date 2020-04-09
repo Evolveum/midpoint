@@ -1715,7 +1715,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
     private void assertJackOrgtarget(String expectedShip, String... expectedTitleValues) throws Exception {
         DummyAccount account = assertDummyAccount(RESOURCE_DUMMY_ORGTARGET_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        display("orgtarget account", account);
+        displayDumpable("orgtarget account", account);
         String shipAccountValue = account.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
         assertEquals("Jack's ship is wrong", expectedShip, shipAccountValue);
         Set<String> titleAccountValues = account.getAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class);

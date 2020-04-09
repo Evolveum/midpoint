@@ -96,14 +96,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "a", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
@@ -123,14 +123,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "b", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
@@ -153,14 +153,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "d", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
@@ -182,14 +182,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "c", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         try {
             // WHEN
             dependencyProcessor.sortProjectionsToWaves(context);
 
-            display("Context after", context);
+            displayDumpable("Context after", context);
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
             // this is expected
@@ -209,14 +209,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "r", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, getDummyOid("p"), 0, 0);
         assertWave(context, getDummyOid("r"), 0, 1);
@@ -240,14 +240,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "p", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, getDummyOid("p"), 0, 0);
         assertWave(context, getDummyOid("r"), 0, 1);
@@ -268,14 +268,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "a", task, result));
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 0);
@@ -296,14 +296,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "b", task, result));
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 1);
@@ -327,14 +327,14 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         setDelete(fillContextWithDummyElaineAccount(context, "d", task, result));
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         // WHEN
         dependencyProcessor.sortProjectionsToWaves(context);
 
         // THEN
-        display("Context after", context);
+        displayDumpable("Context after", context);
 
         assertWave(context, RESOURCE_DUMMY_OID, 0, 0);
         assertWave(context, getDummyOid("a"), 0, 2);
@@ -363,7 +363,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         fillContextWithDummyElaineAccount(context, "z", task, result);
 
         context.recompute();
-        display("Context before", context);
+        displayDumpable("Context before", context);
         context.checkConsistence();
 
         try {

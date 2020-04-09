@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author semancik
  * @see TestValidityRecomputeTask
  */
+@SuppressWarnings({ "FieldCanBeLocal", "unused", "SameParameterValue", "SimplifiedTestNGAssertion" })
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestActivation extends AbstractInitializedModelIntegrationTest {
@@ -61,21 +61,20 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     // This resource does not support native activation. It has simulated activation instead.
     // + unusual validTo and validFrom mappings
-    protected static final File RESOURCE_DUMMY_KHAKI_FILE = new File(TEST_DIR, "resource-dummy-khaki.xml");
-    protected static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
-    protected static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
-    protected static final String RESOURCE_DUMMY_KHAKI_NAMESPACE = MidPointConstants.NS_RI;
+    private static final File RESOURCE_DUMMY_KHAKI_FILE = new File(TEST_DIR, "resource-dummy-khaki.xml");
+    private static final String RESOURCE_DUMMY_KHAKI_OID = "10000000-0000-0000-0000-0000000a1004";
+    private static final String RESOURCE_DUMMY_KHAKI_NAME = "khaki";
 
     // This resource does not support native activation. It has simulated activation instead.
     // + unusual validTo and validFrom mappings
-    protected static final File RESOURCE_DUMMY_CORAL_FILE = new File(TEST_DIR, "resource-dummy-coral.xml");
-    protected static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
-    protected static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
+    private static final File RESOURCE_DUMMY_CORAL_FILE = new File(TEST_DIR, "resource-dummy-coral.xml");
+    private static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
+    private static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
 
     private static final TestResource RESOURCE_DUMMY_PRECREATE = new TestResource(TEST_DIR, "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d");
     private static final String RESOURCE_DUMMY_PRECREATE_NAME = "precreate";
 
-    protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
     private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
     private static final String SUSPENDED_ATTRIBUTE_NAME = "suspended";
@@ -84,24 +83,23 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private String accountRedOid;
     private String accountYellowOid;
     private XMLGregorianCalendar lastValidityChangeTimestamp;
-    private String accountMancombOid;
     private String userMancombOid;
     private XMLGregorianCalendar manana;
 
-    protected DummyResource dummyResourceKhaki;
-    protected DummyResourceContoller dummyResourceCtlKhaki;
-    protected ResourceType resourceDummyKhakiType;
-    protected PrismObject<ResourceType> resourceDummyKhaki;
+    private DummyResource dummyResourceKhaki;
+    private DummyResourceContoller dummyResourceCtlKhaki;
+    private ResourceType resourceDummyKhakiType;
+    private PrismObject<ResourceType> resourceDummyKhaki;
 
-    protected DummyResource dummyResourceCoral;
-    protected DummyResourceContoller dummyResourceCtlCoral;
-    protected ResourceType resourceDummyCoralType;
-    protected PrismObject<ResourceType> resourceDummyCoral;
+    private DummyResource dummyResourceCoral;
+    private DummyResourceContoller dummyResourceCtlCoral;
+    private ResourceType resourceDummyCoralType;
+    private PrismObject<ResourceType> resourceDummyCoral;
 
-    protected DummyResource dummyResourcePrecreate;
-    protected DummyResourceContoller dummyResourceCtlPrecreate;
-    protected ResourceType resourceDummyPrecreateType;
-    protected PrismObject<ResourceType> resourceDummyPrecreate;
+    private DummyResource dummyResourcePrecreate;
+    private DummyResourceContoller dummyResourceCtlPrecreate;
+    private ResourceType resourceDummyPrecreateType;
+    private PrismObject<ResourceType> resourceDummyPrecreate;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
@@ -469,7 +467,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertModifyTimestamp(userJack, start, end);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -484,7 +482,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
             ObjectDelta<? extends ObjectType> objectDelta = executionDelta.getObjectDelta();
             if (objectDelta.getObjectTypeClass() == ShadowType.class) {
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
-                display("Audit enableTimestamp delta", enableTimestampDelta);
+                displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record", enableTimestampDelta);
                 found = true;
             }
@@ -614,7 +612,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertDummyDisabled("jack");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 
@@ -673,7 +671,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         DummyAccount account = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-        display("Account after change", account);
+        displayDumpable("Account after change", account);
 
         assertUserJack(userJack, USER_JACK_FULL_NAME);
 
@@ -1309,7 +1307,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         checkAdminStatusFor15x(userAfter, true, true, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1328,7 +1326,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 //                    continue;
 //                }
                 PropertyDelta<Object> enableTimestampDelta = objectDelta.findPropertyDelta(PATH_ACTIVATION_ENABLE_TIMESTAMP);
-                display("Audit enableTimestamp delta", enableTimestampDelta);
+                displayDumpable("Audit enableTimestamp delta", enableTimestampDelta);
                 assertNotNull("EnableTimestamp delta vanished from audit record, delta: " + objectDelta, enableTimestampDelta);
                 found = true;
             }
@@ -1617,8 +1615,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Let's play with the clock, move the time to tomorrow
-        long crrentNow = System.currentTimeMillis() + 24 * 60 * 60 * 1000;
-        clock.override(crrentNow);
+        long currentNow = System.currentTimeMillis() + 24 * 60 * 60 * 1000;
+        clock.override(currentNow);
 
         // WHEN
         recomputeUser(USER_LARGO_OID, task, result);
@@ -1656,8 +1654,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Let's play with the clock, move the time forward 20 days
-        long crrentNow = System.currentTimeMillis() + 20 * 24 * 60 * 60 * 1000;
-        clock.override(crrentNow);
+        long currentNow = System.currentTimeMillis() + 20 * 24 * 60 * 60 * 1000;
+        clock.override(currentNow);
 
         // WHEN
         modelService.recompute(UserType.class, USER_LARGO_OID, null, task, result);
@@ -1667,7 +1665,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userLargo);
 
         assertValidity(userLargo, TimeIntervalStatusType.AFTER);
-        assertValidityTimestamp(userLargo, crrentNow);
+        assertValidityTimestamp(userLargo, currentNow);
         assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 
         assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
@@ -1843,7 +1841,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
 
-        display("Dummy", getDummyResource());
+        displayDumpable("Dummy", getDummyResource());
 
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
@@ -1882,7 +1880,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
         display("user after", userAfter);
 
-        display("Dummy", getDummyResource());
+        displayDumpable("Dummy", getDummyResource());
 
         assertEffectiveActivation(userAfter, ActivationStatusType.DISABLED);
 
@@ -1966,7 +1964,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertRoleMembershipRef(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_RAPP_USERNAME);
-        display("dummy account", dummyAccount);
+        displayDumpable("dummy account", dummyAccount);
         assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, ROLE_PIRATE_WEAPON);
         assertDummyAccountAttribute(null, USER_RAPP_USERNAME,
@@ -2057,10 +2055,9 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("Account shadow after", accountMancomb);
 
         DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("Account after", dummyAccountAfter);
+        displayDumpable("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
-        accountMancombOid = accountMancomb.getOid();
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_GREEN_OID,
                 accountMancomb.asObjectable().getResourceRef().getOid());
         assertValidFrom(accountMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
@@ -2282,27 +2279,27 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test520CheckSerivceSeaMonkeyInitial() throws Exception {
+    public void test520CheckServiceSeaMonkeyInitial() throws Exception {
         test5X0CheckInitial(ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
     }
 
     @Test
-    public void test521SerivceSeaMonkeyRecompute() throws Exception {
+    public void test521ServiceSeaMonkeyRecompute() throws Exception {
         test5X1Recompute(ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
     }
 
     @Test
-    public void test522ModifySerivceSeaMonkeyDisable() throws Exception {
+    public void test522ModifyServiceSeaMonkeyDisable() throws Exception {
         test5X2ModifyDisable(ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
     }
 
     @Test
-    public void test524ModifySerivceSeaMonkeyEnable() throws Exception {
+    public void test524ModifyServiceSeaMonkeyEnable() throws Exception {
         test5X4ModifyEnable(ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
     }
 
     @Test
-    public void test525SerivceSeaMonkeyRecompute() throws Exception {
+    public void test525ServiceSeaMonkeyRecompute() throws Exception {
         test5X5Recompute(ServiceType.class, SERVICE_SHIP_SEA_MONKEY_OID);
     }
 
@@ -2408,7 +2405,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Make sure that recompute does not destroy anything.
      */
-    public <F extends FocusType> void test5X5Recompute(Class<F> type, String oid) throws Exception {
+    private <F extends FocusType> void test5X5Recompute(Class<F> type, String oid) throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -2430,7 +2427,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertEffectiveStatus(objectAfter, ActivationStatusType.ENABLED);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertNoRecord();
     }
 
@@ -2446,8 +2443,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 .item(UserType.F_NAME).replace(new PolyString("user1"))
                 .item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(resourceDummyCoral, prismContext).asPrismContainerValue())
                 .item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
-                .asObjectDelta(null)
-                .applyTo((PrismObject) user1);
+                .<UserType>asObjectDelta(null)
+                .applyTo(user1);
 
         ObjectDelta<UserType> addDelta = user1.createAddDelta();
 
@@ -2461,7 +2458,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", user1);
 
         DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.TRUE);
 
         String accountOid = getSingleLinkOid(user1);
@@ -2499,7 +2496,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", user1);
 
         DummyAccount dummyAccount = dummyResourceCoral.getAccountByUsername("user1");
-        display("Dummy account", dummyAccount);
+        displayDumpable("Dummy account", dummyAccount);
         checkSuspendedAttribute(dummyAccount, Boolean.FALSE);
 
         String accountOid = getSingleLinkOid(user1);
@@ -2679,6 +2676,52 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // There's a hidden FATAL_ERROR when unlinking deleted shadow (benign ... but it prevents us from asserting success tree-wide)
         //assertSuccess(result);
         assertSuccess(result, 2);
+    }
+
+
+    /**
+     * If an invalid assignment is being deleted, we don't want to update its effectiveStatus (because the resulting replace
+     * delta would collide with assignment delete delta). Normally midPoint ensures this behavior. So this test is not
+     * strictly necessary.
+     *
+     * This test was introduced as part of MID-6122 diagnosis and is kept only as "to be sure". In MID-6122 the deltas collision
+     * was caused by adding assignment delete delta in the model scripting hook.
+     */
+    @Test
+    public void test800DeleteInvalidAssignment() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, null, result);
+
+        XMLGregorianCalendar dayBeforeYesterday = XmlTypeConverter.fromNow("-P2D");
+        XMLGregorianCalendar yesterday = XmlTypeConverter.fromNow("-P1D");
+
+        UserType user = new UserType(prismContext)
+                .name("test800")
+                .beginAssignment()
+                .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .beginActivation()
+                .effectiveStatus(ActivationStatusType.ENABLED)
+                .validFrom(dayBeforeYesterday)
+                .validTo(yesterday)
+                .<AssignmentType>end()
+                .end();
+        repoAddObject(user.asPrismObject(), result);
+
+        when();
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).delete(user.getAssignment().get(0).clone())
+                .asObjectDelta(user.getOid());
+        executeChanges(delta, null, task, result);
+
+        then();
+        result.computeStatus();
+        assertSuccess(result);
+        assertUser(user.getOid(), "after")
+                .display()
+                .assertAssignments(0);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

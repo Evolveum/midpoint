@@ -2592,12 +2592,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType">
+                    <xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 The user that owns this task. It usually means the user that started the task
                                 or a system user that is used to execute the task. The owner will be used to
-                                determine access rights of the task, will be used for auditing, etc.
+                                determine access rights of the task, will be used for auditing, etc. If owner
+                                isn't set, currently logged in user is used.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
@@ -2647,7 +2648,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
+                    <xsd:element name="executionStatus" type="tns:TaskExecutionStatusType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Execution status provides information about the task overall high-level execution state.
@@ -2888,11 +2889,12 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
+                    <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Whether the task activity is to be executed only once (single-run tasks)
-                                or periodically (recurring tasks).
+                                or periodically (recurring tasks). If nothing set explicitly, single-run
+                                task is created.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -8453,6 +8455,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
                         <a:deprecated>true</a:deprecated>
+                        <a:plannedRemoval>4.4</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14043,6 +14046,9 @@
                         trigger. This is usually approver or owner.
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.subjectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="objectRelation" minOccurs="0" maxOccurs="1" type="xsd:QName">
@@ -14052,6 +14058,9 @@
                         trigger. This is usually default relation (member).
                         If not specified then any relation is accepted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.objectRelation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeMembers" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
@@ -14062,6 +14071,9 @@
                         If set to false then the members of reference role is excluded from the scope
                         (objectRelation is not used in this case).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeMembers</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="includeReferenceRole" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
@@ -14071,6 +14083,9 @@
                         in the scope.
                         If set to false then the reference role is excluded from the scope.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleRelationObjectSpecificationType.includeReferenceRole</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -15022,12 +15037,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assignmentRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
+            <xsd:element name="assignmentHolderRelationApproach" type="tns:AssignmentRelationApproachType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Configures overall assignmentRelation approach for archetypes objects. This essentially means
-                            that is allows or disables the use of "generic" assignments for archetyped objects.
+                            Configures overall assignmentRelation approach for archetyped objects (assignment holders).
+                            This essentially means that is allows or disables the use of "generic" assignments for archetyped objects.
                             If the generic assignments are allowed (open approach), the archetyped object can be a holder
                             of any assignment that targets any assignable type with any relation
                             (Note: this is still subject to authorizations).
@@ -15036,10 +15051,18 @@
                             If this property is set to "closed" then GUI will not render that button. In that case
                             only those assignments that are explicitly allowed by assignmentRelation statements are possible.
                         </p>
+                        <p>
+                            This setting controls behavior of midPoint user interface.
+                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's the "Assignments" tab.
+                            But it will not disable similar button in the "Members" tab of the role.
+                            This setting is only about controlling uni-directional behavior of GUI.
+                            It does not constraint the entire assignment model.
+                            That will be too complex to implement (at least for now).
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.1</a:since>
-                        <a:displayName>ArchetypePolicyType.assignmentRelationApproach</a:displayName>
+                        <a:displayName>ArchetypePolicyType.assignmentHolderRelationApproach</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -15600,6 +15623,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationKind" type="tns:OperationKindType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Kind of operation (e.g. clockwork execution, mapping evaluation, repository access). To be used
+                        for easy navigation, result filtering, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.1</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -21471,10 +21506,31 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000505">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_ASYNC_UPDATE_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000506">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CLEANUP_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000507">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_REPORT_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000508">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SINGLE_BULK_ACTION_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -21485,10 +21541,31 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000520">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_CERTIFICATION_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000521">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000528">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_UTILITY_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000529">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SYSTEM_TASK"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

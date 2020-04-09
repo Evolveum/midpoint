@@ -92,7 +92,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -100,11 +100,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -123,7 +123,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
                 accContext.getConstructionDeltaSetTriple();
-        display("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
+        displayDumpable("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
@@ -151,7 +151,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -159,11 +159,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -190,7 +190,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -200,11 +200,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // THEN
         then();
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -259,7 +259,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -267,11 +267,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -337,6 +337,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertNoMinusAttributeValues(plusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
+        assertTrue("Old legal variable for projection context is not true", accContext.isLegalOld());
+        assertTrue("Legal variable for projection context is not true", accContext.isLegal());
+        assertTrue("Old assigned variable for projection context is not true", accContext.isAssignedOld());
+        assertTrue("Assigned variable for projection context is not true", accContext.isAssigned());
     }
 
     @Test
@@ -351,7 +355,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recomputeFocus();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         assertEquals("Unexpected number of assignments in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
@@ -368,7 +372,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         display("result", result);
         assertSuccess(result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -441,7 +445,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, true);
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -450,7 +454,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         context.recompute();
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 
         assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
@@ -478,7 +482,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE_ENGINEER);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -486,11 +490,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -546,7 +550,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_SET_COST_CENTER);
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -554,11 +558,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
 //        assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -629,7 +633,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 .asObjectDelta(USER_JACK_OID));
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -638,11 +642,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // THEN
         //DebugUtil.setDetailedDebugDump(true);
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
         //assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -682,7 +686,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 .asObjectDelta(USER_JACK_OID));
         context.recompute();
 
-        display("Input context", context);
+        displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
@@ -691,11 +695,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // THEN
         //DebugUtil.setDetailedDebugDump(true);
-        display("Output context", context);
+        displayDumpable("Output context", context);
         display("outbound processor result", result);
         //assertSuccess("Outbound processor failed (result)", result);
 
-        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         assertNull("Unexpected user changes", context.getFocusContext().getSecondaryDelta());
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -713,7 +717,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private <T> void assertAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
         Set<T> realValues = getAttributeValues(accountConstructions, attrName, attrSet);
-        assertEquals("Unexpected attributes", new HashSet(Arrays.asList(expectedValue)), realValues);
+        assertEquals("Unexpected attributes", new HashSet<>(Arrays.asList(expectedValue)), realValues);
     }
 
     private <T> Set<T> getAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attributeSet) {
@@ -774,12 +778,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         PrismAsserts.assertTripleNoMinus(triple);
     }
 
-    private Object getSingleValueFromDeltaSetTriple(Collection<? extends PrismPropertyValue<?>> set) {
-        Collection<?> values = getMultiValueFromDeltaSetTriple(set);
-        assertEquals(1, values.size());
-        return values.iterator().next();
-    }
-
     private <T> Collection<T> getMultiValueFromDeltaSetTriple(
             Collection<? extends PrismPropertyValue<?>> set) {
         Collection<T> vals = new ArrayList<>(set.size());
@@ -803,7 +801,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
             String description) {
         Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getZeroSet();
-        return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "zero");
+        return getAccountConstruction(description, set, "zero");
     }
 
     private Construction getPlusAccountConstruction(
@@ -815,7 +813,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
             String description) {
         Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getPlusSet();
-        return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "plus");
+        return getAccountConstruction(description, set, "plus");
     }
 
     private Construction getMinusAccountConstruction(
@@ -827,10 +825,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
             String description) {
         Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getMinusSet();
-        return getAccountConstruction(accountConstructionDeltaSetTriple, description, set, "minus");
+        return getAccountConstruction(description, set, "minus");
     }
 
-    private Construction getAccountConstruction(PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
+    private Construction getAccountConstruction(
             String description, Collection<PrismPropertyValue<Construction>> set, String setName) {
         for (PrismPropertyValue<Construction> constructionPVal : set) {
             Construction accountConstruction = constructionPVal.getValue();
@@ -846,10 +844,6 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertEquals("Expected projection " + accContext + " not legal", Boolean.TRUE, accContext.isLegal());
     }
 
-    private void assertIllegal(LensProjectionContext accContext) {
-        assertEquals("Expected projection " + accContext + " not illegal", Boolean.FALSE, accContext.isLegal());
-    }
-
     private void assertNoDecision(LensProjectionContext accContext) {
         assertNull(
                 "Projection " + accContext + " has decision "
@@ -860,5 +854,4 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     private XMLGregorianCalendar getNow() {
         return clock.currentTimeXMLGregorianCalendar();
     }
-
 }

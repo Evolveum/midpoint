@@ -7,42 +7,20 @@
 package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
-import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * <p>Identity Repository Interface.</p>
@@ -51,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *   <li>Status: public</li>
  *   <li>Stability: stable</li>
  * </ul>
- * @version 3.1.1
+ *
  * @author Radovan Semancik
  * </p><p>
  * This service provides repository for objects that are commonly found
@@ -125,23 +103,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *  <li>TODO: task coordination</li>
  * </ul>
  * </p>
+ * @version 3.1.1
  */
 public interface RepositoryService {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-    @Deprecated
-    String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
-    @Deprecated
-    String CLAIM_TASK = CLASS_NAME_WITH_DOT + "claimTask";
-    @Deprecated
-    String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
     String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
     String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
-    String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
     String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
@@ -160,7 +132,6 @@ public interface RepositoryService {
     String OP_DELETE_OBJECT = "deleteObject";
     String OP_COUNT_OBJECTS = "countObjects";
     String OP_MODIFY_OBJECT = "modifyObject";
-    String OP_LIST_RESOURCE_OBJECT_SHADOWS = "listResourceObjectShadows";
     String OP_GET_VERSION = "getVersion";
     String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
     String OP_ADVANCE_SEQUENCE = "advanceSequence";
@@ -168,31 +139,23 @@ public interface RepositoryService {
     String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
     String OP_GET_OBJECT = "getObject";
     String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
-    String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
     String OP_SEARCH_OBJECTS = "searchObjects";
     String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
     String OP_FETCH_EXT_ITEMS = "fetchExtItems";
 
     /**
      * Returns object for provided OID.
-     *
+     * <p>
      * Must fail if object with the OID does not exists.
      *
-     * @param oid
-     *            OID of the object to get
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param oid OID of the object to get
+     * @param parentResult parent OperationResult (in/out)
      * @return Object fetched from repository
-     *
-     * @throws ObjectNotFoundException
-     *             requested object does not exist
-     * @throws SchemaException
-     *             error dealing with storage schema
-     * @throws IllegalArgumentException
-     *             wrong OID format, etc.
+     * @throws ObjectNotFoundException requested object does not exist
+     * @throws SchemaException error dealing with storage schema
+     * @throws IllegalArgumentException wrong OID format, etc.
      */
-    @NotNull
-    <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+    @NotNull <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
 
@@ -203,24 +166,18 @@ public interface RepositoryService {
 
     /**
      * Returns object version for provided OID.
-     *
+     * <p>
      * Must fail if object with the OID does not exists.
-     *
+     * <p>
      * This is a supposed to be a very lightweight and cheap operation. It is used to support
      * efficient caching of expensive objects.
      *
-     * @param oid
-     *            OID of the object to get
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param oid OID of the object to get
+     * @param parentResult parent OperationResult (in/out)
      * @return Object version
-     *
-     * @throws ObjectNotFoundException
-     *             requested object does not exist
-     * @throws SchemaException
-     *             error dealing with storage schema
-     * @throws IllegalArgumentException
-     *             wrong OID format, etc.
+     * @throws ObjectNotFoundException requested object does not exist
+     * @throws SchemaException error dealing with storage schema
+     * @throws IllegalArgumentException wrong OID format, etc.
      */
     <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException;
@@ -252,22 +209,15 @@ public interface RepositoryService {
      * Note: no need for explicit type parameter here. The object parameter contains the information.
      * </p>
      *
-     * @param object
-     *            object to create
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param object object to create
+     * @param parentResult parent OperationResult (in/out)
      * @return OID assigned to the created object
-     *
-     * @throws ObjectAlreadyExistsException
-     *             object with specified identifiers already exists, cannot add
-     * @throws SchemaException
-     *             error dealing with storage schema, e.g. schema violation
-     * @throws IllegalArgumentException
-     *             wrong OID format, etc.
+     * @throws ObjectAlreadyExistsException object with specified identifiers already exists, cannot add
+     * @throws SchemaException error dealing with storage schema, e.g. schema violation
+     * @throws IllegalArgumentException wrong OID format, etc.
      */
     <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
             throws ObjectAlreadyExistsException, SchemaException;
-
 
     /**
      * <p>Search for objects in the repository.</p>
@@ -284,21 +234,15 @@ public interface RepositoryService {
      * specified in the query.
      * </p>
      *
-     * @param query
-     *            search query
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param query search query
+     * @param parentResult parent OperationResult (in/out)
      * @return all objects of specified type that match search criteria (subject
-     *         to paging)
-     *
-     * @throws IllegalArgumentException
-     *             wrong object type
-     * @throws SchemaException
-     *             unknown property used in search query
+     * to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
 
-    @NotNull
-    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+    @NotNull <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException;
 
@@ -325,46 +269,38 @@ public interface RepositoryService {
      * specified in the query.
      * </p>
      *
-     * @param query
-     *            search query
-     * @param handler
-     *            result handler
-     * @param strictlySequential
-     *               takes care not to skip any object nor to process objects more than once; see below
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param query search query
+     * @param handler result handler
+     * @param strictlySequential takes care not to skip any object nor to process objects more than once; see below
+     * @param parentResult parent OperationResult (in/out)
      * @return all objects of specified type that match search criteria (subject to paging)
-     *
-     * @throws IllegalArgumentException
-     *             wrong object type
-     * @throws SchemaException
-     *             unknown property used in search query
-     *
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
+     * <p>
      * A note related to iteration method:
-     *
+     * <p>
      * There are three iteration methods (see IterationMethodType):
      * - SINGLE_TRANSACTION: Fetches objects in single DB transaction. Not supported for all DBMSs.
      * - SIMPLE_PAGING: Uses the "simple paging" method: takes objects (e.g.) numbered 0 to 49, then 50 to 99,
-     *         then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
-     *         during operation (e.g. by inserting/deleting some of them) then some objects can be
-     *         processed multiple times, where others can be skipped.
+     * then 100 to 149, and so on. The disadvantage is that if the order of objects is changed
+     * during operation (e.g. by inserting/deleting some of them) then some objects can be
+     * processed multiple times, where others can be skipped.
      * - STRICTLY_SEQUENTIAL_PAGING: Uses the "strictly sequential paging" method: sorting returned objects by OID. This
-     *         is (almost) reliable in such a way that no object would be skipped. However, custom
-     *         paging cannot be used in this mode.
-     *
+     * is (almost) reliable in such a way that no object would be skipped. However, custom
+     * paging cannot be used in this mode.
+     * <p>
      * If GetOperationOptions.iterationMethod is specified, it is used without any further considerations.
      * Otherwise, the repository configuration determines whether to use SINGLE_TRANSACTION or a paging. In the latter case,
      * strictlySequential flag determines between SIMPLE_PAGING (if false) and STRICTLY_SEQUENTIAL_PAGING (if true).
-     *
+     * <p>
      * If explicit GetOperationOptions.iterationMethod is not provided, and paging is prescribed, and strictlySequential flag
      * is true and client-provided paging conflicts with the paging used by the iteration method, a warning is issued, and
      * iteration method is switched to SIMPLE_PAGING.
-     *
+     * <p>
      * Sources of conflicts:
-     *  - ordering is specified
-     *  - offset is specified
+     * - ordering is specified
+     * - offset is specified
      * (limit is not a problem)
-     *
      */
 
     <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
@@ -380,25 +316,16 @@ public interface RepositoryService {
      * specified in the query.
      * </p>
      *
-     * @param query
-     *            search query
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param query search query
+     * @param parentResult parent OperationResult (in/out)
      * @return count of objects of specified type that match search criteria (subject
-     *         to paging)
-     *
-     * @throws IllegalArgumentException
-     *             wrong object type
-     * @throws SchemaException
-     *             unknown property used in search query
+     * to paging)
+     * @throws IllegalArgumentException wrong object type
+     * @throws SchemaException unknown property used in search query
      */
     <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) throws SchemaException;
-
-    @Deprecated // use the version with options instead
-    <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-            throws SchemaException;
 
     boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 
@@ -421,34 +348,25 @@ public interface RepositoryService {
      * underlying schema of the storage system or the schema enforced by the
      * implementation.
      * </p>
-     *
+     * <p>
      * TODO: optimistic locking
-     *
+     * <p>
      * Note: the precondition is checked only if actual modification is going to take place
      * (not e.g. if the list of modifications is empty).
      *
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     *
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws SchemaException
-     *             resulting object would violate the schema
-     * @throws ObjectAlreadyExistsException
-     *             if resulting object would have name which already exists in another object of the same type
-     * @throws IllegalArgumentException
-     *             wrong OID format, described change is not applicable
+     * @param parentResult parent OperationResult (in/out)
+     * @throws ObjectNotFoundException specified object does not exist
+     * @throws SchemaException resulting object would violate the schema
+     * @throws ObjectAlreadyExistsException if resulting object would have name which already exists in another object of the same type
+     * @throws IllegalArgumentException wrong OID format, described change is not applicable
      */
-    @NotNull
-    <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-    @NotNull
-    <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-    @NotNull
-    <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    @NotNull <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
@@ -458,51 +376,12 @@ public interface RepositoryService {
      * Must fail if object with specified OID does not exists. Should be atomic.
      * </p>
      *
-     * @param oid
-     *            OID of object to delete
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     *
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws IllegalArgumentException
-     *             wrong OID format, described change is not applicable
+     * @param oid OID of object to delete
+     * @param parentResult parent OperationResult (in/out)
+     * @throws ObjectNotFoundException specified object does not exist
+     * @throws IllegalArgumentException wrong OID format, described change is not applicable
      */
-    @NotNull
-    <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /**
-     * <p>Returns the User object representing owner of specified account (account
-     * shadow).</p>
-     * <p>
-     * May return null if there is no owner specified for the account.
-     * </p><p>
-     * May only be called with OID of AccountShadow object.
-     * </p><p>
-     * Implements the backward "owns" association between account shadow and
-     * user. Forward association is implemented by property "account" of user
-     * object.
-     * </p><p>
-     * This is a "list" operation even though it may return at most one owner.
-     * However the operation implies searching the repository for an owner,
-     * which may be less efficient that following a direct association. Hence it
-     * is called "list" to indicate that there may be non-negligible overhead.
-     * </p>
-     *
-     * @param accountOid
-     *            OID of account shadow
-     * @param parentResult
-     *            parentResult parent OperationResult (in/out)
-     * @return User object representing owner of specified account
-     *
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws IllegalArgumentException
-     *             wrong OID format
-     */
-    @Deprecated
-    PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
-            throws ObjectNotFoundException;
+    @NotNull <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
     /**
      * <p>Returns the object representing owner of specified shadow.</p>
@@ -527,51 +406,14 @@ public interface RepositoryService {
      * will not be able to do proper cleanup.
      * </p>
      *
-     * @param shadowOid
-     *            OID of shadow
-     * @param parentResult
-     *            parentResult parent OperationResult (in/out)
+     * @param shadowOid OID of shadow
+     * @param parentResult parentResult parent OperationResult (in/out)
      * @return Object representing owner of specified account (subclass of FocusType)
-     *
-     * @throws IllegalArgumentException
-     *             wrong OID format
+     * @throws IllegalArgumentException wrong OID format
      */
     <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
 
     /**
-     * <p>Search for resource object shadows of a specified type that belong to the
-     * specified resource.</p>
-     * <p>
-     * Returns a list of such object shadows or empty list
-     * if nothing was found.
-     * </p><p>
-     * Implements the backward "has" association between resource and resource
-     * object shadows. Forward association is implemented by property "resource"
-     * of resource object shadow.
-     * </p><p>
-     * May only be called with OID of Resource object.
-     * </p>
-     *
-     * @param resourceOid
-     *            OID of resource definition (ResourceType)
-     * @param parentResult
-     *            parentResult parent OperationResult (in/out)
-     * @return resource object shadows of a specified type from specified
-     *         resource
-     *
-     * @throws ObjectNotFoundException
-     *             specified object does not exist
-     * @throws SchemaException
-     *             found object is not type of {@link ShadowType}
-     * @throws IllegalArgumentException
-     *             wrong OID format
-     */
-    <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
-            Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException;
-
-    /**
-     *
      * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
      * the same sequence at the same time then different values will be returned.
      *
@@ -584,7 +426,6 @@ public interface RepositoryService {
     long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
-     *
      * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
      * unused values is full. In such a case the values will be ignored silently and no error is indicated.
      *
@@ -600,14 +441,14 @@ public interface RepositoryService {
     RepositoryDiag getRepositoryDiag();
 
     /**
-     * Runs a short, non-descructive repository self test.
+     * Runs a short, non-destructive repository self test.
      * This methods should never throw a (checked) exception. All the results
      * should be recorded under the provided result structure (including fatal errors).
-     *
+     * <p>
      * This should implement ONLY self-tests that are IMPLEMENTATION-SPECIFIC. It must not
      * implement self-tests that are generic and applies to all repository implementations.
      * Such self-tests must be implemented in higher layers.
-     *
+     * <p>
      * If the repository has no self-tests then the method should return immediately
      * without changing the result structure. It must not throw an exception in this case.
      */
@@ -617,14 +458,14 @@ public interface RepositoryService {
      * Checks a closure for consistency, repairing any problems found.
      * This methods should never throw a (checked) exception. All the results
      * should be in the returned result structure (including fatal errors).
-     *
+     * <p>
      * The current implementation expects closure to be of reasonable size - so
      * it could be fetched into main memory as well as recomputed online
      * (perhaps up to ~250K entries). In future, this method will be reimplemented.
-     *
+     * <p>
      * BEWARE, this method locks out the M_ORG_CLOSURE table, so org-related operations
      * would wait until it completes.
-     *
+     * <p>
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
     void testOrgClosureConsistency(boolean repairIfNecessary, OperationResult testResult);

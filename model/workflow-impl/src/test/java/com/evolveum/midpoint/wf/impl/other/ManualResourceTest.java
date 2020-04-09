@@ -183,8 +183,8 @@ public class ManualResourceTest extends AbstractWfTest {
 
         assertAccountWillAfterAssign(USER_WILL_FULL_NAME);
 
-        display("dummy audit", dummyAuditService);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy audit", dummyAuditService);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     /**
@@ -237,8 +237,8 @@ public class ManualResourceTest extends AbstractWfTest {
 
         assertWillAfterCreateCaseClosed();
 
-        display("dummy audit", dummyAuditService);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy audit", dummyAuditService);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     private void assertAccountWillAfterAssign(String expectedFullName) throws Exception {

@@ -196,7 +196,6 @@ public final class PrismContextImpl implements PrismContext {
         return extraValidation;
     }
 
-    @Override
     public XmlEntityResolver getEntityResolver() {
         return schemaRegistry.getEntityResolver();
     }
@@ -240,7 +239,6 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @NotNull
-    @Override
     public JaxbDomHack getJaxbDomHack() {
         return jaxbDomHack;
     }
@@ -355,7 +353,6 @@ public final class PrismContextImpl implements PrismContext {
     }
 
     @NotNull
-    @Deprecated
     @Override
     public PrismParserNoIO parserFor(@NotNull Element data) {
         return new PrismParserImplNoIO(new ParserElementSource(data), null, getDefaultParsingContext(), this, null, null, null, null);
@@ -434,12 +431,6 @@ public final class PrismContextImpl implements PrismContext {
         getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
     }
     //endregion
-
-    //region Serializing objects, containers, atomic values (properties)
-    @Override
-    public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
-        return serializerFor(language).serialize(object);
-    }
 
     @NotNull
     @Override

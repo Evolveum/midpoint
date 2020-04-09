@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -1403,6 +1404,49 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
                 return object != null && object.equals(objectToAdd);
             default:
                 throw new AssertionError("Unknown change type: " + changeType);
+        }
+    }
+
+    @Experimental // todo review and write some tests
+    @Override
+    public void removeOperationalItems() {
+        switch (changeType) {
+            case ADD:
+                objectToAdd.getValue().removeOperationalItems();
+                return;
+            case MODIFY:
+                Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+                while (iterator.hasNext()) {
+                    ItemDelta<?, ?> itemDelta = iterator.next();
+                    ItemDefinition<?> definition = itemDelta.getDefinition();
+                    if (definition != null && definition.isOperational()) {
+                        iterator.remove();
+                    } else {
+                        emptyIfNull(itemDelta.getValuesToAdd()).forEach(this::removeOperationalItems);
+                        emptyIfNull(itemDelta.getValuesToDelete()).forEach(this::removeOperationalItems);
+                        emptyIfNull(itemDelta.getValuesToReplace()).forEach(this::removeOperationalItems);
+                        emptyIfNull(itemDelta.getEstimatedOldValues()).forEach(this::removeOperationalItems);
+                    }
+                }
+                return;
+            case DELETE:
+                // nothing to do here
+        }
+    }
+
+    private void removeOperationalItems(PrismValue value) {
+        if (value instanceof PrismContainerValue) {
+            ((PrismContainerValue<?>) value).removeOperationalItems();
+        }
+    }
+
+    @Experimental // todo review and write some tests
+    @Override
+    public void removeEstimatedOldValues() {
+        if (changeType == ChangeType.MODIFY) {
+            for (ItemDelta<?, ?> modification : modifications) {
+                modification.setEstimatedOldValues(null);
+            }
         }
     }
 }

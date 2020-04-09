@@ -75,7 +75,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
             TaskQuartzImpl masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             List<Task> partitions = masterTask.listSubtasks(result);
 
-            displayValue("master task", masterTask);
+            displayDumpable("master task", masterTask);
             displayValue("partition tasks", partitions);
 
             assertEquals("Wrong # of partitions", 3, partitions.size());
@@ -93,7 +93,7 @@ public class TestPartitioning extends AbstractTaskManagerTest {
 
             masterTask = taskManager.getTaskPlain(masterTaskOid, result);
             partitions = masterTask.listSubtasks(result);
-            displayValue("master task (after 2nd run)", masterTask);
+            displayDumpable("master task (after 2nd run)", masterTask);
             displayValue("partition tasks (after 2nd run)", partitions);
 
             assertEquals("Wrong # of handler executions", 6, singleHandler1.getExecutions());

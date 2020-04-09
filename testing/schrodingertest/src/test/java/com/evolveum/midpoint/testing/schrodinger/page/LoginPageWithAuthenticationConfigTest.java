@@ -41,40 +41,6 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 
     private static final File FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/flexible-authentication-policy-secururity-question-reset-pass.xml");
     private static final File FLEXIBLE_AUTHENTICATION_MAIL_NONCE_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/flexible-authentication-policy-nonce-reset-pass.xml");
-    private static final File MAIL_NONCE_VALUE_POLICY = new File("src/test/resources/configuration/objects/valuepolicies/mail-nonce.xml");
-    private static final File USER_WITHOUT_SUPERUSER = new File("src/test/resources/configuration/objects/users/user-without-superuser.xml");
-    private static final File SYSTEM_CONFIG_WITH_NOTIFICATION = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-notification.xml");
-    private static final File CREATE_NAME_OBJECT_TEMPLATE = new File("src/test/resources/configuration/objects/objecttemplate/create-name-after-self-reg.xml");
-    private static final File NOTIFICATION_FILE = new File("./target/notification.txt");
-
-    private static final String NAME_OF_ENABLED_USER = "enabled_user";
-    private static final String MAIL_OF_ENABLED_USER = "enabled_user@evolveum.com";
-
-    @BeforeClass
-    @Override
-    public void beforeClass() throws IOException{
-        super.beforeClass();
-        importObject(MAIL_NONCE_VALUE_POLICY, true);
-        importObject(FLEXIBLE_AUTHENTICATION_MAIL_NONCE_RESET_PASS_SECURITY_POLICY, true);
-        importObject(USER_WITHOUT_SUPERUSER, true);
-        importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
-        importObject(SYSTEM_CONFIG_WITH_NOTIFICATION, true);
-        basicPage.infrastructure();
-        SystemPage systemPage = new SystemPage();
-        PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
-        infrastructureForm.showEmptyAttributes("Infrastructure");
-        infrastructureForm.addAttributeValue("publicHttpUrlPattern", getConfiguration().getBaseUrl());
-        File notificationFile = NOTIFICATION_FILE;
-        try {
-            notificationFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        NotificationsTab notificationTab = systemPage.notificationsTab();
-        notificationTab.setRedirectToFile(notificationFile.getAbsolutePath());
-        systemPage.save();
-        Assert.assertTrue(systemPage.feedback().isSuccess());
-    }
 
     @Test
     public void failWholeAuthenticationFlow() {
@@ -111,7 +77,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void test030changePassowordMailNonce() throws IOException, InterruptedException {
+    public void test030resetPassowordMailNonce() throws IOException, InterruptedException {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         MailNoncePage mailNonce = (MailNoncePage) login.forgotPassword();
@@ -126,7 +92,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void test031changePassowordSecurityQuestion() {
+    public void test031resetPassowordSecurityQuestion() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
@@ -164,11 +130,8 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         Assert.assertTrue(actualUrl.endsWith("/registration/result"));
     }
 
-    private String readLastNotification() throws IOException {
-        String separator = "============================================";
-        byte[] encoded = Files.readAllBytes(Paths.get(NOTIFICATION_FILE.getAbsolutePath()));
-        String notifications = new String(encoded, Charset.defaultCharset());
-        return notifications.substring(notifications.lastIndexOf(separator) + separator.length(), notifications.length()-1);
+    @Override
+    protected File getSecurityPolicyMailNonceResetPass() {
+        return FLEXIBLE_AUTHENTICATION_MAIL_NONCE_RESET_PASS_SECURITY_POLICY;
     }
-
 }

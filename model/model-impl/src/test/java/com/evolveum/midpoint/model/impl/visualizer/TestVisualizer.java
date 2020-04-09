@@ -73,7 +73,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -110,7 +110,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -129,7 +129,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -158,7 +158,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -208,7 +208,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -234,7 +234,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -296,7 +296,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
         display("jack with assignment", getUser(USER_JACK_OID));
 
         // TODO some asserts
@@ -364,7 +364,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -383,7 +383,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -402,7 +402,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }
@@ -421,7 +421,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
         // THEN
         then();
-        display("scene", scene);
+        displayDumpable("scene", scene);
 
         // TODO some asserts
     }

@@ -7,7 +7,11 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
@@ -21,6 +25,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import javax.xml.namespace.QName;
 
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
@@ -79,6 +85,11 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 //        super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
 //    }
 
+    @Override
+    protected QName getPredefinedRelation() {
+        return SchemaConstants.ORG_CONSENT;
+    }
+
     protected ObjectQuery createObjectQuery() {
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
                 .block()
@@ -86,5 +97,10 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
                 .refRelation(SchemaConstants.ORG_CONSENT)
                 .endBlock()
                 .build();
+    }
+
+    @Override
+    protected List<ObjectTypes> getObjectTypesList() {
+        return Arrays.asList(ObjectTypes.ROLE, ObjectTypes.ORG, ObjectTypes.SERVICE);
     }
 }

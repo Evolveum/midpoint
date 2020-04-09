@@ -10,6 +10,8 @@ import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,9 +41,15 @@ public class TestThresholdsReconSimulate extends TestThresholds {
     }
 
     @Override
+    protected int getWorkerThreads() {
+        return 0;
+    }
+
+    @Override
     protected int getProcessedUsers() {
         return 0;
     }
+
 
     @Override
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) {

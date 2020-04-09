@@ -37,8 +37,6 @@
     <logger name="com.gargoylesoftware.htmlunit.html.HtmlScript" level="OFF"/>
 
     <logger name="com.evolveum.midpoint.schrodinger" level="DEBUG"/>
-<logger name="com.evolveum.midpoint.testing.schrodinger" level="DEBUG"/>
-    <logger name="PROFILING" level="TRACE" />
-    <logger name="com.evolveum.polygon.connector.csv" level="TRACE" />
+    <logger name="com.evolveum.midpoint.testing.schrodinger" level="DEBUG"/>
 </configuration>
 

@@ -94,18 +94,11 @@ public class ItemType implements Serializable, JaxbVisitable {
                 '}';
     }
 
-    public static ItemType fromItem(Item<?, ?> item) {
+    public static ItemType fromItem(Item item, PrismContext prismContext) {
         if (item != null) {
             ItemType rv = new ItemType();
             rv.setName(item.getElementName());
-            if (item instanceof PrismContainer && (item.getDefinition() == null || ((PrismContainerDefinition) item.getDefinition()).getCompileTimeClass() == null)) {
-                // a special case -- item.getRealValues() does not work here (TODO generalize this)
-                for (PrismContainerValue<?> value : ((PrismContainer<?>) item).getValues()) {
-                    rv.value.add(new RawType(value, null, item.getPrismContext()));
-                }
-            } else {
-                rv.value.addAll(item.getRealValues());
-            }
+            rv.value.addAll(item.getRealValuesOrRawTypes(prismContext));
             return rv;
         } else {
             return null;

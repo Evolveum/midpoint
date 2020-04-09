@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -423,7 +425,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 forceDeleteDelta.revive(getPrismContext());
 
                 if (forceDeleteDelta != null && !forceDeleteDelta.isEmpty()) {
-                    getModelService().executeChanges(WebComponentUtil.createDeltaCollection(forceDeleteDelta),
+                    getModelService().executeChanges(MiscUtil.createCollection(forceDeleteDelta),
                             options, task, result);
                 }
             } catch (Exception ex) {

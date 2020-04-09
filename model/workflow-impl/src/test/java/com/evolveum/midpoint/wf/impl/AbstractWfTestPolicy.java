@@ -17,10 +17,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,7 +142,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         OperationResult result = opTask.getResult();
 
         LensContext<F> modelContext = testDetails.createModelContext(result);
-        display("Model context at test start", modelContext);
+        displayDumpable("Model context at test start", modelContext);
 
         // this has problems with deleting assignments by ID
         //assertFocusModificationSanity(modelContext);
@@ -162,7 +159,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         // THEN
 
-        display("Model context after first clockwork.run", modelContext);
+        displayDumpable("Model context after first clockwork.run", modelContext);
         assertEquals("Unexpected state of the context", ModelState.PRIMARY, modelContext.getState());
         assertEquals("Wrong mode after clockwork.run in " + modelContext.getState(), HookOperationMode.BACKGROUND, mode);
         opTask.refresh(result);
@@ -184,7 +181,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
         List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
 
-        display("changes by state after first clockwork run", workflowManager
+        displayDumpable("changes by state after first clockwork run", workflowManager
                 .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterFirstClockworkRun(rootCase, case0, subcases, workItems, opTask, result);
@@ -193,7 +190,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
             if (case0 != null) {
                 testHelper.waitForCaseClose(case0, 20000);
             }
-            display("changes by state after case0 finishes", workflowManager
+            displayDumpable("changes by state after case0 finishes", workflowManager
                     .getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
             testDetails.afterCase0Finishes(rootCase, opTask, result);
         }
@@ -272,7 +269,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         subcases = miscHelper.getSubcases(rootCaseAfter, result);
         WfTestHelper.findAndRemoveCase0(subcases);
 
-        display("changes by state after root case finishes", workflowManager
+        displayDumpable("changes by state after root case finishes", workflowManager
                 .getChangesByState(rootCaseAfter, modelInteractionService, prismContext, opTask, result));
 
         testDetails.afterRootCaseFinishes(rootCaseAfter, subcases, opTask, result);
@@ -280,8 +277,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
         notificationManager.setDisabled(true);
 
         // Check audit
-        display("Audit", dummyAuditService);
-        display("Output context", modelContext);
+        displayDumpable("Audit", dummyAuditService);
+        displayDumpable("Output context", modelContext);
         return result;
     }
 
@@ -466,6 +463,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                         if (subcase.getApprovalContext() != null) {
                             OperationResult opResult = new OperationResult("dummy");
                             ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subcase.getOid(), opTask, opResult);
+                            modelObjectResolver.resolveAllReferences(Collections.singleton(info.asPrismContainerValue()), opTask, result); // MID-6171
                             display("Execution info for " + subcase, info);
                             opResult.computeStatus();
                             assertSuccess("Unexpected problem when looking at getApprovalSchemaExecutionInformation result", opResult);

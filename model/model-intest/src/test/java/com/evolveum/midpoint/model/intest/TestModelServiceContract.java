@@ -237,12 +237,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check account in dummy resource
         DummyAccount dummyAccount = assertDefaultDummyAccount("jack", "Jack Sparrow", true);
-        display("dummyAccount after", dummyAccount);
+        displayDumpable("dummyAccount after", dummyAccount);
 
         assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -291,11 +291,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // THEN
         display("Account", account);
-        display("Account def", account.getDefinition());
+        displayDumpable("Account def", account.getDefinition());
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
         PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowModel(account, accountJackOid, "jack", "Jack Sparrow");
 
         assertSuccess("getObject result", result);
@@ -319,7 +319,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ResourceAttribute<String> fullNameAttr = attributesContainer.findAttribute(dummyResourceCtl.getAttributeFullnameQName());
         PrismAsserts.assertPropertyValue(fullNameAttr, ACCOUNT_JACK_DUMMY_FULLNAME);
         ResourceAttributeDefinition<String> fullNameAttrDef = fullNameAttr.getDefinition();
-        display("attribute fullname definition", fullNameAttrDef);
+        displayDumpable("attribute fullname definition", fullNameAttrDef);
         PrismAsserts.assertDefinition(fullNameAttrDef, dummyResourceCtl.getAttributeFullnameQName(),
                 DOMUtil.XSD_STRING, 1, 1);
         // MID-3144
@@ -345,11 +345,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
 
         display("Account", account);
-        display("Account def", account.getDefinition());
+        displayDumpable("Account def", account.getDefinition());
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowRepo(account, accountJackOid, "jack");
 
         assertSuccess("getObject result", result);
@@ -371,11 +371,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
 
         display("Account", account);
-        display("Account def", account.getDefinition());
+        displayDumpable("Account def", account.getDefinition());
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyAccountShadowRepo(account, accountJackOid, "jack");
 
         assertSuccess("getObject result", result);
@@ -477,7 +477,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -525,7 +525,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -699,7 +699,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -775,7 +775,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(null, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -842,7 +842,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -908,7 +908,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -964,7 +964,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1083,7 +1083,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1165,7 +1165,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userJack);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1239,7 +1239,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 "Queen Anne's Revenge");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1303,7 +1303,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 "Queen Anne's Revenge");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
         dummyAuditService.assertSimpleRecordSanity();
 
@@ -1354,7 +1354,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1432,7 +1432,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1517,7 +1517,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1596,7 +1596,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1673,7 +1673,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1734,7 +1734,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1798,7 +1798,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyProvisioningScriptsNone();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -1838,7 +1838,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
                 .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
 
         dummyAuditService.clear();
         dummyTransport.clearMessages();
@@ -1876,7 +1876,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1941,7 +1941,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyProvisioningScriptsNone();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2005,7 +2005,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -2045,7 +2045,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
 
         try {
 
@@ -2076,7 +2076,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2102,7 +2102,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         accountRefVal.setObject(account);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
         userDelta.addModification(accountDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(userDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
@@ -2144,7 +2144,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2200,7 +2200,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -2273,7 +2273,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userJack, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2395,7 +2395,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userJack, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2448,7 +2448,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userAfter);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2516,7 +2516,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userAfter);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2567,7 +2567,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         // This should fail even before the request record is created
         dummyAuditService.assertRecords(0);
 
@@ -2612,7 +2612,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userAfter);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2650,7 +2650,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
                 PrismTestUtil.createPolyString("Marvelous Captain Jack Sparrow"));
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(objectDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(objectDelta);
 
         // WHEN
         modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
@@ -2680,7 +2680,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2729,7 +2729,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsDelete();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2787,7 +2787,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
 
         assertEncryptedUserPassword(userBlackbeard, "QueenAnne");
-        assertPasswordMetadata(userBlackbeard, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
+        assertPasswordMetadata(userBlackbeard, CredentialsType.F_PASSWORD, true, startTime, endTime, USER_ADMINISTRATOR_OID, "http://pirates.net/avast");
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid,
@@ -2808,7 +2808,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userBlackbeard, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -2891,7 +2891,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsAdd(userMorgan, accountModel, getDummyResourceType());
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -2958,7 +2958,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyScriptsModify(userMorgan);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -3026,7 +3026,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -3066,7 +3066,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNoProvisioningScripts();
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -3127,7 +3127,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, USER_JACK_FULL_NAME, true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -3192,7 +3192,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -3322,7 +3322,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     private void assertResultSerialization(OperationResult result) throws SchemaException {
         OperationResultType resultType = result.createOperationResultType();
-        String serialized = prismContext.serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+        String serialized = prismContext.xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
         displayValue("OperationResultType serialized", serialized);
     }
 

@@ -87,7 +87,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     /*
@@ -166,7 +166,7 @@ jack->CTO                   none (A) -> A
         assertPercentCompleteCurrentIteration(campaign, 83, 83, 0);
         assertPercentCompleteAll(campaign, 83, 83, 0);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -245,7 +245,7 @@ jack->CTO                   none (A) -> A
         assertPercentCompleteCurrentIteration(campaignOid, 100, 100, 100);
         assertPercentCompleteAll(campaignOid, 100, 100, 100);
         assertCasesCount(campaignOid, 6);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -316,7 +316,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertPercentCompleteAll(campaign, 17, 17, 17);
         assertCasesCount(campaignOid, 6);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -335,7 +335,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(0, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -445,7 +445,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(4, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(0, stat.getMarkedAsRevokeAndRemedied());
@@ -495,7 +495,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         //  - work items: 1/1 + 4/5 = 5/6 = 83%
         assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
         assertPercentCompleteAll(campaign, 83, 83, 83);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -569,7 +569,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertPercentCompleteCurrentIteration(campaign, 17, 17, 36);
         assertPercentCompleteAll(campaign, 17, 17, 36);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -673,7 +673,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
         assertPercentCompleteAll(campaign, 17, 33, 50);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -736,7 +736,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
         assertPercentCompleteAll(campaign, 17, 33, 50);
 
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -809,7 +809,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         //  - work items: 1/1 + 4/5 + 2/8 + 0/3 = 7/17 = 41%
         assertPercentCompleteCurrentIteration(campaign, 17, 17, 41);
         assertPercentCompleteAll(campaign, 17, 17, 41);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -976,7 +976,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
         assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
         assertPercentCompleteAll(campaign, 17, 33, 53);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
     @Test
@@ -1048,7 +1048,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 //        AccessCertificationCampaignType campaignWithCases = getCampaignWithCases(campaignOid);
 //        display("campaignWithCases", campaignWithCases);
 
-        display("statistics", stat.asPrismContainerValue());
+        displayDumpable("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
         assertEquals(1, stat.getMarkedAsRevokeAndRemedied());
@@ -1132,7 +1132,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         //    - 2 cases are decided (33%)
         // - work items are all from iteration 1: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
         assertPercentCompleteAll(campaign, 17, 33, 53);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 
 /*
@@ -1251,6 +1251,6 @@ jack->CTO                                       "A" from iter 1
         assertPercentCompleteAll(campaign, 17, 33, 53);
 
         assertCasesCount(campaignOid, 6);
-        display("dummy transport", dummyTransport);
+        displayDumpable("dummy transport", dummyTransport);
     }
 }

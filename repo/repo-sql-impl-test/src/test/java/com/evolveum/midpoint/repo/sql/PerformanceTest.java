@@ -243,7 +243,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     private void writeObject(ObjectType obj, Writer writer) throws IOException, SchemaException {
         PrismObject prism = obj.asPrismObject();
         prismContext.adopt(prism);
-        writer.write(prismContext.serializerFor(PrismContext.LANG_XML).serialize(prism));
+        writer.write(prismContext.xmlSerializer().serialize(prism));
         writer.write('\n');
     }
 

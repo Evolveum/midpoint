@@ -469,21 +469,20 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
     @Override
     public void accept(JaxbVisitor visitor) {
-        visitor.visit(this);
-        if (isParsed()) {
-            Object realValue = parsed.getRealValue();
-            if (realValue instanceof JaxbVisitable) {
-                ((JaxbVisitable) realValue).accept(visitor);
-            }
-        } else if (explicitTypeName != null) {
+        Object value;
+        if (isParsed() || explicitTypeName != null) {
+            // (Potentially) parsing the value before visiting it.
             try {
-                Object value = getValue(true);
-                if (value instanceof JaxbVisitable) {
-                    ((JaxbVisitable) value).accept(visitor);
-                }
+                value = getValue(true);
             } catch (SchemaException e) {
                 throw new TunnelException(e);
             }
+        } else {
+            value = null;
+        }
+        visitor.visit(this);
+        if (value instanceof JaxbVisitable) {
+            ((JaxbVisitable) value).accept(visitor);
         }
     }
 }

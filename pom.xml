@@ -888,12 +888,12 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.3</version>
+                <version>2.4</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.0-M3</version>
+                <version>3.0</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>
@@ -905,7 +905,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-powershell</artifactId>
-                <version>1.0-M1</version>
+                <version>1.0</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -1735,9 +1735,21 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- We don't want anything here, ideally... -->
+                                <!-- We don't want anything here, except for test support... -->
+                                <ignoredUnusedDeclaredDependency>org.assertj:assertj-core</ignoredUnusedDeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
+                                <!--
+                                TODO: Experimental proposal for midpoint packages, but if there is no disagreement, just delete this todo in 2021 :-)
+                                Anything from midPoint is in one version, no conflict should occur and there is no real
+                                need to declare transitive dependencies (e.g. *-impl implying *-api, etc.).
+                                -->
+                                <ignoredUsedUndeclaredDependency>com.evolveum.midpoint.*:*</ignoredUsedUndeclaredDependency>
+
+                                <!-- Testing dependencies are not troubling us from. -->
+                                <ignoredUsedUndeclaredDependency>org.testng:testng</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.assertj:assertj-core</ignoredUsedUndeclaredDependency>
+
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>

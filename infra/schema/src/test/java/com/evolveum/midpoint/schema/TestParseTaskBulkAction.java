@@ -78,7 +78,7 @@ public class TestParseTaskBulkAction extends AbstractSchemaTest {
 
         // SERIALIZE
 
-        String serializedTask = prismContext.serializeObjectToString(task, PrismContext.LANG_XML);
+        String serializedTask = prismContext.xmlSerializer().serialize(task);
 
         System.out.println("serialized task:");
         System.out.println(serializedTask);
@@ -125,7 +125,7 @@ public class TestParseTaskBulkAction extends AbstractSchemaTest {
         assertPropertyValue(task, "taskIdentifier", "44444444-4444-4444-4444-000000001111");
         assertPropertyDefinition(task, "taskIdentifier", DOMUtil.XSD_STRING, 0, 1);
 
-        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 1, 1);
+        assertPropertyDefinition(task, "executionStatus", JAXBUtil.getTypeQName(TaskExecutionStatusType.class), 0, 1);
         PrismProperty<TaskExecutionStatusType> executionStatusProperty = task.findProperty(TaskType.F_EXECUTION_STATUS);
         PrismPropertyValue<TaskExecutionStatusType> executionStatusValue = executionStatusProperty.getValue();
         TaskExecutionStatusType executionStatus = executionStatusValue.getValue();

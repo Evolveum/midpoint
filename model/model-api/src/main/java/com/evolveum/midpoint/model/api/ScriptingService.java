@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -21,32 +20,12 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-
 /**
  * Interface of the Model subsystem that provides scripting (bulk actions) operations.
  *
  * @author mederly
  */
 public interface ScriptingService {
-
-    /**
-     * Asynchronously executes simple scripting expressions, consisting of one search command and one action.
-     *
-     * @param objectType Object type to search (e.g. c:UserType)
-     * @param filter Filter to be applied (ObjectFilter)
-     * @param actionName Action to be executed on objects found (e.g. "disable", "delete", "recompute", etc).
-     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
-     *             (1) transient, (2) without any handler. This method puts the task into background,
-     *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
-     * @param parentResult
-     * @throws SchemaException
-     *
-     * TODO consider removing this method (it was meant as a simplified version of the method below)
-     */
-    @Deprecated
-    void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task,
-            OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Asynchronously executes any scripting expression.

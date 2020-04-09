@@ -24,7 +24,6 @@ public class ProcessChangeRequest {
     @NotNull private final Change change;
     private final ProvisioningContext globalContext;
     private final boolean simulate;
-    @NotNull private final OperationResult parentResult;
     private boolean success;
 
     /**
@@ -32,13 +31,11 @@ public class ProcessChangeRequest {
      */
     private volatile boolean done;
 
-    public ProcessChangeRequest(@NotNull Change change, ProvisioningContext globalContext, boolean simulate,
-            @NotNull OperationResult parentResult) {
+    public ProcessChangeRequest(@NotNull Change change, ProvisioningContext globalContext, boolean simulate) {
         Validate.notNull(change, "change");
         this.change = change;
         this.globalContext = globalContext;
         this.simulate = simulate;
-        this.parentResult = parentResult;
     }
 
     @NotNull
@@ -91,14 +88,9 @@ public class ProcessChangeRequest {
      *
      * @param workerTask Task in which this request was executed.
      * @param coordinatorTask Coordinator task. Might be null.
-     * @param result Operation result specific to the execution of this request (i.e. not the parentResult here!)
+     * @param result Operation result specific to the execution of this request
      */
     public void onCompletion(@NotNull Task workerTask, @Nullable Task coordinatorTask, @NotNull OperationResult result) {
-    }
-
-    @NotNull
-    public OperationResult getParentResult() {
-        return parentResult;
     }
 
     @Override

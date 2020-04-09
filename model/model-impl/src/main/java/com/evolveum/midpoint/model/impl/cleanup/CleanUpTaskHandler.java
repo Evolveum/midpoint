@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -195,6 +196,11 @@ public class CleanUpTaskHandler implements TaskHandler {
 
     @Override
     public List<String> getCategoryNames() {
-        return Arrays.asList(TaskCategory.UTIL, TaskCategory.SYSTEM);
+        return Collections.singletonList(TaskCategory.CLEANUP);
+    }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value();
     }
 }

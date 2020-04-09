@@ -145,7 +145,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         newAttrCVal.asPrismContainerValue().setId(null);
         rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal);
 
-        display("Role pirate delta", rolePirateDelta);
+        displayDumpable("Role pirate delta", rolePirateDelta);
         modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);
 
         displayRoles(task, result);
@@ -204,7 +204,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertUsers(7);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 

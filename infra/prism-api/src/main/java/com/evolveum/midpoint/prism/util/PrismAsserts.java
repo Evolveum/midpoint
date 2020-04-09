@@ -9,7 +9,6 @@ package com.evolveum.midpoint.prism.util;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -907,7 +906,7 @@ public class PrismAsserts {
     }
 
     private static <O extends Objectable> PrismObject<O> toPrism(Element domNode) throws SchemaException {
-        return PrismTestUtil.parseObject(domNode);
+        return PrismTestUtil.getPrismContext().parserFor(domNode).parse();
     }
 
     private static <O extends Objectable> PrismObject<O> elementToPrism(Object element) throws SchemaException {
@@ -1258,7 +1257,6 @@ public class PrismAsserts {
 
     public static void assertImmutable(Definition definition) {
         definition.accept(def -> {
-            System.out.println("Checking " + def);
             if (!def.isImmutable()) {
                 fail("Definition is not immutable: " + def);
             }
@@ -1267,7 +1265,6 @@ public class PrismAsserts {
 
     public static void assertMutable(Definition definition) {
         definition.accept(def -> {
-            System.out.println("Checking " + def);
             if (def.isImmutable()) {
                 fail("Definition is not mutable: " + def);
             }

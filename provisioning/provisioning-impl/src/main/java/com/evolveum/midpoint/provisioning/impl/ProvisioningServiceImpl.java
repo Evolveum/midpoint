@@ -795,49 +795,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         return testResult;
     }
 
-    @Deprecated
-    @Override
-    public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid,
-                                                                       QName objectClass, ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-        final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
-                + ".listResourceObjects");
-        result.addParam("resourceOid", resourceOid);
-        result.addParam("objectClass", objectClass);
-        result.addArbitraryObjectAsParam("paging", paging);
-        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-        if (resourceOid == null) {
-            throw new IllegalArgumentException("Resource not defined in a search query");
-        }
-        if (objectClass == null) {
-            throw new IllegalArgumentException("Objectclass not defined in a search query");
-        }
-
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
-
-        final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<>();
-        final ResultHandler<ShadowType> shadowHandler = (shadow, objResult) -> {
-            LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrintLazily(shadow));
-            objectList.add(shadow);
-            return true;
-        };
-
-        try {
-
-            shadowCache.searchObjectsIterative(query, null, shadowHandler, false, task, result);
-
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException |
-                ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error  ex) {
-            result.recordFatalError(ex.getMessage(), ex);
-            result.cleanupResult(ex);
-            throw ex;
-        }
-        result.cleanupResult();
-        return objectList;
-    }
-
     @Override
     public void refreshShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,

@@ -1987,7 +1987,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_DASHBOARD, "PageAdmin.menu.selfDashboard",
                 PageSelfDashboard.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_PROFILE, "PageAdmin.menu.profile",
-                PageSelfProfile.class);
+                WebComponentUtil.resolveSelfPage());
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CREDENTIALS, "PageAdmin.menu.credentials",
                 PageSelfCredentials.class);
         if (WebModelServiceUtils.getLoggedInFocus() instanceof UserType) {
@@ -1996,8 +1996,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         //GDPR feature.. temporary disabled MID-4281
-//        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
-//                PageSelfConsents.class);
+        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
+            addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
+                    PageSelfConsents.class);
+        }
     }
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
@@ -2038,7 +2040,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null);
+            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null){
+                @Override
+                protected boolean isMenuActive() {
+                    StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+                    return dashboard.getOid().equals(dashboardOid.toString());
+                }
+            };
             item.getItems().add(menu);
         });
 

@@ -236,14 +236,16 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
         ObjectDelta<? extends ObjectType> summarizedDelta;
         try {
             summarizedDelta = getSummarizedFocusDeltas();
-            if (!summarizedDelta.isModify()) {
+            if (summarizedDelta == null) {
+                return false;
+            } else if (summarizedDelta.isAdd() || summarizedDelta.isDelete()) {
                 return true;
-            } else if (!getTextFormatter().containsVisibleModifiedItems(summarizedDelta.getModifications(),
+            } else if (getTextFormatter().containsVisibleModifiedItems(summarizedDelta.getModifications(),
                     false, watchAuxiliaryAttributes)) {
+                return true;
+            } else {
                 LOGGER.trace("No relevant attributes in modify delta (watchAux={})", watchAuxiliaryAttributes);
                 return false;
-            } else {
-                return true;
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unable to check if there's content to show; focus context = {}", t, focusContext.debugDump());
@@ -255,7 +257,9 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     public String getContentAsFormattedList(boolean showAuxiliaryAttributes) {
         try {
             ObjectDelta<? extends ObjectType> summarizedDelta = getSummarizedFocusDeltas();
-            if (summarizedDelta.isAdd()) {
+            if (summarizedDelta == null) {
+                return ""; // should not happen
+            } else if (summarizedDelta.isAdd()) {
                 return getTextFormatter().formatObject(summarizedDelta.getObjectToAdd(), false, showAuxiliaryAttributes);
             } else if (summarizedDelta.isModify()) {
                 ModelElementContext<?> focusContext = modelContext.getFocusContext();

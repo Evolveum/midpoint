@@ -52,8 +52,10 @@
             <class name="com.evolveum.midpoint.testing.story.TestMisbehavingResources"/>
             <class name="com.evolveum.midpoint.testing.story.TestInboundOutboundAssociation"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconSimulate"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconSimulateMultithreaded"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconFull"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate"/>
+            <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulateMultithreaded"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncFull"/>
             <class name="com.evolveum.midpoint.testing.story.TestMappingMadness"/>
             <class name="com.evolveum.midpoint.testing.story.TestConfiguredCapabilitiesActivation"/>

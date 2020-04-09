@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -75,7 +76,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
     }
 
     protected void assertRolePirate(PrismObject<RoleType> role) {
-        assertObjectSanity(role);
+        new PrismObjectAsserter<>(role)
+                .assertSanity();
         assertEquals("Wrong " + role + " OID (prism)", ROLE_PIRATE_OID, role.getOid());
         RoleType roleType = role.asObjectable();
         assertEquals("Wrong " + role + " OID (jaxb)", ROLE_PIRATE_OID, roleType.getOid());
@@ -130,7 +132,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, GROUP_PIRATE_DUMMY_DESCRIPTION);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -184,10 +186,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options, task, result);
 
         display("Account", shadow);
-        display("Account def", shadow.getDefinition());
+        displayDumpable("Account def", shadow.getDefinition());
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
@@ -206,10 +208,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options, task, result);
 
         display("Account", shadow);
-        display("Account def", shadow.getDefinition());
+        displayDumpable("Account def", shadow.getDefinition());
         PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-        display("Account attributes def", accountContainer.getDefinition());
-        display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        displayDumpable("Account attributes def", accountContainer.getDefinition());
+        displayDumpable("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
         assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
@@ -231,7 +233,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         linkRefVal.setObject(group);
         ReferenceDelta groupDelta = prismContext.deltaFactory().reference().createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
         roleDelta.addModification(groupDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(roleDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(roleDelta);
 
         dummyAuditService.clear();
 
@@ -250,7 +252,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         }
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -356,7 +358,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
                 .createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID);
         ReferenceDelta linkDelta = prismContext.deltaFactory().reference().createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
         roleDelta.addModification(linkDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(roleDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(roleDelta);
 
         prepareNotifications();
 
@@ -385,7 +387,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -435,7 +437,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -484,7 +486,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -534,7 +536,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -573,7 +575,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -628,7 +630,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -693,7 +695,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertAnyRequestDeltas();
@@ -738,7 +740,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoProvisioningScripts(); // MID-4008
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -792,7 +794,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -838,7 +840,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
@@ -895,7 +897,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -948,7 +950,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1002,7 +1004,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1052,7 +1054,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertNoDummyGroup(ROLE_PIRATE_NAME);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
@@ -1111,7 +1113,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assertDummyGroup(GROUP_SWASHBUCKLER_DUMMY_NAME, ROLE_SWASHBUCKLER_DESCRIPTION);
 
         // Check audit
-        display("Audit", dummyAuditService);
+        displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(3);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();

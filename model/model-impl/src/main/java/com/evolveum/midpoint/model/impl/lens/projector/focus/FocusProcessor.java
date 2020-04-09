@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -393,7 +392,8 @@ public class FocusProcessor {
 
     private PrismContainerDefinition<ActivationType> getActivationDefinition() {
         if (activationDefinition == null) {
-            ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+            ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry()
+                    .findComplexTypeDefinitionByType(FocusType.COMPLEX_TYPE);
             activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
         }
         return activationDefinition;

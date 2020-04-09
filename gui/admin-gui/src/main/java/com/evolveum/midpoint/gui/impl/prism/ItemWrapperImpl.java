@@ -438,7 +438,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
             return def.canAdd();
         }
 
-        return def.isEmphasized() && def.canAdd();
+        return (def.isEmphasized() || !isEmpty()) && def.canAdd();
     }
 
     protected boolean isEmpty() {

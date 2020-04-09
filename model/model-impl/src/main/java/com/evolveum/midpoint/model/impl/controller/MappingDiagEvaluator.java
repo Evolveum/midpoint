@@ -67,6 +67,7 @@ public class MappingDiagEvaluator {
 
         builder = builder
                 .mappingType(request.getMapping())
+                .mappingKind(MappingKindType.OTHER)
                 .contextDescription("mapping diagnostic execution")
                 .sourceContext(sourceContext)
                 .targetContext(createTargetContext(request, sourceContext))

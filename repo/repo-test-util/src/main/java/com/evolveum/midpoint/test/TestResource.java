@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import java.io.File;
 
 /**
- * Experimental.
+ * Representation of any prism object in tests.
  */
+@Experimental
 public class TestResource {
 
     public final File file;

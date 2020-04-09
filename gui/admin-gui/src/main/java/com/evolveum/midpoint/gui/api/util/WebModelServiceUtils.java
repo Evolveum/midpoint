@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchColl
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -183,15 +185,18 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
-            pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null,
+            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
                     operationalTask, parentResult);
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
+                delta.setOid(deltaOperation.getObjectDelta().getOid());
+            }
             parentResult.recordInProgress();
             parentResult.setBackgroundTaskOid(delta.getOid());
-            pageBase.showResult(parentResult);
             return delta.getOid();
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
@@ -490,7 +495,7 @@ public class WebModelServiceUtils {
             ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
             delta.setOid(oid);
 
-            page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntDeleteObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
@@ -520,7 +525,7 @@ public class WebModelServiceUtils {
     }
 
     public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, Task task, PageBase page) {
-        save(WebComponentUtil.createDeltaCollection(delta), options, result, task, page);
+        save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
 
@@ -542,6 +547,9 @@ public class WebModelServiceUtils {
 
             page.getModelService().executeChanges(deltas, options, task, result);
         } catch (Exception ex) {
+            if (ex instanceof CommonException) {
+                subResult.setUserFriendlyMessage(((CommonException) ex).getUserFriendlyMessage());
+            }
             subResult.recordFatalError(ex.getMessage());
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save object", ex);
         } finally {

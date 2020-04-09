@@ -22,16 +22,15 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.tools.testng.MidpointTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Mixin providing common methods/utilities for Active Directory (AD) related tests.
  */
-public interface AdTestMixin extends MidpointTestMixin {
+public interface AdTestMixin extends InfraTestMixin {
 
     String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
     String ATTRIBUTE_OBJECT_SID_NAME = "objectSid";
@@ -41,7 +40,6 @@ public interface AdTestMixin extends MidpointTestMixin {
     QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
     String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
     String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
-    QName ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
     String ATTRIBUTE_TITLE_NAME = "title";
     String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
     String ATTRIBUTE_USER_PARAMETERS_NAME = "userParameters";
@@ -79,24 +77,15 @@ public interface AdTestMixin extends MidpointTestMixin {
             PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext)
             throws SchemaException {
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        display("Resource schema", resourceSchema);
+        displayDumpable("Resource schema", resourceSchema);
         ResourceTypeUtil.validateSchema(resourceSchema, resource);
         return assertAdSchema(resource, accountObjectClass);
-    }
-
-    default ObjectClassComplexTypeDefinition assertAdResourceSchemaLongTimestamp(
-            PrismObject<ResourceType> resource, QName accountObjectClass, PrismContext prismContext)
-            throws SchemaException {
-        ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-        display("Resource schema", resourceSchema);
-        ResourceTypeUtil.validateSchema(resourceSchema, resource);
-        return assertAdSchemaLongTimestamp(resource, accountObjectClass);
     }
 
     default ObjectClassComplexTypeDefinition assertAdRefinedSchema(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
         RefinedResourceSchemaImpl.validateRefinedSchema(refinedSchema, resource);
         return assertAdSchema(resource, accountObjectClass);
     }
@@ -125,30 +114,16 @@ public interface AdTestMixin extends MidpointTestMixin {
         return accountObjectClassDefinition;
     }
 
-    // Assumes string timestamp
-    default ObjectClassComplexTypeDefinition assertAdSchemaLongTimestamp(
-            PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
-        ObjectClassComplexTypeDefinition accountObjectClassDefinition = assertAdSchemaBase(resource, accountObjectClass);
-
-        ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
-        PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
-                DOMUtil.XSD_LONG, 0, 1);
-        assertTrue("createTimeStampDef read", createTimestampDef.canRead());
-        assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
-        assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
-
-        return accountObjectClassDefinition;
-    }
-
     // TODO after ditching JDK 8
-    /*private*/ default ObjectClassComplexTypeDefinition assertAdSchemaBase(
+    /*private*/
+    default ObjectClassComplexTypeDefinition assertAdSchemaBase(
             PrismObject<ResourceType> resource, QName accountObjectClass) throws SchemaException {
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        display("Refined schema", refinedSchema);
+        displayDumpable("Refined schema", refinedSchema);
         ObjectClassComplexTypeDefinition accountObjectClassDefinition = refinedSchema.findObjectClassDefinition(accountObjectClass);
         assertNotNull("No definition for object class " + accountObjectClass, accountObjectClassDefinition);
-        display("Account object class def", accountObjectClassDefinition);
+        displayDumpable("Account object class def", accountObjectClassDefinition);
 
         ResourceAttributeDefinition<String> cnDef = accountObjectClassDefinition.findAttributeDefinition("cn");
         PrismAsserts.assertDefinition(cnDef, new QName(MidPointConstants.NS_RI, "cn"), DOMUtil.XSD_STRING, 0, 1);
@@ -220,7 +195,7 @@ public interface AdTestMixin extends MidpointTestMixin {
     default void assertExchangeSchema(ResourceSchema resourceSchema, QName accountObjectClassQName) {
         ObjectClassComplexTypeDefinition msExchBaseClassObjectClassDefinition = resourceSchema.findObjectClassDefinition(OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME);
         assertNotNull("No definition for object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME, msExchBaseClassObjectClassDefinition);
-        display("Object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME + " def", msExchBaseClassObjectClassDefinition);
+        displayDumpable("Object class " + OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME + " def", msExchBaseClassObjectClassDefinition);
 
         ResourceAttributeDefinition<String> msExchHideFromAddressListsDef = msExchBaseClassObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(msExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
@@ -230,7 +205,7 @@ public interface AdTestMixin extends MidpointTestMixin {
 
         ObjectClassComplexTypeDefinition accountObjectClassDef = resourceSchema.findObjectClassDefinition(accountObjectClassQName);
         assertNotNull("No definition for object class " + accountObjectClassQName, accountObjectClassDef);
-        display("Object class " + accountObjectClassQName + " def", accountObjectClassDef);
+        displayDumpable("Object class " + accountObjectClassQName + " def", accountObjectClassDef);
 
         ResourceAttributeDefinition<String> accountMsExchHideFromAddressListsDef = accountObjectClassDef.findAttributeDefinition(ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
         PrismAsserts.assertDefinition(accountMsExchHideFromAddressListsDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME), DOMUtil.XSD_BOOLEAN, 0, 1);
@@ -241,10 +216,6 @@ public interface AdTestMixin extends MidpointTestMixin {
 
     default long getWin32Filetime(long millis) {
         return (millis + 11644473600000L) * 10000L;
-    }
-
-    default void display(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
     }
 
     default void displayValue(String title, Object value) {

@@ -38,6 +38,7 @@
     <xsd:element name="reportParam" type="c:ReportParameterType">
         <xsd:annotation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.reportParam</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
@@ -48,6 +49,7 @@
         <xsd:annotation>
             <xsd:documentation>OID of created Report Output object. TODO consider replacing with object reference.</xsd:documentation>
             <xsd:appinfo>
+                <a:displayName>TaskExtension.reportOutputOid</a:displayName>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>

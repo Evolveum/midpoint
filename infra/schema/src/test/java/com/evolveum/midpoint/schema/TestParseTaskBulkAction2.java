@@ -80,7 +80,7 @@ public class TestParseTaskBulkAction2 extends AbstractSchemaTest {
 
         // SERIALIZE
 
-        String serializedTask = prismContext.serializeObjectToString(task, PrismContext.LANG_XML);
+        String serializedTask = prismContext.xmlSerializer().serialize(task);
 
         System.out.println("serialized task:");
         System.out.println(serializedTask);

@@ -46,7 +46,7 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
 
     @Override
     protected PrismPropertyWrapper<ExpressionType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
-                                                                 ItemStatus status) {
+                                                                 ItemStatus status, WrapperContext ctx) {
 
         ExpressionWrapper propertyWrapper = new ExpressionWrapper(parent, item, status);
         getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), ExpressionPropertyPanel.class);

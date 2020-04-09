@@ -634,4 +634,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     protected ExportType getExport(ReportType report) {
         return ReportUtils.getExport(report);
     }
+
+    @Override
+    public String getArchetypeOid() {
+        return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
+    }
 }

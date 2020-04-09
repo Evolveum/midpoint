@@ -24,9 +24,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.test.util.OperationResultTestMixin;
+import com.evolveum.midpoint.test.util.InfraTestMixin;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -38,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class TestMappingDomain extends AbstractUnitTest
-        implements OperationResultTestMixin {
+        implements InfraTestMixin {
 
     private static final String MAPPING_DOMAIN_FILENAME = "mapping-domain.xml";
 
@@ -155,7 +154,7 @@ public class TestMappingDomain extends AbstractUnitTest
         // THEN
         then();
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        display("Output triple", outputTriple);
+        displayDumpable("Output triple", outputTriple);
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTriplePlus(outputTriple,
@@ -197,7 +196,7 @@ public class TestMappingDomain extends AbstractUnitTest
         // THEN
         then();
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        display("Output triple", outputTriple);
+        displayDumpable("Output triple", outputTriple);
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleZero(outputTriple,
                 PrismTestUtil.createPolyString("Pirate Jackie (001)"),
@@ -241,7 +240,7 @@ public class TestMappingDomain extends AbstractUnitTest
         // THEN
         then();
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-        display("Output triple", outputTriple);
+        displayDumpable("Output triple", outputTriple);
         outputTriple.checkConsistence();
         PrismAsserts.assertTripleZero(outputTriple,
                 PrismTestUtil.createPolyString("Pirate Jackie (001)"),
@@ -250,10 +249,6 @@ public class TestMappingDomain extends AbstractUnitTest
         PrismAsserts.assertTripleMinus(outputTriple,
                 PrismTestUtil.createPolyString("Pirate Jackie (005)"),
                 PrismTestUtil.createPolyString("Pirate Jackie (007)"));
-    }
-
-    protected void display(String title, DebugDumpable value) {
-        PrismTestUtil.display(title, value);
     }
 
     public void displayValue(String title, Object value) {

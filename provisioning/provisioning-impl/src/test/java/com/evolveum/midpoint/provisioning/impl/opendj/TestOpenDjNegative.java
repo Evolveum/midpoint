@@ -189,25 +189,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
     }
 
     @Test
-    public void test120ListResourceObjects() throws Exception {
-        // GIVEN
-        OperationResult result = getTestOperationResult();
-
-        try {
-            // WHEN
-            List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
-                    RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, null, result);
-
-            AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
-        } catch (ConfigurationException e) {
-            displayExpectedException(e);
-        }
-
-        result.computeStatus();
-        TestUtil.assertFailure(result);
-    }
-
-    @Test
     public void test121SearchAccounts() throws Exception {
         // GIVEN
         OperationResult result = getTestOperationResult();
@@ -313,7 +294,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         try {
 
@@ -418,29 +399,6 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
         display("getObject fetchResult", fetchResult);
         assertEquals("Expected fetchResult partial error but was " + result.getStatus(),
                 OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
-    }
-
-    /**
-     * This is using the shadow to go to the resource. But it cannot as OpenDJ is down.
-     * Therefore the expected result is CommunicationException. It must not be ObjectNotFound as
-     * we do NOT know that the shadow does not exist.
-     */
-    @Test
-    public void test520ListResourceObjects() throws Exception {
-        // GIVEN
-        OperationResult result = getTestOperationResult();
-
-        try {
-            // WHEN
-            List<PrismObject<? extends ShadowType>> objectList = provisioningService.listResourceObjects(
-                    RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, null, result);
-
-            AssertJUnit.fail("listResourceObjects succeeded unexpectedly");
-        } catch (CommunicationException e) {
-            displayExpectedException(e);
-        }
-
-        assertFailure(result);
     }
 
     @Test
@@ -591,7 +549,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 
         ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
-        display("Object change", delta);
+        displayDumpable("Object change", delta);
 
         // WHEN
         provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),

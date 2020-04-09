@@ -270,7 +270,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
             @Override
             public void visit(Visitable visitable) {
                 visits.add(visitable);
-                System.out.println("Visiting: "+visitable);
+                System.out.println("#" + visits.size() + ": Visiting: "+visitable);
             }
         };
         visitable.accept(visitor);
@@ -281,7 +281,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         final List<Visitable> visits = new ArrayList<>();
         Visitor visitor = visitable1 -> {
             visits.add(visitable1);
-            System.out.println("Visiting(path="+path+",recursive="+recursive+"): "+ visitable1);
+            System.out.println("#" + visits.size() + ": Visiting(path="+path+",recursive="+recursive+"): "+ visitable1);
         };
         visitable.accept(visitor, path, recursive);
         assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());

@@ -14,6 +14,7 @@
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
             elementFormDefault="qualified">
 
     <xsd:annotation>
@@ -24,6 +25,9 @@
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -83,13 +87,14 @@
             <xsd:element ref="tns:tracingRoot" minOccurs="0"/>
             <xsd:element ref="tns:tracing" minOccurs="0"/>
             <xsd:element ref="tns:notUpdatedShadowsDuration" minOccurs="0"/>
+            <xsd:element ref="s:executeScript" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="freshnessInterval" type="xsd:long">
         <xsd:annotation>
             <xsd:documentation>
-                Interval in which the shadow will be considered fresh. It is conted from the last synchronization
+                Interval in which the shadow will be considered fresh. It is counted from the last synchronization
                 of the shadow (any kind of synchronization). It is in milliseconds.
                 If no value is specified then a default value will be used.
                 If a negative value is specified then the shadow will never be considered fresh and it will be

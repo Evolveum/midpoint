@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
 
+import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,13 +29,20 @@ import com.evolveum.midpoint.web.page.self.PageAbstractSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@PageDescriptor(url = PageResetPassword.URL, action = {
-        @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
-                label = PageSelf.AUTH_SELF_ALL_LABEL,
-                description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
-                label = "PageSelfCredentials.auth.credentials.label",
-                description = "PageSelfCredentials.auth.credentials.description")})
+import java.util.Collections;
+import java.util.List;
+
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = PageResetPassword.URL, matchUrlForSecurity = PageResetPassword.URL)
+        },
+        action = {
+                @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
+                    label = PageSelf.AUTH_SELF_ALL_LABEL,
+                    description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
+                    label = "PageSelfCredentials.auth.credentials.label",
+                    description = "PageSelfCredentials.auth.credentials.description")})
 public class PageResetPassword extends PageAbstractSelfCredentials{
 
     private static final long serialVersionUID = 1L;
@@ -62,7 +72,8 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
             result.setMessage(getString("PageResetPassword.reset.successful"));
             setResponsePage(PageLogin.class);
 
-            PrismObject<? extends FocusType> focus = getFocus();
+            MyPasswordsDto passwords = getModelObject();
+            PrismObject<? extends FocusType> focus = passwords.getFocus();
             if (focus == null) {
                 SecurityContextHolder.getContext().setAuthentication(null);
                 return;
@@ -97,5 +108,24 @@ public class PageResetPassword extends PageAbstractSelfCredentials{
         // we don't want breadcrumbs here
     }
 
+    @Override
+    protected boolean shouldLoadAccounts(MyPasswordsDto dto) {
+        return false;
+    }
 
+    @Override
+    protected List<PasswordAccountDto> getSelectedAccountsList() {
+        List<PasswordAccountDto> accounts = getModelObject().getAccounts();
+        if (accounts.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
+
+       for (PasswordAccountDto account : accounts) {
+           if (account.isMidpoint()) {
+               return Collections.singletonList(account);
+           }
+       }
+
+       return accounts;
+    }
 }

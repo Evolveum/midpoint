@@ -205,7 +205,7 @@ public class TestOperationResult extends AbstractSchemaTest {
     private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {
         // WHEN
         OperationResultType resultType = result.createOperationResultType();
-        String serialized = getPrismContext().serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+        String serialized = getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
         System.out.println("Converted OperationResultType\n" + serialized);
         OperationResult resultRoundTrip = OperationResult.createOperationResult(resultType);
         OperationResultType resultTypeRoundTrip = resultRoundTrip.createOperationResultType();

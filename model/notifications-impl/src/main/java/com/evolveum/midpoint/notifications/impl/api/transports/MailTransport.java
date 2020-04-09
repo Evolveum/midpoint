@@ -222,6 +222,7 @@ public class MailTransport implements Transport {
 
             try {
                 MimeMessage mimeMessage = new MimeMessage(session);
+                mimeMessage.setSentDate(new Date());
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
 
@@ -325,6 +326,7 @@ public class MailTransport implements Transport {
                 long duration = System.currentTimeMillis() - start;
                 task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
                 task.recordNotificationOperation(NAME, true, duration);
+                t.close();
                 return;
             } catch (MessagingException e) {
                 String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";
