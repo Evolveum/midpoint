@@ -1,5 +1,5 @@
-MidPoint 4.1 "Pasteur"
-----------------------
+MidPoint 4.2 Development Branch
+-------------------------------
 
 General information:
 
