@@ -302,31 +302,34 @@ public class MailTransport implements Transport {
 
                 mimeMessage.setContent(multipart);
                 javax.mail.Transport t = session.getTransport("smtp");
-                if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
-                    ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
-                    String password = null;
-                    if (passwordProtected != null) {
-                        try {
-                            password = protector.decryptString(passwordProtected);
-                        } catch (EncryptionException e) {
-                            String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
-                            LoggingUtils.logException(LOGGER, msg, e);
-                            resultForServer.recordFatalError(msg, e);
-                            continue;
+                try {
+                    if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
+                        ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
+                        String password = null;
+                        if (passwordProtected != null) {
+                            try {
+                                password = protector.decryptString(passwordProtected);
+                            } catch (EncryptionException e) {
+                                String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
+                                LoggingUtils.logException(LOGGER, msg, e);
+                                resultForServer.recordFatalError(msg, e);
+                                continue;
+                            }
                         }
+                        t.connect(mailServerConfigurationType.getUsername(), password);
+                    } else {
+                        t.connect();
                     }
-                    t.connect(mailServerConfigurationType.getUsername(), password);
-                } else {
-                    t.connect();
+                    t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
+                    LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
+                    resultForServer.recordSuccess();
+                    result.recordSuccess();
+                    long duration = System.currentTimeMillis() - start;
+                    task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
+                    task.recordNotificationOperation(NAME, true, duration);
+                } finally {
+                    t.close();
                 }
-                t.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
-                LOGGER.info("Message sent successfully to " + mailMessage.getTo() + " via server " + host + ".");
-                resultForServer.recordSuccess();
-                result.recordSuccess();
-                long duration = System.currentTimeMillis() - start;
-                task.recordState("Notification mail sent successfully via " + host + ", in " + duration + " ms overall.");
-                task.recordNotificationOperation(NAME, true, duration);
-                t.close();
                 return;
             } catch (MessagingException e) {
                 String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + host + ", trying another mail server, if there is any";
