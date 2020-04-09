@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schrodinger.component.common.table;
 
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
 
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.InlineMenu;
@@ -32,6 +33,20 @@ public class TableRow<X, T extends Table<X>> extends Component<T> {
 
     public TableRow clickCheckBox() {
         getParentElement().find("input[type=checkbox]").click();
+        // todo implement
+        return this;
+    }
+
+    public TableRow clickColumnByName(String name) {
+        int index = getParent().findColumnByLabel(name);
+
+        SelenideElement a = getParentElement().$(By.cssSelector("td:nth-child(" + index + ") a"));
+        a.click();
+        // todo implement
+        return this;
+    }
+
+    public TableRow clickColumnByKey(String key) {
         // todo implement
         return this;
     }

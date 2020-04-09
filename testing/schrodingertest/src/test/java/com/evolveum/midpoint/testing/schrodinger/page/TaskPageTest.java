@@ -45,7 +45,7 @@ public class TaskPageTest extends AbstractSchrodingerTest {
              .clickSave();
 
         ListTasksPage tasksPage = basicPage.listTasks();
-        PrismForm<AssignmentHolderBasicTab<AssignmentHolderDetailsPage>> taskForm = tasksPage
+        PrismForm<AssignmentHolderBasicTab<TaskPage>> taskForm = tasksPage
                 .table()
                 .search()
                 .byName()
