@@ -357,11 +357,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-            <scope>runtime</scope>
-        </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>

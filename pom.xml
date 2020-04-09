@@ -1768,6 +1768,7 @@
                                 <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
@@ -1782,7 +1783,9 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle.version}</version>
                 <configuration>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <suppressionsLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
@@ -2025,6 +2028,7 @@
                 <!-- TODO: unify with other checkstyle setup in pluginManagement? -->
                 <version>${checkstyle.version}</version>
                 <configuration>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <configLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle.xml</configLocation>
                     <!-- TODO: what about suppressions? without them and with failsOnError true it must fail, or not? -->
                     <encoding>UTF-8</encoding>
