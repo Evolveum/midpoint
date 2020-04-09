@@ -1,9 +1,12 @@
-midPoint 4.0.1 "Gutenberg" Update 1
------------------------------------
+midPoint 4.1 "Pasteur"
+----------------------
 
-Release 4.0.1 is a twenty ninth midPoint release. It is the fist maintenance update for 4.0.x version family code-named code-named Gutenberg. The 4.0.x is a long-term support (LTS) version family. The 4.0.1 release brings bugfixes and minor improvements.
+Release 4.1 is a thirty-second midPoint release code-named Pasteur.
+The 4.1 release brings major authentication improvements, user interface improvements, improved archetype functionality and a number of smaller improvements.
 
-Release date: 22nd October 2019
+Release date: 9th April 2020
+Release type: Feature release
+End of support: 9th April 2021
 
 Please see the release notes for detailed list of changes:
-https://wiki.evolveum.com/display/midPoint/Release+4.0.1
+https://wiki.evolveum.com/display/midPoint/Release+4.1
