@@ -115,7 +115,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
-        return createTasksInlineMenu(true);
+        return createTasksInlineMenu();
     }
 
     @Override
@@ -371,7 +371,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
 
-    private List<InlineMenuItem> createTasksInlineMenu(boolean isHeader) {
+    private List<InlineMenuItem> createTasksInlineMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.suspendTask")) {
             private static final long serialVersionUID = 1L;
@@ -633,7 +633,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                       deleteWorkState(target, getRowModel());
+                       deleteWorkStatePerformed(target, getRowModel());
                     }
                 };
             }
@@ -657,30 +657,36 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
         items.add(deleteWorkState);
 
-        if (isHeader) {
-            items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
-                private static final long serialVersionUID = 1L;
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<SelectableBean<TaskType>>() {
-                        private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<TaskType>>() {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            deleteAllClosedTasksConfirmedPerformed(target);
-                        }
-                    };
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteAllClosedTasksConfirmedPerformed(target);
+                    }
+                };
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
+                return createStringResource("pageTasks.message.deleteAllClosedTasksConfirm");
+            }
+
+            @Override
+            public IModel<Boolean> getVisible() {
+                IModel<SelectableBean<TaskType>> rowModel = ((ColumnMenuAction) getAction()).getRowModel();
+                if (rowModel == null) {
+                    return Model.of(Boolean.TRUE);
                 }
+                return Model.of(Boolean.FALSE);
+            }
+        });
 
-                @Override
-                public IModel<String> getConfirmationMessageModel() {
-                    return createStringResource("pageTasks.message.deleteAllClosedTasksConfirm");
-                }
-
-            });
-
-        }
         return items;
     }
 
@@ -899,11 +905,19 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(TaskType.class, target);
     }
 
-    private void deleteWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
+    private void deleteWorkStatePerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> task) {
+        List<TaskType> selectedTasks = getSelectedTasks(target, task);
+        if (selectedTasks == null) {
+            return;
+        }
+        selectedTasks.forEach(selectedTask -> deleteWorkState(target, selectedTask));
+    }
+
+    private void deleteWorkState(AjaxRequestTarget target, @NotNull TaskType task) {
         Task opTask = createSimpleTask(OPERATION_DELETE_WORK_STATE);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getObject().getValue().getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteWorkersAndWorkState(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
                 | RuntimeException | CommunicationException | ConfigurationException e) {
