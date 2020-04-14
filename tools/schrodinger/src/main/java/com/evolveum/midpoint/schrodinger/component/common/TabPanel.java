@@ -9,9 +9,10 @@ package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -53,5 +54,9 @@ public class TabPanel<T> extends Component<T> {
         li.shouldHave(Condition.cssClass("active"));
 
         return li.parent().parent().$(By.cssSelector(".tab-pane.active"));
+    }
+
+    public SelenideElement getActiveTab() {
+        return getParentElement().$(By.cssSelector(".tab-pane.active"));
     }
 }

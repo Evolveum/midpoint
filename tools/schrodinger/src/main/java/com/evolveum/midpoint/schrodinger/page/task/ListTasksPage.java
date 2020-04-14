@@ -20,7 +20,7 @@ import static com.codeborne.selenide.Selenide.$;
 public class ListTasksPage extends AssignmentHolderObjectListPage<TasksPageTable> {
 
     public TasksPageTable table() {
-        SelenideElement box = $(Schrodinger.byDataId("div", "table"));
+        SelenideElement box = $(Schrodinger.byDataId("div", "taskTable"));
 
         return new TasksPageTable(this, box);
     }

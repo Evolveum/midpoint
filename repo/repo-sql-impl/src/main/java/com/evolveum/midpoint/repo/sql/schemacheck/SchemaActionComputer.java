@@ -64,6 +64,7 @@ class SchemaActionComputer {
     static {
         DATABASE_VERSION_FROM_MIDPOINT_VERSION = new HashMap<>();
         DATABASE_VERSION_FROM_MIDPOINT_VERSION.put("3.7.2", "3.7.2");
+        DATABASE_VERSION_FROM_MIDPOINT_VERSION.put("4.2-SNAPSHOT", "4.0"); // until there are some changes in DB schema
     }
 
     /**

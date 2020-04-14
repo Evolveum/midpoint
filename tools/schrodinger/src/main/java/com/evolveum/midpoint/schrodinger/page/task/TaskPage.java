@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class TaskPage extends AssignmentHolderDetailsPage {
+public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
 
     public PreviewPage clickPreviewChanges() {
         $(Schrodinger.byDataId("previewChanges")).click();
@@ -63,8 +63,7 @@ public class TaskPage extends AssignmentHolderDetailsPage {
     }
 
     public TaskPage clickRunNow() {
-
-        $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataResourceKey("a", "pageTaskEdit.button.runNow")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }
@@ -79,20 +78,20 @@ public class TaskPage extends AssignmentHolderDetailsPage {
     }
 
     @Override
-    public <P extends AssignmentHolderDetailsPage> AssignmentHolderBasicTab<P> selectTabBasic() {
-        SelenideElement element = findTabPanel().clickTab("pageTask.basic.title")
+    public AssignmentHolderBasicTab<TaskPage> selectTabBasic() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.basic.title")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return (AssignmentHolderBasicTab<P>) new TaskBasicTab(this, element);
+        return new TaskBasicTab(this, element);
     }
 
     @Override
-    public <P extends AssignmentHolderDetailsPage> AssignmentsTab<P> selectTabAssignments() {
+    public  AssignmentsTab<TaskPage> selectTabAssignments() {
         return null;
     }
 
     public AssignmentHolderBasicTab<TaskPage> selectScheduleTab(){
-        SelenideElement element = findTabPanel().clickTab("pageTask.schedule.title")
+        SelenideElement element = getTabPanel().clickTab("pageTask.schedule.title")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new AssignmentHolderBasicTab<TaskPage>(this, element);
