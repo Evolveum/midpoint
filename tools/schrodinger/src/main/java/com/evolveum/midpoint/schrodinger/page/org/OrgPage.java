@@ -11,25 +11,29 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
+import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
+import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.FocusPage;
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class NewOrgPage extends AssignmentHolderDetailsPage {
+public class OrgPage extends AbstractRolePage {
 
     @Override
-    public AssignmentHolderBasicTab<NewOrgPage> selectTabBasic(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<NewOrgPage>(this, element);
+    public ProjectionsTab<OrgPage> selectTabProjections() {
+        return super.selectTabProjections();
     }
 
-    public AssignmentsTab<NewOrgPage> selectTabAssignments(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
-
-        return new AssignmentsTab<NewOrgPage>(this, element);
+    @Override
+    public AssignmentHolderBasicTab<OrgPage> selectTabBasic() {
+        return super.selectTabBasic();
     }
 
+    @Override
+    public AssignmentsTab<OrgPage> selectTabAssignments() {
+        return super.selectTabAssignments();
+    }
 }

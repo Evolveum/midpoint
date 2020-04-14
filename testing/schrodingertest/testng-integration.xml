@@ -108,4 +108,12 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.page.TaskPageTest"/>
         </classes>
     </test>
+    <test name="Schrodinger.mid-101.labs" preserve-order="true" parallel="false" verbose="3" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.ResourcesAttributesAndMappingsTest"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.ProvisioningToResources"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.AccountsAssignmentsAndRoles"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.ConfiguringMultipleAccountTypes"/>
+        </classes>
+    </test>
 </suite>

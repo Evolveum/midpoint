@@ -16,7 +16,9 @@ import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.SummaryPanel;
 import com.evolveum.midpoint.schrodinger.component.user.*;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.FocusPage;
 import com.evolveum.midpoint.schrodinger.page.PreviewPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -26,53 +28,7 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UserPage extends AssignmentHolderDetailsPage {
-
-    public UserPage checkForce() {
-        setOptionChecked("executeOptions:force", true);
-        return this;
-    }
-
-    public UserPage checkReconcile() {
-        setOptionChecked("executeOptions:reconcileContainer:container:check", true);
-        return this;
-    }
-
-    public UserPage checkExecuteAfterAllApprovals() {
-        setOptionChecked("executeOptions:executeAfterAllApprovals", true);
-        return this;
-    }
-
-    public UserPage checkKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsContainer:container:check", true);
-        return this;
-    }
-
-    public UserPage uncheckForce() {
-        setOptionChecked("executeOptions:force", false);
-        return this;
-    }
-
-    public UserPage uncheckReconcile() {
-        setOptionChecked("executeOptions:reconcileLabel:reconcile", false);
-        return this;
-    }
-
-    public UserPage uncheckExecuteAfterAllApprovals() {
-        setOptionChecked("executeOptions:executeAfterAllApprovals", false);
-        return this;
-    }
-
-    public UserPage uncheckKeepDisplayingResults() {
-        setOptionChecked("executeOptions:keepDisplayingResultsContainer:keepDisplayingResults", false);
-        return this;
-    }
-
-    public ProjectionsTab<UserPage> selectTabProjections() {
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.projections");
-        Selenide.sleep(2000);
-        return new ProjectionsTab<UserPage>(this, element);
-    }
+public class UserPage extends FocusPage {
 
     public UserPersonasTab selectTabPersonas() {
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.personas");
@@ -104,37 +60,18 @@ public class UserPage extends AssignmentHolderDetailsPage {
         return new UserDelegatedToMeTab(this, element);
     }
 
-    public SummaryPanel<UserPage> summary() {
-
-        SelenideElement summaryPanel = $(By.cssSelector("div.info-box-content"));
-
-        return new SummaryPanel(this, summaryPanel);
-    }
-
-    public boolean isActivationState(String state) {
-
-        SelenideElement summaryPanel = $(Schrodinger.byDataId("span", "summaryTagLabel")).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        if (state != null || !(state.isEmpty())) {
-            return state.equals(summaryPanel.getText());
-        } else {
-            return "".equals(summaryPanel.getText());
-        }
+    @Override
+    public ProjectionsTab<UserPage> selectTabProjections() {
+        return super.selectTabProjections();
     }
 
     @Override
-    public AssignmentHolderBasicTab<UserPage> selectTabBasic(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<UserPage>(this, element);
+    public AssignmentHolderBasicTab<UserPage> selectTabBasic() {
+        return super.selectTabBasic();
     }
 
     @Override
-    public AssignmentsTab<UserPage> selectTabAssignments(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
-
-        return new AssignmentsTab<UserPage>(this, element);
+    public AssignmentsTab<UserPage> selectTabAssignments() {
+        return super.selectTabAssignments();
     }
-
 }

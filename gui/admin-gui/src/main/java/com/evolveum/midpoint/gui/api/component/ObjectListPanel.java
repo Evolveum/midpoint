@@ -160,7 +160,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     }
 
-    private LoadableModel<Search> initSearchModel(){
+    protected LoadableModel<Search> initSearchModel(){
         return new LoadableModel<Search>(false) {
 
             private static final long serialVersionUID = 1L;
@@ -192,7 +192,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         };
     }
 
-    private String getSearchByNameParameterValue() {
+    protected String getSearchByNameParameterValue() {
         PageParameters parameters = getPageBase().getPageParameters();
         if (parameters == null) {
             return null;
@@ -628,7 +628,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return key;
     }
 
-    private PageStorage getPageStorage(String storageKey){
+    protected PageStorage getPageStorage(String storageKey){
         PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
         if (storage == null) {
             storage = getSession().getSessionStorage().initPageStorage(storageKey);

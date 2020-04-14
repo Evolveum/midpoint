@@ -19,6 +19,8 @@ import org.openqa.selenium.By;
 import javax.xml.namespace.QName;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -113,6 +115,43 @@ public class PrismForm<T> extends Component<T> {
             return valueElement.equals(expectedValue);
         } else {
             return expectedValue.isEmpty();
+        }
+
+    }
+
+    public Boolean compareInputAttributeValues(String name, String... expectedValues) {
+        return compareInputAttributeValues(name, Arrays.asList(expectedValues));
+    }
+
+    public Boolean containsInputAttributeValues(String name, String... expectedValues) {
+        return containsInputAttributeValues(name, Arrays.asList(expectedValues));
+    }
+
+    public Boolean compareInputAttributeValues(String name, List<String> expectedValues) {
+        return compareInputAttributeValues(name, expectedValues, true);
+    }
+
+    public Boolean containsInputAttributeValues(String name, List<String> expectedValues) {
+        return compareInputAttributeValues(name, expectedValues, false);
+    }
+
+    private Boolean compareInputAttributeValues(String name, List<String> expectedValues, boolean strictSameValues) {
+        SelenideElement property = findProperty(name);
+        ElementsCollection valuesElements = property.parent().$$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        List<String> values = new ArrayList<String>();
+        for (SelenideElement valueElement : valuesElements) {
+            String value = valueElement.getValue();
+            if (!value.isEmpty()) {
+                return values.add(value);
+            }
+        }
+        if (!values.isEmpty()) {
+            if (strictSameValues) {
+                return values.equals(expectedValues);
+            }
+            return values.containsAll(expectedValues);
+        } else {
+            return expectedValues.isEmpty();
         }
 
     }

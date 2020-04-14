@@ -6,14 +6,12 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -22,10 +20,13 @@ import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -292,6 +293,41 @@ public abstract class ResourceContentPanel extends Panel {
                     return null;
                 }
                 return queryFactory.createQuery(queryFactory.createAnd(filters));
+            }
+
+            @Override
+            protected LoadableModel<Search> initSearchModel() {
+                return new LoadableModel<Search>(false) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public Search load() {
+                        String storageKey = getStorageKey();
+                        Search search = null;
+                        if (org.apache.commons.lang3.StringUtils.isNotEmpty(storageKey)) {
+                            PageStorage storage = getPageStorage(storageKey);
+                            if (storage != null) {
+                                search = storage.getSearch();
+                            }
+                        }
+                        Search newSearch = createSearch();
+                        if (search == null
+                                || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
+                            search = newSearch;
+                        }
+
+                        String searchByName = getSearchByNameParameterValue();
+                        if (searchByName != null) {
+                            for (SearchItem item : search.getItems()) {
+                                if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                                    item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                                }
+                            }
+                        }
+                        return search;
+                    }
+                };
             }
 
             @Override
