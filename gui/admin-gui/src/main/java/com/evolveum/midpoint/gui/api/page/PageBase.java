@@ -924,7 +924,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         cartButton.setOutputMarkupId(true);
-        cartButton.add(createUserStatusBehaviour(true));
+        cartButton.add(getShoppingCartVisibleBehavior());
         mainHeader.add(cartButton);
 
         Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
@@ -1195,6 +1195,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);
+    }
+
+    private VisibleEnableBehaviour getShoppingCartVisibleBehavior(){
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !isErrorPage() && isSideMenuVisible(true) &&
+                        (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI));
+            }
+        };
     }
 
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
