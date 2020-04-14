@@ -633,7 +633,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                       deleteWorkState(target, getRowModel());
+                       deleteWorkStatePerformed(target, getRowModel());
                     }
                 };
             }
@@ -905,11 +905,19 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         refreshTable(TaskType.class, target);
     }
 
-    private void deleteWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
+    private void deleteWorkStatePerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> task) {
+        List<TaskType> selectedTasks = getSelectedTasks(target, task);
+        if (selectedTasks == null) {
+            return;
+        }
+        selectedTasks.forEach(selectedTask -> deleteWorkState(target, selectedTask));
+    }
+
+    private void deleteWorkState(AjaxRequestTarget target, @NotNull TaskType task) {
         Task opTask = createSimpleTask(OPERATION_DELETE_WORK_STATE);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().deleteWorkersAndWorkState(task.getObject().getValue().getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
+            getTaskService().deleteWorkersAndWorkState(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
             result.computeStatus();
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
                 | RuntimeException | CommunicationException | ConfigurationException e) {
