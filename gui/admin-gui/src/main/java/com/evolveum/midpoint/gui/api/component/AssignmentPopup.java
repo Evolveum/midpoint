@@ -21,6 +21,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -51,6 +52,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TABS_PANEL = "tabsPanel";
+    private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private static final String ID_ASSIGN_BUTTON = "assignButton";
     private static final String ID_FORM = "form";
@@ -74,6 +76,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
         form.add(tabPanel);
+
+        Label warningMessage = new Label(ID_WARNING_MESSAGE, this :: getWarningMessageModel);
+        warningMessage.setOutputMarkupId(true);
+        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        form.add(warningMessage);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
@@ -446,6 +453,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
             }
         }
         return false;
+    }
+
+    protected IModel<String> getWarningMessageModel(){
+        return null;
     }
 
     public int getWidth(){
