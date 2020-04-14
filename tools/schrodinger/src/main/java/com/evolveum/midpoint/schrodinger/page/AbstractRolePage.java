@@ -8,17 +8,16 @@ package com.evolveum.midpoint.schrodinger.page;
 
 import com.codeborne.selenide.SelenideElement;
 
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.InducementsTab;
 
 /**
  * @author skublik
  */
 
-public class AbstractRolePage extends FocusPage {
+public class AbstractRolePage<A extends AbstractRolePage> extends FocusPage<A> {
 
-    public <A extends AbstractRolePage> InducementsTab<A> selectTabInducements() {
-        SelenideElement element = findTabPanel().clickTab("FocusType.inducement");
+    public InducementsTab<A> selectTabInducements() {
+        SelenideElement element = getTabPanel().clickTab("FocusType.inducement");
 
         return new InducementsTab<A>((A) this, element);
     }

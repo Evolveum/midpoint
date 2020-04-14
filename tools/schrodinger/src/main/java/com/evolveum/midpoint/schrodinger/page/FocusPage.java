@@ -29,7 +29,7 @@ import static com.evolveum.midpoint.schrodinger.util.Utils.setOptionChecked;
  * @author skublik
  */
 
-public class FocusPage extends AssignmentHolderDetailsPage {
+public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<F> {
 
     public FocusPage checkForce() {
         setOptionChecked("executeOptions:force", true);
@@ -71,8 +71,8 @@ public class FocusPage extends AssignmentHolderDetailsPage {
         return this;
     }
 
-    public <F extends FocusPage> ProjectionsTab<F> selectTabProjections() {
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.projections");
+    public ProjectionsTab<F> selectTabProjections() {
+        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.projections");
         Selenide.sleep(2000);
         return new ProjectionsTab<F>(this, element);
     }
@@ -97,17 +97,17 @@ public class FocusPage extends AssignmentHolderDetailsPage {
     }
 
     @Override
-    public <P extends AssignmentHolderDetailsPage> AssignmentHolderBasicTab<P> selectTabBasic(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.basic")
+    public AssignmentHolderBasicTab<F> selectTabBasic(){
+        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.basic")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new AssignmentHolderBasicTab<P>((P) this, element);
+        return new AssignmentHolderBasicTab<F>((F) this, element);
     }
 
     @Override
-    public <P extends AssignmentHolderDetailsPage> AssignmentsTab<P> selectTabAssignments(){
-        SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
+    public AssignmentsTab<F> selectTabAssignments(){
+        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.assignments");
 
-        return new AssignmentsTab<P>((P) this, element);
+        return new AssignmentsTab<F>((F) this, element);
     }
 }

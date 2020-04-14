@@ -34,20 +34,7 @@ public class Table<T> extends Component<T> {
     }
 
     public TableRow rowByColumnLabel(String label, String rowValue) {
-        ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
-        int index = 1;
-        for (SelenideElement header : headers) {
-            String value = header.text();
-            if (value == null) {
-                index++;
-                continue;
-            }
-
-            if (Objects.equals(label, value)) {
-                break;
-            }
-            index++;
-        }
+        int index = findColumnByLabel(label);
 
         ElementsCollection rows = getParentElement().findAll("tbody tr");
         for (SelenideElement row : rows) {
@@ -63,6 +50,25 @@ public class Table<T> extends Component<T> {
         }
 
         return null;
+    }
+
+    public int findColumnByLabel(String label) {
+        ElementsCollection headers = getParentElement().findAll("thead th div span[data-s-id=label]");
+        int index = 1;
+        for (SelenideElement header : headers) {
+            String value = header.text();
+            if (value == null) {
+                index++;
+                continue;
+            }
+
+            if (Objects.equals(label, value)) {
+                break;
+            }
+            index++;
+        }
+
+        return index;
     }
 
     public TableRow rowByColumnResourceKey(String key, String rowValue) {

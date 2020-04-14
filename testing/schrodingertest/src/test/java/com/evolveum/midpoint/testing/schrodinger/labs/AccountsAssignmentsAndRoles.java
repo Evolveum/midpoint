@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
 import com.evolveum.midpoint.schrodinger.page.archetype.ArchetypePage;
+import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
@@ -248,6 +249,10 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
         Assert.assertTrue(archetypePolicyForm.compareInputAttributeValue("color", "darkgreen"));
 
         importObject(SYSTEM_CONFIGURATION_FILE_5_7, true);
+
+        basicPage.loggedUser().logoutIfUserIsLogin();
+        FormLoginPage login = midPoint.formLogin();
+        login.login(getUsername(), getPassword());
 
         basicPage.listUsers().newUser(ARCHETYPE_EMPLOYEE_LABEL)
                 .selectTabBasic()

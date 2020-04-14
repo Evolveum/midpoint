@@ -9,6 +9,7 @@ package com.evolveum.midpoint.testing.schrodinger.labs;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
@@ -82,7 +83,7 @@ public class ProvisioningToResources extends AbstractLabTest {
                         .isSuccess();
 
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
         Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim Tiberius"));
@@ -186,11 +187,9 @@ public class ProvisioningToResources extends AbstractLabTest {
     public void test0402AddingMappings() {
 
         importObject(CSV_1_RESOURCE_FILE_4_2,true);
-
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
         importObject(CSV_3_RESOURCE_FILE_4_2,true);
-
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
 
         showUser("kirk")
@@ -206,13 +205,13 @@ public class ProvisioningToResources extends AbstractLabTest {
                         .isSuccess();
 
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
         Assert.assertTrue(accountForm.compareInputAttributeValue("phone", "123555-1010"));
 
         showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         Assert.assertTrue(accountForm.compareInputAttributeValue("telephoneNumber", "123 / 555 - 1010"));
         Assert.assertTrue(accountForm.compareInputAttributeValue("description", "This user is created by midPoint"));
@@ -257,7 +256,7 @@ public class ProvisioningToResources extends AbstractLabTest {
                         .isSuccess();
 
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jpicard");
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
         Assert.assertTrue(accountForm.compareInputAttributeValue("lname", "PICARD"));
@@ -269,7 +268,7 @@ public class ProvisioningToResources extends AbstractLabTest {
                         .isSuccess();
 
         showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         Assert.assertTrue(accountForm.compareInputAttributeValue("lname", "KIRK"));
 
     }

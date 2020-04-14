@@ -25,6 +25,7 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
 
     @Override
     public TaskPage clickByName(String name) {
+
         getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 

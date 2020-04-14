@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
 import com.evolveum.midpoint.web.page.admin.certification.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.ObjectUtils;
@@ -813,6 +814,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private void initTitleLayout(WebMarkupContainer mainHeader) {
         WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
         pageTitleContainer.add(createUserStatusBehaviour(true));
+        pageTitleContainer.setOutputMarkupId(true);
         mainHeader.add(pageTitleContainer);
 
         WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
@@ -924,7 +926,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         cartButton.setOutputMarkupId(true);
-        cartButton.add(createUserStatusBehaviour(true));
+        cartButton.add(getShoppingCartVisibleBehavior());
         mainHeader.add(cartButton);
 
         Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
@@ -1018,6 +1020,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.add(customLogo);
 
         WebMarkupContainer navigation = new WebMarkupContainer(ID_NAVIGATION);
+        navigation.setOutputMarkupId(true);
         mainHeader.add(navigation);
 
 
@@ -1197,6 +1200,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getMainPopup().close(target);
     }
 
+    private VisibleEnableBehaviour getShoppingCartVisibleBehavior(){
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return !isErrorPage() && isSideMenuVisible(true) &&
+                        (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI));
+            }
+        };
+    }
+
     private VisibleEnableBehaviour createUserStatusBehaviour(final boolean visibleIfLoggedIn) {
         return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -1277,37 +1292,79 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new IModel<String>() {
             @Override
             public String getObject() {
+                BaseMenuItem activeMenu = getActiveMenu();
                 String pageTitleKey = null;
-                List<SideBarMenuItem> sideMenuItems = getSideBarMenuPanel() != null && getSideBarMenuPanel().isVisible()
-                        ? getSideBarMenuPanel().getModelObject() : null;
-                if (sideMenuItems != null){
-                    for (SideBarMenuItem sideBarMenuItem : sideMenuItems){
-                        List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
-                        if (mainMenuItems != null){
-                            for (MainMenuItem mainMenuItem : mainMenuItems){
-                                if (mainMenuItem.isMenuActive(PageBase.this)){
-                                    pageTitleKey = mainMenuItem.getNameModel().getObject();
-                                    break;
-                                }
-                                List<MenuItem> menuItems = mainMenuItem.getItems();
-                                if (menuItems != null){
-                                    for (MenuItem menuItem : menuItems){
-                                        if (menuItem.isMenuActive(PageBase.this)){
-                                            pageTitleKey = menuItem.getNameModel().getObject();
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (activeMenu != null) {
+                    pageTitleKey = activeMenu.getNameModel().getObject();
                 }
+
                 if (StringUtils.isEmpty(pageTitleKey)) {
                     pageTitleKey = PageBase.this.getClass().getSimpleName() + ".title";
                 }
                 return createStringResource(pageTitleKey).getString();
             }
         };
+    }
+
+    private <MI extends BaseMenuItem> MI getActiveMenu() {
+        SideBarMenuPanel sideBarMenu = getSideBarMenuPanel();
+        if (sideBarMenu == null || !sideBarMenu.isVisible()) {
+            return null;
+        }
+
+        List<SideBarMenuItem> sideMenuItems = sideBarMenu.getModelObject();
+        if (CollectionUtils.isEmpty(sideMenuItems)) {
+            return null;
+        }
+
+        MI activeMenu = null;
+        for (SideBarMenuItem sideBarMenuItem : sideMenuItems) {
+            List<MainMenuItem> mainMenuItems = sideBarMenuItem.getItems();
+            activeMenu = (MI) getActiveMenu(mainMenuItems);
+            if (activeMenu != null) {
+                return activeMenu;
+            }
+        }
+
+        return activeMenu;
+    }
+
+    private <MI extends BaseMenuItem> MI getActiveMenu(List<MI> mainMenuItems) {
+        if (CollectionUtils.isEmpty(mainMenuItems)) {
+            return null;
+        }
+        for (MI menuItem : mainMenuItems) {
+            if (menuItem.isMenuActive(PageBase.this)) {
+                return menuItem;
+            }
+
+            if (!(menuItem instanceof MainMenuItem)) {
+                continue;
+            }
+
+            List<MenuItem> menuItems = ((MainMenuItem) menuItem).getItems();
+            MI activeMenuItem = (MI) getActiveMenu(menuItems);
+            if (activeMenuItem != null) {
+                return activeMenuItem;
+            }
+        }
+        return null;
+    }
+
+
+    public void refreshTitle(AjaxRequestTarget target) {
+        target.add(getTitleContainer());
+
+        //TODO what about breadcrumbs and page title (header)?
+        //target.add(getHeaderTitle()); cannot update component with rendetBodyOnly
+    }
+
+    public WebMarkupContainer getTitleContainer() {
+        return (WebMarkupContainer) get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_PAGE_TITLE_CONTAINER));
+    }
+
+    private Label getHeaderTitle() {
+        return (Label) get(ID_TITLE);
     }
 
     public IModel<String> getPageTitleModel() {

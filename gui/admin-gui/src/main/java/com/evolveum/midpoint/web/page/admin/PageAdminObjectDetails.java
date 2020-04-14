@@ -50,7 +50,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
@@ -164,46 +163,52 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         if (PageAdminObjectDetails.this instanceof PageSystemConfiguration){
             return super.createPageTitleModel();
         }
-        String simpleName = getObjectSimpleName();
-        String lokalizedSimpleName = new StringResourceModel("ObjectType." + simpleName).setDefaultValue(simpleName).getString();
-        if (isAdd()) {
-            return createStringResource("PageAdminObjectDetails.title.new", lokalizedSimpleName);
-        }
 
-        String name = null;
-        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-            name = WebComponentUtil.getName(getObjectWrapper().getObject());
-        }
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                String localizedSimpleName = getLocalizedObjectType();
+                if (isAdd()) {
+                    return createStringResource("PageAdminObjectDetails.title.new", localizedSimpleName).getString();
+                }
 
-        return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), lokalizedSimpleName, name);
+                String name = null;
+                if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
+                    name = WebComponentUtil.getName(getObjectWrapper().getObject());
+                }
+
+                return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), localizedSimpleName, name).getString();
+            }
+        };
+
     }
 
-    private String getObjectSimpleName(){
-        if (getObjectWrapper() != null && getObjectWrapper().getObject() != null
-                && getObjectWrapper().getObject().asObjectable() instanceof AssignmentHolderType){
-            AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
-            DisplayType displayType = WebComponentUtil
-                    .getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
-            if (displayType == null){
-                ObjectReferenceType archetypeReference = getObjectArchetypeRef();
-                if (archetypeReference != null){
-                    OperationResult result = new OperationResult(OPERATION_LOAD_ARCHETYPE_REF);
-                    Task task = createSimpleTask(OPERATION_LOAD_ARCHETYPE_REF);
-                    PrismObject<ArchetypeType> archetypeObj = WebModelServiceUtils.resolveReferenceNoFetch(archetypeReference,
-                            this, task, result);
-                    displayType = archetypeObj != null && archetypeObj.asObjectable().getArchetypePolicy() != null ?
-                            archetypeObj.asObjectable().getArchetypePolicy().getDisplay() : null;
-                }
-            }
-            if (displayType != null && displayType.getLabel() != null) {
-                String archetypeLocalizedName = getLocalizationService()
-                        .translate(displayType.getLabel().toPolyString(), WebComponentUtil.getCurrentLocale(), true);
-                if (StringUtils.isNotEmpty(archetypeLocalizedName)) {
-                    return archetypeLocalizedName;
-                }
-            }
+    private String getLocalizedObjectType() {
+        String objectCollectionName = getObjectCollectionName();
+        if (objectCollectionName != null) {
+            return objectCollectionName;
         }
-        return getCompileTimeClass().getSimpleName();
+        return createStringResource("ObjectType." + getCompileTimeClass().getSimpleName()).getString();
+    }
+
+    private String getObjectCollectionName() {
+        if (getObjectWrapper() == null || getObjectWrapper().getObject() == null || !AssignmentHolderType.class.isAssignableFrom(getObjectWrapper().getObject().getCompileTimeClass())) {
+            return null;
+        }
+
+        AssignmentHolderType assignmentHolderObj = (AssignmentHolderType) getObjectWrapper().getObject().asObjectable();
+        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(assignmentHolderObj, PageAdminObjectDetails.this);
+        if (displayType == null || displayType.getLabel() == null) {
+            return null;
+        }
+
+        String archetypeLocalizedName = getLocalizationService()
+                .translate(displayType.getLabel().toPolyString(), WebComponentUtil.getCurrentLocale(), true);
+        if (StringUtils.isNotEmpty(archetypeLocalizedName)) {
+            return archetypeLocalizedName;
+        }
+
+        return null;
     }
 
     public boolean isAdd() {
@@ -413,6 +418,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         target.add(getSummaryPanel());
         target.add(getOperationalButtonsPanel());
         target.add(getFeedbackPanel());
+        refreshTitle(target);
 
         if (soft) {
             for (Component component : getMainPanel().getTabbedPanel()) {
@@ -562,6 +568,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                     }
                 });
                 return tabs;
+            }
+
+            @Override
+            protected IModel<String> getWarningMessageModel(){
+                return createStringResource("PageAdminObjectDetails.button.changeArchetype.warningMessage");
             }
         };
 
