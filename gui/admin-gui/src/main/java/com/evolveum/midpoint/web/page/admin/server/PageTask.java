@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -11,6 +13,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -62,6 +65,8 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 @PageDescriptor(
         urls = {
@@ -349,12 +354,25 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                try {
-                    deleteItem(TaskType.F_OPERATION_STATS);
-                } catch (SchemaException e){
-                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
-                }
-                saveTaskChanges(target);
+                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance.confirmation")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
+                    }
+
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        try {
+                            deleteItem(TaskType.F_OPERATION_STATS);
+                        } catch (SchemaException e){
+                            LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                        }
+                        saveTaskChanges(target);
+                    }
+                };
+                showMainPopup(dialog, target);
             }
         };
         cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
@@ -368,13 +386,26 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                try {
-                    deleteItem(TaskType.F_RESULT);
-                    deleteItem(TaskType.F_RESULT_STATUS);
-                } catch (SchemaException e){
-                    LOGGER.error("Cannot clear task results: {}", e.getMessage());
-                }
-                saveTaskChanges(target);
+                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance.confirmation")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return createStringResource("pageUsers.message.confirmActionPopupTitle");
+                    }
+
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        try {
+                            deleteItem(TaskType.F_RESULT);
+                            deleteItem(TaskType.F_RESULT_STATUS);
+                        } catch (SchemaException e){
+                            LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                        }
+                        saveTaskChanges(target);
+                    }
+                };
+                showMainPopup(dialog, target);
             }
         };
         cleanupResults.add(new VisibleBehaviour(this::isNotRunning));
