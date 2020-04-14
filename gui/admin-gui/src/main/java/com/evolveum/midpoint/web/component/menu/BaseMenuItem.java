@@ -23,6 +23,7 @@ public class BaseMenuItem implements Serializable {
 
     public static final String F_ICON_CLASS = "iconClass";
 
+    //TODO why model? would be string key enought
     private IModel<String> nameModel;
     private Class<? extends WebPage> pageClass;
     private PageParameters params;
