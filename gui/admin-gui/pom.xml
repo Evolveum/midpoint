@@ -803,7 +803,7 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -940,7 +940,7 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>${spring.boot.version}</version>
+                        <!--<version>${spring.boot.version}</version>-->
                         <configuration>
                             <fork>true</fork>
                             <skip>false</skip>

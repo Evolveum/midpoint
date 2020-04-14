@@ -58,6 +58,12 @@
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
     -->
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>2.1.13.RELEASE</version>
+    </parent>
+
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>midpoint</artifactId>
     <version>4.2-SNAPSHOT</version>
@@ -159,8 +165,7 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>2.1.8.RELEASE</spring.boot.version>
-        <!-- Check the names of properties in Spring Boot BOM and let's try to use the same names. -->
+        <!-- TODO: Check the names of properties in Spring Boot parent and let's try to use the same names. -->
         <spring.version>5.1.9.RELEASE</spring.version>
         <spring.security.version>5.1.6.RELEASE</spring.security.version>
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
@@ -230,33 +235,6 @@
                 <groupId>com.sun.activation</groupId>
                 <artifactId>javax.activation</artifactId>
                 <version>${activation.version}</version>
-            </dependency>
-
-            <dependency>
-                <!-- Import dependency management from Spring Boot -->
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-test</artifactId>
-                <version>${spring.boot.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                    </exclusion>
-                    <!--
-                    I'd love to do it, WicketTester from wicket-core (and perhaps others) uses it, so we rather leave it here.
-                    <exclusion>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                    </exclusion>
-                    -->
-                </exclusions>
             </dependency>
 
             <dependency>
@@ -605,8 +583,8 @@
             </dependency>
             <dependency>
                 <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.5</version>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${servlet-api.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -1488,7 +1466,7 @@
             <dependency>
                 <groupId>org.seleniumhq.selenium</groupId>
                 <artifactId>selenium-java</artifactId>
-                <version>3.14.0</version>
+                <version>${selenium.version}</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -1578,10 +1556,10 @@
 
     <build>
         <plugins>
+            <!-- TODO: why is this here? -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.0.1.RELEASE</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -1692,7 +1670,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.0.0-M2</version>
                 <executions>
                     <execution>
                         <id>enforce</id>
