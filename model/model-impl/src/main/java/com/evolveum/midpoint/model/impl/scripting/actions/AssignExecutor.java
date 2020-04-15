@@ -37,7 +37,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor {
             Collection<ObjectReferenceType> roles, Collection<QName> relationSpecifications) throws SchemaException {
 
         QName relationSpecification = MiscUtil.extractSingleton(relationSpecifications,
-                () -> new IllegalArgumentException("Couldn't use 'relation' as multivalue parameter"));
+                () -> new IllegalArgumentException("Using 'relation' as a multivalued parameter is not allowed"));
 
         if (PrismConstants.Q_ANY.matches(relationSpecification)) {
             throw new IllegalArgumentException("Using 'q:any' as relation specification is not allowed");
