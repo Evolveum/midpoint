@@ -9,6 +9,10 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -36,8 +40,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
  */
 public abstract class ListContainersPopup<C extends Containerable, CV extends PrismContainerValueWrapper<C>> extends BasePanel<CV> implements Popupable {
 
-
-    private static final long serialVersionUID = 1L;
+    private static final transient Trace LOGGER = TraceManager.getTrace(ListContainersPopup.class);
 
     private static final String ID_SELECTED = "selected";
     private static final String ID_DEFINITION = "definition";
@@ -63,7 +66,14 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
             @Override
             protected List<ContainersPopupDto> load() {
-                List<PrismContainerDefinition<C>> defs = getModelObject().getChildContainers();
+                List<PrismContainerDefinition<C>> defs = null;
+                try {
+                    defs = getModelObject().getChildContainers();
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot get children containers for {}, reason {}", e, getModelObject(), e.getMessage() );
+                    getSession().error("ListContainersPopup.children.list.failed");
+                    defs = new ArrayList<>();
+                }
                 List<ContainersPopupDto> modelObject = new ArrayList<>(defs.size());
 
                 defs.forEach(def -> modelObject.add(new ContainersPopupDto(false, def)));
