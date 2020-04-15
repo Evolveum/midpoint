@@ -157,9 +157,6 @@
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb-api.version>2.3.1</jaxb-api.version>
-        <jaxb.version>2.3.0.1</jaxb.version>
-        <jaxb-xjc.version>2.3.0.1</jaxb-xjc.version>
         <opendj.version>2.6.2</opendj.version>
         <quartz.version>2.3.0.e3</quartz.version>
         <selenium.version>3.141.59</selenium.version>
@@ -200,11 +197,9 @@
         <antrun.version>1.8</antrun.version>
         <javax.xml.soap.version>1.4.0</javax.xml.soap.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
-        <jakarta.jaxb.version>2.3.2</jakarta.jaxb.version>
         <asm.version>7.0</asm.version>
         <jaxws-api.version>2.3.1</jaxws-api.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
-        <activation.version>1.2.0</activation.version>
         <jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
         <checkstyle.version>3.1.0</checkstyle.version>
@@ -231,10 +226,40 @@
                 <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
                 <version>${geronimo-ws-metadata_2.0_spec.version}</version>
             </dependency>
+            <!-- TODO: remove after update to Spring Boot 2.2, which will have this in parent-->
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>1.2.2</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.activation</groupId>
                 <artifactId>javax.activation</artifactId>
-                <version>${activation.version}</version>
+                <version>${javax-activation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>${glassfish-jaxb.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>javax.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${javax-jaxb.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>javax.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -445,26 +470,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${jaxb-api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <version>${jaxb.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-core</artifactId>
-                <version>${jaxb.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-xjc</artifactId>
-                <version>${jaxb-xjc.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>net.sourceforge.ccxjc</groupId>
                 <artifactId>cc-xjc-plugin</artifactId>
                 <version>2.0</version>
@@ -649,7 +654,7 @@
                         <groupId>javax.xml.soap</groupId>
                         <artifactId>javax.xml.soap-api</artifactId>
                     </exclusion>
-                    <!-- Conflicting version with sun jaxb-xjc -->
+                    <!-- This should be safe to exclude, if we don't generate from WSDL. -->
                     <exclusion>
                         <groupId>org.glassfish.jaxb</groupId>
                         <artifactId>jaxb-xjc</artifactId>
@@ -1682,9 +1687,16 @@
                                 <dependencyConvergence/>
                                 <bannedDependencies>
                                     <excludes>
-                                        <!-- replaced by org.slf4j:jcl-over-slf4j -->
+                                        <!-- both replaced by org.slf4j:jcl-over-slf4j -->
                                         <exclude>commons-logging:commons-logging</exclude>
                                         <exclude>org.springframework:spring-jcl</exclude>
+                                        <!--
+                                        jaxb-core replaced by Glassfish jaxb-runtime + txw2
+                                        jaxb-xjc replaced by Glassfish jaxb-xjc + xsom + codemodel
+                                        -->
+                                        <exclude>com.sun.xml.bind:*</exclude>
+                                        <!-- in favor of jakarta.activation:jakarta.activation-api -->
+                                        <exclude>javax.activation:javax.activation-api</exclude>
                                         <!-- package with multiple XML APIs, conflicts assured
                                         (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
                                         <!--<exclude>xml-apis:xml-apis</exclude>-->
@@ -1713,7 +1725,10 @@
                             <failOnWarning>true</failOnWarning>
                             <ignoreNonCompile>true</ignoreNonCompile>
                             <ignoredUnusedDeclaredDependencies>
-                                <!-- We don't want anything here, except for test support... -->
+                                <!--
+                                We don't want anything here, except for test support...
+                                In case of false report, check that the dependency is not used only in unused imports.
+                                -->
                                 <ignoredUnusedDeclaredDependency>org.assertj:assertj-core</ignoredUnusedDeclaredDependency>
                             </ignoredUnusedDeclaredDependencies>
                             <ignoredUsedUndeclaredDependencies>
