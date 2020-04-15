@@ -19,6 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -27,7 +28,7 @@ public class DecisionDto extends Selectable {
 
     public static final String F_USER = "user";
     public static final String F_ATTORNEY = "attorney";
-    public static final String F_ORIGINAL_ACTOR = "originalActor";
+    public static final String F_ASSIGNEE_CHANGE = "assigneeChange";
     public static final String F_ORIGINAL_ASSIGNEE = "originalAssignee";
     public static final String F_STAGE = "stage";
     public static final String F_OUTCOME = "outcome";
@@ -37,8 +38,8 @@ public class DecisionDto extends Selectable {
 
     private String user;
     private String attorney;
-    private String originalActor;
     private String originalAssignee;
+    private String assigneeChange;
     private String stage;
     private Boolean outcome;
     private String comment;
@@ -57,12 +58,12 @@ public class DecisionDto extends Selectable {
         return attorney;
     }
 
-    public String getOriginalActor() {
-        return originalActor;
-    }
-
     public String getOriginalAssignee() {
         return originalAssignee;
+    }
+
+    public String getAssigneeChange() {
+        return assigneeChange;
     }
 
     public String getStage() {
@@ -115,16 +116,18 @@ public class DecisionDto extends Selectable {
             rv.escalationLevelNumber = ApprovalContextUtil.getEscalationLevelNumber(completionEvent);
             if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
                 // TODO optimize repo access
-                rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
+                rv.originalAssignee = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
             }
             return rv;
         } else if (e instanceof WorkItemDelegationEventType){
             WorkItemDelegationEventType event = (WorkItemDelegationEventType) e;
-            ObjectReferenceType origAssigneeRef = CollectionUtils.isNotEmpty(event.getAssigneeBefore()) ? event.getAssigneeBefore().get(0) : null;
             if (event.getComment() != null){
                 rv.comment = event.getComment();
             }
-            rv.originalAssignee =  origAssigneeRef != null ? WebModelServiceUtils.resolveReferenceName(origAssigneeRef, pageBase) : null;
+
+            String assigneeBeforeNamesList = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(event.getAssigneeBefore(), false);
+            String assigneeAfterNamesList = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(event.getDelegatedTo(), false);
+            rv.assigneeChange =  assigneeBeforeNamesList + " -> " + assigneeAfterNamesList;
             return rv;
         } else if (e instanceof StageCompletionEventType) {
             StageCompletionEventType completion = (StageCompletionEventType) e;

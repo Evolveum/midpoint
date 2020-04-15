@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -1511,8 +1512,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         MidPointPrincipal donorPrincipal =  securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 
         // TODO: audit switch
-
-        securityContextManager.setupPreAuthenticatedSecurityContext(donorPrincipal);
+        Authentication authentication = securityContextManager.getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            ((MidpointAuthentication) authentication).setPrincipal(donorPrincipal);
+            ((MidpointAuthentication) authentication).setCredential(null);
+            ((MidpointAuthentication) authentication).setAuthorities(donorPrincipal.getAuthorities());
+        } else {
+            securityContextManager.setupPreAuthenticatedSecurityContext(donorPrincipal);
+        }
 
         return donorPrincipal;
     }
@@ -1531,7 +1538,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // TODO: audit switch
 
         // TODO: maybe refresh previous principal using userProfileService?
-        securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
+        Authentication authentication = securityContextManager.getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            ((MidpointAuthentication) authentication).setPrincipal(previousPrincipal);
+            ((MidpointAuthentication) authentication).setCredential(null);
+            ((MidpointAuthentication) authentication).setAuthorities(previousPrincipal.getAuthorities());
+        } else {
+            securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
+        }
 
         return previousPrincipal;
     }
