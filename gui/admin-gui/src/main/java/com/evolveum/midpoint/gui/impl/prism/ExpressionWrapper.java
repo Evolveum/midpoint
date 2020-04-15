@@ -14,10 +14,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 /**
  * Created by honchar
  */
 public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> {
+
+    private QName customQName = new QName("com.evolveum.midpoint.gui","customExtenstionType");
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionWrapper.class);
     private ConstructionType construction;
@@ -114,7 +118,13 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
             return super.getDisplayOrder();
         }
     }
-//    @Override
+
+    @Override
+    public QName getTypeName() {
+        return customQName;
+    }
+
+    //    @Override
 //    public boolean hasChanged() {
 //        for (ValueWrapperOld valueWrapper : getValues()) {
 //            ExpressionType expression = (ExpressionType) ((PrismPropertyValue) valueWrapper.getValue()).getValue();

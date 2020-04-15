@@ -376,65 +376,22 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                AssignmentPanel assignmentPanel =
-                        new AssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
-                            private static final long serialVersionUID = 1L;
+                FocusMappingsAssignmentPanel assignmentPanel = new FocusMappingsAssignmentPanel(ID_ASSIGNMENTS, SwitchAssignmentTypePanel.this.getModel()) {
+                    @Override
+                    protected void assignmentDetailsPerformed(AjaxRequestTarget target) {
+                        target.add(SwitchAssignmentTypePanel.this);
+                    }
 
-                            //TODO may be we will need FocusMappingsAssignmentsPanel later
-                            @Override
-                            protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initBasicColumns() {
-                                List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+                    @Override
+                    protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
+                        target.add(SwitchAssignmentTypePanel.this);
+                    }
 
-                                columns.add(new IconColumn<PrismContainerValueWrapper<AssignmentType>>(Model.of("")) {
-
-                                    private static final long serialVersionUID = 1L;
-
-                                    @Override
-                                    protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                                        return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(
-                                                AssignmentsUtil.getTargetType(rowModel.getObject().getRealValue())));
-                                    }
-
-                                });
-
-                                columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("PolicyRulesPanel.nameColumn")){
-                                    private static final long serialVersionUID = 1L;
-
-                                    @Override
-                                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> cellItem,
-                                                                          String componentId, final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                                        String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
-                                        if (StringUtils.isBlank(name)) {
-                                            name = createStringResource("AssignmentPanel.noName").getString();
-                                        }
-                                        cellItem.add(new Label(componentId, Model.of(name)));
-                                    }
-                                });
-                                return columns;
-                            }
-
-                            @Override
-                            protected ObjectQuery createObjectQuery(){
-                                ObjectQuery query = super.createObjectQuery();
-                                ObjectQuery focusMappingsQuery = SwitchAssignmentTypePanel.this.getPageBase().getPrismContext()
-                                        .queryFor(AssignmentType.class)
-                                        .exists(AssignmentType.F_FOCUS_MAPPINGS)
-                                        .build();
-                                query.addFilter(focusMappingsQuery.getFilter());
-                                return query;
-                            }
-
-                            @Override
-                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
-                                return false;
-                            }
-
-                            @Override
-                            protected QName getAssignmentType() {
-                                return AssignmentType.F_FOCUS_MAPPINGS;
-                            }
-
-                        };
+                    @Override
+                    protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                        return false;
+                    }
+                };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_FOCUS_MAPPING_ASSIGNMENTS);
             }

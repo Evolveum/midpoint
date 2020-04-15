@@ -110,14 +110,11 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
 
                 Component panel = createValuePanel(item, componentFactory, getVisibilityHandler(), getEditabilityHandler());
-//                panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
                 createButtons(item);
             }
 
         };
 
-//        values.setReuseItems(true);
-//        customValuesPanel(values);
         return values;
     }
 

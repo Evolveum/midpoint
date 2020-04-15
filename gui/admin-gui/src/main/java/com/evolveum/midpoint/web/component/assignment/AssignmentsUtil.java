@@ -7,13 +7,14 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -22,39 +23,29 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar.
  */
 public class AssignmentsUtil {
-    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
 
     public static String createActivationTitleModel(ActivationType activation, String defaultTitle, PageBase basePanel) {
         if (activation == null) {
-            return"";
+            return defaultTitle;
         }
         return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
     }
@@ -88,13 +79,8 @@ public class AssignmentsUtil {
         return label.getObject();
     }
 
-    public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentType> model, BasePanel basePanel) {
-        return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
-    }
-
     public static IModel<String> createActivationTitleModelExperimental(AssignmentType assignmentType, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
 
-//        AssignmentDto assignmentDto = model.getObject();
         ActivationType activation = assignmentType.getActivation();
         if (activation == null) {
             return basePanel.createStringResource("lower.ActivationStatusType.null");
@@ -139,15 +125,13 @@ public class AssignmentsUtil {
     }
 
 
+    @SuppressWarnings("unchecked")
     private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
         switch (timeIntervalStatus) {
             case AFTER:
                 return basePanel.createStringResource("ActivationType.validity.after", activation.getValidTo());
             case BEFORE:
                 return basePanel.createStringResource("ActivationType.validity.before", activation.getValidFrom());
-            case IN:
-                return basePanel.createStringResource(activation.getEffectiveStatus());
-
             default:
                 return basePanel.createStringResource(activation.getEffectiveStatus());
         }
@@ -187,17 +171,6 @@ public class AssignmentsUtil {
         };
     }
 
-    public static VisibleEnableBehaviour getEnableBehavior(IModel<AssignmentEditorDto> dtoModel){
-        return new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return dtoModel.getObject().isEditable();
-            }
-        };
-    }
-
     public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type){
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -230,37 +203,30 @@ public class AssignmentsUtil {
 
     public static String getName(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
         AssignmentType assignment = assignmentValueWrapper.getRealValue();
+        return getName(assignment, pageBase);
+    }
 
+    public static String getName(AssignmentType assignment, PageBase pageBase) {
         if (assignment == null) {
             return null;
         }
 
         if (assignment.getPolicyRule() != null){
-            StringBuilder sbName = new StringBuilder("");
-            PrismPropertyWrapper<String> property;
-            try {
-                property = assignmentValueWrapper.findProperty(ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME));
-            } catch (SchemaException e) {
-                LOGGER.error("Cannot find name property for policy rules.");
-                pageBase.getSession().error("Cannot find name for the policy rule");
-                return null;
+            StringBuilder sbName = new StringBuilder();
+            String policyRuleName = assignment.getPolicyRule().getName();
+
+            if (StringUtils.isNotEmpty(policyRuleName)) {
+                sbName.append(policyRuleName).append("\n");
             }
-            if (property != null && !property.getValues().isEmpty()) {
-                for (PrismPropertyValueWrapper<String> value : property.getValues()) {
-                    ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
-                    if (StringUtils.isNotEmpty(name.getObject())) {
-                        sbName.append(name.getObject()).append("\n");
-                    }
-                }
-            }
+
             if (StringUtils.isNotEmpty(sbName.toString())){
                 return sbName.toString();
             } else {
                 PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
-                StringBuilder sb = new StringBuilder("");
+                StringBuilder sb = new StringBuilder();
                 PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
                 if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
-                    sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString() + ": ");
+                    sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
                     constraints.getExclusion().forEach(exclusion -> {
                         sb.append(WebComponentUtil.getName(exclusion.getTargetRef(), true));
                         sb.append("; ");
@@ -297,23 +263,53 @@ public class AssignmentsUtil {
             }
         }
 
-        if (isNotEmptyRef(assignment.getTargetRef())) {
-            sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase,
-                    "loadTargetName", true));
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (isNotEmptyRef(targetRef)) {
+            if (pageBase == null) {
+                PolyStringType targetName = targetRef.getTargetName();
+                if (targetName != null) {
+                    sb.append(WebComponentUtil.getOrigStringFromPoly(targetName)).append(" - ");
+                }
+                QName type = targetRef.getType();
+                if (type != null) {
+                    sb.append(type.getLocalPart());
+                }
+            } else {
+                sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase,
+                        "loadTargetName", true));
+            }
         }
 
 //        appendTenantAndOrgName(assignment, pageBase);
 
-        if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
-            for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
-                String name = mapping.getName() == null ? "" : mapping.getName();
-                String description = mapping.getDescription() == null ? "" : mapping.getDescription();
-                if(name.isEmpty()) {
-                    sb.append(!description.isEmpty() ? "Mapping - " + description + "\n": "");
-                } else {
-                    sb.append(name);
-                    sb.append(!description.isEmpty() ? " - " + description + "\n" : "\n");
+        if (sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
+            sb.append("Focus mapping - ");
+            List<MappingType> mappings = assignment.getFocusMappings().getMapping();
+            Iterator<MappingType> mappingsIterator = mappings.iterator();
+            while (mappingsIterator.hasNext()) {
+                MappingType mapping = mappingsIterator.next();
+                String name = mapping.getName();
+                if (name == null) {
+                    name = mapping.getDescription();
                 }
+
+                if (name == null) {
+                    VariableBindingDefinitionType target = mapping.getTarget();
+                    if (target != null) {
+                        name = target.getPath().toString();
+                    }
+                }
+
+                //should no happened
+                if (name == null) {
+                    sb.append("Unknown");
+                }
+
+                sb.append(name);
+                if (mappingsIterator.hasNext()) {
+                    sb.append(", ");
+                }
+
             }
         }
         return sb.toString();
@@ -386,18 +382,6 @@ public class AssignmentsUtil {
         return sb.toString();
     }
 
-    private static void appendRelation(AssignmentType assignment, StringBuilder sb, PageBase pageBase) {
-        if (assignment.getTargetRef() == null) {
-            return;
-        }
-
-        String labelKey = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(assignment.getTargetRef().getRelation());
-        if (StringUtils.isNotEmpty(labelKey)) {
-            sb.append(" - ").append(pageBase.createStringResource(labelKey).getString());
-        }
-
-    }
-
     public static AssignmentEditorDtoType getType(AssignmentType assignment) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
         if (targetRef.asReferenceValue().getObject() != null) {
@@ -423,11 +407,6 @@ public class AssignmentsUtil {
                 !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
     }
 
-    public static boolean isPolicyRuleAssignment(AssignmentType assignment) {
-        return assignment.asPrismContainerValue() != null
-                && assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE) != null;
-    }
-
    public static boolean isArchetypeAssignment(AssignmentType assignment) {
         return assignment.getTargetRef() != null
                 && ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
@@ -439,28 +418,6 @@ public class AssignmentsUtil {
         }
 
         return QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
-    }
-
-    /**
-     *
-     * @return true if this is an assignment of a RoleType, OrgType, ServiceType or Resource
-     * @return false if this is an assignment of a User(delegation, deputy) or PolicyRules
-     */
-    public static boolean isAssignableObject(AssignmentType assignment){
-        if (assignment.getPersonaConstruction() != null) {
-            return false;
-        }
-
-        if (assignment.getPolicyRule() != null) {
-            return false;
-        }
-
-        //TODO: uncomment when GDPR is in
-//        if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation().equals(SchemaConstants.ORG_CONSENT)) {
-//            return false;
-//        }
-
-        return true;
     }
 
     public static QName getTargetType(AssignmentType assignment) {
@@ -484,6 +441,7 @@ public class AssignmentsUtil {
         if (assignment.getFocusMappings() != null){
             return MappingType.COMPLEX_TYPE;
         }
+
         // account assignment through account construction
         return ConstructionType.COMPLEX_TYPE;
 
@@ -510,8 +468,8 @@ public class AssignmentsUtil {
         int assignmentsLimit = -1;
         try {
             CompiledGuiProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledGuiProfile(
-                    pageBase.createSimpleTask(result.getOperation()), result);//pageBase.loadUserSelf().asObjectable().getAdminGuiConfiguration();
-            if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null){
+                    pageBase.createSimpleTask(result.getOperation()), result);
+            if (adminGuiConfig.getRoleManagement() != null){
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
             }
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex){
