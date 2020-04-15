@@ -265,10 +265,16 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
     public <T> T getParsedRealValue(@NotNull Class<T> clazz) throws SchemaException {
         if (parsed != null) {
-            if (clazz.isAssignableFrom(parsed.getRealValue().getClass())) {
-                return (T) parsed.getRealValue();
+            Object realValue = parsed.getRealValue();
+            if (realValue != null) {
+                if (clazz.isAssignableFrom(realValue.getClass())) {
+                    //noinspection unchecked
+                    return (T) realValue;
+                } else {
+                    throw new IllegalArgumentException("Parsed value ("+realValue.getClass()+") is not assignable to "+clazz);
+                }
             } else {
-                throw new IllegalArgumentException("Parsed value ("+parsed.getClass()+") is not assignable to "+clazz);
+                return null; // strange but possible
             }
         } else if (xnode != null) {
             return prismContext.parserFor(xnode.toRootXNode()).parseRealValue(clazz);

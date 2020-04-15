@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.modal.FocusSetProjectionModal;
 import com.evolveum.midpoint.schrodinger.component.user.ProjectionsDropDown;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.FocusPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -24,8 +25,8 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Component<UserPage> {
-    public ProjectionsTab(UserPage parent, SelenideElement parentElement) {
+public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Component<FocusPage> {
+    public ProjectionsTab(FocusPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 

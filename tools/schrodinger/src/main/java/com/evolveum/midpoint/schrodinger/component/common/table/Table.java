@@ -76,7 +76,7 @@ public class Table<T> extends Component<T> {
         return null;
     }
 
-    public Search<? extends Table> search() {
+    public Search<? extends Table<T>> search() {
         SelenideElement searchElement = getParentElement().$(By.cssSelector(".form-inline.pull-right.search-form"));
 
         return new Search<>(this, searchElement);
@@ -112,7 +112,7 @@ public class Table<T> extends Component<T> {
     }
 
     public boolean containsText(String value) {
-        return $(byText(value)).is(Condition.visible);
+        return getParentElement().$(byText(value)).is(Condition.visible);
     }
 
     public boolean containsLinkTextPartially(String value) {

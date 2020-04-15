@@ -15,6 +15,12 @@ import java.util.Properties;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
+
+import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
+
+import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,17 +62,17 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     protected static final String CSV_RESOURCE_ATTR_UNIQUE = "Unique attribute name";
 
-    private static final String SCHRODINGER_PROPERTIES = "./src/test/resources/configuration/schrodinger.properties";
+    protected static final String SCHRODINGER_PROPERTIES = "./src/test/resources/configuration/schrodinger.properties";
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractSchrodingerTest.class);
 
     protected static File csvTargetDir;
 
-    private EnvironmentConfiguration configuration;
+    protected EnvironmentConfiguration configuration;
 
-    private String username;
+    protected String username;
 
-    private String password;
+    protected String password;
 
     protected MidPoint midPoint;
 
@@ -105,7 +111,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         basicPage = login.loginIfUserIsNotLog(username, password);
     }
 
-    private EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
+    protected EnvironmentConfiguration buildEnvironmentConfiguration(Properties props) {
         EnvironmentConfiguration config = new EnvironmentConfiguration();
         config.driver(WebDriver.valueOf(props.getProperty("webdriver")));
 
@@ -246,8 +252,8 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             ResourceConfigurationTab resourceConfigurationTab = viewResourcePage
                     .clickEditResourceConfiguration();
             Selenide.screenshot("afterEditConfigurationClick");
-            Selenide.sleep(60000);
-            Selenide.screenshot("afterMinuteSleep");
+            Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+            Selenide.screenshot("afterSixSecondsSleep");
 
             Assert.assertTrue(resourceConfigurationTab
                     .form()
@@ -278,5 +284,4 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         }
 
     }
-
 }

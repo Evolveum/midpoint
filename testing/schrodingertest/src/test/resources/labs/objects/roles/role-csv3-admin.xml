@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+oid="a06038e4-325e-11e6-9031-3c970e44b9e2">
+    <name>CSV-3 Admin</name>
+    <description>
+     This role assigns CSV-3 (LDAP) resource and creates an admin account.
+    </description>
+    <inducement>
+        <construction>
+            <!-- The c: prefix in type must be there due to a JAXB bug -->
+            <resourceRef oid="10000000-9999-9999-0000-a000ff000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>admin</intent>
+        </construction>
+    </inducement>
+</role>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.component.user;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
@@ -35,8 +36,8 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        SelenideElement dropDown = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"))
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement dropDown = $(Schrodinger.byDataId("ul", "dropDownMenu"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new UsersTableDropDown<>(this, dropDown);

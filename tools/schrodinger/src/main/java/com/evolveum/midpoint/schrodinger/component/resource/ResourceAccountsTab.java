@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -87,6 +88,11 @@ public class ResourceAccountsTab<T> extends Component<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceShadowTable<>(this, element);
+    }
+
+    public void setIntent(String intent) {
+        $(Schrodinger.byDataId("div", "intent")).$(Schrodinger.byDataId("input", "input"))
+                .setValue(intent).sendKeys(Keys.ENTER);
     }
 
 }

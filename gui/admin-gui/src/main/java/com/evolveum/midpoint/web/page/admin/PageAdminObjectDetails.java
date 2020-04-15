@@ -569,6 +569,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 });
                 return tabs;
             }
+
+            @Override
+            protected IModel<String> getWarningMessageModel(){
+                return createStringResource("PageAdminObjectDetails.button.changeArchetype.warningMessage");
+            }
         };
 
         changeArchetypePopup.setOutputMarkupPlaceholderTag(true);
