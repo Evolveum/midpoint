@@ -46,7 +46,7 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
-        return new ItemPathPanel(panelCtx.getComponentId(), (ItemPathType) panelCtx.getRealValueModel().getObject()) {
+        return new ItemPathPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel().getObject()) {
 
             private static final long serialVersionUID = 1L;
 

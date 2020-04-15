@@ -34,9 +34,6 @@ import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestMiscellaneous extends AbstractWfTestPolicy {
@@ -365,5 +362,81 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         TestUtil.assertSuccess(result);
 
         assertAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
+    }
+
+    /**
+     * MID-6183
+     */
+    @Test
+    public void test300DeleteRequestCase() throws Exception {
+        given();
+
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        unassignAllRoles(userJackOid);
+
+        when();
+
+        // @formatter:off
+        ObjectDelta<? extends ObjectType> delta =
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN_OID, ObjectTypes.ROLE, prismContext))
+                        .asObjectDelta(userJackOid);
+        // @formatter:on
+
+        executeChanges(delta, null, task, result);
+
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
+
+        RelatedCases relatedCases = new RelatedCases().find(task, result);
+        CaseType approvalCase = relatedCases.getApprovalCase();
+        CaseType requestCase = relatedCases.getRequestCase();
+
+        deleteObject(CaseType.class, requestCase.getOid(), task, result);
+
+        then();
+
+        assertObjectDoesntExist(CaseType.class, requestCase.getOid());
+        assertObjectDoesntExist(CaseType.class, approvalCase.getOid());
+    }
+
+    /**
+     * MID-6183
+     */
+    @Test
+    public void test310DeleteRequestCaseRaw() throws Exception {
+        given();
+
+        login(userAdministrator);
+        Task task = getTestTask();
+        OperationResult result = getTestOperationResult();
+        unassignAllRoles(userJackOid);
+
+        when();
+
+        // @formatter:off
+        ObjectDelta<? extends ObjectType> delta =
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                            .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN_OID, ObjectTypes.ROLE, prismContext))
+                        .asObjectDelta(userJackOid);
+        // @formatter:on
+
+        executeChanges(delta, null, task, result);
+
+        assertNotAssignedRole(userJackOid, ROLE_CAPTAIN_OID, result);
+
+        RelatedCases relatedCases = new RelatedCases().find(task, result);
+        CaseType approvalCase = relatedCases.getApprovalCase();
+        CaseType requestCase = relatedCases.getRequestCase();
+
+        deleteObjectRaw(CaseType.class, requestCase.getOid(), task, result);
+
+        then();
+
+        assertObjectDoesntExist(CaseType.class, requestCase.getOid());
+        assertObjectExists(CaseType.class, approvalCase.getOid());
     }
 }

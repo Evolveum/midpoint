@@ -23,6 +23,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -99,7 +101,8 @@ public class ChangeExecutor {
     private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkShadow";
     private static final String OPERATION_UPDATE_SITUATION_IN_SHADOW = ChangeExecutor.class.getName() + ".updateSituationInShadow";
 
-    @Autowired private transient TaskManager taskManager;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WorkflowManager workflowManager;
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
     @Autowired private ProvisioningService provisioning;
     @Autowired private PrismContext prismContext;
@@ -1417,6 +1420,8 @@ public class ChangeExecutor {
                 taskManager.deleteTask(oid, result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
                 taskManager.deleteNode(oid, result);
+            } else if (CaseType.class.isAssignableFrom(objectTypeClass)) {
+                workflowManager.deleteCase(oid, task, result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
                         (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) change);

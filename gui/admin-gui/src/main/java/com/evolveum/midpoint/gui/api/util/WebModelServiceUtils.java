@@ -490,10 +490,9 @@ public class WebModelServiceUtils {
             subResult = new OperationResult(OPERATION_DELETE_OBJECT);
         }
         try {
-            Task task = createSimpleTask(result.getOperation(), principal, page.getTaskManager());
+            Task task = createSimpleTask(subResult.getOperation(), principal, page.getTaskManager());
 
-            ObjectDelta delta = page.getPrismContext().deltaFactory().object().create(type, ChangeType.DELETE);
-            delta.setOid(oid);
+            ObjectDelta<T> delta = page.getPrismContext().deltaFactory().object().createDeleteDelta(type, oid);
 
             page.getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, subResult);
         } catch (Exception ex) {
