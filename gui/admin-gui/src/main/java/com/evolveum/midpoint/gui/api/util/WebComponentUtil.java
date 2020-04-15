@@ -71,6 +71,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -1249,10 +1250,8 @@ public final class WebComponentUtil {
             }
         } else if (prismContainerValue.canRepresent(AssignmentType.class)) {
             AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
-            if (assignmentType.getTargetRef() != null) {
-                ObjectReferenceType assignmentTargetRef = assignmentType.getTargetRef();
-                displayName = getName(assignmentTargetRef) + " - " + normalizeRelation(assignmentTargetRef.getRelation()).getLocalPart();
-            } else {
+            displayName = AssignmentsUtil.getName(assignmentType, null);
+            if (StringUtils.isBlank(displayName)) {
                 displayName = "AssignmentTypeDetailsPanel.containerTitle";
             }
         } else if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)) {
@@ -1331,10 +1330,36 @@ public final class WebComponentUtil {
             }
         } else if (prismContainerValue.canRepresent(MappingType.class)) {
             MappingType mapping = (MappingType) prismContainerValue.asContainerable();
-            if (mapping.getName() != null && !mapping.getName().isEmpty()) {
-                String name = mapping.getName();
+            String mappingName = mapping.getName();
+            if (StringUtils.isNotBlank(mappingName)) {
                 String description = mapping.getDescription();
-                displayName = name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+                displayName = mappingName + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+            } else {
+                List<VariableBindingDefinitionType> sources = mapping.getSource();
+                String sourceDescription = "";
+                if (CollectionUtils.isNotEmpty(sources)) {
+                    Iterator<VariableBindingDefinitionType> iterator = sources.iterator();
+                    while (iterator.hasNext()) {
+                        VariableBindingDefinitionType source = iterator.next();
+                        if (source == null || source.getPath() == null) {
+                            continue;
+                        }
+                        String sourcePath = source.getPath().toString();
+                        sourceDescription +=sourcePath;
+                        if (iterator.hasNext()) {
+                            sourceDescription += ",";
+                        }
+                    }
+                }
+                VariableBindingDefinitionType target = mapping.getTarget();
+                String targetDescription = target.getPath() != null ? target.getPath().toString() : null;
+                if (StringUtils.isBlank(sourceDescription)) {
+                    sourceDescription = "(no sources)";
+                }
+                if (StringUtils.isBlank(targetDescription)) {
+                    targetDescription = "(no targets)";
+                }
+                displayName = sourceDescription + " - " + targetDescription;
             }
         } else {
 

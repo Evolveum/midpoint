@@ -38,12 +38,6 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
                 return false;
             }
         };
-//        conditionPanel.getEditor().add(new OnChangeAjaxBehavior() {
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-//
-//            }
-//        });
         conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         conditionPanel.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         return conditionPanel;
@@ -51,10 +45,6 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        ItemPath assignmentConditionPath  = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONDITION, MappingType.F_EXPRESSION);
-        ItemPath inducementConditionPath  = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONDITION, MappingType.F_EXPRESSION);
-
-        ItemPath wrapperPath = wrapper.getPath().namedSegmentsOnly();
-        return wrapper instanceof PrismPropertyWrapper && (inducementConditionPath.isSubPathOrEquivalent(wrapperPath) || assignmentConditionPath.isSubPathOrEquivalent(wrapperPath) || QNameUtil.match(AssignmentType.F_CONDITION, wrapper.getItemName()));
+        return QNameUtil.match(ExpressionType.COMPLEX_TYPE, wrapper.getTypeName());
     }
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
@@ -57,13 +58,13 @@ public class PolicyRulesPanel extends AssignmentPanel {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
 
-        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS), getPageBase()));
 
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_SITUATION), ColumnType.STRING, getPageBase()));
 
-        columns.add(new PrismContainerWrapperColumn<AssignmentType>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
+        columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_ACTIONS), getPageBase()));
 
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, Integer>(getModel(), AssignmentType.F_ORDER, ColumnType.STRING, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<>(getModel(), AssignmentType.F_ORDER, ColumnType.STRING, getPageBase()));
 
         return columns;
     }
@@ -94,7 +95,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
             return;
         }
         PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject(), target);
-        getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
+        getMultivalueContainerListPanel().itemDetailsPerformed(target, Collections.singletonList(newAssignmentWrapper));
     }
 
     @Override

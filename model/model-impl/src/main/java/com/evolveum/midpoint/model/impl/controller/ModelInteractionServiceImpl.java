@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPh
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
 import java.util.ArrayList;
@@ -41,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -200,9 +203,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
     private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = ModelInteractionService.class.getName() + ".determineVirtualContainers";
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public <F extends ObjectType> ModelContext<F> previewChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
@@ -216,19 +216,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ProgressListener> listeners, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDump(deltas));
+        if (ModelExecuteOptions.isRaw(options)) {
+            throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
         }
-        int size = 0;
-        if (deltas != null) {
-            size = deltas.size();
-        }
-        Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = new ArrayList<>(size);
-        if (deltas != null) {
-            for (ObjectDelta delta : deltas){
-                clonedDeltas.add(delta.clone());
-            }
-        }
+
+        LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
+        Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = cloneDeltas(deltas);
 
         OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
         LensContext<F> context = null;
@@ -248,6 +241,20 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         return context;
+    }
+
+    @NotNull
+    private Collection<ObjectDelta<? extends ObjectType>> cloneDeltas(Collection<ObjectDelta<? extends ObjectType>> deltas) {
+        Collection<ObjectDelta<? extends ObjectType>> clonedDeltas;
+        if (deltas != null) {
+            clonedDeltas = new ArrayList<>(deltas.size());
+            for (ObjectDelta<? extends ObjectType> delta : deltas) {
+                clonedDeltas.add(delta.clone());
+            }
+            return clonedDeltas;
+        } else {
+            return emptyList();
+        }
     }
 
     @Override
@@ -1505,8 +1512,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         MidPointPrincipal donorPrincipal =  securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 
         // TODO: audit switch
-
-        securityContextManager.setupPreAuthenticatedSecurityContext(donorPrincipal);
+        Authentication authentication = securityContextManager.getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            ((MidpointAuthentication) authentication).setPrincipal(donorPrincipal);
+            ((MidpointAuthentication) authentication).setCredential(null);
+            ((MidpointAuthentication) authentication).setAuthorities(donorPrincipal.getAuthorities());
+        } else {
+            securityContextManager.setupPreAuthenticatedSecurityContext(donorPrincipal);
+        }
 
         return donorPrincipal;
     }
@@ -1525,7 +1538,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // TODO: audit switch
 
         // TODO: maybe refresh previous principal using userProfileService?
-        securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
+        Authentication authentication = securityContextManager.getAuthentication();
+        if (authentication instanceof MidpointAuthentication) {
+            ((MidpointAuthentication) authentication).setPrincipal(previousPrincipal);
+            ((MidpointAuthentication) authentication).setCredential(null);
+            ((MidpointAuthentication) authentication).setAuthorities(previousPrincipal.getAuthorities());
+        } else {
+            securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
+        }
 
         return previousPrincipal;
     }
