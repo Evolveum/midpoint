@@ -176,7 +176,6 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 
     protected CaseWorkItemType getWorkItem(Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        //Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(CaseWorkItemType.F_TASK_REF);
         SearchResultList<CaseWorkItemType> itemsAll = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
         if (itemsAll.size() != 1) {
             System.out.println("Unexpected # of work items: " + itemsAll.size());
@@ -327,5 +326,34 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         return prismContext.queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
                 .build();
+    }
+
+    public class RelatedCases {
+        private CaseType approvalCase;
+        private CaseType requestCase;
+
+        public CaseType getApprovalCase() {
+            return approvalCase;
+        }
+
+        public CaseType getRequestCase() {
+            return requestCase;
+        }
+
+        public RelatedCases find(Task task, OperationResult result) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
+                ExpressionEvaluationException, CommunicationException {
+            CaseWorkItemType workItem = getWorkItem(task, result);
+            display("Work item", workItem);
+            approvalCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
+            display("Approval case", approvalCase);
+            assertHasArchetype(approvalCase.asPrismObject(), SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+            ObjectReferenceType parentRef = approvalCase.getParentRef();
+            assertNotNull(parentRef);
+            requestCase = modelObjectResolver.resolve(parentRef, CaseType.class, null, null, task, result);
+            display("Request case", requestCase);
+            assertNotNull(requestCase);
+            assertHasArchetype(requestCase.asPrismObject(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
+            return this;
+        }
     }
 }

@@ -22,16 +22,12 @@ import java.util.List;
 
 /**
  * TODO specify and clean-up error handling
- *
- * @author mederly
  */
-
 public interface WorkflowManager {
 
     //region Work items
     /**
      * Approves or rejects a work item
-     * @param decision     true = approve, false = reject
      */
     void completeWorkItem(WorkItemId workItemId, AbstractWorkItemOutputType output,
             WorkItemEventCauseInformationType causeInformation, Task task,
@@ -53,7 +49,18 @@ public interface WorkflowManager {
 
     //region Process instances (cases)
 
+    /**
+     * Cancels a case and its subcases. Carries out the authorization.
+     */
     void cancelCase(String caseOid, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * Cancels and deletes a case and its subcases. Carries out authorization but only for
+     * subcases. For the root it is expected that this is done by the caller (usually the ChangeExecutor).
+     */
+    void deleteCase(String caseOid, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
@@ -64,7 +71,7 @@ public interface WorkflowManager {
      * ====
      */
 
-    public boolean isEnabled();
+    boolean isEnabled();
 
     // TODO remove this
     PrismContext getPrismContext();
