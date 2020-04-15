@@ -64,7 +64,8 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private void initLayout() {
-        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST) {
+        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST,
+                pageParameters) {
             private static final long serialVersionUID = 1L;
 
             @Override
