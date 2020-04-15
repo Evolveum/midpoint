@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,16 +8,11 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.namespace.QName;
 
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -27,13 +22,10 @@ import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * Created by honchar.
- */
-public class ConstructionAssignmentPanel extends AssignmentPanel {
+public class FocusMappingsAssignmentPanel extends AssignmentPanel {
     private static final long serialVersionUID = 1L;
 
-    public ConstructionAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+    public FocusMappingsAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -41,33 +33,20 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         List<SearchItemDefinition> defs = new ArrayList<>();
 
-        SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_DESCRIPTION), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_NAME), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_STRENGTH), defs);
 
         defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
 
         return defs;
     }
 
-    @Override
-    protected QName getAssignmentType(){
-        return ResourceType.COMPLEX_TYPE;
-    }
-
-    @Override
-    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
-        columns.add(new PrismPropertyWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
-        return columns;
-    }
 
     @Override
     protected ObjectQuery createObjectQuery(){
         return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-                .exists(AssignmentType.F_CONSTRUCTION)
+                .exists(AssignmentType.F_FOCUS_MAPPINGS)
                 .build();
     }
 
@@ -93,20 +72,15 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
             return ItemVisibility.HIDDEN;
         }
 
+        if (QNameUtil.match(ConstructionType.COMPLEX_TYPE, wrapper.getTypeName())){
+            return ItemVisibility.HIDDEN;
+        }
+
         return ItemVisibility.AUTO;
     }
 
     @Override
     protected boolean getContainerReadability(ItemWrapper<?, ?, ?, ?> wrapper) {
-
-        if (QNameUtil.match(ConstructionType.F_KIND, wrapper.getItemName())) {
-            return false;
-        }
-
-        if (QNameUtil.match(ConstructionType.F_INTENT, wrapper.getItemName())) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 }

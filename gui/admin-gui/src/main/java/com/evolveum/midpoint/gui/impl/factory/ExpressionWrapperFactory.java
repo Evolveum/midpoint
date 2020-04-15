@@ -49,7 +49,11 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
                                                                  ItemStatus status, WrapperContext ctx) {
 
         ExpressionWrapper propertyWrapper = new ExpressionWrapper(parent, item, status);
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), ExpressionPropertyPanel.class);
+        if (propertyWrapper.isConstructionExpression() || propertyWrapper.isAttributeExpression() || propertyWrapper.isAssociationExpression()) {
+            getRegistry().registerWrapperPanel(propertyWrapper.getTypeName(), ExpressionPropertyPanel.class);
+        } else {
+            return super.createWrapper(parent, item, status, ctx);
+        }
         return propertyWrapper;
     }
 
