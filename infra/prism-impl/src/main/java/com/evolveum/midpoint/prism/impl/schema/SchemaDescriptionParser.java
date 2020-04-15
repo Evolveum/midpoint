@@ -13,7 +13,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.cxf.wsdl.WSDLConstants;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -28,6 +28,12 @@ import java.util.List;
 class SchemaDescriptionParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaDescription.class);
+
+    public static final String NS_WSDL11 = "http://schemas.xmlsoap.org/wsdl/";
+
+    public static final QName QNAME_DEFINITIONS = new QName(NS_WSDL11, "definitions");
+
+    public static final QName QNAME_TYPES = new QName(NS_WSDL11, "types");
 
     static SchemaDescriptionImpl parseResource(String resourcePath) throws SchemaException {
         SchemaDescriptionImpl desc = new SchemaDescriptionImpl("system resource " + resourcePath, resourcePath);
@@ -57,8 +63,8 @@ class SchemaDescriptionParser {
         }
         Element rootElement = node instanceof Element ? (Element) node : DOMUtil.getFirstChildElement(node);
         QName rootElementQName = DOMUtil.getQName(rootElement);
-        if (WSDLConstants.QNAME_DEFINITIONS.equals(rootElementQName)) {
-            Element types = DOMUtil.getChildElement(rootElement, WSDLConstants.QNAME_TYPES);
+        if (QNAME_DEFINITIONS.equals(rootElementQName)) {
+            Element types = DOMUtil.getChildElement(rootElement, QNAME_TYPES);
             if (types == null) {
                 LOGGER.warn("No <types> section in WSDL document in system resource " + resourcePath);
                 return schemaDescriptions;

@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.schrodinger.page.org;
 
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
+import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class NewOrgPage extends AssignmentHolderDetailsPage<NewOrgPage> {
-
+public class OrgPage extends AbstractRolePage<OrgPage> {
 }

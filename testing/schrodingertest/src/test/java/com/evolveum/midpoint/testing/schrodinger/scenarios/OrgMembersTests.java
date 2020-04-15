@@ -11,7 +11,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
-import com.evolveum.midpoint.schrodinger.page.org.NewOrgPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -32,8 +32,8 @@ public class OrgMembersTests extends AbstractSchrodingerTest {
 
     @Test
     public void createOrgWithinMenuItem(){
-        NewOrgPage newOrgPage = basicPage.newOrgUnit();
-        AssignmentHolderBasicTab<NewOrgPage> basicTab = newOrgPage
+        OrgPage newOrgPage = basicPage.newOrgUnit();
+        AssignmentHolderBasicTab<OrgPage> basicTab = newOrgPage
                 .selectTabBasic()
                     .form()
                     .addAttributeValue("name", ORG_NAME)

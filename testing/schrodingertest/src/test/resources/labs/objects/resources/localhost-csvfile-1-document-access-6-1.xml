@@ -5,34 +5,15 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
-<!-- (c) 2011-2018 Evolveum, All rights reserved -->
-
-<!--
-
-This file is an example of Resource definition. It defines CSV resource.
-
-This resource definition contains also definition to enable synchronization and
-especially an expression that is using a lookup of value from an configuration
-object.
-
--->
-
 <c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-           xmlns:my="http://myself.me/schemas/whatever"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" >
-
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
     <c:resource oid="10000000-9999-9999-0000-a000ff000002">
-
-        <!-- Resource name. It will be displayed in GUI.  -->
         <c:name>CSV-1 (Document Access)</c:name>
-
-        <!-- Reference to the ICF CSV connector. -->
         <connectorRef type="ConnectorType">
             <filter>
                 <q:equal>
@@ -41,15 +22,9 @@ object.
                 </q:equal>
             </filter>
         </connectorRef>
-
-        <!-- Configuration section contains configuration of the connector,
-             such as hostnames and passwords -->
         <c:connectorConfiguration>
-
-            <!-- Configuration specific for the CSV connector -->
-            <icfc:configurationProperties
-                    xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-                <icfcsv:filePath>/usr/midpoint/testing/schrodingertest/src/test/resources/labs/resources/csv-1.csv</icfcsv:filePath>
+            <icfc:configurationProperties xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+                <icfcsv:filePath>/opt/training/midpoint-labs/flatfiles/csv-1.csv</icfcsv:filePath>
                 <icfcsv:encoding>utf-8</icfcsv:encoding>
                 <icfcsv:quoteMode>ALL</icfcsv:quoteMode>
                 <icfcsv:quote>"</icfcsv:quote>
@@ -57,87 +32,47 @@ object.
                 <icfcsv:multivalueDelimiter>;</icfcsv:multivalueDelimiter>
                 <icfcsv:uniqueAttribute>login</icfcsv:uniqueAttribute>
                 <icfcsv:passwordAttribute>password</icfcsv:passwordAttribute>
-                <icfcsv:nameAttribute>login</icfcsv:nameAttribute>
             </icfc:configurationProperties>
-
-            <!-- Generic ICF configuration -->
-
         </c:connectorConfiguration>
-
-        <!-- Resource Schema Handling definition.
-             This part defines how the schema defined above will be used by
-             midPoint. It defines expressions and limitations for individual
-             schema attributes.
-
-             The expressions that describe both inbound and outbound flow of
-             the attributes are defined in this section.
-
-             This is the part where most of the customization takes place.
-        -->
         <schemaHandling>
-
-            <!-- Definition of default account type.
-                 This is now the only account type that midPoint can work with. -->
             <objectType>
                 <kind>account</kind>
                 <intent>default</intent>
-
-                <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
                 <default>true</default>
-
-                <!-- Reference to the Resource Schema (see above) specifying
-                     object class for this account type -->
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <attribute>
                     <ref>ri:login</ref>
-
-                    <!-- Readable name for the attribute. This will be used in GUI -->
                     <displayName>Login</displayName>
-
-                    <!-- Access limitation for this attribute. -->
                     <limitations>
                         <minOccurs>0</minOccurs>
-                        <access>
-                            <read>true</read>
-                            <add>true</add>
-                            <modify>true</modify>
-                        </access>
                     </limitations>
                     <outbound>
                         <source>
-                            <path>$user/givenName</path>
+                            <path>givenName</path>
                         </source>
                         <source>
-                            <path>$user/familyName</path>
+                            <path>familyName</path>
                         </source>
                         <expression>
-                        <script>
-                        <code>
-<!-- Generate user name:
+                            <script>
+                                <code>
 
-- GivenName initial (1 character) + FamilyName
-- no diacritics, all lower case (normalized)
+                                    tmpGivenNameInitial = basic.stringify(givenName)?.size() &gt; 0 ? (basic.stringify(givenName)).substring(0,1) : ''
 
--->
-
-tmpGivenNameInitial = basic.stringify(givenName)?.size() &gt; 0 ? (basic.stringify(givenName)).substring(0,1) : ''
-
-<!-- BONUS LAB, part 1 of 2: add: "+ iterationToken" (without quotes) at the end of the following line -->
-basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
-                        </code>
-                        </script>
+                                    basic.norm(tmpGivenNameInitial + basic.stringify(familyName))?.replace(' ', '')
+                                </code>
+                            </script>
                         </expression>
                     </outbound>
                 </attribute>
-
                 <attribute>
                     <ref>ri:enumber</ref>
                     <displayName>Employee Number</displayName>
                     <description>Definition of Employee Number attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/employeeNumber</path>
+                            <path>employeeNumber</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -147,19 +82,24 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/givenName</path>
+                            <path>givenName</path>
                         </source>
                     </outbound>
-
                 </attribute>
                 <attribute>
                     <ref>ri:lname</ref>
                     <displayName>Last name</displayName>
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
+                        <strength>strong</strength>
                         <source>
-                            <path>$user/familyName</path>
+                            <path>familyName</path>
                         </source>
+                        <expression>
+                            <script>
+                                <code>basic.uc(basic.stringify(familyName))</code>
+                            </script>
+                        </expression>
                     </outbound>
                 </attribute>
                 <attribute>
@@ -168,7 +108,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Department attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/organizationalUnit</path>
+                            <path>organizationalUnit</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -177,26 +117,18 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <displayName>Groups</displayName>
                     <description>Definition of Group attribute handling.</description>
                     <limitations>
-                      <minOccurs>0</minOccurs>
-                      <maxOccurs>-1</maxOccurs>
-              <access>
-                        <read>true</read>
-                        <add>true</add>
-                        <modify>true</modify>
-              </access>
-
+                        <minOccurs>0</minOccurs>
+                        <maxOccurs>unbounded</maxOccurs>
                     </limitations>
-                    <tolerant>false</tolerant> <!-- For also removing group values when recalculating -->
+                    <tolerant>false</tolerant>
                 </attribute>
-<!-- MID-101, LAB 4-2: Uncomment this mapping if needed -->
-<!--
                 <attribute>
                     <ref>ri:phone</ref>
                     <displayName>Phone Number</displayName>
                     <description>Phone number must be without any spaces on this system</description>
                     <outbound>
                         <source>
-                            <path>$user/telephoneNumber</path>
+                            <path>telephoneNumber</path>
                         </source>
                         <expression>
                             <script>
@@ -205,27 +137,23 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                         </expression>
                     </outbound>
                 </attribute>
--->
-<!-- MID-101, LAB 4-2: end of comment -->
-<!-- BONUS LAB, part 2 of 2: uncomment the following section -->
-<!--
+                <!-- BONUS LAB, part 2 of 2: uncomment the following section -->
+                <!--
         <iteration>
             <maxIterations>5</maxIterations>
         </iteration>
 -->
-<!-- BONUS LAB, part 2 of 2: end of comment -->
-        <protected>
-            <filter>
-                <q:equal>
-                    <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
-                    <q:path>attributes/ri:login</q:path>
-                    <q:value>admin</q:value>
-                </q:equal>
-            </filter>
-        </protected>
+                <!-- BONUS LAB, part 2 of 2: end of comment -->
+                <protected>
+                    <filter>
+                        <q:equal>
+                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                            <q:path>attributes/ri:login</q:path>
+                            <q:value>admin</q:value>
+                        </q:equal>
+                    </filter>
+                </protected>
                 <activation>
-<!-- MID-101, LAB 5-5, part 1 of 2: Uncomment the section to use disable instead of delete -->
-<!--
                 <existence>
                     <outbound>
                         <expression>
@@ -233,12 +161,8 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                         </expression>
                     </outbound>
                 </existence>
--->
-<!-- MID-101, LAB 5-5, part 1 of 2: end of comment -->
-                <administrativeStatus>
-                    <outbound>
-<!-- MID-101, LAB 5-5, part 2 of 2: Uncomment the section to use disable instead of delete -->
-<!--
+                    <administrativeStatus>
+                        <outbound>
                         <expression>
                             <script>
                                 <code>
@@ -251,26 +175,16 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                                 </code>
                             </script>
                         </expression>
--->
-<!-- MID-101, LAB 5-5, part 2 of 2: end of comment -->
-                    </outbound>
-                </administrativeStatus>
+                        </outbound>
+                    </administrativeStatus>
                 </activation>
-
                 <credentials>
                     <password>
-                        <outbound>
-                            <expression>
-                                <asIs/>
-                            </expression>
-                        </outbound>
-            <!--<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>-->
+                        <outbound/>
+                        <!--<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>-->
                     </password>
                 </credentials>
-
             </objectType>
-<!-- MID-101, LAB 6-1, part 1 of 2: Uncomment the section to use second intent -->
-<!--
             <objectType>
         <kind>account</kind>
                 <intent>test</intent>
@@ -285,15 +199,10 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
 
             <limitations>
                 <minOccurs>0</minOccurs>
-                <access>
-                    <read>true</read>
-                    <add>true</add>
-                    <modify>true</modify>
-                </access>
             </limitations>
             <outbound>
                 <source>
-                    <path>$user/name</path>
+                    <path>name</path>
                 </source>
                 <expression>
                 <script>
@@ -309,7 +218,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Employee Number attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/employeeNumber</path>
+                            <path>employeeNumber</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -319,7 +228,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/givenName</path>
+                            <path>givenName</path>
                         </source>
                     </outbound>
 
@@ -330,7 +239,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/familyName</path>
+                            <path>familyName</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -340,7 +249,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Department attribute handling.</description>
                     <outbound>
                         <source>
-                            <path>$user/organizationalUnit</path>
+                            <path>organizationalUnit</path>
                         </source>
                     </outbound>
                 </attribute>
@@ -350,13 +259,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Definition of Group attribute handling.</description>
                     <limitations>
                       <minOccurs>0</minOccurs>
-                      <maxOccurs>-1</maxOccurs>
-              <access>
-                        <read>true</read>
-                        <add>true</add>
-                        <modify>true</modify>
-              </access>
-
+                      <maxOccurs>unbounded</maxOccurs>
                     </limitations>
                     <tolerant>false</tolerant>
                 </attribute>
@@ -366,7 +269,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <description>Phone number must be without any spaces on this system</description>
                     <outbound>
                         <source>
-                            <path>$user/telephoneNumber</path>
+                            <path>telephoneNumber</path>
                         </source>
                         <expression>
                             <script>
@@ -400,10 +303,8 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     </password>
                 </credentials>
             </objectType>
--->
-<!-- MID-101, LAB 6-1, part 1 of 2: end of comment -->
         </schemaHandling>
-       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>
                 <cap:activation>
                     <cap:status>
@@ -412,92 +313,77 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                         <cap:disableValue>true</cap:disableValue>
                     </cap:status>
                 </cap:activation>
+                <cap:countObjects>
+                    <cap:simulate>sequentialSearch</cap:simulate>
+                </cap:countObjects>
             </configured>
         </capabilities>
         <synchronization>
             <objectSynchronization>
-                <!--
-                    The synchronization for this resource is enabled.
-                    It means that the synchronization will react to changes detected by
-                    the system (live sync task, discovery or reconciliation) -->
-                    <name>Default account</name>
-                    <description>The default account name does NOT start with "_"</description>
-<!--<objectClass>ri:AccountObjectClass</objectClass>-->
-                    <kind>account</kind>
-                    <intent>default</intent>
+                <name>Default account</name>
+                <description>The default account name does NOT start with "_"</description>
+                <kind>account</kind>
+                <intent>default</intent>
                 <enabled>true</enabled>
-
-                    <condition>
-                        <script>
-                           <code>
-//                            name = basic.lc(shadow.getName().toString())
-                              name = basic.getAttributeValue(shadow, "login")
-                              //log.info("XXX Synchronization condition for account/default; name (getName()) = {}; name (getAttributeValue) = {}; evaluated to {}", shadow.getName(), name, !name?.startsWith('_'))
-                              return !name?.startsWith('_')
-                           </code>
-                        </script>
-                    </condition>
+                <condition>
+                    <script>
+                        <code>
+                            //                            name = basic.lc(projection.getName().toString())
+                            name = basic.getAttributeValue(projection, "login")
+                            //log.info("XXX Synchronization condition for account/default; name (getName()) = {}; name (getAttributeValue) = {}; evaluated to {}", projection.getName(), name, !name?.startsWith('_'))
+                            return !name?.startsWith('_')
+                        </code>
+                    </script>
+                </condition>
                 <correlation>
                     <q:description>
                         Correlation expression is a search query.
                         Following search queury will look for users that have "employeeNumber"
                         equal to the "enumber" attribute of the account.
-                            The condition will ensure that "enumber" is not
-                            empty, otherwise it would match any midPoint user
-                            with empty "employeeNumber" attribute, such as "administrator".
+                        The condition will ensure that "enumber" is not
+                        empty, otherwise it would match any midPoint user
+                        with empty "employeeNumber" attribute, such as "administrator".
                         The correlation rule by default looks for users, so it will not match
                         any other object type.
                     </q:description>
                     <q:equal>
                         <q:path>c:employeeNumber</q:path>
-                              <expression>
-                                <path>$account/attributes/ri:enumber</path>
-                              </expression>
+                        <expression>
+                            <path>$projection/attributes/ri:enumber</path>
+                        </expression>
                     </q:equal>
-                        <condition>
-                            <script>
-                                <code>basic.getAttributeValue(shadow, 'enumber') != null</code>
-                            </script>
-                        </condition>
+                    <condition>
+                        <script>
+                            <code>basic.getAttributeValue(projection, 'enumber') != null</code>
+                        </script>
+                    </condition>
                 </correlation>
-
-                <!-- Confirmation rule may be here, but as the search above will
-                     always return at most one match, the confirmation rule is not needed. -->
-
-                <!-- Following section describes reactions to a situations.
-                     The setting here assumes that this resource is authoritative,
-                     therefore all accounts created on the resource should be
-                     reflected as new users in IDM.
-                     See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-                 -->
                 <reaction>
                     <situation>linked</situation>
-                        <synchronize>true</synchronize>
+                    <synchronize>true</synchronize>
                 </reaction>
                 <reaction>
                     <situation>deleted</situation>
                     <synchronize>true</synchronize>
-                        <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                        </action>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    </action>
                 </reaction>
                 <reaction>
                     <situation>unlinked</situation>
                     <synchronize>true</synchronize>
-                        <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-                        </action>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    </action>
                 </reaction>
                 <reaction>
                     <situation>unmatched</situation>
                     <synchronize>true</synchronize>
-                        <action>
-                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
-                        </action>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                    </action>
                 </reaction>
-        </objectSynchronization>
-<!-- MID-101, LAB 6-1, part 2 of 2: Uncomment the section to use second intent -->
-<!--
+            </objectSynchronization>
             <objectSynchronization>
                     <name>Test account</name>
                     <description>The test account name starts with "_"</description>
@@ -507,9 +393,9 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                     <condition>
                         <script>
                            <code>
-//                            name = basic.lc(shadow.getName().toString())
-                              name = basic.getAttributeValue(shadow, "login")
-                              //log.info("XXX Synchronization condition for account/test; name (getName()) = {}; name (getAttribute) = {}; evaluated to {}", shadow.getName(), name, name.startsWith('_'))
+//                            name = basic.lc(projection.getName().toString())
+                              name = basic.getAttributeValue(projection, "login")
+                              //log.info("XXX Synchronization condition for account/test; name (getName()) = {}; name (getAttribute) = {}; evaluated to {}", projection.getName(), name, name.startsWith('_'))
                               return name?.startsWith('_')
                            </code>
                         </script>
@@ -530,7 +416,7 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                                 <expression>
                                     <script>
                                         <code>
-                                        n = shadow.getName().toString()
+                                        n = projection.getName().toString()
                                         n.substring(1)
                                         </code>
                                     </script>
@@ -563,9 +449,6 @@ basic.norm(tmpGivenNameInitial + familyName)?.replace(' ', '')
                         </action>
                 </reaction>
         </objectSynchronization>
--->
-<!-- MID-101, LAB 6-1, part 2 of 2: end of comment -->
         </synchronization>
     </c:resource>
-
 </c:objects>
