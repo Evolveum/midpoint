@@ -6,16 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
 
 public class VariableBindingDefinitionTypePanel extends BasePanel<VariableBindingDefinitionType> {
 
@@ -43,6 +41,11 @@ public class VariableBindingDefinitionTypePanel extends BasePanel<VariableBindin
                     newPathtype = new ItemPathType(newPath);
                 }
 
+                VariableBindingDefinitionType var = VariableBindingDefinitionTypePanel.this.getModelObject();
+                if (var == null) {
+                    var = new VariableBindingDefinitionType();
+                    VariableBindingDefinitionTypePanel.this.getModel().setObject(var);
+                }
                 VariableBindingDefinitionTypePanel.this.getModelObject().setPath(newPathtype);
             }
         };
