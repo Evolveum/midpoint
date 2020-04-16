@@ -8,24 +8,19 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:jaxws="http://cxf.apache.org/jaxws"
-       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-       xmlns:ssec="http://cxf.apache.org/spring-security"
-       xsi:schemaLocation="
-     http://www.springframework.org/schema/beans
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
      http://www.springframework.org/schema/context
      http://www.springframework.org/schema/context/spring-context-3.0.xsd
-     http://cxf.apache.org/jaxws
-     http://cxf.apache.org/schemas/jaxws.xsd
+
+
      http://cxf.apache.org/jaxrs
-     http://cxf.apache.org/schemas/jaxrs.xsd
-     http://cxf.apache.org/spring-security
-     http://cxf-spring-security.googlecode.com/svn/trunk/cxf-spring-security/src/main/resources/schemas/spring-security.xsd"
-       default-lazy-init="false"
-       default-autowire="byName">
+     http://cxf.apache.org/schemas/jaxrs.xsd"
+        default-lazy-init="false"
+        default-autowire="byName">
 
     <!-- enabling annotation driven configuration -->
     <context:annotation-config/>
@@ -35,15 +30,15 @@
     <!-- We are wiring repo-common and model-common objects here. These are not wired in repo-common or model-common as we want to
          place the right dependencies there. E.g. we want to inject modelResolver at proper places in those beans. -->
 
-    <bean id="basicFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg name="clock" ref="clock"/>
+    <bean id="basicFunctionObject"
+            class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="clock" ref="clock"/>
     </bean>
 
-    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
-          scope="singleton">
+    <bean id="basicFunctionLibrary"
+            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"/>
         <property name="genericFunctions">
@@ -51,13 +46,12 @@
         </property>
     </bean>
 
-    <bean id="logFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
+    <bean id="logFunctionObject"
+            class="com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions">
+        <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
 
-    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
-          scope="singleton">
+    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="log"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-3"/>
         <property name="genericFunctions">
@@ -65,34 +59,38 @@
         </property>
     </bean>
 
-    <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
-          scope="singleton">
-          <constructor-arg name="engineName" value="JavaScript"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
+    <bean id="javascriptScriptEvaluator"
+            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator">
+        <constructor-arg name="engineName" value="JavaScript"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
-    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
+    <bean id="groovyScriptEvaluator"
+            class="com.evolveum.midpoint.model.common.expression.script.groovy.GroovyScriptEvaluator">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
-    <bean id="pythonScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
-          scope="singleton">
-          <constructor-arg name="engineName" value="python"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
+    <bean id="pythonScriptEvaluator"
+            class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator">
+        <constructor-arg name="engineName" value="python"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
-    <bean id="velocityScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
+    <bean id="velocityScriptEvaluator"
+            class="com.evolveum.midpoint.model.common.expression.script.velocity.VelocityScriptEvaluator">
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg name="localizationService" ref="localizationService"/>
     </bean>
 
-    <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
-          scope="singleton">
+    <bean id="scriptExpressionFactory"
+            class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="repositoryService" ref="repositoryService"/>
@@ -116,8 +114,8 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
-    <bean id="functionExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluatorFactory"
-          scope="singleton">
+    <bean id="functionExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg ref="protector"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
@@ -125,8 +123,8 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
-    <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
-          scope="singleton">
+    <bean id="generateExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg ref="protector"/>
         <constructor-arg ref="valuePolicyProcessor"/>
@@ -135,8 +133,8 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
-    <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory"
-          scope="singleton">
+    <bean id="pathExpressionEvaluatorFactory"
+            class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
@@ -145,54 +143,49 @@
     </bean>
 
     <bean id="assignmentTargetSearchExpressionEvaluatorFactory"
-          class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentTargetSearchExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg ref="expressionFactory"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityContextManager"/>
-          <constructor-arg ref="cacheConfigurationManager"/>
-          <property name="objectResolver" ref="modelObjectResolver"/>
+            class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentTargetSearchExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg ref="modelController"/>
+        <constructor-arg ref="securityContextManager"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="referenceSearchExpressionEvaluatorFactory"
-          class="com.evolveum.midpoint.model.common.expression.evaluator.ReferenceSearchExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg ref="expressionFactory"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityContextManager"/>
-          <constructor-arg ref="cacheConfigurationManager"/>
-          <property name="objectResolver" ref="modelObjectResolver"/>
+            class="com.evolveum.midpoint.model.common.expression.evaluator.ReferenceSearchExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg ref="modelController"/>
+        <constructor-arg ref="securityContextManager"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="associationTargetSearchExpressionEvaluatorFactory"
-          class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg ref="expressionFactory"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelController"/>
-          <constructor-arg ref="securityContextManager"/>
-          <constructor-arg ref="cacheConfigurationManager"/>
-          <property name="objectResolver" ref="modelObjectResolver"/>
+            class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg ref="modelController"/>
+        <constructor-arg ref="securityContextManager"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="associationFromLinkExpressionEvaluatorFactory"
-          class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationFromLinkExpressionEvaluatorFactory"
-          scope="singleton">
-          <constructor-arg ref="expressionFactory"/>
-          <constructor-arg name="prismContext" ref="prismContext"/>
-          <constructor-arg name="protector" ref="protector"/>
-          <constructor-arg ref="modelController"/>
-          <constructor-arg ref="cacheConfigurationManager"/>
-          <property name="objectResolver" ref="modelObjectResolver"/>
+            class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationFromLinkExpressionEvaluatorFactory">
+        <constructor-arg ref="expressionFactory"/>
+        <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg ref="modelController"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
+        <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
-    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory"
-            scope="singleton">
+    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
         <constructor-arg>
             <ref bean="securityContextManager"/>
         </constructor-arg>
@@ -207,8 +200,7 @@
         <property name="cacheRegistry" ref="cacheRegistry"/>
     </bean>
 
-    <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"
-          scope="singleton">
+    <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory">
         <property name="expressionFactory" ref="expressionFactory"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
         <property name="protector" ref="protector"/>
@@ -216,8 +208,8 @@
         <property name="securityContextManager" ref="securityContextManager"/>
     </bean>
 
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
-          scope="singleton">
+    <bean id="midpointFunctionLibrary"
+            class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="midpoint"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
         <property name="genericFunctions">
@@ -301,37 +293,6 @@
     </bean>
 
     <bean id="loggingFeature" class="com.evolveum.midpoint.model.impl.util.LoggingFeature"/>
-
-    <jaxws:endpoint id="modelWS"
-                    address="/model-3"
-                    wsdlLocation="classpath:xml/ns/public/model/model-3.wsdl"
-                    serviceName="model:modelWebService"
-                    endpointName="model:modelPort"
-                    xmlns:model="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
-        <jaxws:implementor>
-            <bean parent="modelWebServiceRaw"/>
-        </jaxws:implementor>
-        <jaxws:inInterceptors>
-            <ref bean="authenticationInterceptor"/>
-            <ref bean="springAuthenticationInjector"/>
-            <ref bean="springAuthenticationJanitor"/>
-
-            <!--
-                        <ref bean="authorizationInterceptor"/>
-            -->
-        </jaxws:inInterceptors>
-        <jaxws:outInterceptors>
-        </jaxws:outInterceptors>
-
-        <jaxws:properties>
-            <entry key="org.apache.cxf.logging.FaultListener" value-ref="wsFaultListener"/>
-            <entry key="ws-security.ut.validator" value-ref="midpointPasswordValidator" />
-        </jaxws:properties>
-
-        <jaxws:features>
-            <ref bean="loggingFeature"/>
-        </jaxws:features>
-    </jaxws:endpoint>
 
     <jaxrs:server id="restService" address="/rest/">
         <jaxrs:serviceBeans>

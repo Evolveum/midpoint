@@ -6,31 +6,51 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import java.net.URI;
+import java.util.Collection;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.rest.Converter;
+import com.evolveum.midpoint.common.rest.ConverterInterface;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.common.rest.Converter;
-import com.evolveum.midpoint.common.rest.ConverterInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -48,36 +68,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.cxf.jaxrs.ext.MessageContext;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.namespace.QName;
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author katkav
  * @author semancik
  */
 @Service
-@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
 public class ModelRestService {
 
     public static final String CLASS_DOT = ModelRestService.class.getName() + ".";
@@ -102,10 +101,10 @@ public class ModelRestService {
     public static final String OPERATION_COMPARE = CLASS_DOT + "compare";
     public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
     public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
-    public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT +  "validateValue";
-    public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT +  "validateValueRpc";
-    public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
-    public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
+    public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT + "validateValue";
+    public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT + "validateValueRpc";
+    public static final String OPERATION_GENERATE_VALUE = CLASS_DOT + "generateValue";
+    public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT + "generateValueRpc";
     public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
     public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterCacheInvalidationEvent";
     public static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
@@ -126,13 +125,9 @@ public class ModelRestService {
     @Autowired private ModelInteractionService modelInteraction;
     @Autowired private PrismContext prismContext;
     @Autowired private SecurityHelper securityHelper;
-    @Autowired private ValuePolicyProcessor policyProcessor;
     @Autowired private TaskManager taskManager;
     @Autowired private TaskService taskService;
-    @Autowired private Protector protector;
     @Autowired private ResourceValidator resourceValidator;
-
-    @Autowired private CacheDispatcher cacheDispatcher;
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private AuditService auditService;
@@ -147,8 +142,8 @@ public class ModelRestService {
 
     @POST
     @Path("/{type}/{oid}/generate")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response generateValue(@PathParam("type") String type,
             @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition,
             @Context MessageContext mc) {
@@ -174,8 +169,8 @@ public class ModelRestService {
 
     @POST
     @Path("/rpc/generate")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
             @Context MessageContext mc) {
 
@@ -188,7 +183,7 @@ public class ModelRestService {
         return response;
     }
 
-    private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult){
+    private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) {
         Response response;
         if (policyItemsDefinition == null) {
             response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
@@ -212,8 +207,8 @@ public class ModelRestService {
 
     @POST
     @Path("/{type}/{oid}/validate")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -235,8 +230,8 @@ public class ModelRestService {
 
     @POST
     @Path("/rpc/validate")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -263,24 +258,22 @@ public class ModelRestService {
             return response;
         }
 
+        try {
+            modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
 
-            try {
-                modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
-
-                parentResult.computeStatusIfUnknown();
-                ResponseBuilder responseBuilder;
-                if (parentResult.isAcceptable()) {
-                    response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
-                } else {
-                    responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
-                    response = responseBuilder.build();
-                }
-
-            } catch (Exception ex) {
-                parentResult.computeStatus();
-                response = RestServiceUtil.handleException(parentResult, ex);
+            parentResult.computeStatusIfUnknown();
+            ResponseBuilder responseBuilder;
+            if (parentResult.isAcceptable()) {
+                response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
+            } else {
+                responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
+                response = responseBuilder.build();
             }
 
+        } catch (Exception ex) {
+            parentResult.computeStatus();
+            response = RestServiceUtil.handleException(parentResult, ex);
+        }
 
         return response;
     }
@@ -323,13 +316,13 @@ public class ModelRestService {
 
     @GET
     @Path("/{type}/{id}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response getObject(@PathParam("type") String type, @PathParam("id") String id,
             @QueryParam("options") List<String> options,
             @QueryParam("include") List<String> include,
             @QueryParam("exclude") List<String> exclude,
             @QueryParam("resolveNames") List<String> resolveNames,
-            @Context MessageContext mc){
+            @Context MessageContext mc) {
         LOGGER.debug("model rest service for get operation start");
 
         Task task = initRequest(mc);
@@ -347,7 +340,7 @@ public class ModelRestService {
                 ObjectQuery query = prismContext.queryFor(NodeType.class)
                         .item(NodeType.F_NODE_IDENTIFIER).eq(nodeId)
                         .build();
-                 List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);
+                List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, parentResult);
                 if (objects.isEmpty()) {
                     throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
                 } else if (objects.size() > 1) {
@@ -372,8 +365,8 @@ public class ModelRestService {
 
     @GET
     @Path("/self")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    public Response getSelf(@Context MessageContext mc){
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    public Response getSelf(@Context MessageContext mc) {
         LOGGER.debug("model rest service for get operation start");
 
         Task task = initRequest(mc);
@@ -394,12 +387,11 @@ public class ModelRestService {
         return response;
     }
 
-
     @POST
     @Path("/{type}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object,
-                                                     @QueryParam("options") List<String> options,
+            @QueryParam("options") List<String> options,
             @Context UriInfo uriInfo, @Context MessageContext mc) {
         LOGGER.debug("model rest service for add operation start");
 
@@ -407,7 +399,7 @@ public class ModelRestService {
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
-        if (!object.getCompileTimeClass().equals(clazz)){
+        if (!object.getCompileTimeClass().equals(clazz)) {
             finishRequest(task, mc.getHttpServletRequest());
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
@@ -420,7 +412,7 @@ public class ModelRestService {
         Response response;
         try {
             oid = model.addObject(object, modelExecuteOptions, task, parentResult);
-            LOGGER.debug("returned oid :  {}", oid );
+            LOGGER.debug("returned oid :  {}", oid);
 
             if (oid != null) {
                 URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
@@ -441,7 +433,7 @@ public class ModelRestService {
 
     @GET
     @Path("/{type}")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
             @QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
             @QueryParam("resolveNames") List<String> resolveNames,
@@ -487,10 +479,10 @@ public class ModelRestService {
 
     @PUT
     @Path("/{type}/{id}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id,
             PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo,
-            @Context Request request, @Context MessageContext mc){
+            @Context Request request, @Context MessageContext mc) {
 
         LOGGER.debug("model rest service for add operation start");
 
@@ -498,7 +490,7 @@ public class ModelRestService {
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_ADD_OBJECT);
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
-        if (!object.getCompileTimeClass().equals(clazz)){
+        if (!object.getCompileTimeClass().equals(clazz)) {
             finishRequest(task, mc.getHttpServletRequest());
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName()
@@ -509,7 +501,7 @@ public class ModelRestService {
         ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
         if (modelExecuteOptions == null) {
             modelExecuteOptions = ModelExecuteOptions.createOverwrite();
-        } else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)){
+        } else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)) {
             modelExecuteOptions.setOverwrite(Boolean.TRUE);
         }
 
@@ -534,7 +526,7 @@ public class ModelRestService {
     @DELETE
     @Path("/{type}/{id}")
     public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id,
-            @QueryParam("options") List<String> options, @Context MessageContext mc){
+            @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
         LOGGER.debug("model rest service for delete operation start");
 
@@ -569,7 +561,7 @@ public class ModelRestService {
 
     @POST
     @Path("/{type}/{oid}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
             ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
         return modifyObjectPatch(type, oid, modificationType, options, mc);
@@ -577,7 +569,7 @@ public class ModelRestService {
 
     @PATCH
     @Path("/{type}/{oid}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
             ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
@@ -605,7 +597,7 @@ public class ModelRestService {
 
     @POST
     @Path("/notifyChange")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription,
             @Context UriInfo uriInfo, @Context MessageContext mc) {
         LOGGER.debug("model rest service for notify change operation start");
@@ -629,8 +621,8 @@ public class ModelRestService {
 
     @GET
     @Path("/shadows/{oid}/owner")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc){
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    public Response findShadowOwner(@PathParam("oid") String shadowOid, @Context MessageContext mc) {
 
         Task task = initRequest(mc);
         OperationResult parentResult = task.getResult().createSubresult(OPERATION_FIND_SHADOW_OWNER);
@@ -650,7 +642,7 @@ public class ModelRestService {
 
     @POST
     @Path("/shadows/{oid}/import")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response importShadow(@PathParam("oid") String shadowOid, @Context MessageContext mc, @Context UriInfo uriInfo) {
         LOGGER.debug("model rest service for import shadow from resource operation start");
 
@@ -673,8 +665,8 @@ public class ModelRestService {
 
     @POST
     @Path("/{type}/search")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response searchObjects(@PathParam("type") String type, QueryType queryType,
             @QueryParam("options") List<String> options,
             @QueryParam("include") List<String> include,
@@ -716,7 +708,7 @@ public class ModelRestService {
 
     @POST
     @Path("/resources/{resourceOid}/import/{objectClass}")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass,
             @Context MessageContext mc, @Context UriInfo uriInfo) {
         LOGGER.debug("model rest service for import from resource operation start");
@@ -804,7 +796,6 @@ public class ModelRestService {
         return response;
     }
 
-
     @POST
     @Path("tasks/{oid}/run")
     public Response scheduleTaskNow(@PathParam("oid") String taskOid, @Context MessageContext mc) {
@@ -839,7 +830,7 @@ public class ModelRestService {
 
     @POST
     @Path("/rpc/executeScript")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response executeScript(@Converter(ExecuteScriptConverter.class) ExecuteScriptType command,
             @QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
@@ -859,7 +850,7 @@ public class ModelRestService {
                         .result(result.createOperationResultType())
                         .output(new ExecuteScriptOutputType()
                                 .consoleOutput(executionResult.getConsoleOutput())
-                                .dataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput(), command.getOptions())));
+                                .dataOutput(PipelineData.prepareXmlData(executionResult.getDataOutput(), command.getOptions())));
                 response = RestServiceUtil.createResponse(Response.Status.OK, responseData, result);
             }
         } catch (Exception ex) {
@@ -873,7 +864,7 @@ public class ModelRestService {
 
     @POST
     @Path("/rpc/compare")
-    @Consumes({"application/xml" })
+    @Consumes({ "application/xml" })
     public <T extends ObjectType> Response compare(PrismObject<T> clientObject,
             @QueryParam("readOptions") List<String> restReadOptions,
             @QueryParam("compareOptions") List<String> restCompareOptions,
@@ -904,7 +895,7 @@ public class ModelRestService {
 
     @GET
     @Path("/log/size")
-    @Produces({"text/plain"})
+    @Produces({ "text/plain" })
     public Response getLogFileSize(@Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -926,7 +917,7 @@ public class ModelRestService {
 
     @GET
     @Path("/log")
-    @Produces({"text/plain"})
+    @Produces({ "text/plain" })
     public Response getLog(@QueryParam("fromPosition") Long fromPosition, @QueryParam("maxSize") Long maxSize, @Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -956,8 +947,8 @@ public class ModelRestService {
 
     @POST
     @Path("/users/{oid}/credential")
-    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
     public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
         Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
@@ -976,12 +967,11 @@ public class ModelRestService {
         finishRequest(task, mc.getHttpServletRequest());
         return response;
 
-
     }
 
     @GET
     @Path("/threads")
-    @Produces({"text/plain"})
+    @Produces({ "text/plain" })
     public Response getThreadsDump(@Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -1002,7 +992,7 @@ public class ModelRestService {
 
     @GET
     @Path("/tasks/threads")
-    @Produces({"text/plain"})
+    @Produces({ "text/plain" })
     public Response getRunningTasksThreadsDump(@Context MessageContext mc) {
 
         Task task = initRequest(mc);
@@ -1023,7 +1013,7 @@ public class ModelRestService {
 
     @GET
     @Path("/tasks/{oid}/threads")
-    @Produces({"text/plain"})
+    @Produces({ "text/plain" })
     public Response getTaskThreadsDump(@PathParam("oid") String oid, @Context MessageContext mc) {
         Task task = initRequest(mc);
         OperationResult result = task.getResult().createSubresult(OPERATION_GET_TASK_THREADS_DUMP);
@@ -1075,10 +1065,10 @@ public class ModelRestService {
         String name = null;
         if (principal instanceof MidPointPrincipal) {
             name = ((MidPointPrincipal) principal).getUsername();
-        } else if (principal != null){
+        } else if (principal != null) {
             return;
         }
-        PrismObject<? extends FocusType> user = principal!= null ? ((MidPointPrincipal)principal).getFocus().asPrismObject() : null;
+        PrismObject<? extends FocusType> user = principal != null ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
 
         Task task = taskManager.createTaskInstance();
         task.setOwner(user);

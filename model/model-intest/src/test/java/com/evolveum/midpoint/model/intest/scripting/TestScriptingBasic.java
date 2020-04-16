@@ -14,12 +14,12 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -31,7 +31,7 @@ import org.testng.collections.Sets;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.impl.ModelWebService;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -1274,14 +1273,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         }
     }
 
-    private void dumpOutput(ExecutionContext output, OperationResult result) throws JAXBException, SchemaException {
+    private void dumpOutput(ExecutionContext output, OperationResult result) throws SchemaException {
         displayDumpable("output", output.getFinalOutput());
         displayValue("stdout", output.getConsoleOutput());
         display(result);
         if (output.getFinalOutput() != null) {
-            PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData(), null);
+            PipelineDataType bean = PipelineData.prepareXmlData(output.getFinalOutput().getData(), null);
             displayValue("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
         }
     }
-
 }
