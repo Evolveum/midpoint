@@ -46,8 +46,8 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         List<IColumn<DecisionDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.attorney"), DecisionDto.F_ATTORNEY));
-        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalActor"), DecisionDto.F_ORIGINAL_ACTOR));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalAssignee"), DecisionDto.F_ORIGINAL_ASSIGNEE));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.assigneeChange"), DecisionDto.F_ASSIGNEE_CHANGE));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.stage"), DecisionDto.F_STAGE));
         columns.add(createOutcomeColumn());
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
@@ -84,7 +84,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 
             private String choose(IModel<DecisionDto> rowModel, String inProgress, String forwarded, String approved, String rejected) {
                 DecisionDto dto = rowModel.getObject();
-                if (StringUtils.isNotEmpty(dto.getOriginalAssignee())){
+                if (StringUtils.isNotEmpty(dto.getAssigneeChange())){
                     return forwarded;
                 }
                 if (dto.getOutcome() == null) {
