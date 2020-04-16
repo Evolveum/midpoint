@@ -45,28 +45,26 @@
         <dependency>
             <groupId>org.springframework.security.extensions</groupId>
             <artifactId>spring-security-saml2-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.code.findbugs</groupId>
-                    <artifactId>jsr305</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
+            <exclusions>
+                <!-- Replaced by tomcat-annotations-api -->
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- Equivalent of: javax.annotation:javax.annotation-api -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-annotations-api</artifactId>
@@ -266,21 +264,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jaxb-core</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>asm</groupId>
-                </exclusion>
-            </exclusions>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -371,16 +355,6 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>4.2-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jaxb-core</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -411,12 +385,6 @@
             <artifactId>model-impl</artifactId>
             <version>4.2-SNAPSHOT</version>
             <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -453,16 +421,6 @@
             <artifactId>report-impl</artifactId>
             <version>4.2-SNAPSHOT</version>
             <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>asm</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -542,12 +500,6 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.ant</groupId>
-                    <artifactId>ant</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -665,16 +617,6 @@
         <dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-security-impl</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcpkix-jdk15on</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
@@ -726,11 +668,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -810,7 +747,7 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -825,6 +762,14 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Optional for development only (not packaged) -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -907,6 +852,38 @@
                     <offline>true</offline>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <!--<version>${spring.boot.version}</version>-->
+                <configuration>
+                    <fork>true</fork>
+                    <skip>false</skip>
+                    <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
+                    <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                    <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>executable</classifier>
+                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint.tools</groupId>
+                        <artifactId>midpoint-war-layout</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
             <!-- reference failsafe to run integration tests (surefire/units run by default) -->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -935,95 +912,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>executable</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>${spring.boot.version}</version>
-                        <configuration>
-                            <fork>true</fork>
-                            <skip>false</skip>
-                            <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
-                            <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
-                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>repackage</goal>
-                                </goals>
-                                <configuration>
-                                    <classifier>executable</classifier>
-                                    <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
-                                </configuration>
-                            </execution>
-                        </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.evolveum.midpoint.tools</groupId>
-                                <artifactId>midpoint-war-layout</artifactId>
-                                <version>${project.version}</version>
-                            </dependency>
-                        </dependencies>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>tomcat</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <artifactId>jaxb-api</artifactId>
-                    <groupId>javax.xml.bind</groupId>
-                    <scope>runtime</scope>
-                </dependency>
-                <dependency>
-                    <artifactId>jaxb-core</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                    <scope>runtime</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <!-- can be used for development e.g. in Intellij Idea -->
-            <id>ide</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.tomcat.embed</groupId>
-                    <artifactId>tomcat-embed-core</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-annotations-api</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>mysql</groupId>
-                    <artifactId>mysql-connector-java</artifactId>
-                    <scope>runtime</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>
