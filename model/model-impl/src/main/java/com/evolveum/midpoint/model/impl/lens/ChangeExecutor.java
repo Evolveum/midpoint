@@ -102,7 +102,7 @@ public class ChangeExecutor {
     private static final String OPERATION_UPDATE_SITUATION_IN_SHADOW = ChangeExecutor.class.getName() + ".updateSituationInShadow";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired(required = false) private WorkflowManager workflowManager; // not available e.g. during tests
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
     @Autowired private ProvisioningService provisioning;
     @Autowired private PrismContext prismContext;
@@ -1420,7 +1420,7 @@ public class ChangeExecutor {
                 taskManager.deleteTask(oid, result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
                 taskManager.deleteNode(oid, result);
-            } else if (CaseType.class.isAssignableFrom(objectTypeClass)) {
+            } else if (workflowManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
                 workflowManager.deleteCase(oid, task, result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
