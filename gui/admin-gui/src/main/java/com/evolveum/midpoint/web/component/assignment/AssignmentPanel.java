@@ -759,8 +759,15 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private IModel<String> getKindIntentLabelModelForDisplayNamePanel(PrismContainerValueWrapper<AssignmentType> modelObject) {
         AssignmentType assignment = modelObject.getRealValue();
         if (assignment.getConstruction() != null){
-            return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
-                    assignment.getConstruction().getIntent());
+            ShadowKindType kind = assignment.getConstruction().getKind();
+            if (kind == null) {
+                kind = ShadowKindType.ACCOUNT;
+            }
+            String intent = assignment.getConstruction().getIntent();
+            if (StringUtils.isEmpty(intent)) {
+                intent = "default";
+            }
+            return createStringResource("DisplayNamePanel.kindIntentLabel", kind, intent);
         }
         return Model.of();
     }
