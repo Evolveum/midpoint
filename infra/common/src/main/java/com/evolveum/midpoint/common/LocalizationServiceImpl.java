@@ -235,7 +235,10 @@ public class LocalizationServiceImpl implements LocalizationService {
             }
         }
         if (polyString.getTranslation() != null) {
-            return translate(polyString.getTranslation(), locale);
+            String value = translate(polyString.getTranslation(), locale);
+            if (value != null){
+                return value;
+            }
         }
         if (allowOrig) {
             return polyString.getOrig();
