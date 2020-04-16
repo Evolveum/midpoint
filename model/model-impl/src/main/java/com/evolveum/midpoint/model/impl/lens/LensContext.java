@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -30,10 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -106,9 +104,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private Class<F> focusClass;
 
-    private boolean lazyAuditRequest = false; // should be the request audited
-                                                // just before the execution is
-                                                // audited?
+    private boolean lazyAuditRequest = false; // should be the request audited just before the execution is audited?
     private boolean requestAudited = false; // was the request audited?
     private boolean executionAudited = false; // was the execution audited?
     private LensContextStatsType stats = new LensContextStatsType();
@@ -153,12 +149,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * Current wave of computation and execution.
      */
-    int projectionWave = 0;
+    private int projectionWave = 0;
 
     /**
      * Current wave of execution.
      */
-    int executionWave = 0;
+    private int executionWave = 0;
 
     private String triggeredResourceOid;
 
@@ -467,6 +463,69 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
+    /**
+     * Force recompute for the next execution wave. Recompute only those contexts that were changed.
+     * This is more intelligent than rot()
+     */
+    void rotIfNeeded() throws SchemaException {
+        Holder<Boolean> rotHolder = new Holder<>(false);
+        rotProjectionContextsIfNeeded(rotHolder);
+        rotFocusContextIfNeeded(rotHolder);
+        if (rotHolder.getValue()) {
+            setFresh(false);
+        }
+    }
+
+    private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException {
+        for (LensProjectionContext projectionContext: projectionContexts) {
+            if (projectionContext.getWave() != executionWave) {
+                LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
+            } else {
+                ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
+                if (isShadowDeltaSignificant(execDelta)) {
+                    LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
+                    projectionContext.setFresh(false);
+                    projectionContext.setFullShadow(false);
+                    rotHolder.setValue(true);
+                    // Propagate to higher-order projections
+                    for (LensProjectionContext relCtx : LensUtil.findRelatedContexts(this, projectionContext)) {
+                        relCtx.setFresh(false);
+                        relCtx.setFullShadow(false);
+                    }
+                } else {
+                    LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
+                }
+            }
+        }
+    }
+
+    private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
+        if (delta == null || delta.isEmpty()) {
+            return false;
+        }
+        if (delta.isAdd() || delta.isDelete()) {
+            return true;
+        } else {
+            Collection<? extends ItemDelta<?, ?>> attrDeltas = delta.findItemDeltasSubPath(ShadowType.F_ATTRIBUTES);
+            return attrDeltas != null && !attrDeltas.isEmpty();
+        }
+    }
+
+    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder)
+            throws SchemaException {
+        if (focusContext != null) {
+            ObjectDelta<F> execDelta = focusContext.getWaveDelta(executionWave);
+            if (execDelta != null && !execDelta.isEmpty()) {
+                LOGGER.debug("Context rot: context rotten because of focus execution delta {}", execDelta);
+                rotHolder.setValue(true);
+            }
+            if (rotHolder.getValue()) {
+                // It is OK to refresh focus all the time there was any change. This is cheap.
+                focusContext.setFresh(false);
+            }
+        }
+    }
+
     public String getChannel() {
         return channel;
     }
@@ -658,23 +717,24 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * Returns all executed deltas, user and all accounts.
      */
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() throws SchemaException {
+    @NotNull
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas() {
         return getExecutedDeltas(null);
     }
 
     /**
      * Returns all executed deltas, user and all accounts.
      */
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas()
-            throws SchemaException {
+    @NotNull
+    public Collection<ObjectDeltaOperation<? extends ObjectType>> getUnauditedExecutedDeltas() {
         return getExecutedDeltas(false);
     }
 
     /**
      * Returns all executed deltas, user and all accounts.
      */
-    Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited)
-            throws SchemaException {
+    @NotNull
+    private Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutedDeltas(Boolean audited) {
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
         if (focusContext != null) {
             executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
@@ -683,7 +743,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
         }
         if (audited == null) {
-            executedDeltas.addAll((Collection<? extends ObjectDeltaOperation<? extends ObjectType>>) getRottenExecutedDeltas());
+            executedDeltas.addAll(getRottenExecutedDeltas());
         }
         return executedDeltas;
     }
@@ -1421,18 +1481,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
     }
 
-    public ConflictWatcher getFocusConflictWatcher() {
+    ConflictWatcher getFocusConflictWatcher() {
         return focusConflictWatcher;
     }
 
-    public ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
+    ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
         if (focusConflictWatcher != null) {
             throw new IllegalStateException("Focus conflict watcher defined twice");
         }
         return focusConflictWatcher = repositoryService.createAndRegisterConflictWatcher(oid);
     }
 
-    public void unregisterConflictWatchers(RepositoryService repositoryService) {
+    void unregisterConflictWatcher(RepositoryService repositoryService) {
         if (focusConflictWatcher != null) {
             repositoryService.unregisterConflictWatcher(focusConflictWatcher);
             focusConflictWatcher = null;
