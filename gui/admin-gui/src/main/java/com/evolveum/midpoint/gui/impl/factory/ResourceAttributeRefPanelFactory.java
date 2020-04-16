@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -46,7 +50,7 @@ import java.util.stream.Collectors;
 @Component
 public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
 
-    private static final String DOT_CLASS = ResourceAttributeRefPanelFactory.class.getName() + ".";
+    private static final transient Trace LOGGER = TraceManager.getTrace(ResourceAttributeRefPanelFactory.class);
 
     @PostConstruct
     public void register() {
@@ -72,10 +76,22 @@ public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactor
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        ItemPath assignmetnPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
-        ItemPath inducementPath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
+        ItemPath wrapperPath = wrapper.getPath().removeIds();
+        return isAssignmentAttributeOrAssociation(wrapperPath) || isInducementAttributeOrAssociation(wrapperPath);
+    }
 
-        return assignmetnPath.equivalent(wrapper.getPath().removeIds()) || inducementPath.equivalent(wrapper.getPath().removeIds());
+    private boolean isAssignmentAttributeOrAssociation(ItemPath wrapperPath) {
+        ItemPath assignmentAttributePath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
+        ItemPath assignmetnAssociationPath = ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceAttributeDefinitionType.F_REF);
+
+        return assignmentAttributePath.equivalent(wrapperPath) || assignmetnAssociationPath.equivalent(wrapperPath);
+    }
+
+    private boolean isInducementAttributeOrAssociation(ItemPath wrapperPath) {
+        ItemPath inducementAttributePath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF);
+        ItemPath inducementAssociationPath = ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceAttributeDefinitionType.F_REF);
+
+        return inducementAttributePath.equivalent(wrapperPath) || inducementAssociationPath.equivalent(wrapperPath);
     }
 
     private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
@@ -84,28 +100,28 @@ public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactor
         PrismPropertyWrapper wrapper = ctx.unwrapWrapperModel();
         //attribute/ref
         if (wrapper == null) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         //attribute value
         if (wrapper.getParent() == null) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         //attribute
         ItemWrapper attributeWrapper = wrapper.getParent().getParent();
         if (attributeWrapper == null) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         PrismContainerValueWrapper itemWrapper = attributeWrapper.getParent();
 
         if (itemWrapper == null) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         if (!(itemWrapper instanceof ConstructionValueWrapper)) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         ConstructionValueWrapper constructionWrapper = (ConstructionValueWrapper) itemWrapper;
@@ -113,19 +129,27 @@ public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactor
 
         try {
             RefinedResourceSchema schema = constructionWrapper.getResourceSchema();
-            ObjectClassComplexTypeDefinition ocd = schema.findObjectClassDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent());
-            Collection<? extends  ResourceAttributeDefinition> attrDefs = ocd.getAttributeDefinitions();
+            if (schema == null) {
+                return new ArrayList<>();
+            }
+            RefinedObjectClassDefinition rOcd = schema.getRefinedDefinition(constructionWrapper.getKind(), constructionWrapper.getIntent());
+            if (rOcd == null) {
+                return Collections.emptyList();
+            }
 
-            List<ItemName> attributes = attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
-            return attributes;
+            if (ConstructionType.F_ASSOCIATION.equivalent(attributeWrapper.getItemName())) {
+                Collection<RefinedAssociationDefinition> associationDefs = rOcd.getAssociationDefinitions();
+                return associationDefs.stream().map(association -> association.getName()).collect(Collectors.toList());
+            }
+
+            Collection<? extends  ResourceAttributeDefinition> attrDefs = rOcd.getAttributeDefinitions();
+            return  attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
         } catch (SchemaException e) {
-            e.printStackTrace();
+            LOGGER.warn("Cannot get resource attribute definitions");
         }
 
-
-        return new ArrayList<>();
-
+        return Collections.emptyList();
 
     }
 

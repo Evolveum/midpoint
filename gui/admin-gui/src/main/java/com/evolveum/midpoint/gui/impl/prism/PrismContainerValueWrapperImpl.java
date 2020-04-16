@@ -125,11 +125,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     @Override
     public String getHelpText() {
         return WebPrismUtil.getHelpText(getContainerDefinition());
-
-
-
-
-
     }
 
     @Override

@@ -1923,6 +1923,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
             addMenuItem(item, "PageWorkItemsClaimable.title", PageWorkItemsClaimable.class);
         }
+        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.case.view", PageCase.class);
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return item;
