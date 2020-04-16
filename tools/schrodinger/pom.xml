@@ -14,11 +14,11 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint.tools</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>schrodinger</artifactId>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>midPoint Tools - Schrodinger</name>
@@ -60,8 +60,26 @@
         </dependency>
 
         <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>schema</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

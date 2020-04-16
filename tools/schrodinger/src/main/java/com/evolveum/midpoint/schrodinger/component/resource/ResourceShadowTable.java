@@ -9,9 +9,14 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -24,8 +29,11 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     }
 
     @Override
-    public <E extends BasicPage> E clickByName(String name) {
-        return null;
+    public AccountPage clickByName(String name) {
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return new AccountPage();
     }
 
     @Override
@@ -45,6 +53,11 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new ResourceShadowTableCog<>(this, cog);
+    }
+
+    @Override
+    public Search<? extends ResourceShadowTable<T>> search() {
+        return (Search<? extends ResourceShadowTable<T>>) super.search();
     }
 
 }

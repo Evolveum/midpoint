@@ -13,7 +13,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>prism-impl</artifactId>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -48,14 +48,8 @@
             <artifactId>jaxb-xjc</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-wsdl</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.xml.stream</groupId>
-                    <artifactId>stax-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

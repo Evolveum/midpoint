@@ -57,7 +57,7 @@
             <name>selfRegistration</name>
             <initialLifecycleState>draft</initialLifecycleState>
             <displayName>Self Registration</displayName>
-            <additionalAuthenticationName>selfRegistrationAuth</additionalAuthenticationName>
+            <additionalAuthenticationName>confirmationLink</additionalAuthenticationName>
             <defaultRole oid="00000000-0000-0000-0000-000000000008" relation="org:default" type="c:RoleType"/>
         </selfRegistration>
     </registration>

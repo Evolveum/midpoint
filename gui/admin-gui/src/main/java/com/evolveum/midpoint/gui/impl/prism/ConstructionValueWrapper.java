@@ -36,7 +36,9 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
 
     public RefinedResourceSchema getResourceSchema() throws SchemaException {
         if (resourceSchema == null) {
-            resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+            if (resource != null) {
+                resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+            }
         }
 
         return resourceSchema;

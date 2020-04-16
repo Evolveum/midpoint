@@ -18,7 +18,7 @@
     <stringPolicy>
         <description>Testing string policy</description>
         <limitations>
-            <minLength>23</minLength>
+            <minLength>30</minLength>
             <minUniqueChars>20</minUniqueChars>
             <checkPattern/>
         </limitations>

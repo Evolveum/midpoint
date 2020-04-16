@@ -67,7 +67,13 @@ class NodeIdComputer {
             }
         }
 
-        String nodeId = getNodeIdFromExpression(root.getInterpolator(), nodeIdExpression, result);
+        String nodeId;
+        if (nodeIdExpression != null) {
+            nodeId = getNodeIdFromExpression(root.getInterpolator(), nodeIdExpression, result);
+        } else {
+            nodeId = null;
+        }
+
         if (StringUtils.isNotEmpty(nodeId)) {
             if (nodeId.equals(nodeIdExpression)) {
                 LOGGER.info("Using configured node ID '{}'", nodeId);

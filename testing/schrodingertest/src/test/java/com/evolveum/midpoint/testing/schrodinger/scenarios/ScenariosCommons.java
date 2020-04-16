@@ -24,6 +24,6 @@ public class ScenariosCommons {
     protected static final String TEST_USER_PROTECTED_NAME= "chief";
     protected static final String TEST_USER_RAPHAEL_NAME = "raphael";
 
-    protected static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
+    public static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
 
 }

@@ -8,6 +8,7 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
                      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>SystemConfiguration</name>
@@ -277,7 +278,217 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>reconciliation-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000501" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>recomputation-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>import-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000503" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>live-sync-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000504" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>async-update-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000505" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>cleanup-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000506" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>report-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000507" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>single-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000508" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>iterative-bulk-action-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000509" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>certification-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>approval-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000521" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>utility-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000528" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>system-tasks-view</identifier>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000529" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
+        <objectDetails>
+            <objectDetailsPage>
+                <type>c:TaskType</type>
+                <container>
+                    <displayOrder>150</displayOrder>
+                    <display>
+                        <label>Advanced options</label>
+                    </display>
+                    <item>
+                        <c:path>cleanupAfterCompletion</c:path>
+                    </item>
+                    <item>
+                        <c:path>threadStopAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>binding</c:path>
+                    </item>
+                    <item>
+                        <c:path>dependent</c:path>
+                    </item>
+                </container>
+                <container>
+                    <displayOrder>900</displayOrder>
+                    <display>
+                        <label>Operational attributes (state)</label>
+                    </display>
+                    <item>
+                        <c:path>executionStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>node</c:path>
+                    </item>
+                    <item>
+                        <c:path>nodeAsObserved</c:path>
+                    </item>
+                    <item>
+                        <c:path>resultStatus</c:path>
+                    </item>
+                    <item>
+                        <c:path>result</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>nextRetryTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>unpauseAction</c:path>
+                    </item>
+                    <item>
+                        <c:path>taskIdentifier</c:path>
+                    </item>
+                    <item>
+                        <c:path>parent</c:path>
+                    </item>
+                    <item>
+                        <c:path>waitingReason</c:path>
+                    </item>
+                    <item>
+                        <c:path>stateBeforeSuspend</c:path>
+                    </item>
+                    <item>
+                        <c:path>category</c:path>
+                    </item>
+                    <item>
+                        <c:path>otherHandlersUriStack</c:path>
+                    </item>
+                    <item>
+                        <c:path>channel</c:path>
+                    </item>
+                    <item>
+                        <c:path>subtaskRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>dependentTaskRef</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunStartTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>lastRunFinishTimestamp</c:path>
+                    </item>
+                    <item>
+                        <c:path>completionTimestamp</c:path>
+                    </item>
+                </container>
+                <container>
+                    <displayOrder>910</displayOrder>
+                    <visibility>hidden</visibility>
+                    <display>
+                        <label>Operational attributes (progress)</label>
+                    </display>
+                    <item>
+                        <c:path>progress</c:path>
+                    </item>
+                    <item>
+                        <c:path>expectedTotal</c:path>
+                    </item>
+                    <item>
+                        <c:path>stalledSince</c:path>
+                    </item>
+                </container>
+
+            </objectDetailsPage>
+        </objectDetails>
     </adminGuiConfiguration>
 
     <expressions>

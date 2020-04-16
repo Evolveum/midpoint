@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+    <c:resource oid="10000000-9999-9999-0000-a000ff000002">
+        <c:name>CSV-1 (Document Access)</c:name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>c:connectorType</q:path>
+                    <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <c:connectorConfiguration>
+            <icfc:configurationProperties xmlns:icfcsv="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+                <icfcsv:filePath>/opt/training/midpoint-labs/flatfiles/csv-1.csv</icfcsv:filePath>
+                <icfcsv:encoding>utf-8</icfcsv:encoding>
+                <icfcsv:quoteMode>ALL</icfcsv:quoteMode>
+                <icfcsv:quote>"</icfcsv:quote>
+                <icfcsv:fieldDelimiter>,</icfcsv:fieldDelimiter>
+                <icfcsv:multivalueDelimiter>;</icfcsv:multivalueDelimiter>
+                <icfcsv:uniqueAttribute>login</icfcsv:uniqueAttribute>
+                <icfcsv:passwordAttribute>password</icfcsv:passwordAttribute>
+            </icfc:configurationProperties>
+        </c:connectorConfiguration>
+        <schemaHandling>
+            <objectType>
+                <kind>account</kind>
+                <intent>default</intent>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:login</ref>
+                    <displayName>Login</displayName>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                    </limitations>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>
+
+                                    tmpGivenNameInitial = basic.stringify(givenName)?.size() &gt; 0 ? (basic.stringify(givenName)).substring(0,1) : ''
+
+                                    basic.norm(tmpGivenNameInitial + basic.stringify(familyName))?.replace(' ', '')
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:enumber</ref>
+                    <displayName>Employee Number</displayName>
+                    <description>Definition of Employee Number attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>employeeNumber</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:fname</ref>
+                    <displayName>First name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:lname</ref>
+                    <displayName>Last name</displayName>
+                    <description>Definition of Lastname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:dep</ref>
+                    <displayName>Department</displayName>
+                    <description>Definition of Department attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>organizationalUnit</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:groups</ref>
+                    <displayName>Groups</displayName>
+                    <description>Definition of Group attribute handling.</description>
+                    <limitations>
+                        <minOccurs>0</minOccurs>
+                        <maxOccurs>unbounded</maxOccurs>
+                    </limitations>
+                    <tolerant>false</tolerant>
+                </attribute>
+                <attribute>
+                    <ref>ri:phone</ref>
+                    <displayName>Phone Number</displayName>
+                    <description>Phone number must be without any spaces on this system</description>
+                    <outbound>
+                        <source>
+                            <path>telephoneNumber</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>basic.stringify(telephoneNumber)?.replace(' ', '')?.replace('/', '')</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <!-- BONUS LAB, part 2 of 2: uncomment the following section -->
+                <!--
+        <iteration>
+            <maxIterations>5</maxIterations>
+        </iteration>
+-->
+                <!-- BONUS LAB, part 2 of 2: end of comment -->
+                <protected>
+                    <filter>
+                        <q:equal>
+                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                            <q:path>attributes/ri:login</q:path>
+                            <q:value>admin</q:value>
+                        </q:equal>
+                    </filter>
+                </protected>
+                <activation>
+                    <!-- MID-101, LAB 5-5, part 1 of 2: Uncomment the section to use disable instead of delete -->
+                    <!--
+                <existence>
+                    <outbound>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+-->
+                    <!-- MID-101, LAB 5-5, part 1 of 2: end of comment -->
+                    <administrativeStatus>
+                        <outbound>
+                            <!-- MID-101, LAB 5-5, part 2 of 2: Uncomment the section to use disable instead of delete -->
+                            <!--
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal &amp;&amp; assigned) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+-->
+                            <!-- MID-101, LAB 5-5, part 2 of 2: end of comment -->
+                        </outbound>
+                    </administrativeStatus>
+                </activation>
+                <credentials>
+                    <password>
+                        <outbound/>
+                        <!--<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>-->
+                    </password>
+                </credentials>
+            </objectType>
+            <!-- MID-101, LAB 6-1, part 1 of 2: Uncomment the section to use second intent -->
+            <!--
+            <objectType>
+        <kind>account</kind>
+                <intent>test</intent>
+
+                <displayName>Test Account</displayName>
+                <default>false</default>
+
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:login</ref>
+                    <displayName>Login</displayName>
+
+            <limitations>
+                <minOccurs>0</minOccurs>
+            </limitations>
+            <outbound>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                <script>
+                <code>'_' + basic.norm(name)</code>
+                </script>
+                </expression>
+            </outbound>
+                </attribute>
+
+                <attribute>
+                    <ref>ri:enumber</ref>
+                    <displayName>Employee Number</displayName>
+                    <description>Definition of Employee Number attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>employeeNumber</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:fname</ref>
+                    <displayName>First name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>givenName</path>
+                        </source>
+                    </outbound>
+
+                </attribute>
+                <attribute>
+                    <ref>ri:lname</ref>
+                    <displayName>Last name</displayName>
+                    <description>Definition of Lastname attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:dep</ref>
+                    <displayName>Department</displayName>
+                    <description>Definition of Department attribute handling.</description>
+                    <outbound>
+                        <source>
+                            <path>organizationalUnit</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:groups</ref>
+                    <displayName>Groups</displayName>
+                    <description>Definition of Group attribute handling.</description>
+                    <limitations>
+                      <minOccurs>0</minOccurs>
+                      <maxOccurs>unbounded</maxOccurs>
+                    </limitations>
+                    <tolerant>false</tolerant>
+                </attribute>
+                <attribute>
+                    <ref>ri:phone</ref>
+                    <displayName>Phone Number</displayName>
+                    <description>Phone number must be without any spaces on this system</description>
+                    <outbound>
+                        <source>
+                            <path>telephoneNumber</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>basic.stringify(telephoneNumber)?.replace(' ', '')?.replace('/', '')</code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <protected>
+                    <filter>
+                        <q:equal>
+                            <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                            <q:path>attributes/ri:login</q:path>
+                            <q:value>admin</q:value>
+                        </q:equal>
+                    </filter>
+                </protected>
+                <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+                </activation>
+
+                <credentials>
+                    <password>
+                        <outbound>
+                <expression>
+                    <asIs/>
+                </expression>
+            </outbound>
+                    </password>
+                </credentials>
+            </objectType>
+-->
+            <!-- MID-101, LAB 6-1, part 1 of 2: end of comment -->
+        </schemaHandling>
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:dis</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+                <cap:countObjects>
+                    <cap:simulate>sequentialSearch</cap:simulate>
+                </cap:countObjects>
+            </configured>
+        </capabilities>
+        <synchronization>
+            <objectSynchronization>
+                <name>Default account</name>
+                <description>The default account name does NOT start with "_"</description>
+                <kind>account</kind>
+                <intent>default</intent>
+                <enabled>true</enabled>
+                <condition>
+                    <script>
+                        <code>
+                            //                            name = basic.lc(projection.getName().toString())
+                            name = basic.getAttributeValue(projection, "login")
+                            //log.info("XXX Synchronization condition for account/default; name (getName()) = {}; name (getAttributeValue) = {}; evaluated to {}", projection.getName(), name, !name?.startsWith('_'))
+                            return !name?.startsWith('_')
+                        </code>
+                    </script>
+                </condition>
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search queury will look for users that have "employeeNumber"
+                        equal to the "enumber" attribute of the account.
+                        The condition will ensure that "enumber" is not
+                        empty, otherwise it would match any midPoint user
+                        with empty "employeeNumber" attribute, such as "administrator".
+                        The correlation rule by default looks for users, so it will not match
+                        any other object type.
+                    </q:description>
+                    <q:equal>
+                        <q:path>c:employeeNumber</q:path>
+                        <expression>
+                            <path>$projection/attributes/ri:enumber</path>
+                        </expression>
+                    </q:equal>
+                    <condition>
+                        <script>
+                            <code>basic.getAttributeValue(projection, 'enumber') != null</code>
+                        </script>
+                    </condition>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                    <synchronize>true</synchronize>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                    </action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <synchronize>true</synchronize>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                    </action>
+                </reaction>
+            </objectSynchronization>
+            <!-- MID-101, LAB 6-1, part 2 of 2: Uncomment the section to use second intent -->
+            <!--
+            <objectSynchronization>
+                    <name>Test account</name>
+                    <description>The test account name starts with "_"</description>
+                    <kind>account</kind>
+                    <intent>test</intent>
+                <enabled>true</enabled>
+                    <condition>
+                        <script>
+                           <code>
+//                            name = basic.lc(projection.getName().toString())
+                              name = basic.getAttributeValue(projection, "login")
+                              //log.info("XXX Synchronization condition for account/test; name (getName()) = {}; name (getAttribute) = {}; evaluated to {}", projection.getName(), name, name.startsWith('_'))
+                              return name?.startsWith('_')
+                           </code>
+                        </script>
+                    </condition>
+
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search queury will look for users that have "name"
+                        equal to the account name without the first character. We assume that
+                            the first character is "_" because of the condition above.
+                        The correlation rule by default looks for users, so it will not match
+                        any other object type.
+                    </q:description>
+                    <q:equal>
+                            <q:matching>polyStringNorm</q:matching>
+                            <q:path>c:name</q:path>
+                                <expression>
+                                    <script>
+                                        <code>
+                                        n = projection.getName().toString()
+                                        n.substring(1)
+                                        </code>
+                                    </script>
+                                </expression>
+                    </q:equal>
+                </correlation>
+                <reaction>
+                    <situation>linked</situation>
+                        <synchronize>true</synchronize>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <synchronize>true</synchronize>
+                        <action>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                        </action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <synchronize>true</synchronize>
+                        <action>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                        </action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <synchronize>true</synchronize>
+                        <action>
+                            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                        </action>
+                </reaction>
+        </objectSynchronization>
+-->
+            <!-- MID-101, LAB 6-1, part 2 of 2: end of comment -->
+        </synchronization>
+    </c:resource>
+</c:objects>

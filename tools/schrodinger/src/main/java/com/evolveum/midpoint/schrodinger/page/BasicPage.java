@@ -6,16 +6,23 @@
  */
 package com.evolveum.midpoint.schrodinger.page;
 
+import static com.codeborne.selenide.Selenide.$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.LoggedUser;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.configuration.*;
+import com.evolveum.midpoint.schrodinger.page.archetype.ListArchetypesPage;
+import com.evolveum.midpoint.schrodinger.page.cases.*;
 import com.evolveum.midpoint.schrodinger.page.certification.*;
 import com.evolveum.midpoint.schrodinger.page.configuration.*;
-import com.evolveum.midpoint.schrodinger.page.org.NewOrgPage;
+import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 import com.evolveum.midpoint.schrodinger.page.report.AuditLogViewerPage;
 import com.evolveum.midpoint.schrodinger.page.report.CreatedReportsPage;
@@ -26,7 +33,7 @@ import com.evolveum.midpoint.schrodinger.page.resource.ListConnectorHostsPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.NewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.role.ListRolesPage;
-import com.evolveum.midpoint.schrodinger.page.role.NewRolePage;
+import com.evolveum.midpoint.schrodinger.page.role.RolePage;
 import com.evolveum.midpoint.schrodinger.page.self.CredentialsPage;
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.self.ProfilePage;
@@ -38,13 +45,8 @@ import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.FormSubmittablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.page.cases.*;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.By;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -103,9 +105,9 @@ public class BasicPage {
         return new OrgTreePage();
     }
 
-    public NewOrgPage newOrgUnit() {
+    public OrgPage newOrgUnit() {
         clickAdministrationMenu("PageAdmin.menu.top.users.org", "PageAdmin.menu.top.users.org.new");
-        return new NewOrgPage();
+        return new OrgPage();
     }
 
     public ListRolesPage listRoles() {
@@ -113,9 +115,9 @@ public class BasicPage {
         return new ListRolesPage();
     }
 
-    public NewRolePage newRole() {
+    public RolePage newRole() {
         clickAdministrationMenu("PageAdmin.menu.top.roles", "PageAdmin.menu.top.roles.new");
-        return new NewRolePage();
+        return new RolePage();
     }
 
     public ListServicesPage listServices() {
@@ -126,6 +128,11 @@ public class BasicPage {
     public NewServicePage newService() {
         clickAdministrationMenu("PageAdmin.menu.top.services", "PageAdmin.menu.top.services.new");
         return new NewServicePage();
+    }
+
+    public ListArchetypesPage listArchetypes() {
+        clickAdministrationMenu("PageAdmin.menu.top.archetypes", "PageAdmin.menu.top.archetypes.list");
+        return new ListArchetypesPage();
     }
 
     public ListResourcesPage listResources() {

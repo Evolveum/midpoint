@@ -7,15 +7,11 @@
 
 package com.evolveum.midpoint.schrodinger.component.common;
 
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.ElementsCollection;
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.*;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-
-import org.openqa.selenium.By;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -61,10 +57,10 @@ public class Search<T> extends Component<T> {
     public Search<T> addSearchItem(String name) {
         choiceBasicSearch();
         getParentElement().$(Schrodinger.byDataId("a", "more")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
         popover.$(Schrodinger.byDataId("input", "addText")).setValue(name);
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         popover.$(Schrodinger.byDataId("a", "propLink")).click();
         return this;
     }
@@ -111,5 +107,23 @@ public class Search<T> extends Component<T> {
         return popover;
     }
 
+    public Search<T> resetBasicSearch() {
+        choiceBasicSearch();
+        SelenideElement nameItem = getItemByName("Name");
+        if (nameItem != null) {
+            nameItem.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+            Selenide.sleep(1000);
+            new Popover<>(this, nameItem).inputValue("").updateSearch();
+        }
+
+        ElementsCollection deleteButtons = getParentElement().$$(Schrodinger.byDataId("deleteButton"));
+        for (SelenideElement deleteButton : deleteButtons) {
+            if (deleteButton.isDisplayed()) {
+                deleteButton.click();
+            }
+        }
+        Selenide.sleep(2000);
+        return this;
+    }
 }
 

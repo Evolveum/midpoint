@@ -13,7 +13,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>com.evolveum.midpoint.tools</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>schema-dist-maven-plugin</artifactId>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>

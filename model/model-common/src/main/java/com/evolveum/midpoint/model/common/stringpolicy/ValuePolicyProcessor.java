@@ -7,14 +7,7 @@
 
 package com.evolveum.midpoint.model.common.stringpolicy;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
@@ -96,6 +89,7 @@ public class ValuePolicyProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(ValuePolicyProcessor.class);
 
     private static final Random RAND = new Random(System.currentTimeMillis());
+    private static final String ALPHANUMERIC_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
     private static final String DOT_CLASS = ValuePolicyProcessor.class.getName() + ".";
     private static final String OPERATION_STRING_POLICY_VALIDATION = DOT_CLASS + "stringPolicyValidation";
@@ -596,6 +590,17 @@ public class ValuePolicyProcessor {
 
         boolean uniquenessReached = false;
 
+        //fake limit with all alphanumeric character, because of number of unique char
+        if(lims.isEmpty()){
+            StringLimitType fakeLimit = new StringLimitType();
+            CharacterClassType charClass = new CharacterClassType();
+            charClass.setValue(ALPHANUMERIC_CHARS);
+            fakeLimit.setCharacterClass(charClass);
+            fakeLimit.setMustBeFirst(false);
+            fakeLimit.setMaxOccurs(maxLen);
+            fakeLimit.setMinOccurs(minLen);
+            lims.put(fakeLimit, StringPolicyUtils.stringTokenizer(ALPHANUMERIC_CHARS));
+        }
         // Count cardinality of elements
         Map<Integer, List<String>> chars;
         for (int i = 0; i < minLen; i++) {

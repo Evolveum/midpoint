@@ -160,6 +160,27 @@ public class TestPasswordPolicy extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
+    public void testValueGenerateMailNonce() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ValuePolicyType pp = parsePasswordPolicy("value-policy-generate-without-limit-with-unique.xml");
+
+        // WHEN
+        when();
+        String mailNonce = valuePolicyProcessor.generate(SchemaConstants.PATH_PASSWORD_VALUE, pp, 24, false, null, getTestNameShort(), task, result);
+
+        // THEN
+        then();
+        displayValue("Generated password", mailNonce);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertNotNull(mailNonce);
+        assertPassword(mailNonce, pp);
+
+    }
+
+    @Test
     public void testValueGenerate() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();

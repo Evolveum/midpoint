@@ -13,7 +13,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint.infra</groupId>
-        <version>4.1-SNAPSHOT</version>
+        <version>4.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>prism-api</artifactId>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.1-SNAPSHOT</version>
+            <version>4.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

@@ -107,6 +107,14 @@ public class WorkflowManagerImpl implements WorkflowManager {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         caseManager.cancelCase(caseOid, task, parentResult);
     }
+
+    @Override
+    public void deleteCase(String caseOid, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        caseManager.deleteCase(caseOid, task, parentResult);
+    }
+
     //endregion
 
     /*

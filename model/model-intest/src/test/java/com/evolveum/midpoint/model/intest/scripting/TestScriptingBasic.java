@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.scripting;
 
 import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -17,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -86,6 +89,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final String MODIFY_JACK_PASSWORD_TASK_OID = "9de76345-0f02-48de-86bf-e7a887cb374a";
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
+    private static final File ASSIGN_TO_JACK_DRY_AND_RAW_FILE = new File(TEST_DIR, "assign-to-jack-dry-and-raw.xml");
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
     private static final File UNASSIGN_FROM_WILL_FILE = new File(TEST_DIR, "unassign-from-will.xml");
     private static final File UNASSIGN_FROM_WILL_2_FILE = new File(TEST_DIR, "unassign-from-will-2.xml");
@@ -503,6 +507,26 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         display("jack after assignments creation", jack);
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-55555555cccc");
+    }
+
+    /**
+     * MID-6141
+     */
+    @Test
+    public void test365AssignToJackDryAndRaw() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_TO_JACK_DRY_AND_RAW_FILE);
+
+        when();
+        try {
+            scriptingExpressionEvaluator.evaluateExpression(expression, task, result);
+            fail("unexpected success");
+        } catch (ScriptExecutionException e) {
+            displayExpectedException(e);
+            assertThat(e).hasMessageContaining("previewChanges is not supported in raw mode");
+        }
     }
 
     @Test

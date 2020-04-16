@@ -28,6 +28,12 @@ public class Popover<T> extends Component<T> {
         return this;
     }
 
+    public Popover<T> inputRefOid(String oid) {
+        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("oid"))).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(oid);
+
+        return this;
+    }
+
     public Popover<T> inputValueWithEnter(String input) {
         SelenideElement inputField = getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("textInput")));
         inputField.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
