@@ -26,11 +26,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Radovan Semancik
@@ -78,7 +74,7 @@ public interface SecurityEnforcer {
     /**
      * Returns a filter that applies to all the objects/targets for which the principal is authorized.
      *
-     * E.g. it can return a filter of all assignable roles for a principlal. In that case #assign authorization is used,
+     * E.g. it can return a filter of all assignable roles for a principal. In that case #assign authorization is used,
      * and object is the user which should hold the assignment.
      *
      * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.

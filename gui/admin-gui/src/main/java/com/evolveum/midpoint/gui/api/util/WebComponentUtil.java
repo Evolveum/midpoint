@@ -3956,6 +3956,14 @@ public final class WebComponentUtil {
         }
     }
 
+    public static <T> T runUnderPowerOfAttorneyIfNeeded(CheckedProducer<T> producer, PrismObject<UserType> powerDonor,
+            PageBase pageBase, Task task, OperationResult result) throws CommonException {
+        if (powerDonor != null) {
+            return pageBase.getModelInteractionService().runUnderPowerOfAttorneyChecked(producer, powerDonor, task, result);
+        } else {
+            return producer.get();
+        }
+    }
 
     @NotNull
     public static List<SceneDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,

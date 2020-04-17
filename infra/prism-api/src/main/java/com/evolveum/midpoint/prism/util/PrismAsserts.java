@@ -120,6 +120,13 @@ public class PrismAsserts {
         }
     }
 
+    public static void assertReferenceValues(List<? extends Referencable> refs, String... oids) {
+        assert oids.length == refs.size() : "Wrong number of values in "+refs+"; expected "+oids.length+" but was "+refs.size();
+        for (String oid: oids) {
+            assertReferenceValue(refs, oid);
+        }
+    }
+
     public static void assertReferenceValue(PrismReference ref, String oid) {
         for (PrismReferenceValue val: ref.getValues()) {
             if (oid.equals(val.getOid())) {
@@ -127,6 +134,15 @@ public class PrismAsserts {
             }
         }
         fail("Oid "+oid+" not found in reference "+ref);
+    }
+
+    public static void assertReferenceValue(List<? extends Referencable> refs, String oid) {
+        for (Referencable ref: refs) {
+            if (oid.equals(ref.getOid())) {
+                return;
+            }
+        }
+        fail("Oid "+oid+" not found among references "+refs);
     }
 
     public static void assertItems(PrismContainer<?> object, int expectedNumberOfItems) {
