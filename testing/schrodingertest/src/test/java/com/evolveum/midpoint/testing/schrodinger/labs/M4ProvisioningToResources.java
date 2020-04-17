@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionButtons;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -37,9 +35,9 @@ import java.io.File;
  * @author skublik
  */
 
-public class ProvisioningToResources extends AbstractLabTest {
+public class M4ProvisioningToResources extends AbstractLabTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ProvisioningToResources.class);
+    private static final Logger LOG = LoggerFactory.getLogger(M4ProvisioningToResources.class);
 
     private static final File CSV_1_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-2.xml");
     private static final File CSV_3_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-2.xml");
@@ -104,7 +102,7 @@ public class ProvisioningToResources extends AbstractLabTest {
                 .selectAll()
                 .and()
                 .table()
-                    .clickActionDropDown()
+                    .clickHeaderActionDropDown()
                         .clickEnable()
                             .clickYes();
 

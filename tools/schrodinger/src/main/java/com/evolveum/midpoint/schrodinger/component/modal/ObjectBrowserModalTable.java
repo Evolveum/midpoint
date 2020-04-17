@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.component.modal;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.Table;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -30,5 +31,10 @@ public class ObjectBrowserModalTable<T, M extends ModalBox<T>> extends Table<M>{
                 .waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return getParent().getParent();
+    }
+
+    @Override
+    public Search<ObjectBrowserModalTable<T, M>> search() {
+        return (Search<ObjectBrowserModalTable<T, M>>) super.search();
     }
 }

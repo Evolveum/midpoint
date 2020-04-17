@@ -28,25 +28,25 @@ public class Paging<T> extends Component<T> {
     }
 
     public Paging<T> first() {
-        getParentElement().$(Schrodinger.byElementValue("a", "<<")).click();
+        getParentElement().$x(".//a[text()='<<']").click();
         Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> previous() {
-        getParentElement().$(Schrodinger.byElementValue("a", "<")).click();
+        getParentElement().$x(".//a[text()='<']").click();
         Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> next() {
-        getParentElement().$(Schrodinger.byElementValue("a", ">")).click();
+        getParentElement().$x(".//a[text()='>']").click();
         Selenide.sleep(1000);
         return this;
     }
 
     public Paging<T> last() {
-        getParentElement().$(Schrodinger.byElementValue("a", ">>")).click();
+        getParentElement().$x(".//a[text()='>>']").click();
         Selenide.sleep(1000);
         return this;
     }

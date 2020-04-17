@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -20,7 +21,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 5/2/2018.
  */
-public class ProjectionsDropDown<T> extends DropDown<T> {
+public class ProjectionsDropDown<T> extends TableHeaderDropDownMenu<T> {
 
     public ProjectionsDropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);

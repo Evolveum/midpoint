@@ -21,6 +21,8 @@ public class MidPoint {
 
     public static final long TIMEOUT_DEFAULT_2_S = 2000;
 
+    public static final long TIMEOUT_SHORT_4_S = 4000;
+
     public static final long TIMEOUT_MEDIUM_6_S = 6000;
 
     public static final long TIMEOUT_LONG_1_M = 60000;

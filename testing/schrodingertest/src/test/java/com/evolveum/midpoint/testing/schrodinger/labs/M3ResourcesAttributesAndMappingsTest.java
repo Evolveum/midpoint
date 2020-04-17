@@ -41,27 +41,7 @@ import static com.codeborne.selenide.Selenide.$;
  * @author skublik
  */
 
-public class ResourcesAttributesAndMappingsTest extends AbstractLabTest {
-
-//    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
-//    @Override
-//    protected void springTestContextPrepareTestInstance() throws Exception {
-//
-//        String home = System.getProperty("midpoint.home");
-//        File schemaDir = new File(home, "schema");
-//
-//        if (!schemaDir.mkdir()) {
-//            if (schemaDir.exists()) {
-//                FileUtils.cleanDirectory(schemaDir);
-//            } else {
-//                throw new IOException("Creation of directory \"" + schemaDir.getAbsolutePath() + "\" unsuccessful");
-//            }
-//        }
-//        File schemaFile = new File(schemaDir, EXTENSION_SCHEMA_NAME);
-//        FileUtils.copyFile(EXTENSION_SCHEMA_FILE, schemaFile);
-//
-//        super.springTestContextPrepareTestInstance();
-//    }
+public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override

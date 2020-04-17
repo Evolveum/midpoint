@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -18,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 5/10/2018.
  */
-public class UsersTableDropDown<T> extends DropDown<T> {
+public class UsersTableDropDown<T> extends TableHeaderDropDownMenu<T> {
     public UsersTableDropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }

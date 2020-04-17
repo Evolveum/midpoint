@@ -95,19 +95,4 @@ public class FocusPage<F extends FocusPage> extends AssignmentHolderDetailsPage<
             return "".equals(summaryPanel.getText());
         }
     }
-
-    @Override
-    public AssignmentHolderBasicTab<F> selectTabBasic(){
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.basic")
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
-
-        return new AssignmentHolderBasicTab<F>((F) this, element);
-    }
-
-    @Override
-    public AssignmentsTab<F> selectTabAssignments(){
-        SelenideElement element = getTabPanel().clickTab("pageAdminFocus.assignments");
-
-        return new AssignmentsTab<F>((F) this, element);
-    }
 }
