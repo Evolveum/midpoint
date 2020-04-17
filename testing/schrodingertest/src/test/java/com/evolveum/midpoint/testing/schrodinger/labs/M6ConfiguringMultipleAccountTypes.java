@@ -6,11 +6,8 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import com.codeborne.selenide.Selenide;
-
 import com.evolveum.midpoint.schrodinger.component.ProjectionsTab;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Utils;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
@@ -18,21 +15,17 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import javax.validation.constraints.AssertTrue;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author skublik
  */
 
-public class ConfiguringMultipleAccountTypes extends AbstractLabTest {
+public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConfiguringMultipleAccountTypes.class);
+    private static final Logger LOG = LoggerFactory.getLogger(M6ConfiguringMultipleAccountTypes.class);
 
     private static final File CSV_1_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-6-1.xml");
     private static final File CSV_3_RESOURCE_FILE_6_1 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-6-1.xml");
@@ -40,21 +33,6 @@ public class ConfiguringMultipleAccountTypes extends AbstractLabTest {
     private static final File CSV3_ADMIN_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-csv3-admin.xml");
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
-
-    @AfterClass
-    @Override
-    public void afterClass() {
-        super.afterClass();
-
-        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-
-        LOG.info("After: Login name " + username + " pass " + password);
-
-        AboutPage aboutPage = basicPage.aboutPage();
-        aboutPage
-                .clickSwitchToFactoryDefaults()
-                .clickYes();
-    }
 
     @Test
     public void test0601UsingAccountIntentsForProvisioning() {

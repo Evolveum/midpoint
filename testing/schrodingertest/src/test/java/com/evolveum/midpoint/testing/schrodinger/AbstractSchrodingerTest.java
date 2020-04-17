@@ -18,6 +18,7 @@ import com.codeborne.selenide.testng.BrowserPerClass;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 
@@ -52,7 +53,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })//, "webdriverLocation=234234234" })
+@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
 @Listeners({ BrowserPerClass.class })
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
@@ -155,7 +156,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                 .clickYes();
     }
 
-    protected void importObject(File source, Boolean overrideExistingObject) {
+    protected void importObject(File source, boolean overrideExistingObject, boolean ignoreWarning) {
         ImportObjectPage importPage = basicPage.importObject();
 
         if (overrideExistingObject) {
@@ -163,17 +164,21 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                     .checkOverwriteExistingObject();
         }
 
-        Assert.assertTrue(
-                importPage
-                        .getObjectsFromFile()
-                        .chooseFile(source)
+        FeedbackBox<? extends BasicPage> feedback = importPage
+                .getObjectsFromFile()
+                    .chooseFile(source)
                         .clickImportFileButton()
-                        .feedback()
-                        .isSuccess());
+                            .feedback();
+
+        Assert.assertTrue(feedback.isSuccess() || (ignoreWarning && feedback.isWarning()));
+    }
+
+    protected void importObject(File source, boolean overrideExistingObject) {
+        importObject(source, overrideExistingObject, false);
     }
 
     protected void importObject(File source) {
-        importObject(source, false);
+        importObject(source, false, false);
     }
 
     protected String fetchMidpointHome() {

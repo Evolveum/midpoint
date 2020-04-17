@@ -54,9 +54,13 @@ public class FocusSetAssignmentsModal<T> extends ModalBox<T> {
     }
 
     public FocusTableWithChoosableElements<FocusSetAssignmentsModal<T>> table() {
-        SelenideElement resourcesBox = $(By.cssSelector(".box.boxed-table"));
+        SelenideElement resourcesBox = getParentElement().$x(".//div[@class='box boxed-table']");
 
-        return new FocusTableWithChoosableElements<>(this, resourcesBox);
+        return new FocusTableWithChoosableElements<>(this, resourcesBox){
+
+
+
+        };
     }
 
     public T clickAdd() {

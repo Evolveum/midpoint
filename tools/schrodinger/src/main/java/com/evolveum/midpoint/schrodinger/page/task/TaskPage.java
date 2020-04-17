@@ -9,10 +9,13 @@ package com.evolveum.midpoint.schrodinger.page.task;
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
+import com.evolveum.midpoint.schrodinger.component.task.OperationStatisticsTab;
 import com.evolveum.midpoint.schrodinger.component.task.TaskBasicTab;
 
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
@@ -63,7 +66,7 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
     }
 
     public TaskPage clickRunNow() {
-        $(Schrodinger.byDataResourceKey("a", "pageTaskEdit.button.runNow")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataResourceKey("span", "pageTaskEdit.button.runNow")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
     }
@@ -95,5 +98,20 @@ public class TaskPage extends AssignmentHolderDetailsPage<TaskPage> {
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new AssignmentHolderBasicTab<TaskPage>(this, element);
+    }
+
+    public OperationStatisticsTab<TaskPage> selectTabOperationStatistics() {
+        SelenideElement element = getTabPanel().clickTab("pageTask.operationStats.title")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        return new OperationStatisticsTab(this, element);
+    }
+
+    public TaskPage setHandlerUriForNewTask(String handler) {
+        SelenideElement handlerElement = $(Schrodinger.byDataResourceKey("a", "TaskHandlerSelectorPanel.selector.header"));
+        selectTabBasic().form().addAttributeValue("handlerUri", handler.substring(0, (handler.length() - 1)));
+        $(Schrodinger.byElementAttributeValue("li", "textvalue", handler)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        handlerElement.waitWhile(Condition.exist, MidPoint.TIMEOUT_MEDIUM_6_S);
+        return this;
     }
 }

@@ -39,7 +39,7 @@ public class ListUsersPage extends AssignmentHolderObjectListPage<UsersPageTable
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@" + Schrodinger.DATA_S_ID + "='mainButton']"));
         String expanded = mainButton.getAttribute("aria-haspopup");
         if (Boolean.getBoolean(expanded)) {
-            return newUser("user");
+            return newUser("New user");
         }
         mainButton.click();
         return new UserPage();
@@ -50,7 +50,7 @@ public class ListUsersPage extends AssignmentHolderObjectListPage<UsersPageTable
         if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
             mainButton.click();
         }
-        $(Schrodinger.byElementAttributeValue("div", "title", "New " + title.toLowerCase()))
+        $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         return new UserPage();
     }

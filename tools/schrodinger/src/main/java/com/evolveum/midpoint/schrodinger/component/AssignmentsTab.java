@@ -69,11 +69,25 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
         $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        SelenideElement modalElement = getNewAssignmentModal();
 
         return new FocusSetAssignmentsModal<A>((A) this, modalElement);
     }
+
+    public <A extends AssignmentsTab<P>> FocusSetAssignmentsModal<A> clickAddAssignemnt(String title) {
+        $(Schrodinger.byElementAttributeValue("div", "title", title))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        SelenideElement modalElement = getNewAssignmentModal();
+
+        return new FocusSetAssignmentsModal<A>((A) this, modalElement);
+    }
+
+    private SelenideElement getNewAssignmentModal() {
+        return $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
 
     public boolean assignmentExists(String assignmentName){
         SelenideElement assignmentSummaryDisplayName = table()

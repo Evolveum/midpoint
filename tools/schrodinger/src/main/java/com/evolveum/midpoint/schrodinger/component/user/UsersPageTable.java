@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHo
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -32,7 +33,8 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
         super(parent, parentElement);
     }
 
-    public UsersTableDropDown<UsersPageTable> clickActionDropDown() {
+    @Override
+    public UsersTableDropDown<UsersPageTable> clickHeaderActionDropDown() {
 
         $(Schrodinger.bySelfOrAncestorElementAttributeValue("button", "data-toggle", "dropdown", "class", "sortableLabel"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -40,7 +42,7 @@ public class UsersPageTable extends AssignmentHolderObjectListTable<ListUsersPag
         SelenideElement dropDown = $(Schrodinger.byDataId("ul", "dropDownMenu"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new UsersTableDropDown<>(this, dropDown);
+        return new UsersTableDropDown<UsersPageTable>(this, dropDown);
 
     }
 

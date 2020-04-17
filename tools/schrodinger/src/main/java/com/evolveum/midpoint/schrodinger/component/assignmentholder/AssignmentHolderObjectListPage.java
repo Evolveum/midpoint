@@ -12,6 +12,8 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 
+import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
@@ -39,6 +41,11 @@ public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderO
 
     protected String getTableAdditionalClass(){
         return null;
+    }
+
+    public int getCountOfObjects() {
+        String countString = $(Schrodinger.byDataId("div", "count")).getText();
+        return Integer.valueOf(countString.substring(countString.lastIndexOf(" ")+1));
     }
 
 }
