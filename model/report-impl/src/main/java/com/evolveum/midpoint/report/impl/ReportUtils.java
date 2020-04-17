@@ -561,16 +561,16 @@ public class ReportUtils {
     }
 
     private static boolean isMetadata(ItemDeltaType itemDelta) {
-        List values = itemDelta.getValue();
-        for (Object v : values) {
-            if (v instanceof MetadataType) {
-                return true;
-            } else if (v instanceof RawType) {
-                return isMetadata(itemDelta.getPath());
+        if (isMetadata(itemDelta.getPath())) {
+            return true;
+        } else {
+            for (Object v : itemDelta.getValue()) {
+                if (v instanceof MetadataType) {
+                    return true;
+                }
             }
+            return false;
         }
-
-        return false;
     }
 
     private static boolean isMetadata(ItemPathType itemPath) {
