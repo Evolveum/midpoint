@@ -1,0 +1,11 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="f6f95936-8714-4c7d-abdf-6cd3e6d2d6cc">
+    <name>vault-access</name>
+</role>

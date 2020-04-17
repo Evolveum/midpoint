@@ -431,7 +431,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource resource, OperationResult parentResult)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
-        return repoAddObjectFromFile(resource.file, parentResult);
+        PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
+        resource.object = object;
+        return object;
     }
 
     protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(
@@ -2729,6 +2731,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void initializeAsserter(AbstractAsserter<?> asserter) {
         asserter.setPrismContext(prismContext);
         asserter.setObjectResolver(repoSimpleObjectResolver);
+        asserter.setRepositoryService(repositoryService);
         asserter.setProtector(protector);
         asserter.setClock(clock);
     }

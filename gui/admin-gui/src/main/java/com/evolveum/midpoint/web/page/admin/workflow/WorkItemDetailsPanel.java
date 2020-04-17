@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.ManualCaseTabPanel;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -55,7 +55,7 @@ import java.util.Arrays;
 /**
  * Created by honchar
  */
-public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
+public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = WorkItemDetailsPanel.class.getName() + ".";
@@ -63,9 +63,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
     private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
     private static final String OPERATION_LOAD_CASE_FOCUS_OBJECT = DOT_CLASS + "loadCaseFocusObject";
-    private static final String OPERATION_CHECK_SUBMIT_AUTHORIZATION = DOT_CLASS + "checkApproveRejectAuthorization";
-    private static final String OPERATION_CHECK_DELEGATE_AUTHORIZATION = DOT_CLASS + "checkDelegateAuthorization";
-    private static final String OPERATION_CHECK_CLAIM_AUTHORIZATION = DOT_CLASS + "checkClaimAuthorization";
+    private static final String OPERATION_CHECK_ACTIONS_AUTHORIZATION = DOT_CLASS + "checkActionsAuthorization";
 
     private static final String ID_DISPLAY_NAME_PANEL = "displayNamePanel";
     private static final String ID_REQUESTED_BY = "requestedBy";
@@ -290,20 +288,23 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
     }
 
-    private boolean isAuthorizedForActions(){
-        Task checkApproveRejectAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_AUTHORIZATION);
-        Task checkDelegateAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
+    private boolean isAuthorizedForActions() {
+        Task task = getPageBase().createSimpleTask(OPERATION_CHECK_ACTIONS_AUTHORIZATION);
+        OperationResult result = task.getResult();
         try {
-            boolean isAuthorizedToSubmit = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(),
-                    checkApproveRejectAuthTask, checkApproveRejectAuthTask.getResult());
-            boolean isAuthorizedToDelegate = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(),
-                    checkDelegateAuthTask, checkDelegateAuthTask.getResult());
-            boolean isAuthorizedToClaim = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
-            return isAuthorizedToSubmit || isAuthorizedToClaim || isAuthorizedToDelegate;
-        } catch (Exception ex){
+            return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
+                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
+                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
+                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                    getPowerDonor(), getPageBase(), task, result);
+        } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
         }
         return false;
+    }
+
+    protected PrismObject<? extends FocusType> getPowerDonor() {
+        return null;
     }
 
     // Expects that we deal with primary changes of the focus (i.e. not of projections)

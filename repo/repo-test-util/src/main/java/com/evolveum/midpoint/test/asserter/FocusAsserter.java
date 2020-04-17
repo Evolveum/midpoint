@@ -337,22 +337,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
     }
 
     public FocusAsserter<F,RA> assertArchetypeRef(String expectedArchetypeOid) {
-        List<ObjectReferenceType> archetypeRefs = getObject().asObjectable().getArchetypeRef();
-        if (archetypeRefs == null || archetypeRefs.isEmpty()) {
-            fail("No archetypeRefs while archetype "+expectedArchetypeOid+" expected");
-        }
-        if (archetypeRefs.size() > 1) {
-            fail("Too many archetypes while archetypeRefs "+expectedArchetypeOid+" expected: "+archetypeRefs);
-        }
-        assertEquals("Wrong archetypeRef in "+desc(), expectedArchetypeOid, archetypeRefs.get(0).getOid());
+        super.assertArchetypeRef(expectedArchetypeOid);
         return this;
     }
 
     public FocusAsserter<F,RA> assertNoArchetypeRef() {
-        List<ObjectReferenceType> archetypeRefs = getObject().asObjectable().getArchetypeRef();
-        if (archetypeRefs != null && !archetypeRefs.isEmpty()) {
-            fail("Found archetypeRefs while not expected any: "+archetypeRefs);
-        }
+        super.assertNoArchetypeRef();
         return this;
     }
 

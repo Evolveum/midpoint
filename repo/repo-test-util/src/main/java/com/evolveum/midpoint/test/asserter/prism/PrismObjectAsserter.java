@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -20,6 +22,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.test.asserter.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 
@@ -29,21 +35,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.AbstractAsserter;
-import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
-import com.evolveum.midpoint.test.asserter.OrgAsserter;
-import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
-import com.evolveum.midpoint.test.asserter.RoleAsserter;
-import com.evolveum.midpoint.test.asserter.TriggersAsserter;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -73,6 +66,10 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     public PrismObject<O> getObject() {
         return object;
+    }
+
+    public O getObjectable() {
+        return object.asObjectable();
     }
 
     public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow) {
@@ -123,6 +120,13 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     public PrismObjectAsserter<O,RA> assertName(String expectedOrig) {
         PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNameOrig(String expectedOrig) {
+        assertThat(getObject().getName().getOrig())
+                .as("Name (orig) in " + desc())
+                .isEqualTo(expectedOrig);
         return this;
     }
 
@@ -347,5 +351,32 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public PrismObjectAsserter<O,RA> assertArchetypeRef(String expectedArchetypeOid) {
+        List<ObjectReferenceType> archetypeRefs = getArchetypeRefs();
+        if (archetypeRefs.isEmpty()) {
+            fail("No archetypeRefs while archetype "+expectedArchetypeOid+" expected");
+        }
+        if (archetypeRefs.size() > 1) {
+            fail("Too many archetypes while archetypeRefs "+expectedArchetypeOid+" expected: "+archetypeRefs);
+        }
+        assertEquals("Wrong archetypeRef in "+desc(), expectedArchetypeOid, archetypeRefs.get(0).getOid());
+        return this;
+    }
+
+    @NotNull
+    private List<ObjectReferenceType> getArchetypeRefs() {
+        O objectable = getObject().asObjectable();
+        return objectable instanceof AssignmentHolderType ?
+                    ((AssignmentHolderType) objectable).getArchetypeRef() : emptyList();
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoArchetypeRef() {
+        List<ObjectReferenceType> archetypeRefs = getArchetypeRefs();
+        if (!archetypeRefs.isEmpty()) {
+            fail("Found archetypeRefs while not expected any: "+archetypeRefs);
+        }
+        return this;
     }
 }

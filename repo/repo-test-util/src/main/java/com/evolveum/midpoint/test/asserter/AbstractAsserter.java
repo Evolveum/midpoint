@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
+
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.common.Clock;
@@ -28,6 +30,7 @@ public abstract class AbstractAsserter<RA> {
     private RA returnAsserter;
     private PrismContext prismContext;
     private SimpleObjectResolver objectResolver;
+    private RepositoryService repositoryService;
     private Protector protector;
     private Clock clock;
 
@@ -60,6 +63,14 @@ public abstract class AbstractAsserter<RA> {
 
     public void setObjectResolver(SimpleObjectResolver objectResolver) {
         this.objectResolver = objectResolver;
+    }
+
+    public RepositoryService getRepositoryService() {
+        return repositoryService;
+    }
+
+    public void setRepositoryService(RepositoryService repositoryService) {
+        this.repositoryService = repositoryService;
     }
 
     protected Protector getProtector() {
@@ -118,6 +129,7 @@ public abstract class AbstractAsserter<RA> {
     protected <T> void copySetupTo(AbstractAsserter<T> other) {
         other.setPrismContext(this.getPrismContext());
         other.setObjectResolver(this.getObjectResolver());
+        other.setRepositoryService(this.getRepositoryService());
         other.setProtector(this.getProtector());
         other.setClock(this.getClock());
     }

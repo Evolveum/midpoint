@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -355,5 +356,31 @@ public class MidPointAsserts {
 
     private static PrismContext getPrismContext() {
         return TestSpringContextHolder.getPrismContext();
+    }
+
+    public static void assertThatReferenceMatches(ObjectReferenceType ref, String desc, String expectedOid, QName expectedType) {
+        assertThat(ref).as(desc).isNotNull();
+        assertThat(ref.getOid()).as(desc + ".oid").isEqualTo(expectedOid);
+        assertThatTypeMatches(ref.getType(), desc + ".type", expectedType);
+    }
+
+    // here because of AssertJ dependency (consider moving)
+    public static void assertThatTypeMatches(QName actualType, String desc, QName expectedType) {
+        assertThat(actualType).as(desc)
+                .matches(t -> QNameUtil.match(t, expectedType), "matches " + expectedType);
+    }
+
+    // here because of AssertJ dependency (consider moving)
+    public static void assertUriMatches(String current, String desc, QName expected) {
+        assertThat(current).as(desc)
+                .isNotNull()
+                .matches(s -> QNameUtil.match(QNameUtil.uriToQName(s, true), expected), "is " + expected);
+    }
+
+    // here because of AssertJ dependency (consider moving)
+    public static void assertUriMatches(String current, String desc, String expected) {
+        assertThat(current).as(desc)
+                .isNotNull()
+                .matches(s -> QNameUtil.matchUri(s, expected), "is " + expected);
     }
 }

@@ -25,10 +25,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.engine.helpers.DelayedNotification;
@@ -141,7 +138,8 @@ public class EngineInvocationContext implements DebugDumpable {
     }
 
     public void commit(OperationResult parentResult)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException {
         OperationResult result = parentResult.subresult(OP_COMMIT)
                 .setMinor()
                 .build();
