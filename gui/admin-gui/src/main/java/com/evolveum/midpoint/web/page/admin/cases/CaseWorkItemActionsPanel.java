@@ -84,7 +84,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             }
         };
-        workItemApproveButton.add(new VisibleBehaviour(() -> isApproveRejectButtonVisible()));
+        workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         workItemApproveButton.setOutputMarkupId(true);
         actionButtonsContainer.add(workItemApproveButton);
 
@@ -100,7 +100,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemRejectButton.setOutputMarkupId(true);
-        workItemRejectButton.add(new VisibleBehaviour(() -> isApproveRejectButtonVisible()));
+        workItemRejectButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         actionButtonsContainer.add(workItemRejectButton);
 
         AjaxButton workItemForwardButton = new AjaxButton(ID_WORK_ITEM_FORWARD_BUTTON,
@@ -113,7 +113,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemForwardButton.setOutputMarkupId(true);
-        workItemForwardButton.add(new VisibleBehaviour(() -> isForwardButtonVisible()));
+        workItemForwardButton.add(new VisibleBehaviour(this::isForwardButtonVisible));
         actionButtonsContainer.add(workItemForwardButton);
 
         AjaxButton workItemClaimButton = new AjaxButton(ID_WORK_ITEM_CLAIM_BUTTON,
@@ -240,30 +240,37 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private boolean isApproveRejectButtonVisible() {
-        boolean isAuthorized = false;
+        if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
+                CaseWorkItemUtil.isWorkItemClaimable(getModelObject())) {
+            return false; // checking separately to avoid needless authorization checking
+        }
         try {
             OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
-            isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result);
+            return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
+                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result),
+                    getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
+            return false;
         }
-        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
-
     }
 
     private boolean isForwardButtonVisible() {
-        boolean isAuthorized = false;
+        if (CaseWorkItemUtil.isCaseWorkItemClosed(getModelObject()) ||
+                CaseWorkItemUtil.isWorkItemClaimable(getModelObject())) {
+            return false; // checking separately to avoid needless authorization checking
+        }
         try {
             OperationResult result = new OperationResult(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
-            isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result);
+            return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
+                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result),
+                    getPowerDonor(), getPageBase(), task, result);
         } catch (Exception ex) {
             LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
+            return false;
         }
-        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
     }
 
     private boolean isClaimButtonVisible() {

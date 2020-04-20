@@ -64,8 +64,12 @@ public class CaseWorkItemUtil {
         return null;
     }
 
-    public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem){
+    public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem) {
         return workItem != null && workItem.getCloseTimestamp() == null;
+    }
+
+    public static boolean isCaseWorkItemClosed(CaseWorkItemType workItem) {
+        return workItem != null && workItem.getCloseTimestamp() != null;
     }
 
     public static boolean isWorkItemClaimable(CaseWorkItemType workItem){

@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="5653fc70-3007-4f62-82dd-a36e0673505b">
+    <name>accountant</name>
+    <authorization>
+        <name>attorney-scrooge-workitems</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>scrooge</q:value>
+                </q:equal>
+            </filter>
+        </object>
+    </authorization>
+</role>

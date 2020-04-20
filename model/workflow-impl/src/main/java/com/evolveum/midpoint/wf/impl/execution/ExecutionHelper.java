@@ -9,6 +9,7 @@ package com.evolveum.midpoint.wf.impl.execution;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -20,11 +21,11 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
@@ -72,6 +73,7 @@ public class ExecutionHelper {
     @Autowired public WorkItemHelper workItemHelper;
     @Autowired public AuthorizationHelper authorizationHelper;
     @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private LensContextHelper lensContextHelper;
 
     private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
     private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
@@ -84,15 +86,6 @@ public class ExecutionHelper {
                 .asItemDeltas();
         repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
         LOGGER.debug("Marked case {} as closed", aCase);
-    }
-
-    public void setCaseStateInRepository(CaseType aCase, String newState, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
-                .item(CaseType.F_STATE).replace(newState)
-                .asItemDeltas();
-        repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
-        LOGGER.debug("Marked case {} as {}", aCase, newState);
     }
 
     /**
@@ -147,7 +140,7 @@ public class ExecutionHelper {
         }
     }
 
-    public void setExecutionConstraints(Task task, CaseType aCase, OperationResult result) throws SchemaException {
+    private void setExecutionConstraints(Task task, CaseType aCase, OperationResult result) throws SchemaException {
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
         WfConfigurationType wfConfiguration = systemConfiguration != null ? systemConfiguration.asObjectable().getWorkflowConfiguration() : null;
         WfExecutionTasksConfigurationType tasksConfig = wfConfiguration != null ? wfConfiguration.getExecutionTasks() : null;
@@ -223,6 +216,57 @@ public class ExecutionHelper {
                 return aCase.getParentRef() != null ? aCase.getParentRef().getOid() : aCase.getOid();
             default:
                 throw new AssertionError("Unknown scope: " + scope);
+        }
+    }
+
+    public void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+        // We must do this before the task is started, because as part of task completion we set state to CLOSED.
+        // So if we set state to EXECUTING after the task is started, the case might be already closed at that point.
+        // (If task is fast enough.)
+        markCaseAsExecuting(aCase, result);
+
+        Task task = taskManager.createTaskInstance("execute");
+        task.setName("Execution of " + aCase.getName().getOrig());
+        task.setOwner(getExecutionTaskOwner(result));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
+        task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
+        if (waiting) {
+            task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
+        }
+        setExecutionConstraints(task, aCase, result);
+        taskManager.switchToBackground(task, result);
+    }
+
+    private void markCaseAsExecuting(CaseType aCase, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_EXECUTING)
+                .asItemDeltas();
+        repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
+        LOGGER.debug("Marked case {} as {}", aCase, SchemaConstants.CASE_STATE_EXECUTING);
+    }
+
+    private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
+    }
+
+    /**
+     * Checks that there are any deltas to be executed and if so, submits the execution task.
+     * @param rootCase Operation request case (always!)
+     * @param subcases List of subcases (must be current).
+     */
+    public void submitExecutionTaskIfNeeded(CaseType rootCase, List<CaseType> subcases, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, ObjectAlreadyExistsException {
+        assert ObjectTypeUtil.hasArchetype(rootCase, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
+        LensContext<?> lensContext = lensContextHelper.collectApprovedDeltasToModelContext(rootCase, subcases, task, result);
+        if (lensContext.hasAnyPrimaryChange()) {
+            submitExecutionTask(rootCase, false, result);
+        } else {
+            LOGGER.trace("No primary delta in 'approved' lens context, not submitting the execution task");
+            closeCaseInRepository(rootCase, result);
         }
     }
 }

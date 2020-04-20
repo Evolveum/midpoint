@@ -31,6 +31,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -355,5 +357,14 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             assertHasArchetype(requestCase.asPrismObject(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
             return this;
         }
+    }
+
+    /**
+     * Takes case OID from the operation result (via asynchronous identifier).
+     */
+    protected CaseAsserter<Void> assertCase(OperationResult result, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertThat(caseOid).as("No background case OID").isNotNull();
+        return assertCase(caseOid, message);
     }
 }
