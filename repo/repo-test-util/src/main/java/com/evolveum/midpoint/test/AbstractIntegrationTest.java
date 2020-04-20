@@ -35,6 +35,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
+
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -264,18 +267,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         displayTestTitle(testName);
 
         Task task = createTask(testMethodName);
-        // TODO inttest: add tracing facility - ideally without the need to create subresult
-//        OperationResult rootResult = task.getResult();
-//        TracingProfileType tracingProfile = getTestMethodTracingProfile();
-//        CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
-//                tracer.compileProfile(tracingProfile, rootResult) : null;
-//        OperationResult result = rootResult.subresult(task.getName() + "Run")
-//                .tracingProfile(compiledTracingProfile)
-//                .build();
-
-        // This is quite a hack. We need to provide traced result to all clients that need to access it via the task.
-        // (I.e. not via the test context.)
-//        task.setResult(result);
+        TracingProfileType tracingProfile = getTestMethodTracingProfile();
+        if (tracingProfile != null) {
+            CompiledTracingProfile compiledTracingProfile = tracer.compileProfile(tracingProfile, task.getResult());
+            task.getResult().tracingProfile(compiledTracingProfile);
+        }
 
         MidpointTestContextWithTask.create(testClass, testMethodName, task, task.getResult());
         tracer.setTemplateParametersCustomizer(params -> {
