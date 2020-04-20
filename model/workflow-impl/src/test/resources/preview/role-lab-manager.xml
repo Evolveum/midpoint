@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="e4b5d89a-cb7f-4d26-b31f-e86556e2a4ca">
+    <name>lab-manager</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approvalSchema>
+                        <stage>
+                            <number>1</number>
+                            <approverRef oid="feb34927-7671-401e-9f5b-8f7ec94f3112" type="UserType" /> <!-- Jane the Lab Owner -->
+                        </stage>
+                        <stage>
+                            <number>2</number>
+                            <approverRef oid="072bf16a-e424-456c-a212-7996f34c3c5c" type="UserType" /> <!-- Martin the Dept Head -->
+                        </stage>
+                        <stage>
+                            <number>3</number>
+                            <approverRef oid="408beff8-c988-4c77-ac5e-ed26697d6982" type="UserType" /> <!-- Peter the Dean -->
+                            <approverRef oid="4aab211b-5faf-45e2-acaf-a17a89d39fd1" type="UserType" /> <!-- Kate the Administrator -->
+                            <evaluationStrategy>allMustApprove</evaluationStrategy>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
