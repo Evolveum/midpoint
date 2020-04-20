@@ -18,6 +18,9 @@ public enum RTaskWaitingReason implements SchemaEnum<TaskWaitingReasonType> {
 
     OTHER_TASKS(TaskWaitingReasonType.OTHER_TASKS),
 
+    // See MID-6117.
+    PLACEHOLDER(null),
+
     OTHER(TaskWaitingReasonType.OTHER);
 
     private TaskWaitingReasonType reason;
