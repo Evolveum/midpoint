@@ -851,7 +851,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
         });
 
-        includeIndirectMembers.getCheck().add(new EnableBehaviour(() ->
+        includeIndirectMembers.add(new VisibleBehaviour(() ->
                 getSearchScopeValue().equals(SearchBoxScopeType.ONE_LEVEL) || !searchScrope.isVisible()));
         includeIndirectMembers.setOutputMarkupId(true);
         form.add(includeIndirectMembers);
