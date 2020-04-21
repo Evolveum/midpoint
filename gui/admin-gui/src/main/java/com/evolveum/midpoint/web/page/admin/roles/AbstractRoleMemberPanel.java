@@ -584,7 +584,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private void unassignMembersPerformed(AjaxRequestTarget target) {
-        QueryScope scope = getQueryScope(false);
+        QueryScope scope = getQueryScope();
 
         ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
                 createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
@@ -621,7 +621,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private void deleteMembersPerformed(AjaxRequestTarget target) {
-        QueryScope scope = getQueryScope(false);
+        QueryScope scope = getQueryScope();
         ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
                     createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel")) {
             private static final long serialVersionUID = 1L;
@@ -957,7 +957,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
-    protected QueryScope getQueryScope(boolean isRecompute) {
+    protected QueryScope getQueryScope() {
         if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedObjects()))) {
             return QueryScope.SELECTED;
         }
@@ -986,8 +986,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(true),
-                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
                 if (task == null) {
                     return null;
                 }
@@ -1004,8 +1004,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true),
-                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
             }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);

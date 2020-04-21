@@ -58,7 +58,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
         ObjectTypes searchType = getSearchType();
         if (SearchBoxScopeType.ONE_LEVEL.equals(getOrgSearchScope())) {
-            if (FocusType.class.isAssignableFrom(searchType.getClassDefinition())) {
+            if (AssignmentHolderType.class.isAssignableFrom(searchType.getClassDefinition())) {
                 return super.createMemberQuery(indirect, relations);
             }
             else {
@@ -68,8 +68,37 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
                         .isDirectChildOf(ref.asReferenceValue()).build();
             }
         }
+        return getSubtreeScopeMembersQuery();
+    }
 
+    @Override
+    protected ObjectQuery getActionQuery(QueryScope scope, Collection<QName> relations) {
+        if (SearchBoxScopeType.ONE_LEVEL.equals(getOrgSearchScope())) {
+            return super.getActionQuery(scope, relations);
+        } else {
+            return getSubtreeScopeMembersQuery();
+        }
+    }
+
+    @Override
+    protected QueryScope getQueryScope() {
+        if (SearchBoxScopeType.SUBTREE.equals(getOrgSearchScope())) {
+            return QueryScope.ALL;
+        } else {
+            return super.getQueryScope();
+        }
+    }
+
+    @Override
+    protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
+        return getPrismContext().queryFor(AssignmentHolderType.class)
+                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), relations))
+                .build();
+    }
+
+    private ObjectQuery getSubtreeScopeMembersQuery(){
         String oid = getModelObject().getOid();
+        ObjectTypes searchType = getSearchType();
 
         ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
         ObjectQuery query = getPageBase().getPrismContext().queryFor(searchType.getClassDefinition())
@@ -80,7 +109,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
             LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
         }
         return query;
-
     }
 
     protected SearchBoxScopeType getOrgSearchScope() {
