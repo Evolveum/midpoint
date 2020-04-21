@@ -16,7 +16,8 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author bpowers
@@ -89,5 +90,9 @@ public class CaseWorkItemUtil {
         return false;
     }
 
-
+    public static List<CaseWorkItemType> getWorkItemsForStage(CaseType aCase, int stageNumber) {
+        return aCase.getWorkItem().stream()
+                .filter(wi -> Objects.equals(wi.getStageNumber(), stageNumber))
+                .collect(Collectors.toList());
+    }
 }

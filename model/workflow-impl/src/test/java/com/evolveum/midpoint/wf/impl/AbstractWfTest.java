@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
@@ -21,9 +19,11 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -86,6 +86,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     @Autowired protected WorkflowManager workflowManager;
     @Autowired protected WorkflowEngine workflowEngine;
     @Autowired protected WorkItemManager workItemManager;
+    @Autowired protected WorkflowService workflowService;
     @Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
     @Autowired protected GeneralChangeProcessor generalChangeProcessor;
     @Autowired protected SystemObjectCache systemObjectCache;
@@ -330,6 +331,22 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
                 .build();
     }
 
+    protected void approveWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        workflowService.completeWorkItem(WorkItemId.of(workItem),
+                new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE),
+                task, result);
+    }
+
+    protected void rejectWorkItem(CaseWorkItemType workItem, Task task, OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        workflowService.completeWorkItem(WorkItemId.of(workItem),
+                new AbstractWorkItemOutputType(prismContext).outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
+                task, result);
+    }
+
     public class RelatedCases {
         private CaseType approvalCase;
         private CaseType requestCase;
@@ -366,5 +383,19 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
         assertThat(caseOid).as("No background case OID").isNotNull();
         return assertCase(caseOid, message);
+    }
+
+    /**
+     * Takes case from the work item (via parent reference).
+     */
+    protected CaseAsserter<Void> assertCase(CaseWorkItemType workItem, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismContainerable parent = workItem.asPrismContainerValue().getParent();
+        assertThat(parent).isNotNull();
+        //noinspection unchecked
+        PrismContainerValue<?> grandParent = ((PrismContainer<CaseWorkItemType>) parent).getParent();
+        assertThat(grandParent).isNotNull();
+        String approvalCaseOid = ((PrismObjectValue<?>) grandParent).getOid();
+        assertThat(approvalCaseOid).as("No parent case OID").isNotNull();
+        return assertCase(approvalCaseOid, message);
     }
 }
