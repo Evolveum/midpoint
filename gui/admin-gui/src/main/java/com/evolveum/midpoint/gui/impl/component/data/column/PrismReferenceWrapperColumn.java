@@ -13,11 +13,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;

@@ -11,7 +11,7 @@ import java.util.Collections;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;

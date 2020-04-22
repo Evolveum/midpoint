@@ -12,9 +12,9 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,7 +57,7 @@ public class ContainerWrapperFromObjectWrapperModel<C extends Containerable,O ex
     }
 
     @Override
-    public void setObject(com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper<C> arg0) {
+    public void setObject(PrismContainerWrapper<C> arg0) {
         throw new UnsupportedOperationException("ContainerWrapperFromObjectWrapperModel.setObject called");
 
     }

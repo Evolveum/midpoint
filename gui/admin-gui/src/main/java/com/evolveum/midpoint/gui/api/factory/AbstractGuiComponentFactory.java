@@ -7,21 +7,15 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+
 import org.apache.wicket.markup.html.panel.Panel;
 
-import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.springframework.beans.factory.annotation.Autowired;
 

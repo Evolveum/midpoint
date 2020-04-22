@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,13 +23,12 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -394,7 +395,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
                     .editabilityHandler(editabilityHandler)
                     .showOnTopLevel(true);

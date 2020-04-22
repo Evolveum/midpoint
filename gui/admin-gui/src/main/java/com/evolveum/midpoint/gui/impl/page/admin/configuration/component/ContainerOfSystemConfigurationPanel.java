@@ -9,14 +9,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,7 +55,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     protected void initLayout() {
 
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
                     .visibilityHandler(wrapper -> getVisibity(wrapper.getPath()))
                     .showOnTopLevel(true);
             Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());

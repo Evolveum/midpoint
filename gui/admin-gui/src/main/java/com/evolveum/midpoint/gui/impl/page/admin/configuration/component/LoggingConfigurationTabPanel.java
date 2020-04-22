@@ -14,11 +14,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,7 +37,7 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
@@ -47,8 +45,8 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -112,7 +110,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     protected void initLayout() {
         try {
 //            getModelObject().setShowOnTopLevel(true);
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
+            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder();
             builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath())).showOnTopLevel(true);
             Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
             add(loggingPanel);

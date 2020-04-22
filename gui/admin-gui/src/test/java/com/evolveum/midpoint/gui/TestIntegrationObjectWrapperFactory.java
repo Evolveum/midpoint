@@ -14,6 +14,12 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -24,10 +30,9 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.gui.api.prism.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.ShadowWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.ShadowWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.*;
@@ -108,7 +113,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_TRIGGER,
             OrgType.F_AUTOASSIGN,
             ShadowType.F_CREDENTIALS);
-
     private String userWallyOid;
     private String accountWallyOid;
 
@@ -166,11 +170,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true);
+        ItemStatus objectStatus = objectWrapper.getStatus();
+
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
@@ -181,11 +187,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         mainContainerValueWrapper.setShowEmpty(true);
 
         // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -243,21 +249,22 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
+        ItemStatus objectStatus = objectWrapper.getStatus();
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, false); // empty
 
         // WHEN
         mainContainerValueWrapper.setShowEmpty(true);
 
         // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -302,10 +309,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true);
+        ItemStatus objectStatus = objectWrapper.getStatus();
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_WEAPON), null);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_COLORS), ItemProcessing.AUTO);
@@ -316,11 +324,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         mainContainerValueWrapper.setShowEmpty(false);
 
         // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, false); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, false); // empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -379,20 +387,21 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_SECRET), ItemProcessing.IGNORE);
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_RANT), ItemProcessing.MINIMAL);
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
+        ItemStatus objectStatus = objectWrapper.getStatus();
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true); // emphasized
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_LOCALITY, true); // empty
 
         // WHEN
         mainContainerValueWrapper.setShowEmpty(false);
 
         // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_GIVEN_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_FULL_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
 
         ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -453,7 +462,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismPropertyWrapper<String> fullnameWrapper = attributesContainerValueWrapper.findProperty(ItemPath.create(dummyResourceCtl.getAttributeFullnameQName()));
         assertEquals("Wrong attribute fullname readOnly", Boolean.FALSE, (Boolean) fullnameWrapper.isReadOnly()); // Is this OK?
-        assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean) fullnameWrapper.isVisible(attributesContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullnameWrapper);
+        assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectWrapper.getStatus(), null));
         displayDumpable("fullname attribute definition", fullnameWrapper);
         assertEquals("Wrong attribute fullname definition.canRead", Boolean.TRUE, (Boolean) fullnameWrapper.canRead());
         assertEquals("Wrong attribute fullname definition.canAdd", Boolean.TRUE, (Boolean) fullnameWrapper.canAdd());
@@ -518,10 +528,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean) mainContainerValueWrapper.isReadOnly());
 
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, false); // not visible, because it is empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
+        ItemStatus objectStatus = objectWrapper.getStatus();
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_IDENTIFIER, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_RISK_LEVEL, false); // not visible, because it is empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_LOCALITY, true);
 
         assertItemWrapperProcessing(mainContainerValueWrapper, extensionPath(PIRACY_TRANSFORM_DESCRIPTION), null);
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
@@ -534,10 +545,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         mainContainerValueWrapper.setShowEmpty(true);
 
         // THEN
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_NAME, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, true); // empty
-        assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_NAME, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_IDENTIFIER, true);
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_RISK_LEVEL, true); // empty
+        assertItemWrapperFullConrol(mainContainerValueWrapper, objectStatus, OrgType.F_LOCALITY, true);
 
         ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
         displayDumpable("Delta", objectDelta);
@@ -868,37 +879,44 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
 
+        ItemStatus objectStatus = objectWrapper.getStatus();
+
         PrismPropertyWrapper<PolyString> nameWrapper = mainContainerValueWrapper.findProperty(UserType.F_NAME);
         assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean) nameWrapper.isReadOnly()); // Is this OK?
-        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> nameVisibility = new ItemWrapperVisibilitySpecification<>(nameWrapper);
+        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean) nameWrapper.canRead());
         assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean) nameWrapper.canAdd());
         assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean) nameWrapper.canModify());
 
         PrismPropertyWrapper<PolyString> givenNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_GIVEN_NAME);
         assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean) givenNameWrapper.isReadOnly()); // Is this OK?
-        assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean) givenNameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> givenNameVisibility = new ItemWrapperVisibilitySpecification<>(givenNameWrapper);
+        assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean) givenNameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong givenName definition.canRead", Boolean.TRUE, (Boolean) givenNameWrapper.canRead());
         assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean) givenNameWrapper.canAdd());
         assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean) givenNameWrapper.canModify());
 
         PrismPropertyWrapper<PolyString> fullNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_FULL_NAME);
         assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean) fullNameWrapper.isReadOnly());
-        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullNameWrapper);
+        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean) fullNameWrapper.canRead());
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
 
         PrismPropertyWrapper<String> additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
         assertEquals("Wrong additionalName readOnly", Boolean.TRUE, (Boolean) additionalNameWrapper.isReadOnly()); // Is this OK?
-        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean) additionalNameWrapper.isVisible(mainContainerValueWrapper, null)); // not visible, because it is empty
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> additionalNameVisibility = new ItemWrapperVisibilitySpecification<>(additionalNameWrapper);
+        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean) additionalNameVisibility.isVisible(objectStatus, null)); // not visible, because it is empty
         assertEquals("Wrong additionalName definition.canRead", Boolean.TRUE, (Boolean) additionalNameWrapper.canRead());
         assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean) additionalNameWrapper.canAdd());
         assertEquals("Wrong additionalName definition.canModify", Boolean.FALSE, (Boolean) additionalNameWrapper.canModify());
 
         PrismPropertyWrapper<String> localityNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_LOCALITY);
         assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean) localityNameWrapper.isReadOnly());
-        assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean) localityNameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> localityNameVisibility = new ItemWrapperVisibilitySpecification<>(localityNameWrapper);
+        assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean) localityNameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong locality definition.canRead", Boolean.TRUE, (Boolean) localityNameWrapper.canRead());
         assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean) localityNameWrapper.canAdd());
         assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean) localityNameWrapper.canModify());
@@ -908,7 +926,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         // THEN
         additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
-        assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean) additionalNameWrapper.isVisible(mainContainerValueWrapper, null)); // visible, because show empty
+        assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean) localityNameVisibility.isVisible(objectStatus, null)); // visible, because show empty
 
     }
 
@@ -937,10 +955,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayDumpable("Wrapper after", objectWrapper);
         assertEquals("Wrong object wrapper readOnly", Boolean.FALSE, (Boolean) objectWrapper.isReadOnly());
 
+        ItemStatus objectStatus = objectWrapper.getStatus();
+
         PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismPropertyWrapper nameWrapper = mainContainerValueWrapper.findProperty(UserType.F_NAME);
         assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean) nameWrapper.isReadOnly());
-        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> nameVisibility = new ItemWrapperVisibilitySpecification<>(nameWrapper);
+        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean) nameWrapper.canRead());
         assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean) nameWrapper.canAdd());
         assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean) nameWrapper.canModify());
@@ -958,7 +979,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismPropertyWrapper fullNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_FULL_NAME);
         assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean) fullNameWrapper.isReadOnly());
-        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameWrapper.isVisible(mainContainerValueWrapper, null));
+        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullNameWrapper);
+        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectStatus, null));
         assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean) fullNameWrapper.canRead());
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
@@ -983,11 +1005,12 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean)localityNameWrapper.canModify());
     }
 
-    private <C extends Containerable> void assertItemWrapperFullConrol(PrismContainerValueWrapper<C> containerWrapper, ItemName propName,
+    private <C extends Containerable> void assertItemWrapperFullConrol(PrismContainerValueWrapper<C> containerWrapper, ItemStatus status, ItemName propName,
             boolean visible) throws SchemaException {
         ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
         assertEquals("Wrong " + propName + " readOnly", Boolean.FALSE, (Boolean) itemWrapper.isReadOnly());
-        assertEquals("Wrong " + propName + " visible", visible, itemWrapper.isVisible(containerWrapper, w -> ItemVisibility.AUTO));
+        ItemWrapperVisibilitySpecification<?> itemWrapperVisibility = new ItemWrapperVisibilitySpecification<>(itemWrapper);
+        assertEquals("Wrong " + propName + " visible", visible, itemWrapperVisibility.isVisible(status, w -> ItemVisibility.AUTO));
         assertEquals("Wrong " + propName + " definition.canRead", Boolean.TRUE, (Boolean) itemWrapper.canRead());
         assertEquals("Wrong " + propName + " definition.canAdd", Boolean.TRUE, (Boolean) itemWrapper.canAdd());
         assertEquals("Wrong " + propName + " definition.canModify", Boolean.TRUE, (Boolean) itemWrapper.canModify());

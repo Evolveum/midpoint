@@ -15,6 +15,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
 import com.evolveum.midpoint.web.page.admin.certification.*;
@@ -71,19 +72,18 @@ import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -2726,7 +2726,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
 
-    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException{
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemHeaderPanel.ItemPanelSettings itemPanelSettings) throws SchemaException{
         Class<?> panelClass = getWrapperPanel(typeName);
         if (panelClass == null) {
             ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
@@ -2736,7 +2736,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         Constructor<?> constructor;
         try {
-            constructor = panelClass.getConstructor(String.class, IModel.class, ItemPanelSettings.class);
+            constructor = panelClass.getConstructor(String.class, IModel.class, ItemHeaderPanel.ItemPanelSettings.class);
             Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
             return panel;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -2745,7 +2745,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model,
-            ItemPanelSettings settings) {
+            ItemHeaderPanel.ItemPanelSettings settings) {
         //TODO find from registry first
         return new PrismContainerValuePanel<>(id, model, settings);
     }

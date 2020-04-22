@@ -12,6 +12,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,8 +38,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -42,7 +47,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -641,7 +645,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ItemVisibility getBasicTabVisibity(ItemWrapper<?,?,?,?> itemWrapper) {
+            protected ItemVisibility getBasicTabVisibity(ItemWrapper<?,?> itemWrapper) {
                 return AssignmentPanel.this.getContainerVisibility(itemWrapper);
             }
 
@@ -651,7 +655,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             }
 
             @Override
-            protected boolean getBasicTabEditability(ItemWrapper<?, ?, ?, ?> itemWrapper) {
+            protected boolean getBasicTabEditability(ItemWrapper<?, ?> itemWrapper) {
                 return getContainerReadability(itemWrapper);
             }
 
@@ -679,7 +683,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     }
 
     protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+        ItemHeaderPanel.ItemPanelSettings settings = new ItemHeaderPanel.ItemPanelSettingsBuilder()
                 .visibilityHandler(this::getContainerVisibility)
                 .showOnTopLevel(true)
                 .editabilityHandler(this::getContainerReadability)
@@ -688,11 +692,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         return getPageBase().initContainerValuePanel(idPanel, model, settings);
     }
 
-    protected boolean getContainerReadability(ItemWrapper<?,?,?,?> wrapper) {
+    protected boolean getContainerReadability(ItemWrapper<?,?> wrapper) {
         return true;
     }
 
-    protected ItemVisibility getContainerVisibility(ItemWrapper<?,?,?,?> wrapper) {
+    protected ItemVisibility getContainerVisibility(ItemWrapper<?,?> wrapper) {
         if (QNameUtil.match(ActivationType.COMPLEX_TYPE, wrapper.getTypeName())) {
             return ItemVisibility.AUTO;
         }
@@ -753,7 +757,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         return getTypedContainerVisibility(wrapper);
     }
 
-    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?,?,?,?> wrapper) {
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?,?> wrapper) {
         return ItemVisibility.AUTO;
     }
 

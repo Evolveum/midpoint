@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -14,15 +15,14 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -430,7 +430,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private ItemDelta<?, ?> createDeleteItemDelta(ItemName itemName) throws SchemaException {
-        ItemWrapper<?, ?, ?, ?> item = getObjectWrapper().findItem(itemName, ItemWrapper.class);
+        ItemWrapper<?, ?> item = getObjectWrapper().findItem(itemName, ItemWrapper.class);
         if (item == null) {
             return null;
         }
@@ -448,7 +448,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 .asItemDelta();
 
     }
-    
+
     private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
         if (taskDelta.isEmpty()) {
             getSession().warn("Nothing to save, no changes were made.");

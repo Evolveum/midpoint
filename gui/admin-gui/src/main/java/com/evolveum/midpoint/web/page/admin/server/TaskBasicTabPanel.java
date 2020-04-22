@@ -8,8 +8,10 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 import org.apache.commons.lang.StringUtils;
@@ -20,13 +22,10 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -66,7 +65,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
     }
 
     private void initLayout() {
-        ItemPanelSettings settings = new ItemPanelSettingsBuilder().editabilityHandler(wrapper -> getTask().getHandlerUri() == null).build();
+        ItemHeaderPanel.ItemPanelSettings settings = new ItemHeaderPanel.ItemPanelSettingsBuilder().editabilityHandler(wrapper -> getTask().getHandlerUri() == null).build();
         TaskHandlerSelectorPanel handlerSelectorPanel = new TaskHandlerSelectorPanel(ID_HANDLER, PrismPropertyWrapperModel.fromContainerWrapper(getModel(), TaskType.F_HANDLER_URI), settings) {
             @Override
             protected void onUpdatePerformed(AjaxRequestTarget target) {
@@ -137,7 +136,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
         ItemVisibilityHandler visibilityHandler = wrapper -> getBasicTabVisibility(wrapper.getPath());
         ItemEditabilityHandler editabilityHandler = wrapper -> getBasicTabEditability(wrapper.getPath());
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
+            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
                     .editabilityHandler(editabilityHandler)
                     .mandatoryHandler(getItemMandatoryHandler())
