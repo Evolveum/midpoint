@@ -112,12 +112,4 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
         }
 
     }
-
-    private ItemVisibility getAppendersPanelVisibility(ItemPath pathToCheck) {
-        return ItemVisibility.VISIBLE;
-    }
-
-    private String getInputCssClass() {
-        return "col-xs-10";
-    }
 }

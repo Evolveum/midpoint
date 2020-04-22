@@ -109,9 +109,8 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
     protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
 
         try {
-            //FIXME : really always visible?
             ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
-            settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.VISIBLE);
+            settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.AUTO);
 
             Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());
             parentComponent.add(panel);

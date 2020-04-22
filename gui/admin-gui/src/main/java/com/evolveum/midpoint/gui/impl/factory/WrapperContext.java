@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
@@ -112,7 +114,6 @@ public class WrapperContext {
     public void setShowEmpty(boolean showEmpty) {
         this.showEmpty = showEmpty;
     }
-
 
     public ItemStatus getObjectStatus() {
         return objectStatus;

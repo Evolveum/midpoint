@@ -62,16 +62,21 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
         containerValueWrapper.setShowEmpty(context.isShowEmpty());
 
-        List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
-        for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
-            addItemWrapper(def, containerValueWrapper, context, wrappers);
-        }
+        List<ItemWrapper<?, ?, ?, ?>> children = createChildren(parent, value, containerValueWrapper, context);
 
-        containerValueWrapper.getItems().addAll((Collection) wrappers);
+        containerValueWrapper.getItems().addAll((Collection) children);
         containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
         parent.setVirtual(context.getVirtualItemSpecification() != null);
         containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
         return containerValueWrapper;
+    }
+
+    protected List<ItemWrapper<?, ?, ?, ?>> createChildren(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, PrismContainerValueWrapper<C> containerValueWrapper, WrapperContext context) throws SchemaException {
+        List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
+        for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
+            addItemWrapper(def, containerValueWrapper, context, wrappers);
+        }
+        return wrappers;
     }
 
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
@@ -81,8 +86,13 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
             WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
 
+        ItemWrapper<?,?,?,?> wrapper = createChildWrapper(def, containerValueWrapper, context);
+        if (wrapper != null) {
+            wrappers.add(wrapper);
+        }
+    }
 
-
+    protected ItemWrapper<?, ?, ?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
         ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
         if (factory == null) {
             LOGGER.error("Cannot find factory for {}", def);
@@ -95,11 +105,11 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         if (wrapper == null) {
             LOGGER.trace("Null wrapper created for {}. Skipping.", def);
-            return;
+            return null;
         }
 
         wrapper.setShowEmpty(context.isShowEmpty(), false);
-        wrappers.add(wrapper);
+        return wrapper;
     }
 
     @Override

@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+
+import com.evolveum.midpoint.model.api.ModelService;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +48,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     @Autowired private GuiComponentRegistryImpl registry;
     @Autowired private PrismContext prismContext;
     @Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private ModelService modelService;
 
     @Override
     public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
@@ -86,7 +91,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     }
 
-    private IW createCompleteWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+    protected IW createCompleteWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         IW itemWrapper = createWrapper(parent, childItem, status, context);
 
         List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
@@ -258,11 +263,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return prismContext;
     }
 
+    public ModelService getModelService() {
+        return modelService;
+    }
 
-//    @Override
-//    public VW createValueWrapper(PV value, IW parent, ValueStatus status, WrapperContext context) throws SchemaException {
-//        // TODO Auto-generated method stub
-//        return null;
-//    }
 
 }

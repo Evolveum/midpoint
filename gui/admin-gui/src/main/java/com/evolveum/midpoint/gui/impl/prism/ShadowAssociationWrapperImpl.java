@@ -8,16 +8,19 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -36,6 +39,9 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAssociationWrapperImpl.class);
+
+    private ResourceType resource;
+    private Collection<RefinedAssociationDefinition> refinedAssociationDefinitions;
 
     public ShadowAssociationWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<ShadowAssociationType> item, ItemStatus status) {
         super(parent, item, status);
@@ -151,89 +157,19 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
         return deltas;
     }
 
-//    @Override
-//    public PrismContainer<ShadowAssociationType> createContainerAddDelta() throws SchemaException {
-//        if (CollectionUtils.isEmpty(getValues())) {
-//            return null;
-//        }
-//
-//        PrismContainer<ShadowAssociationType> shadowAssociation = getItemDefinition().instantiate();
-//
-//        //we know that there is always only one value
-//        PrismContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
-//        for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
-//
-//            if (!(itemWrapper instanceof PrismReferenceWrapper)) {
-//                LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");
-//                continue;
-//            }
-//
-//            PrismReferenceWrapper refWrapper = (PrismReferenceWrapper) itemWrapper;
-//            if (!refWrapper.hasChanged()) {
-//                return null;
-//            }
-//
-//            PrismReference updatedRef = refWrapper.getUpdatedItem(getItem().getPrismContext());
-//
-//            for (PrismReferenceValue updatedRefValue : updatedRef.getValues()) {
-//                ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
-//                shadowAssociationType.setName(refWrapper.getName());
-//                shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(updatedRefValue));
-//                shadowAssociation.add(shadowAssociationType.asPrismContainerValue());
-//            }
-//
-//         }
-//
-//        if (shadowAssociation.isEmpty() || shadowAssociation.getValues().isEmpty()) {
-//            return null;
-//        }
-//        return shadowAssociation;
-//    }
-//
-//    @Override
-//    public <O extends ObjectType> void collectModifications(ObjectDelta<O> delta) throws SchemaException {
-//
-//        if (CollectionUtils.isEmpty(getValues())) {
-//            return;
-//        }
-//
-//        ContainerValueWrapper<ShadowAssociationType> containerValueWrappers = getValues().iterator().next();
-//
-//        for (ItemWrapper itemWrapper : containerValueWrappers.getItems()) {
-//
-//            if (!(itemWrapper instanceof ReferenceWrapper)) {
-//                LOGGER.warn("Item in shadow association value wrapper is not an reference. Should not happen.");
-//                continue;
-//            }
-//
-//            ReferenceWrapper refWrapper = (ReferenceWrapper) itemWrapper;
-//            if (!refWrapper.hasChanged()) {
-//                continue;
-//            }
-//
-//            for (ValueWrapper refValue : refWrapper.getValues()) {
-//
-//                PrismReferenceValue prismRefValue = (PrismReferenceValue) refValue.getValue();
-//                ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
-//                shadowAssociationType.setName(refWrapper.getName());
-//                shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef(prismRefValue));
-//                switch (refValue.getStatus()) {
-//                    case ADDED:
-//                        if (!refValue.hasValueChanged()) {
-//                            continue;
-//                        }
-//                        delta.addModificationAddContainer(refWrapper.getPath(), shadowAssociationType);
-//                        break;
-//                    case DELETED:
-//                        delta.addModificationDeleteContainer(refWrapper.getPath(), shadowAssociationType);
-//                    default:
-//                        break;
-//                }
-//
-//
-//
-//            }
-//        }
-//
-//    }
+    public ResourceType getResource() {
+        return resource;
+    }
+
+    public void setResource(ResourceType resource) {
+        this.resource = resource;
+    }
+
+    public Collection<RefinedAssociationDefinition> getRefinedAssociationDefinitions() {
+        return refinedAssociationDefinitions;
+    }
+
+    public void setRefinedAssociationDefinitions(Collection<RefinedAssociationDefinition> refinedAssociationDefinitions) {
+        this.refinedAssociationDefinitions = refinedAssociationDefinitions;
+    }
 }

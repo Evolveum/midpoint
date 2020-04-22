@@ -411,8 +411,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
             ItemVisibility visible = visibilityHandler.isVisible(this);
             if (visible != null) {
                 switch (visible) {
-                    case VISIBLE:
-                        return true;
                     case HIDDEN:
                         return false;
                     default:
