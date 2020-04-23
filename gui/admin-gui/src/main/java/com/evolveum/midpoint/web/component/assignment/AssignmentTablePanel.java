@@ -167,6 +167,11 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
                 return AssignmentTablePanel.this.isRelationEditable();
             }
 
+            @Override
+            protected void removeButtonClickPerformed(AssignmentEditorDto assignmentDto, AjaxRequestTarget target){
+                deleteAssignmentPerformed(target, assignmentDto);
+            }
+
         };
         item.add(editor);
 
