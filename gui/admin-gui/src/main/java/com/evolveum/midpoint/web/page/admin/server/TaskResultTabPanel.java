@@ -84,8 +84,7 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                 OperationResult opResult = OperationResult.createOperationResult(taskType.getResult());
                 OperationResultPanel body = new OperationResultPanel(
                         getPageBase().getMainPopupBodyId(),
-                        new Model<>(OpResult.getOpResult(getPageBase(), opResult)),
-                        getPageBase());
+                        new Model<>(OpResult.getOpResult(getPageBase(), opResult)));
                 body.setOutputMarkupId(true);
                 getPageBase().showMainPopup(body, target);
             }
