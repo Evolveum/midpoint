@@ -11,8 +11,11 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -56,7 +59,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
  * @author mederly
  */
 @Component
-public class PolicyRuleProcessor {
+@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class)
+public class PolicyRuleProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
 
@@ -233,14 +237,10 @@ public class PolicyRuleProcessor {
 //        }
 
     //region ------------------------------------------------------------------ Focus policy rules
-    public <AH extends AssignmentHolderType> void evaluateObjectPolicyRules(LensContext<AH> context, String activityDescription,
+    @ProcessorMethod
+    public <AH extends AssignmentHolderType> void evaluateObjectPolicyRules(LensContext<AH> context,
             XMLGregorianCalendar now, Task task, OperationResult result)
             throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-
         RulesEvaluationContext globalCtx = new RulesEvaluationContext();
 
         List<EvaluatedPolicyRule> rules = new ArrayList<>();
@@ -253,6 +253,7 @@ public class PolicyRuleProcessor {
         List<EvaluatedPolicyRule> nonSituationRules = new ArrayList<>();
 
         LOGGER.trace("Evaluating {} object policy rules", rules.size());
+        LensFocusContext<AH> focusContext = context.getFocusContext();
         focusContext.clearPolicyRules();
         for (EvaluatedPolicyRule rule : rules) {
             if (isApplicableToObject(rule)) {

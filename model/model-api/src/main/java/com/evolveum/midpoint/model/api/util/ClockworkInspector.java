@@ -13,7 +13,7 @@ import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * Interface used to intercept the SyncContext as it passes through the computation.
+ * Interface used to intercept the ModelContext as it passes through the computation.
  *
  * It is mostly used in tests.
  *
