@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,6 +31,7 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
     private final LinksAsserter<F,FA,RA> linksAsserter;
     private String resourceOid;
     private Boolean dead;
+    private String intent;
     private String tag;
     private String[] notTags;
 
@@ -45,6 +46,11 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 
     public LinkFinder<F,FA,RA> dead(boolean dead) {
         this.dead = dead;
+        return this;
+    }
+
+    public LinkFinder<F,FA,RA> intent(String intent) {
+        this.intent = intent;
         return this;
     }
 
@@ -103,6 +109,12 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
             if (dead && !ShadowUtil.isDead(linkTargetType)) {
                 return false;
             } else if (!dead && ShadowUtil.isDead(linkTargetType)) {
+                return false;
+            }
+        }
+
+        if (intent != null) {
+            if (!intent.equals(linkTargetType.getIntent())) {
                 return false;
             }
         }

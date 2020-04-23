@@ -9,6 +9,9 @@ package com.evolveum.midpoint.model.intest.multi;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +46,16 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     protected static final String RESOURCE_DUMMY_MULTI_GREEN_NAME = "multi-green";
     protected static final String RESOURCE_DUMMY_MULTI_GREEN_NAMESPACE = MidPointConstants.NS_RI;
 
+    // Multi outbound dummy resource, target with multiaccounts.
+    protected static final File RESOURCE_DUMMY_MULTI_OUTBOUND_FILE = new File(TEST_DIR, "resource-dummy-multi-outbound.xml");
+    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_OID = "d4da475e-8539-11ea-8343-dfdb4091c1dc";
+    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAME = "multi-outbound";
+    protected static final String RESOURCE_DUMMY_MULTI_OUTBOUND_NAMESPACE = MidPointConstants.NS_RI;
+
+    private static final String USER_IDAHO_GIVEN_NAME = "Duncan";
+    private static final String USER_IDAHO_FAMILY_NAME = "Idaho";
+    private static final String USER_IDAHO_NAME = "idaho";
+
     protected static final String ACCOUNT_PAUL_ATREIDES_ID = "001";
 
     protected static final String ACCOUNT_PAUL_ATREIDES_USERNAME = "paul";
@@ -60,10 +73,15 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     protected static final String ACCOUNT_MAHDI_TITLE = "mahdi";
 
     private static final String INTENT_ADMIN = "admin";
+    private static final String INTENT_ENVOY = "envoy";
+
+    private static final String PLANET_CALADAN = "Caladan";
+    private static final String PLANET_KAITAIN = "Kaitain";
 
     private String accountPaulOid;
     private String accountMuaddibOid;
     private String accountDukeOid;
+    private String userIdahoOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -71,6 +89,9 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         initDummyResourcePirate(RESOURCE_DUMMY_MULTI_GREEN_NAME,
                 RESOURCE_DUMMY_MULTI_GREEN_FILE, RESOURCE_DUMMY_MULTI_GREEN_OID, initTask, initResult);
+
+        initDummyResourcePirate(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME,
+                RESOURCE_DUMMY_MULTI_OUTBOUND_FILE, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, initTask, initResult);
     }
 
     /**
@@ -376,6 +397,92 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 1);
 
+    }
+
+    /**
+     * Create Duncan Idaho user, assign default account on outbound resource, make sure that the usual use case works.
+     */
+    @Test
+    public void test300CreateIdaho() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> useBefore = createUser(USER_IDAHO_NAME, USER_IDAHO_GIVEN_NAME, USER_IDAHO_FAMILY_NAME, true);
+        addObject(useBefore);
+        userIdahoOid = useBefore.getOid();
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        assignAccountToUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(userIdahoOid)
+                .singleLink()
+                    .target()
+                        .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                        .assertKind(ShadowKindType.ACCOUNT)
+                        .assertIntent(SchemaConstants.INTENT_DEFAULT);
+//                        .assertTagIsOid();
+
+        assertUsers(getNumberOfUsers() + 2);
+    }
+
+    /**
+     * Create Duncan Idaho user, assign default account on outbound resource, make sure that the usual use case works.
+     */
+    @Test
+    public void test310IdahoEnvoyCaladanKaitain() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ORGANIZATION).add(createPolyString(PLANET_CALADAN), createPolyString(PLANET_KAITAIN))
+                        .asObjectDelta(userIdahoOid),
+                null, task , result);
+
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        assignAccountToUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, INTENT_ENVOY, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(userIdahoOid)
+                .displayWithProjections()
+                .links()
+                    .assertLinks(3)
+                    .by()
+                        .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                        .intent(SchemaConstants.INTENT_DEFAULT)
+                    .find()
+                        .target()
+                            .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+//                          .assertTagIsOid()
+                        .end()
+                    .end()
+                    .by()
+                        .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                        .intent(INTENT_ENVOY)
+                    .assertCount(2);
+
+
+        assertUsers(getNumberOfUsers() + 2);
     }
 
     private void importMultiGreenAccounts(Task task, OperationResult result) throws Exception {

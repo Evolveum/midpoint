@@ -383,11 +383,11 @@ public class AssignmentProcessor {
             private boolean processOnlyExistingProjContexts;
 
             @Override
-            public boolean before(ResourceShadowDiscriminator rat) {
-                if (rat.getResourceOid() == null) {
+            public boolean before(ResourceShadowDiscriminator rsd) {
+                if (rsd.getResourceOid() == null) {
                     throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
                 }
-                if (rat.getIntent() == null) {
+                if (rsd.getIntent() == null) {
                     throw new IllegalStateException(
                             "Account type is null in ResourceAccountType during assignment processing");
                 }
@@ -395,10 +395,10 @@ public class AssignmentProcessor {
                 processOnlyExistingProjContexts = false;
                 if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
                     if (context.getTriggeredResourceOid() != null
-                            && !rat.getResourceOid().equals(context.getTriggeredResourceOid())) {
+                            && !rsd.getResourceOid().equals(context.getTriggeredResourceOid())) {
                         LOGGER.trace(
                                 "Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
-                                rat, context.getTriggeredResourceOid());
+                                rsd, context.getTriggeredResourceOid());
                         return false;
                     }
 
@@ -413,8 +413,8 @@ public class AssignmentProcessor {
             }
 
             @Override
-            public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+            public void onAssigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOld(false);
                 projectionContext.setLegalOld(false);
@@ -452,8 +452,8 @@ public class AssignmentProcessor {
             }
 
             @Override
-            public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            public void onUnchangedInvalid(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                 if (projectionContext == null) {
                     if (processOnlyExistingProjContexts) {
                         LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
@@ -479,15 +479,15 @@ public class AssignmentProcessor {
             }
 
             @Override
-            public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                if (accountExists(context, rat)) {
-                    LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            public void onUnassigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                if (accountExists(context, rsd)) {
+                    LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                     if (projectionContext == null) {
                         if (processOnlyExistingProjContexts) {
                             LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
                             return;
                         }
-                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
                     }
                     projectionContext.setAssigned(false);
                     projectionContext.setAssignedOld(true);
@@ -517,24 +517,24 @@ public class AssignmentProcessor {
             }
 
             @Override
-            public void after(ResourceShadowDiscriminator rat, String desc,
+            public void after(ResourceShadowDiscriminator rsd, String desc,
                     DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
                 PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
                         prismContext.deltaFactory().createPrismValueDeltaSetTriple(
-                                getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
-                                getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
-                                getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                                getConstructions(constructionMapTriple.getZeroMap().get(rsd), true),
+                                getConstructions(constructionMapTriple.getPlusMap().get(rsd), true),
+                                getConstructions(constructionMapTriple.getMinusMap().get(rsd), false));
+                LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                 if (projectionContext != null) {
                     // This can be null in a exotic case if we delete already deleted account
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Construction delta set triple for {}:\n{}", rat,
+                        LOGGER.trace("Construction delta set triple for {}:\n{}", rsd,
                                 projectionConstructionDeltaSetTriple.debugDump(1));
                     }
                     projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
-                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(
-                            constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(
-                            constructionMapTriple.getMinusMap().get(rat))) {
+                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) || isForceRecon(
+                            constructionMapTriple.getPlusMap().get(rsd)) || isForceRecon(
+                            constructionMapTriple.getMinusMap().get(rsd))) {
                         projectionContext.setDoReconciliation(true);
                     }
                 }

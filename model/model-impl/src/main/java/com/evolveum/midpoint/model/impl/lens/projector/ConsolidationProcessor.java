@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -57,10 +57,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * This processor consolidate delta set triples acquired from account sync context and transforms them to
- * property deltas. It converts mappings to deltas considering exclusions, authoritativeness and strength of individual
- * mappings. It also (somehow indirectly) merges all the mappings together. It considers also property deltas from sync,
- * which already happened.
  *
  * @author Radovan Semancik
  * @author lazyman
@@ -696,9 +692,7 @@ public class ConsolidationProcessor {
     }
 
     /**
-     * Simple util method which checks property values against already done delta from sync. See method
-     * {@link ConsolidationProcessor#consolidateWithSync(com.evolveum.midpoint.model.AccountSyncContext,
-     * com.evolveum.midpoint.prism.delta.PropertyDelta)}.
+     * Simple util method which checks property values against already done delta.
      *
      * @param values           collection which has to be filtered
      * @param alreadyDoneDelta already applied delta from sync

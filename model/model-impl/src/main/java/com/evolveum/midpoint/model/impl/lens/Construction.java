@@ -319,7 +319,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
             ResourceType resource = resolveResource(task, result);
             if (resource != null) {
-                evaluateKindIntentObjectClass(resource);
+                evaluateKindIntentObjectClass(resource, task, result);
                 evaluateAttributes(task, result);
                 evaluateAssociations(task, result);
                 result.recordSuccess();
@@ -337,7 +337,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         }
     }
 
-    private void evaluateKindIntentObjectClass(ResourceType resource) throws SchemaException {
+    private void evaluateKindIntentObjectClass(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         String resourceOid;
         if (getConstructionType().getResourceRef() != null) {
             resourceOid = getConstructionType().getResourceRef().getOid();
@@ -385,9 +385,43 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             auxiliaryObjectClassDefinitions.add(auxOcDef);
         }
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent(), null, false);
-        projectionContext = getLensContext().findProjectionContext(rat);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
+        LOGGER.info("XXXX: tagTriple\n{}", DebugUtil.debugDump(tagTriple));
+
+        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent(), null, false);
+        projectionContext = getLensContext().findProjectionContext(rsd);
         // projection context may not exist yet (existence might not be yet decided)
+    }
+
+    private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTripe(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
+        if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
+            return null;
+        }
+        ShadowTagSpecificationType tagSpec = multiplicity.getTag();
+        if (tagSpec == null) {
+            // TODO: do something better
+            return null;
+        }
+        MappingType outboundMappingSpec = tagSpec.getOutbound();
+        if (outboundMappingSpec == null) {
+            // TODO: do something better
+            return null;
+        }
+
+        MappingImpl.Builder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = mappingFactory.createMappingBuilder(
+                outboundMappingSpec,
+                "for outbound tag mapping in " + getSource());
+
+
+        MutablePrismPropertyDefinition<String> outputDefinition = mappingFactory.getExpressionFactory().getPrismContext().definitionFactory().createPropertyDefinition(
+                ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
+        outputDefinition.setMaxOccurs(-1);
+
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> evaluatedMapping = evaluateMapping(builder, ShadowType.F_TAG,
+                ShadowType.F_TAG, outputDefinition, null, task, result);
+
+        return evaluatedMapping.getOutputTriple();
     }
 
     private void evaluateAttributes(Task task, OperationResult result)
