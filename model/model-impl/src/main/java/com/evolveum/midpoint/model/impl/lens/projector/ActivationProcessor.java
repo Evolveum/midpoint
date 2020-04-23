@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -14,10 +17,6 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -50,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationSt
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,8 @@ import java.util.Map.Entry;
  * @author Radovan Semancik
  */
 @Component
-public class ActivationProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+public class ActivationProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivationProcessor.class);
 
@@ -77,15 +78,47 @@ public class ActivationProcessor {
     private static final ItemName ASSIGNED_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "assigned");
     private static final ItemName FOCUS_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "focusExists");
 
+    private static final String OP_ACTIVATION = Projector.class.getName() + ".activation"; // for historical reasons
+
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private MidpointFunctions midpointFunctions;
+    @Autowired private ClockworkMedic medic;
 
     private PrismObjectDefinition<UserType> userDefinition;
     private PrismContainerDefinition<ActivationType> activationDefinition;
 
-    public <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
+    // not a "medic-managed" entry point
+    <F extends ObjectType> void processActivationForAllResources(LensContext<F> context, String activityDescription,
+            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        OperationResult activationResult = result.subresult(OP_ACTIVATION)
+                .setMinor()
+                .build();
+        try {
+            LOGGER.trace("Processing activation for all contexts");
+            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                if (projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN
+                        && projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.IGNORE) {
+                    processActivation(context, projectionContext, now, task, activationResult);
+                    projectionContext.recompute();
+                }
+            }
+            context.removeIgnoredContexts();
+            medic.traceContext(LOGGER, activityDescription, "projection activation of all resources", true,
+                    context, true);
+            context.checkConsistenceIfNeeded();
+        } catch (Throwable t) {
+            activationResult.recordFatalError(t);
+            throw t;
+        } finally {
+            activationResult.computeStatusIfUnknown();
+        }
+    }
+
+    private <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         LensFocusContext<O> focusContext = context.getFocusContext();
@@ -844,52 +877,27 @@ public class ActivationProcessor {
             PrismProperty<Boolean> existsPropOld = existsProp.clone();
             existsPropOld.setRealValue(existsOld);
             PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
+            //noinspection unchecked
             existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
             return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp, existsDef);
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <O extends ObjectType> void processLifecycle(LensContext<O> context, LensProjectionContext projCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @ProcessorMethod
+    <F extends FocusType> void processLifecycle(LensContext<F> context, LensProjectionContext projCtx,
+            @SuppressWarnings("unused") String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
 
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focal object.
-            LOGGER.trace("Skipping lifecycle evaluation because focus is not FocusType");
-            return;
-        }
-
-        processLifecycleFocus((LensContext)context, projCtx, now, task, result);
-    }
-
-    private <F extends FocusType> void processLifecycleFocus(LensContext<F> context, LensProjectionContext projCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("Skipping lifecycle evaluation because there is no focus");
-            return;
-        }
-
-        ResourceObjectLifecycleDefinitionType lifecycleDef = null;
-        ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
-        if (resourceAccountDefType != null) {
-            lifecycleDef = resourceAccountDefType.getLifecycle();
-        }
-        ResourceBidirectionalMappingType lifecycleStateMappingType = null;
-        if (lifecycleDef != null) {
-            lifecycleStateMappingType = lifecycleDef.getLifecycleState();
-        }
-
-        if (lifecycleStateMappingType == null || lifecycleStateMappingType.getOutbound() == null) {
+        ResourceBidirectionalMappingType lifecycleStateMapping = getLifecycleStateMapping(projCtx);
+        if (lifecycleStateMapping == null || lifecycleStateMapping.getOutbound() == null) {
 
             if (!projCtx.isAdd()) {
-                LOGGER.trace("Skipping lifecycle evaluation because this is not add operation (default expression)");
+                LOGGER.trace("Skipping lifecycle evaluation because this is not an add operation (default expression)");
                 return;
             }
 
-            PrismObject<F> focusNew = focusContext.getObjectNew();
+            PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
             if (focusNew == null) {
                 LOGGER.trace("Skipping lifecycle evaluation because there is no new focus (default expression)");
                 return;
@@ -911,18 +919,40 @@ public class ActivationProcessor {
                 PropertyDelta<String> lifeCycleDelta = propDef.createEmptyDelta(SchemaConstants.PATH_LIFECYCLE_STATE);
                 PrismPropertyValue<String> pval = prismContext.itemFactory().createPropertyValue(lifecycle);
                 pval.setOriginType(OriginType.OUTBOUND);
+                //noinspection unchecked
                 lifeCycleDelta.setValuesToReplace(pval);
                 projCtx.swallowToSecondaryDelta(lifeCycleDelta);
             }
 
         } else {
 
-            LOGGER.trace("Computing projection lifecycle (mapping): {}", lifecycleStateMappingType);
-            evaluateActivationMapping(context, projCtx, lifecycleStateMappingType,
+            LOGGER.trace("Computing projection lifecycle (using mapping): {}", lifecycleStateMapping);
+            evaluateActivationMapping(context, projCtx, lifecycleStateMapping,
                     SchemaConstants.PATH_LIFECYCLE_STATE, SchemaConstants.PATH_LIFECYCLE_STATE,
                     null, now, MappingTimeEval.CURRENT, ObjectType.F_LIFECYCLE_STATE.getLocalPart(), task, result);
         }
 
+        context.checkConsistenceIfNeeded();
+        projCtx.recompute();
+        context.checkConsistenceIfNeeded();
+    }
+
+    @Nullable
+    private ResourceBidirectionalMappingType getLifecycleStateMapping(LensProjectionContext projCtx) {
+        ResourceObjectLifecycleDefinitionType lifecycleDef;
+        ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
+        if (resourceAccountDefType != null) {
+            lifecycleDef = resourceAccountDefType.getLifecycle();
+        } else {
+            lifecycleDef = null;
+        }
+        ResourceBidirectionalMappingType lifecycleStateMapping;
+        if (lifecycleDef != null) {
+            lifecycleStateMapping = lifecycleDef.getLifecycleState();
+        } else {
+            lifecycleStateMapping = null;
+        }
+        return lifecycleStateMapping;
     }
 
     private PrismObjectDefinition<UserType> getUserDefinition() {

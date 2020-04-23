@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -72,6 +75,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY_OR_SECONDARY;
+
 /**
  * Processor that takes changes from accounts and synchronization deltas and updates user attributes if necessary
  * (by creating secondary user object delta {@link ObjectDelta}).
@@ -80,7 +85,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author Radovan Semancik
  */
 @Component
-public class InboundProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = PRIMARY_OR_SECONDARY)
+public class InboundProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
@@ -90,47 +96,15 @@ public class InboundProcessor {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private Protector protector;
+    @Autowired private ClockworkMedic medic;
     @Autowired private ProvisioningService provisioningService;
 
     private PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDefinition;
 
-//    private Map<ItemDefinition, List<Mapping<?,?>>> mappingsToTarget;
-
-    <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException {
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("Skipping inbound because there is no focus");
-            return;
-        }
-        if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focus types.
-            LOGGER.trace("Skipping inbound because {} is not focal type", focusContext.getObjectTypeClass());
-            return;
-        }
-        //noinspection unchecked
-        processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
-    }
-
-    private <F extends FocusType> void processInboundFocal(LensContext<F> context, Task task, XMLGregorianCalendar now,
-            OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            LOGGER.trace("Skipping inbound processing because focus is null");
-            return;
-        }
-        if (focusContext.isDelete()) {
-            LOGGER.trace("Skipping inbound processing because focus is being deleted");
-            return;
-        }
-
-        ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
-
-        if (userSecondaryDelta != null && ChangeType.DELETE.equals(userSecondaryDelta.getChangeType())) {
-            //we don't need to do inbound if we are deleting this user
-            LOGGER.trace("Skipping inbound processing because focus is being deleted (secondary delta)");
-            return;
-        }
-
+    @ProcessorMethod
+    <F extends FocusType> void processInbounds(LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
+            CommunicationException, SecurityViolationException {
         // Used to collect all the mappings from all the projects, sorted by target property.
         // Motivation: we need to evaluate them together, e.g. in case that there are several mappings
         // from several projections targeting the same property.
@@ -174,6 +148,17 @@ public class InboundProcessor {
         }
 
         evaluateInboundMapping(mappingsToTarget, context, task, result);
+
+        context.checkConsistenceIfNeeded();
+        context.recomputeFocus();
+        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
+
+        // It's actually a bit questionable if such cross-components interactions should be treated like this
+        // or in some higher-level component. But let's try this approach until something nicer is found.
+        contextLoader.updateArchetypePolicy(context, task, result);
+        contextLoader.updateArchetype(context, task, result);
+        contextLoader.updateFocusTemplate(context, result);
+        context.checkConsistenceIfNeeded();
     }
 
     private boolean isDeleteAccountDelta(LensProjectionContext accountContext) throws SchemaException {

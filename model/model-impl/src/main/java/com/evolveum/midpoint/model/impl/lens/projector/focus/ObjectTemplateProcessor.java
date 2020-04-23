@@ -17,7 +17,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -82,6 +85,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
 
 /**
@@ -91,7 +96,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplat
  *
  */
 @Component
-public class ObjectTemplateProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = PRIMARY)
+public class ObjectTemplateProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
 
@@ -105,18 +111,27 @@ public class ObjectTemplateProcessor {
     @Autowired private MappingSetEvaluator mappingSetEvaluator;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
-    /**
-     * Process focus template: application of object template where focus is both source and target.
-     */
-    <AH extends AssignmentHolderType> void processTemplate(LensContext<AH> context,
+    @ProcessorMethod
+    <AH extends AssignmentHolderType> void processTemplateBeforeAssignments(LensContext<AH> context,
+            XMLGregorianCalendar now, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
+        processTemplate(context, BEFORE_ASSIGNMENTS, now, task, result);
+    }
+
+    @ProcessorMethod
+    <AH extends AssignmentHolderType> void processTemplateAfterAssignments(LensContext<AH> context,
+            XMLGregorianCalendar now, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            SecurityViolationException, ConfigurationException, CommunicationException {
+        processTemplate(context, AFTER_ASSIGNMENTS, now, task, result);
+    }
+
+    private <AH extends AssignmentHolderType> void processTemplate(LensContext<AH> context,
             ObjectTemplateMappingEvaluationPhaseType phase, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
             SecurityViolationException, ConfigurationException, CommunicationException {
         LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext.isDelete()) {
-            LOGGER.trace("Skipping processing of object template: focus delete");
-            return;
-        }
 
         ObjectTemplateType objectTemplate = context.getFocusTemplate();
         String objectTemplateDesc;
@@ -163,6 +178,8 @@ public class ObjectTemplateProcessor {
         if (nextRecompute != null) {
             nextRecompute.createTrigger(focusContext);
         }
+
+        focusContext.recompute();
     }
 
     /**

@@ -60,10 +60,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return getLensContext().getProjectionWave();
     }
 
-    private int getExecutionWave() {
-        return getLensContext().getProjectionWave();
-    }
-
     public ArchetypePolicyType getArchetypePolicyType() {
         return archetypePolicyType;
     }
@@ -103,6 +99,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public boolean isDelete() {
         return ObjectDelta.isDelete(getPrimaryDelta());
+    }
+
+    boolean isSecondaryDelete() throws SchemaException {
+        ObjectDelta<?> userSecondaryDelta = getProjectionWaveSecondaryDelta();
+        return userSecondaryDelta != null && ChangeType.DELETE.equals(userSecondaryDelta.getChangeType());
     }
 
     public boolean isAdd() {
