@@ -12,8 +12,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -30,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElement
  * @author katka
  *
  */
-public interface ItemWrapper<I extends Item<? extends PrismValue, ? extends ItemDefinition<I>>, VW extends PrismValueWrapper<?, ? extends PrismValue>> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
+public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
 
     String debugDump(int indent);
@@ -81,4 +83,8 @@ public interface ItemWrapper<I extends Item<? extends PrismValue, ? extends Item
     ItemStatus getStatus();
 
     boolean isEmpty();
+
+    void remove(VW valueWrapper, ModelServiceLocator locator) throws SchemaException;
+
+    <PV extends PrismValue> void add(PV newValueWrapper, ModelServiceLocator locator) throws SchemaException;
 }

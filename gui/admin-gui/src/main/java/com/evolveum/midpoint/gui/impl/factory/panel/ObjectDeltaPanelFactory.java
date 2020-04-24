@@ -11,16 +11,16 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 
-import org.apache.wicket.markup.html.panel.Panel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @Component
-public class ObjectDeltaPanelFactory extends AbstractGuiComponentFactory<ObjectDeltaType> {
+public class ObjectDeltaPanelFactory extends AbstractInputGuiComponentFactory<ObjectDeltaType> {
 
     @PostConstruct
     public void register() {
@@ -33,7 +33,7 @@ public class ObjectDeltaPanelFactory extends AbstractGuiComponentFactory<ObjectD
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<ObjectDeltaType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<ObjectDeltaType> panelCtx) {
         return new TextAreaPanel<>(panelCtx.getComponentId(), new ObjectDeltaModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 20);
     }
 

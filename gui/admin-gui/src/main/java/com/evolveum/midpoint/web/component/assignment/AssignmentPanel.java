@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
@@ -683,7 +685,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     }
 
     protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
-        ItemHeaderPanel.ItemPanelSettings settings = new ItemHeaderPanel.ItemPanelSettingsBuilder()
+        ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(this::getContainerVisibility)
                 .showOnTopLevel(true)
                 .editabilityHandler(this::getContainerReadability)

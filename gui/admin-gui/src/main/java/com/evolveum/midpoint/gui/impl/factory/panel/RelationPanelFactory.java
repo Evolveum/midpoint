@@ -9,10 +9,10 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.markup.html.panel.Panel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.model.RelationModel;
 import com.evolveum.midpoint.gui.impl.validator.RelationValidator;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @Component
-public class RelationPanelFactory extends AbstractGuiComponentFactory<QName> {
+public class RelationPanelFactory extends AbstractInputGuiComponentFactory<QName> {
 
     @PostConstruct
     public void register() {
@@ -32,7 +32,7 @@ public class RelationPanelFactory extends AbstractGuiComponentFactory<QName> {
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
         TextPanel<String> relationPanel = new TextPanel<>(panelCtx.getComponentId(), new RelationModel(panelCtx.getRealValueModel()));
         relationPanel.getBaseFormComponent().add(new RelationValidator());
         return relationPanel;

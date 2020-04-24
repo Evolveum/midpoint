@@ -13,6 +13,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
@@ -33,7 +34,7 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
     @Override
     public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
         Panel panel = getPanel(panelCtx);
-
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
         return panel;
     }
 
@@ -44,7 +45,5 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 
     protected abstract Panel getPanel(PrismPropertyPanelContext<T> panelCtx);
 
-    protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {
-        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input, localizationService);
-    }
+
 }

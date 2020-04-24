@@ -11,6 +11,8 @@ import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -84,7 +86,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
         add(profilingEnabledNote);
 
         try {
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder().showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
             Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), builder.build());
             add(panel);
         } catch (SchemaException e) {
@@ -94,7 +96,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
         try {
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder().showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
             Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, builder.build());
             add(logger);
         } catch (SchemaException e) {

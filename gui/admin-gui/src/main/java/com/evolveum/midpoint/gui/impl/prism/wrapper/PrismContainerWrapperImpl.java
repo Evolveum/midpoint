@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -402,5 +403,10 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
     public boolean isCompletelyDefined() {
         return getItemDefinition().isCompletelyDefined();
+    }
+
+    @Override
+    protected PrismContainerValue<C> createNewEmptyValue(ModelServiceLocator locator) {
+        return createValue();
     }
 }

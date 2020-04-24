@@ -11,26 +11,21 @@ import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 @Component
-public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiComponentFactory<T> {
+public class TextAreaPanelFactory<T extends Serializable> extends AbstractInputGuiComponentFactory<T> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private GuiComponentRegistry registry;
 
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -39,7 +34,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiCom
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
         int size = 10;
         if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
             size = 2;

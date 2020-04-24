@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -119,5 +121,10 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     @Override
     public void accept(Visitor<Definition> visitor) {
         // TODO
+    }
+
+    @Override
+    protected PrismReferenceValue createNewEmptyValue(ModelServiceLocator locator) {
+        return locator.getPrismContext().itemFactory().createReferenceValue();
     }
 }

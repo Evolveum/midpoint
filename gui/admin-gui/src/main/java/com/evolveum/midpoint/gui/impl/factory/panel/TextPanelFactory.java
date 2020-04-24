@@ -9,33 +9,33 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
+//FIXME serializable
 @Component
-public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @Autowired transient GuiComponentRegistry registry;
+public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> implements Serializable {
 
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
+
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
         QName type = wrapper.getTypeName();
@@ -44,7 +44,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
         LookupTableType lookupTable = panelCtx.getPredefinedValues();
         if (lookupTable == null) {
             return new TextPanel<>(panelCtx.getComponentId(),
@@ -63,4 +63,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
         };
     }
 
+    protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {
+        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input, localizationService);
+    }
 }

@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -137,5 +138,10 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     @Override
     public void accept(Visitor<Definition> visitor) {
         // TODO
+    }
+
+    @Override
+    protected PrismPropertyValue<T> createNewEmptyValue(ModelServiceLocator locator) {
+        return locator.getPrismContext().itemFactory().createPropertyValue();
     }
 }

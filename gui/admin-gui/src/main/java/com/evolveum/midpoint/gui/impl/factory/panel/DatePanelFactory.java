@@ -9,13 +9,13 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
  *
  */
 @Component
-public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCalendar> {
+public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregorianCalendar> {
 
     private static final long serialVersionUID = 1L;
 
@@ -46,7 +46,7 @@ public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCa
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
         DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 
         Form form = Form.findForm(panelCtx.getForm());

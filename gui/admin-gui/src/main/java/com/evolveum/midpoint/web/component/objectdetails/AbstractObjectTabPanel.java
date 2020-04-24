@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -110,7 +112,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
     protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
 
         try {
-            ItemHeaderPanel.ItemPanelSettingsBuilder settingsBuilder = new ItemHeaderPanel.ItemPanelSettingsBuilder();
+            ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
             settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.AUTO);
 
             Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());

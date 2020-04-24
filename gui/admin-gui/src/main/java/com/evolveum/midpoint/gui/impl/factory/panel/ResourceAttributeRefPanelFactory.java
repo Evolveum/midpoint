@@ -11,7 +11,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
@@ -22,11 +21,10 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.springframework.stereotype.Component;
 
@@ -36,8 +34,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
+//FIXME serializable?
 @Component
-public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
+public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentFactory<ItemPathType> implements Serializable {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ResourceAttributeRefPanelFactory.class);
 
@@ -47,7 +46,7 @@ public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactor
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
 
         AutoCompleteQNamePanel<ItemName> autoCompleteTextPanel = new AutoCompleteQNamePanel(panelCtx.getComponentId(), new AttributeRefModel(panelCtx.getRealValueModel())) {
 
@@ -58,7 +57,7 @@ public class ResourceAttributeRefPanelFactory extends AbstractGuiComponentFactor
 
         };
 
-        autoCompleteTextPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+//        autoCompleteTextPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
         return autoCompleteTextPanel;
     }

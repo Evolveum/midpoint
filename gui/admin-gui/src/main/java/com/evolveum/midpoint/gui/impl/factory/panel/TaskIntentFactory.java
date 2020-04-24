@@ -12,11 +12,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
-import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -34,8 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.stereotype.Component;
 
+//FIXME serializable?
 @Component
-public class TaskIntentFactory extends AbstractGuiComponentFactory<String> implements Serializable {
+public class TaskIntentFactory extends AbstractInputGuiComponentFactory<String> implements Serializable {
 
     @PostConstruct
     public void register() {
@@ -43,7 +44,7 @@ public class TaskIntentFactory extends AbstractGuiComponentFactory<String> imple
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<String> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<String> panelCtx) {
         return new AutoCompleteTextPanel<String>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), String.class, StringAutoCompleteRenderer.INSTANCE) {
 
             @Override

@@ -24,14 +24,9 @@ import javax.annotation.PostConstruct;
 @Component
 public class WorkItemDetailsPanelFactory extends AbstractGuiComponentFactory<CaseWorkItemType> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Autowired
-    GuiComponentRegistry registry;
-
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

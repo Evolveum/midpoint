@@ -40,10 +40,8 @@ public class ExecuteScriptModel implements IModel<String> {
 
             return locator.getPrismContext().xmlSerializer().serializeRealValue(value);
         } catch (Exception e) {
-            // TODO handle!!!!
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize script", e);
             ThreadContext.getSession().error("Cannot serialize script: " + e.getMessage());
-//                getSession().error("Cannot serialize filter");
         }
         return null;
     }
@@ -58,10 +56,8 @@ public class ExecuteScriptModel implements IModel<String> {
             ExecuteScriptType script = locator.getPrismContext().parserFor(object).parseRealValue(ExecuteScriptType.class);
             baseModel.setObject(script);
         } catch (Exception e) {
-            // TODO handle!!!!
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse script", e);
             ThreadContext.getSession().error("Cannot parse script: " + e.getMessage());
-//                getSession().error("Cannot parse filter");
         }
     }
 }

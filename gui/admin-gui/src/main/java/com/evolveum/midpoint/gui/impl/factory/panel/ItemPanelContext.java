@@ -8,8 +8,21 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
@@ -29,6 +42,11 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
     private ItemRealValueModel<T> realValueModel;
 
     private Form<?> form;
+    private AjaxEventBehavior ajaxEventBehavior;
+    private ItemMandatoryHandler mandatoryHandler;
+    private VisibleEnableBehaviour visibleEnableBehaviour;
+    private ExpressionValidator<T> expressionValidator;
+    private FeedbackAlerts feedback;
 
     public ItemPanelContext(IModel<IW> itemWrapper) {
         this.itemWrapper = itemWrapper;
@@ -86,8 +104,50 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         this.parentComponent = parentComponent;
     }
 
+    public void setAjaxEventBehavior(AjaxEventBehavior ajaxEventBehavior) {
+        this.ajaxEventBehavior = ajaxEventBehavior;
+    }
 
-/**
+    public AjaxEventBehavior getAjaxEventBehavior() {
+        return ajaxEventBehavior;
+    }
+
+    public void setMandatoryHandler(ItemMandatoryHandler mandatoryHandler) {
+        this.mandatoryHandler = mandatoryHandler;
+    }
+
+    public void setVisibleEnableBehaviour(VisibleEnableBehaviour visibleEnableBehaviour) {
+        this.visibleEnableBehaviour = visibleEnableBehaviour;
+    }
+
+    public VisibleEnableBehaviour getVisibleEnableBehavior() {
+        return visibleEnableBehaviour;
+    }
+
+    public boolean isMandatory() {
+        if (mandatoryHandler != null) {
+            return mandatoryHandler.isMandatory(itemWrapper.getObject());
+        }
+        return itemWrapper.getObject().isMandatory();
+    }
+
+    public void setExpressionValidator(ExpressionValidator<T> expressionValidator) {
+        this.expressionValidator = expressionValidator;
+    }
+
+    public ExpressionValidator<T> getExpressionValidator() {
+        return expressionValidator;
+    }
+
+    public void setFeedback(FeedbackAlerts feedback) {
+        this.feedback = feedback;
+    }
+
+    public FeedbackAlerts getFeedback() {
+        return feedback;
+    }
+
+    /**
  * @return the form
  */
 public Form<?> getForm() {

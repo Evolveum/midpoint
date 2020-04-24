@@ -15,6 +15,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 
 import org.apache.commons.lang.StringUtils;
@@ -110,7 +111,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     protected void initLayout() {
         try {
 //            getModelObject().setShowOnTopLevel(true);
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder();
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath())).showOnTopLevel(true);
             Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
             add(loggingPanel);

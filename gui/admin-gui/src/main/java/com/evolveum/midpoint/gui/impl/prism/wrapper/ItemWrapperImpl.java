@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,7 +48,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public abstract class ItemWrapperImpl<I extends Item<? extends PrismValue, ? extends ItemDefinition<I>>, VW extends PrismValueWrapper<?,? extends PrismValue>> implements ItemWrapper<I, VW>, Serializable {
+public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapper> implements ItemWrapper<I, VW>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -636,5 +638,59 @@ public abstract class ItemWrapperImpl<I extends Item<? extends PrismValue, ? ext
 
     public UserInterfaceElementVisibilityType getVisibleOverwrite() {
         return visibleOverwrite;
+    }
+
+    @Override
+    public void remove(VW valueWrapper, ModelServiceLocator locator) throws SchemaException {
+        switch(valueWrapper.getStatus()) {
+            case ADDED:
+                values.remove(valueWrapper);
+                getItem().remove(valueWrapper.getOldValue());
+                getItem().remove(valueWrapper.getNewValue());
+                break;
+            case NOT_CHANGED:
+                getItem().remove(valueWrapper.getNewValue());
+                valueWrapper.setStatus(ValueStatus.DELETED);
+                break;
+        }
+
+        int count = countUsableValues(values);
+
+        if (count == 0 && !hasEmptyPlaceholder(values)) {
+            add(createNewEmptyValue(locator), locator);
+        }
+    }
+
+    protected abstract <PV extends PrismValue> PV createNewEmptyValue(ModelServiceLocator locator);
+
+    @Override
+    public <PV extends PrismValue> void add(PV newValue, ModelServiceLocator locator) throws SchemaException {
+        getItem().add(newValue);
+        VW newContainerValue = WebPrismUtil.createNewValueWrapper(this, newValue, locator);
+        values.add(newContainerValue);
+    }
+
+    private int countUsableValues(List<VW> values) {
+        int count = 0;
+        for (VW value : values) {
+            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                continue;
+            }
+            if (ValueStatus.ADDED.equals(value.getStatus())) {
+                continue;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    private boolean hasEmptyPlaceholder(List<VW> values) {
+        for (VW value : values) {
+            if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

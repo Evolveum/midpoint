@@ -10,6 +10,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -65,7 +68,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     }
 
     protected Panel getBasicContainerValuePanel(String idPanel){
-        ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
+        ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
                 .showOnTopLevel(true)
                 .editabilityHandler(wrapper -> getBasicTabEditability(wrapper));
@@ -74,7 +77,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
             builder.mandatoryHandler(getMandatoryHandler());
         }
 
-        ItemHeaderPanel.ItemPanelSettings settings = builder.build();
+        ItemPanelSettings settings = builder.build();
         Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), settings);
         return containerValue;
     }

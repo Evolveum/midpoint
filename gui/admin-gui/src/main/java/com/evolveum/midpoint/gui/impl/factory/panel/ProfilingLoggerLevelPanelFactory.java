@@ -6,19 +6,15 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import java.io.Serializable;
-
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingLevel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerValueWrapperImpl;
@@ -31,11 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
  *
  */
 @Component
-public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LoggingLevelType>>, Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private transient GuiComponentRegistry registry;
+public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentFactory<LoggingLevelType> {
 
     @Override
     public Integer getOrder() {
@@ -44,7 +36,7 @@ public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<Pri
 
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -52,8 +44,9 @@ public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<Pri
         return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
     }
 
+    //FIXME model
     @Override
-    public Panel createPanel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
         DropDownChoicePanel<ProfilingLevel> dropDownProfilingLevel = new DropDownChoicePanel<>(panelCtx.getComponentId(), new Model<ProfilingLevel>() {
 
             private static final long serialVersionUID = 1L;

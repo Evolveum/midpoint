@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
@@ -28,13 +29,12 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
 
     private static final String ID_PASSWORD_PANEL= "passwordPanel";
 
-    public PasswordPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemHeaderPanel.ItemPanelSettings settings){
+    public PasswordPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemPanelSettings settings){
         super(id, model, settings);
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item, GuiComponentFactory factory,
-            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
@@ -56,11 +56,6 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
 
 
 
-    }
-
-    @Override
-    protected void createButtons(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
-        //nothing to do
     }
 
 }

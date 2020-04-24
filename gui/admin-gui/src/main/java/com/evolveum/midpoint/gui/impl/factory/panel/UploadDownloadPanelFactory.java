@@ -12,15 +12,13 @@ import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 
@@ -28,16 +26,13 @@ import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
  * @author katkav
  *
  */
+//FIXME serializable
 @Component
-public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private transient GuiComponentRegistry registry;
+public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFactory<T> implements Serializable {
 
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -46,7 +41,7 @@ public class UploadDownloadPanelFactory<T> extends AbstractGuiComponentFactory<T
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<T> panelCtx) {
         return new UploadDownloadPanel(panelCtx.getComponentId(), false) { //getModel().getObject().isReadonly()
 
             private static final long serialVersionUID = 1L;

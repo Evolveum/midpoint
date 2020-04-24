@@ -55,7 +55,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     private static final String ID_VALUE = "value";
     private static final String ID_FEEDBACK = "feedback";
 
-    public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemHeaderPanel.ItemPanelSettings settings) {
+    public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
@@ -65,90 +65,92 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory,
-            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
-        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        item.add(feedback);
-
-        if (componentFactory != null) {
-            PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
-            panelCtx.setComponentId(ID_VALUE);
-            panelCtx.setParentComponent(this);
-            panelCtx.setRealValueModel((IModel)item.getModel());
-
-            Panel panel = componentFactory.createPanel(panelCtx);
-            item.add(panel);
-            return panel;
-        } else {
-            ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected ObjectFilter createCustomFilter() {
-                    return PrismReferencePanel.this.getModelObject().getFilter();
-                }
-
-                @Override
-                protected boolean isEditButtonEnabled() {
-//                    if (getModel() == null) {
+    protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item) {
+        PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<>("value", item.getModel(), getSettings());
+        item.add(valuePanel);
+        return valuePanel;
+//        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+//        feedback.setOutputMarkupId(true);
+//        item.add(feedback);
+//
+//        if (componentFactory != null) {
+//            PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
+//            panelCtx.setComponentId(ID_VALUE);
+//            panelCtx.setParentComponent(this);
+//            panelCtx.setRealValueModel((IModel)item.getModel());
+//
+//            Panel panel = componentFactory.createPanel(panelCtx);
+//            item.add(panel);
+//            return panel;
+//        } else {
+//            ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
+//
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                protected ObjectFilter createCustomFilter() {
+//                    return PrismReferencePanel.this.getModelObject().getFilter();
+//                }
+//
+//                @Override
+//                protected boolean isEditButtonEnabled() {
+////                    if (getModel() == null) {
+////                        return true;
+////                    }
+////
+////                    //TODO only is association
+////                    return getModelObject() == null;
+//                    if (item.getModel() == null || item.getModelObject() == null) {
 //                        return true;
 //                    }
+//                    return item.getModelObject().isEditEnabled();
 //
-//                    //TODO only is association
-//                    return getModelObject() == null;
-                    if (item.getModel() == null || item.getModelObject() == null) {
-                        return true;
-                    }
-                    return item.getModelObject().isEditEnabled();
-
-                }
-
-                @Override
-                protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
-                    super.choosePerformed(target, object);
-                    getBaseFormComponent().validate();
-                    target.add(getPageBase().getFeedbackPanel());
-                    target.add(feedback);
-                }
-
-                @Override
-                public List<QName> getSupportedTypes() {
-                    List<QName> targetTypeList = PrismReferencePanel.this.getModelObject().getTargetTypes();
-                    if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
-                        return Arrays.asList(ObjectType.COMPLEX_TYPE);
-                    }
-                    return targetTypeList;
-                }
-
-                @Override
-                protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
-                    if (AbstractRoleType.COMPLEX_TYPE.equals(PrismReferencePanel.this.getModelObject().getTargetTypeName())) {
-                        return (Class<O>) RoleType.class;
-                    } else {
-                        return super.getDefaultType(supportedTypes);
-                    }
-                }
-
-            };
-
-            ExpressionValidator<String> expressionValidator = new ExpressionValidator<String>(
-                    LambdaModel.of(getModel().getObject()::getFormComponentValidator), getPageBase()) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected Object getValueToValidate(IValidatable<String> validatable) {
-                    return item.getModelObject().getRealValue();
-                }
-            };
-            panel.getBaseFormComponent().add(expressionValidator);
-            feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
-            item.add(panel);
-
-            return panel;
-        }
+//                }
+//
+//                @Override
+//                protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
+//                    super.choosePerformed(target, object);
+//                    getBaseFormComponent().validate();
+//                    target.add(getPageBase().getFeedbackPanel());
+//                    target.add(feedback);
+//                }
+//
+//                @Override
+//                public List<QName> getSupportedTypes() {
+//                    List<QName> targetTypeList = PrismReferencePanel.this.getModelObject().getTargetTypes();
+//                    if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
+//                        return Arrays.asList(ObjectType.COMPLEX_TYPE);
+//                    }
+//                    return targetTypeList;
+//                }
+//
+//                @Override
+//                protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
+//                    if (AbstractRoleType.COMPLEX_TYPE.equals(PrismReferencePanel.this.getModelObject().getTargetTypeName())) {
+//                        return (Class<O>) RoleType.class;
+//                    } else {
+//                        return super.getDefaultType(supportedTypes);
+//                    }
+//                }
+//
+//            };
+//
+//            ExpressionValidator<String> expressionValidator = new ExpressionValidator<String>(
+//                    LambdaModel.of(getModel().getObject()::getFormComponentValidator), getPageBase()) {
+//
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                protected Object getValueToValidate(IValidatable<String> validatable) {
+//                    return item.getModelObject().getRealValue();
+//                }
+//            };
+//            panel.getBaseFormComponent().add(expressionValidator);
+//            feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
+//            item.add(panel);
+//
+//            return panel;
+//        }
     }
 
     protected void addValue(AjaxRequestTarget target) {

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -55,7 +56,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     protected void initLayout() {
 
         try {
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(wrapper -> getVisibity(wrapper.getPath()))
                     .showOnTopLevel(true);
             Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());

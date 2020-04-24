@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
@@ -31,7 +32,7 @@ public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
      * @param model
      * @param settings
      */
-    public TaskHandlerSelectorPanel(String id, IModel<PrismPropertyWrapper<String>> model, ItemHeaderPanel.ItemPanelSettings settings) {
+    public TaskHandlerSelectorPanel(String id, IModel<PrismPropertyWrapper<String>> model, ItemPanelSettings settings) {
         super(id, model, settings);
 
         Label label = new Label(ID_TASK_SPECIFICATION, createStringResource("TaskHandlerSelectorPanel.selector.header"));
@@ -40,8 +41,8 @@ public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<String>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
-        Component handlerPanel = super.createValuePanel(item, factory, visibilityHandler, editabilityHandler);
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<String>> item) {
+        Component handlerPanel = super.createValuePanel(item);
         if (handlerPanel.get("form:input") instanceof InputPanel) {
             ((InputPanel) handlerPanel.get("form:input")).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 

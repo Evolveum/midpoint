@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -164,7 +165,7 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 
 
         try {
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder().visibilityHandler(iw -> ItemVisibility.AUTO);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(iw -> ItemVisibility.AUTO);
             Panel defaultOwnerRefPanel = pageBase.initItemPanel(ID_DEFAULT_REVIEWER_REF, ObjectReferenceType.COMPLEX_TYPE,
                     new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS), builder.build());
             add(defaultOwnerRefPanel);

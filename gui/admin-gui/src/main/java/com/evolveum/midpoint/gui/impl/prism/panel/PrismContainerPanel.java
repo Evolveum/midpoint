@@ -39,7 +39,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
      * @param id
      * @param model
      */
-    public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemHeaderPanel.ItemPanelSettings settings) {
+    public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
@@ -85,38 +85,40 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory,
-            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
-        if (componentFactory == null) {
-            ItemHeaderPanel.ItemPanelSettings settings = new ItemHeaderPanel.ItemPanelSettingsBuilder()
-                    .visibilityHandler(visibilityHandler)
-                    .editabilityHandler(editabilityHandler)
-                    .showOnTopLevel(isShowOnTopLevel())
-                    .mandatoryHandler(getMandatoryHandler())
-                    .build();
-            PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(),
-                    settings) {
-
-                @Override
-                protected void removePerformed(PrismContainerValueWrapper containerValueWrapper, AjaxRequestTarget target) throws SchemaException {
-                    PrismContainerPanel.this.removeValue(containerValueWrapper, target);
-                }
-
-            };
-            valuePanel.setOutputMarkupId(true);
-            item.add(valuePanel);
-            item.setOutputMarkupId(true);
-            return valuePanel;
-        }
-
-
-        PrismContainerPanelContext<C> panelCtx = new PrismContainerPanelContext<>(getModel());
-        panelCtx.setComponentId("value");
-        panelCtx.setRealValueModel(item.getModel());
-        Panel panel = componentFactory.createPanel(panelCtx);
-        panel.setOutputMarkupId(true);
+    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
+        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<>("value", item.getModel(), getSettings());
         item.add(panel);
         return panel;
+//        if (componentFactory == null) {;
+//            ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+//                    .visibilityHandler(visibilityHandler)
+//                    .editabilityHandler(editabilityHandler)
+//                    .showOnTopLevel(isShowOnTopLevel())
+//                    .mandatoryHandler(getMandatoryHandler())
+//                    .build();
+//            PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(),
+//                    settings) {
+//
+//                @Override
+//                protected void removePerformed(PrismContainerValueWrapper containerValueWrapper, AjaxRequestTarget target) throws SchemaException {
+//                    PrismContainerPanel.this.removeValue(containerValueWrapper, target);
+//                }
+//
+//            };
+//            valuePanel.setOutputMarkupId(true);
+//            item.add(valuePanel);
+//            item.setOutputMarkupId(true);
+//            return valuePanel;
+//        }
+//
+//
+//        PrismContainerPanelContext<C> panelCtx = new PrismContainerPanelContext<>(getModel());
+//        panelCtx.setComponentId("value");
+//        panelCtx.setRealValueModel(item.getModel());
+//        Panel panel = componentFactory.createPanel(panelCtx);
+//        panel.setOutputMarkupId(true);
+//        item.add(panel);
+//        return panel;
 
     }
 
@@ -135,10 +137,10 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 //        values.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
 //    }
 
-    @Override
-    protected void createButtons(ListItem<PrismContainerValueWrapper<C>> item) {
-        //nothing to do.. buttons are in the prism container panel header/ prism container value header
-    }
+//    @Override
+//    protected void createButtons(ListItem<PrismContainerValueWrapper<C>> item) {
+//        //nothing to do.. buttons are in the prism container panel header/ prism container value header
+//    }
 
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {

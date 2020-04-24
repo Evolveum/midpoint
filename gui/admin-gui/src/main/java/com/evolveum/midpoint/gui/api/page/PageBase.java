@@ -16,6 +16,7 @@ import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
 import com.evolveum.midpoint.web.page.admin.certification.*;
@@ -2678,7 +2679,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AsyncWebProcessManager getAsyncWebProcessManager() {
         return MidPointApplication.get().getAsyncWebProcessManager();
     }
-
     @Override
     public Locale getLocale() {
         return getSession().getLocale();
@@ -2726,7 +2726,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
 
-    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemHeaderPanel.ItemPanelSettings itemPanelSettings) throws SchemaException{
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException{
         Class<?> panelClass = getWrapperPanel(typeName);
         if (panelClass == null) {
             ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
@@ -2736,7 +2736,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         Constructor<?> constructor;
         try {
-            constructor = panelClass.getConstructor(String.class, IModel.class, ItemHeaderPanel.ItemPanelSettings.class);
+            constructor = panelClass.getConstructor(String.class, IModel.class, ItemPanelSettings.class);
             Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, itemPanelSettings);
             return panel;
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -2744,8 +2744,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model,
-            ItemHeaderPanel.ItemPanelSettings settings) {
+    public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
+            ItemPanelSettings settings) {
         //TODO find from registry first
         return new PrismContainerValuePanel<>(id, model, settings);
     }

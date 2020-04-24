@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import org.apache.wicket.markup.html.panel.Panel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-public class ExecuteScriptWrapperFactory extends AbstractGuiComponentFactory<ExecuteScriptType> {
+public class ExecuteScriptWrapperFactory extends AbstractInputGuiComponentFactory<ExecuteScriptType> {
 
     @PostConstruct
     public void register() {
@@ -38,7 +37,7 @@ public class ExecuteScriptWrapperFactory extends AbstractGuiComponentFactory<Exe
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<ExecuteScriptType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<ExecuteScriptType> panelCtx) {
         return new TextAreaPanel<>(panelCtx.getComponentId(), new ExecuteScriptModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 20);
     }
 }

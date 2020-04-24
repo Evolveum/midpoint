@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
@@ -50,6 +52,14 @@ public class ItemWrapperVisibilitySpecification<IW extends ItemWrapper<?,?>> {
     }
 
     public boolean isVisible(PrismContainerWrapper containerWrapper, ItemVisibilityHandler visibilityHandler) {
+
+        if (containerWrapper == null) {
+             return false;
+        }
+
+        if (containerWrapper instanceof PrismObjectWrapper) {
+            return true;
+        }
 
         if (containerWrapper.isVirtual() && containerWrapper.getVisibleOverwrite() != null
                 && UserInterfaceElementVisibilityType.HIDDEN == containerWrapper.getVisibleOverwrite()) {

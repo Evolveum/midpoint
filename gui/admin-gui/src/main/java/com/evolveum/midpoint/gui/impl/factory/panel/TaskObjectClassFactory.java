@@ -15,11 +15,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
-import org.apache.wicket.markup.html.panel.Panel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -32,8 +32,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+//FIXME serializable
 @Component
-public class TaskObjectClassFactory extends AbstractGuiComponentFactory<QName> implements Serializable {
+public class TaskObjectClassFactory extends AbstractInputGuiComponentFactory<QName> implements Serializable {
 
 
     @PostConstruct
@@ -42,7 +43,7 @@ public class TaskObjectClassFactory extends AbstractGuiComponentFactory<QName> i
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
         return new AutoCompleteQNamePanel<QName>(panelCtx.getComponentId(), panelCtx.getRealValueModel()) {
 
             @Override

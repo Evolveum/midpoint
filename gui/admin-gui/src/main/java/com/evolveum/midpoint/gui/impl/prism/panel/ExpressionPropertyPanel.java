@@ -49,7 +49,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 
     private boolean isExpanded;
 
-    public ExpressionPropertyPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemHeaderPanel.ItemPanelSettings settings) {
+    public ExpressionPropertyPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemPanelSettings settings) {
         super(id, model, settings);
         isExpanded = model.getObject() != null && CollectionUtils.isNotEmpty(model.getObject().getValues());
         //todo how to set displayOrder ? to display expression property the last, in the same way as containers
@@ -86,9 +86,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler,
-            ItemEditabilityHandler editabilityHandler) {
-        Component expressionPanel = super.createValuePanel(item, factory, visibilityHandler, editabilityHandler);
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item) {
+        Component expressionPanel = super.createValuePanel(item);
         expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
         return expressionPanel;
     }
@@ -135,11 +134,6 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 
         target.add(ExpressionPropertyPanel.this);
 
-    }
-
-    @Override
-    protected void createButtons(ListItem<PrismPropertyValueWrapper<ExpressionType>> item) {
-        //nothing to do.. buttons are in the prism container panel header/ prism container value header
     }
 
 }

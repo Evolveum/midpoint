@@ -14,6 +14,7 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.PrismContainerPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ListContainersPopup;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperVisibilitySpecification;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -41,7 +43,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -59,7 +60,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
  * @author katka
  *
  */
-public class PrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends BasePanel<CVW>{
+public class PrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismValuePanel<C, PrismContainerValue<C>, CVW>{
 
     private static final long serialVersionUID = 1L;
 
@@ -75,23 +76,27 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
+    private static final String ID_CONTAINERS_LABEL = "containersLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
-    private ItemHeaderPanel.ItemPanelSettings settings;
+    private ItemPanelSettings settings;
 
-    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemHeaderPanel.ItemPanelSettings settings) {
-        super(id, model);
-        this.settings = settings;
+    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
+        super(id, model, settings);
     }
 
     @Override
-    public boolean isVisible() {
-        CVW modelObject = getModelObject();
-        if (modelObject == null) {
+    protected PrismContainerPanelContext<C> createPanelCtx() {
+        return new PrismContainerPanelContext<C>(getModelObject().getParent());
+    }
+
+    @Override
+    protected boolean isVisibleValue() {
+        if (!super.isVisibleValue()) {
             return false;
         }
-
-        if (ValueStatus.DELETED == modelObject.getStatus()) {
+        CVW modelObject = getModelObject();
+        if (modelObject == null) {
             return false;
         }
 
@@ -117,8 +122,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initLayout();
-        setOutputMarkupId(true);
+//        initLayout();
+//        setOutputMarkupId(true);
 
         add(AttributeModifier.append("class", () -> {
             String cssClasses = "";
@@ -133,16 +138,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private void initLayout() {
-        initHeader();
-        initValues();
-    }
-
-    private void initHeader() {
+    @Override
+    protected void addToHeader(WebMarkupContainer header) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
 
-        add(labelContainer);
+        header.add(labelContainer);
 
         LoadableDetachableModel<String> headerLabelModel = getLabelModel();
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
@@ -159,7 +160,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         labelContainer.add(getHelpLabel());
 
-        initButtons();
+        initButtons(header);
 
         //TODO always visible if isObject
     }
@@ -168,15 +169,21 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return getPageBase().createStringResource(getModel().getObject().getDisplayName());
     }
 
-    private void initValues() {
+    @Override
+    protected Component createDefaultPanel(String id) {
+        WebMarkupContainer defaultPanel = new WebMarkupContainer(id);
+        defaultPanel.add(createNonContainersPanel());
 
-        createNonContainersPanel();
-
-        createContainersPanel();
-
+        defaultPanel.add(createContainersPanel());
+        return defaultPanel;
     }
 
-    private <IW extends ItemWrapper<?,?>> void createNonContainersPanel() {
+    @Override
+    protected <IW extends ItemWrapper<?, ?>> PrismContainerValue<C> createNewValue(IW itemWrapper) {
+        return ((PrismContainer)itemWrapper.getItem()).createNewValue();
+    }
+
+    private <IW extends ItemWrapper<?,?>> WebMarkupContainer createNonContainersPanel() {
         WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
         propertiesLabel.setOutputMarkupId(true);
 
@@ -193,7 +200,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
         properties.setOutputMarkupId(true);
         add(propertiesLabel);
-           propertiesLabel.add(properties);
+        propertiesLabel.add(properties);
 
         AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -219,10 +226,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                         && getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
             }
         });
-        add(labelShowEmpty);
+        propertiesLabel.add(labelShowEmpty);
+        return propertiesLabel;
     }
 
-    private void createContainersPanel() {
+    private WebMarkupContainer createContainersPanel() {
+        WebMarkupContainer containersLable = new WebMarkupContainer(ID_CONTAINERS_LABEL);
+        add(containersLable);
         ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>("containers", new PropertyModel<>(getModel(), "containers")) {
             private static final long serialVersionUID = 1L;
 
@@ -234,7 +244,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         containers.setReuseItems(true);
         containers.setOutputMarkupId(true);
-        add(containers);
+        containersLable.add(containers);
+        return containersLable;
 
     }
 
@@ -261,7 +272,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         Collator collator = Collator.getInstance(locale);
         collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
         collator.setDecomposition(Collator.FULL_DECOMPOSITION);
-        ItemHeaderPanel.ItemWrapperComparator<?> comparator = new ItemHeaderPanel.ItemWrapperComparator<>(collator, getModelObject().isSorted());
+        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
         if (CollectionUtils.isNotEmpty(nonContainers)) {
             nonContainers.sort((Comparator) comparator);
 
@@ -325,7 +336,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder()
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(getVisibilityHandler())
                     .editabilityHandler(getReadabilityHandler())
                     .mandatoryHandler(getMandatoryHandler())
@@ -354,7 +365,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
         }
 
-        item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+        item.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
     }
 
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
@@ -376,12 +387,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         private void onShowEmptyClick(AjaxRequestTarget target) {
 
-            PrismContainerValueWrapper<C> wrapper = getModelObject();
+            CVW wrapper = getModelObject();
             wrapper.setShowEmpty(!wrapper.isShowEmpty());
             refreshPanel(target);
         }
 
-    private <IW extends ItemWrapper<?,?>> IModel<String> createStyleClassModel(final IModel<IW> wrapper) {
+    private <IW extends ItemWrapper<?,?>> IModel<String> appendStyleClassModel(final IModel<IW> wrapper) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
@@ -393,12 +404,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
     }
 
-    private void initButtons() {
-        initExpandCollapseButton();
-        initMetadataButton();
-        initSortButton();
-        initAddMoreButton();
-        initRemoveButton();
+    private void initButtons(WebMarkupContainer header) {
+        header.add(createExpandCollapseButton());
+        header.add(createMetadataButton());
+        header.add(createSortButton());
+        header.add(createAddMoreButton());
+//        initRemoveButton();
     }
 
     private void onExpandClick(AjaxRequestTarget target) {
@@ -411,14 +422,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected Label getHelpLabel() {
 
         Label help = new Label(ID_HELP);
-        help.add(AttributeModifier.replace("title", LambdaModel.of(getModel(), CVW::getHelpText)));
+        help.add(AttributeModifier.replace("title", LambdaModel.of(getModel(), PrismContainerValueWrapper::getHelpText)));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getHelpText())));
         help.setOutputMarkupId(true);
         return help;
     }
 
-    private void initMetadataButton() {
+    private ToggleIconButton<String> createMetadataButton() {
         ToggleIconButton<String> showMetadataButton = new ToggleIconButton<String>(ID_SHOW_METADATA,
                 GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
             private static final long serialVersionUID = 1L;
@@ -439,11 +450,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         showMetadataButton.add(new VisibleBehaviour(() -> getModelObject().hasMetadata() && shouldBeButtonsShown()));
         showMetadataButton.setOutputMarkupId(true);
         showMetadataButton.setOutputMarkupPlaceholderTag(true);
-        add(showMetadataButton);
-
+        return showMetadataButton;
     }
 
-    private void initSortButton() {
+    private ToggleIconButton<String> createSortButton() {
         ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
                 GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
 
@@ -462,10 +472,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         sortPropertiesButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown()));
         sortPropertiesButton.setOutputMarkupId(true);
         sortPropertiesButton.setOutputMarkupPlaceholderTag(true);
-        add(sortPropertiesButton);
+        return sortPropertiesButton;
     }
 
-    private void initAddMoreButton() {
+    private AjaxLink createAddMoreButton() {
 
          AjaxLink<String> addChildContainerButton = new AjaxLink<String>(ID_ADD_CHILD_CONTAINER, new StringResourceModel("PrismContainerValuePanel.addMore")) {
                 private static final long serialVersionUID = 1L;
@@ -499,8 +509,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             });
             addChildContainerButton.setOutputMarkupId(true);
             addChildContainerButton.setOutputMarkupPlaceholderTag(true);
-            add(addChildContainerButton);
-
+            return addChildContainerButton;
     }
 
     private void initMoreContainersPopup(AjaxRequestTarget parentTarget) {
@@ -613,7 +622,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         target.add(getPageBase().getFeedbackPanel());
     }
 
-    protected void initExpandCollapseButton() {
+    protected ToggleIconButton<?> createExpandCollapseButton() {
         ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
                 GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 
@@ -630,6 +639,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             }
         };
         expandCollapseButton.setOutputMarkupId(true);
-        add(expandCollapseButton);
+        return expandCollapseButton;
     }
 }

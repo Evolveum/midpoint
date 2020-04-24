@@ -35,7 +35,7 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
      * @param id
      * @param model
      */
-    public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeWrapper<T>> model, ItemHeaderPanel.ItemPanelSettings settings) {
+    public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeWrapper<T>> model, ItemPanelSettings settings) {
         super(id, (IModel)model, settings);
     }
 

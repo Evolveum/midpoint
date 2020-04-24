@@ -11,26 +11,20 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.web.component.input.QueryTextAreaPanel;
 
-import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Component
-public class QueryTextAreaPanelFactory extends AbstractGuiComponentFactory<QueryType> {
-
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private GuiComponentRegistry registry;
+public class QueryTextAreaPanelFactory extends AbstractInputGuiComponentFactory<QueryType> {
 
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -38,8 +32,10 @@ public class QueryTextAreaPanelFactory extends AbstractGuiComponentFactory<Query
         return QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
+    //FIXME shoud be textAreapanel with custom model
+    //TODO cleanup
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<QueryType> panelCtx) {
+    protected InputPanel getPanel(PrismPropertyPanelContext<QueryType> panelCtx) {
         int size = 10;
         if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
             size = 2;

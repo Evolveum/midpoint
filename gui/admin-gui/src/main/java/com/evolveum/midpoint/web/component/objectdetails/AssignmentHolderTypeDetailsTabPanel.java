@@ -11,6 +11,8 @@ import java.util.Collections;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 
@@ -54,7 +56,7 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 
         try {
 
-            ItemHeaderPanel.ItemPanelSettingsBuilder builder = new ItemHeaderPanel.ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO).showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO).showOnTopLevel(true);
             builder.headerVisibility(false);
 
             Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(),
