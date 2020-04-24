@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="8734f795-f6b4-4cc5-843b-6307aaf88f9d">
+    <name>medallion</name>
+    <assignment>
+        <targetRef oid="e7bff8d1-cebd-4fbe-b935-64cfc2f22f52" type="ArchetypeType" /> <!-- archetype-token -->
+    </assignment>
+</service>
