@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,6 +66,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
 
     private ObjectType orderOneObject;
+    private String resourceOid;
     private ResolvedResource resolvedResource;
     private ExpressionProfile expressionProfile;
     private MappingFactory mappingFactory;
@@ -75,7 +78,11 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private AssignmentPathVariables assignmentPathVariables = null;
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
     private PrismObject<SystemConfigurationType> systemConfiguration; // only to provide $configuration variable (MID-2372)
-    private LensProjectionContext projectionContext;
+
+    private DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionTriple;
+
+    // TODO: remove
+
 
     public Construction(ConstructionType constructionType, ObjectType source) {
         super(constructionType, source);
@@ -320,6 +327,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             ResourceType resource = resolveResource(task, result);
             if (resource != null) {
                 evaluateKindIntentObjectClass(resource, task, result);
+                createEvaluatedConstructions(task, result);
                 evaluateAttributes(task, result);
                 evaluateAssociations(task, result);
                 result.recordSuccess();
@@ -338,7 +346,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     }
 
     private void evaluateKindIntentObjectClass(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        String resourceOid;
         if (getConstructionType().getResourceRef() != null) {
             resourceOid = getConstructionType().getResourceRef().getOid();
             if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
@@ -385,13 +392,27 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             auxiliaryObjectClassDefinitions.add(auxOcDef);
         }
 
+    }
+
+    private void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
         LOGGER.info("XXXX: tagTriple\n{}", DebugUtil.debugDump(tagTriple));
 
-        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent(), null, false);
-        projectionContext = getLensContext().findProjectionContext(rsd);
-        // projection context may not exist yet (existence might not be yet decided)
+        evaluatedConstructionTriple = getPrismContext().deltaFactory().createDeltaSetTriple();
+
+        if (tagTriple == null) {
+            // Singleaccount case (not multiaccount). We just create a simple EvaluatedConstruction
+            EvaluatedConstructionImpl<AH> evaluatedConstruction = createEvaluatedConstruction(null);
+            evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
+
+        } else {
+
+            tagTriple.transform(evaluatedConstructionTriple, tag -> createEvaluatedConstruction(tag.getRealValue()));
+        }
+
+        LOGGER.info("XXXX: evaluatedConstructionTriple\n{}", DebugUtil.debugDump(evaluatedConstructionTriple));
     }
+
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTripe(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
@@ -422,6 +443,13 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                 ShadowType.F_TAG, outputDefinition, null, task, result);
 
         return evaluatedMapping.getOutputTriple();
+    }
+
+    private EvaluatedConstructionImpl<AH> createEvaluatedConstruction(String tag) {
+        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
+        EvaluatedConstructionImpl<AH> evaluatedConstruction = new EvaluatedConstructionImpl<>(this, rsd);
+        evaluatedConstruction.initialize();
+        return evaluatedConstruction;
     }
 
     private void evaluateAttributes(Task task, OperationResult result)

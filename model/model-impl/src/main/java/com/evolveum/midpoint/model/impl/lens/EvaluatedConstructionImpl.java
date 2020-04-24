@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,83 +10,88 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author mederly
  */
-public class EvaluatedConstructionImpl implements EvaluatedConstruction {
+public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstruction {
 
-    final private PrismObject<ResourceType> resource;
-    final private ShadowKindType kind;
-    final private String intent;
-    final private boolean directlyAssigned;
-    final private AssignmentPath assignmentPath;
-    final private boolean weak;
+    @NotNull final private Construction<AH> construction;
+    @NotNull final private ResourceShadowDiscriminator rsd;
+
+    private LensProjectionContext projectionContext;
 
     /**
      * @pre construction is already evaluated and not ignored (has resource)
      */
-    <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction) {
-        resource = construction.getResource().asPrismObject();
-        kind = construction.getKind();
-        intent = construction.getIntent();
-        assignmentPath = construction.getAssignmentPath();
-        directlyAssigned = assignmentPath == null || assignmentPath.size() == 1;
-        weak = construction.isWeak();
+    EvaluatedConstructionImpl(@NotNull final Construction<AH> construction, @NotNull final ResourceShadowDiscriminator rsd) {
+        this.construction = construction;
+        this.rsd = rsd;
+    }
+
+    public void initialize() {
+        projectionContext = construction.getLensContext().findProjectionContext(rsd);
+        // projection context may not exist yet (existence might not be yet decided)
     }
 
     @Override
     public PrismObject<ResourceType> getResource() {
-        return resource;
+        return construction.getResource().asPrismObject();
     }
 
     @Override
     public ShadowKindType getKind() {
-        return kind;
+        return rsd.getKind();
     }
 
     @Override
     public String getIntent() {
-        return intent;
+        return rsd.getIntent();
+    }
+
+    @Override
+    public String getTag() {
+        return rsd.getTag();
     }
 
     @Override
     public boolean isDirectlyAssigned() {
-        return directlyAssigned;
+        return construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
     }
 
     @Override
     public AssignmentPath getAssignmentPath() {
-        return assignmentPath;
+        return construction.getAssignmentPath();
     }
 
     @Override
     public boolean isWeak() {
-        return weak;
+        return construction.isWeak();
     }
 
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, "EvaluatedConstruction", indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "resource", resource, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "kind", kind.value(), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "intent", intent, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "directlyAssigned", directlyAssigned, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "weak", weak, indent + 1);
+        DebugUtil.debugDumpWithLabelShortDumpLn(sb, "discriminator", rsd, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "construction", construction, indent + 1);
+        DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
         return sb.toString();
     }
 
     @Override
     public String toString() {
         return "EvaluatedConstruction(" +
-                "resource=" + resource +
-                ", kind=" + kind +
-                ", intent='" + intent +
+                "discriminator=" + rsd +
+                ", construction=" + construction +
+                ", projectionContext='" + projectionContext +
                 ')';
     }
 }
