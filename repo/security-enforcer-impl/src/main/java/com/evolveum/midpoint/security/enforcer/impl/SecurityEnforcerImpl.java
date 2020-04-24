@@ -338,7 +338,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private <C extends Containerable> void logSubitemContainerDecision(AccessDecision subdecision, String location, PrismContainerValue<C> cval) {
         if (LOGGER.isTraceEnabled()) {
-            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    container {} for {} (processed subitems): decision={}", cval.getPath(), location, subdecision);
             }
         }
@@ -346,7 +346,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private <C extends Containerable> void logSubitemDecision(AccessDecision subdecision, String location, ItemPath path) {
         if (LOGGER.isTraceEnabled()) {
-            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    item {} for {}: decision={}", path, location, subdecision);
             }
         }

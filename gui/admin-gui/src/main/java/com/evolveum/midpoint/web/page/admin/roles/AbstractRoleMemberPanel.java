@@ -584,7 +584,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private void unassignMembersPerformed(AjaxRequestTarget target) {
-        QueryScope scope = getQueryScope(false);
+        QueryScope scope = getQueryScope();
 
         ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
                 createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel")) {
@@ -607,7 +607,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 
             protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-                unassignMembersPerformed(type, scope, relations, target);
+                unassignMembersPerformed(type, SearchBoxScopeType.SUBTREE.equals(getSearchScope()) && QueryScope.ALL.equals(scope) ?
+                        QueryScope.ALL_DIRECT : scope, relations, target);
             }
 
             @Override
@@ -621,9 +622,17 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private void deleteMembersPerformed(AjaxRequestTarget target) {
-        QueryScope scope = getQueryScope(false);
+        QueryScope scope = getQueryScope();
+        StringResourceModel confirmModel;
+        if (SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
+            confirmModel = createStringResource("abstractRoleMemberPanel.deleteAllSubtreeMembersConfirmationLabel");
+        } else {
+            confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
+                    createStringResource("abstractRoleMemberPanel.deleteSelectedMembersConfirmationLabel")
+                    : createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel");
+        }
         ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
-                    createStringResource("abstractRoleMemberPanel.deleteAllMembersConfirmationLabel")) {
+                    confirmModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -953,16 +962,16 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
 
-    private MainObjectListPanel<FocusType> getMemberTable() {
+    protected MainObjectListPanel<FocusType> getMemberTable() {
         return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
-    protected QueryScope getQueryScope(boolean isRecompute) {
+    protected QueryScope getQueryScope() {
         if (CollectionUtils.isNotEmpty(MemberOperationsHelper.getFocusOidToRecompute(getMemberTable().getSelectedObjects()))) {
             return QueryScope.SELECTED;
         }
 
-        if (getIndirectmembersPanel().getValue()) {
+        if (getIndirectmembersPanel().getValue() || SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
             return QueryScope.ALL;
         }
 
@@ -975,10 +984,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected void recomputeMembersPerformed(AjaxRequestTarget target) {
 
-        StringResourceModel confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
-                createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
-                : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
-
+        StringResourceModel confirmModel;
+        if (SearchBoxScopeType.SUBTREE.equals(getSearchScope())) {
+            confirmModel = createStringResource("abstractRoleMemberPanel.recomputeAllSubtreeMembersConfirmationLabel");
+        } else {
+            confirmModel = getMemberTable().getSelectedObjectsCount() > 0 ?
+                    createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+                    : createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+        }
         ConfigureTaskConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
                 confirmModel) {
 
@@ -986,8 +999,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
-                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(true),
-                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+                Task task = MemberOperationsHelper.createRecomputeMembersTask(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
                 if (task == null) {
                     return null;
                 }
@@ -1004,8 +1017,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true),
-                        getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
+                MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(),
+                        getActionQuery(getQueryScope(), getSupportedRelations().getAvailableRelationList()), target);
             }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);
@@ -1244,5 +1257,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected MemberPanelStorage getMemberPanelStorage(){
         return null;
+    }
+
+    protected SearchBoxScopeType getSearchScope() {
+        DropDownFormGroup<SearchBoxScopeType> searchorgScope = (DropDownFormGroup<SearchBoxScopeType>) get(
+                createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+        return searchorgScope.getModelObject();
     }
 }

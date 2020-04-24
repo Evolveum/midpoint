@@ -48,9 +48,10 @@ public class FocusTableWithChoosableElements<T> extends AbstractTable<T> {
 
     @Override
     public Search<FocusTableWithChoosableElements<T>> search() {
-        SelenideElement searchElement = $(By.cssSelector(".form-inline.pull-right.search-form"))
+        SelenideElement searchElement = getParentElement().$x(".//div[contains(@class, \"form-inline\") "
+                + "and contains(@class, \"pull-right\") and contains(@class, \"search-form\")]")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new Search<>(this, searchElement);
+        return new Search<FocusTableWithChoosableElements<T>>(this, searchElement);
     }
 }

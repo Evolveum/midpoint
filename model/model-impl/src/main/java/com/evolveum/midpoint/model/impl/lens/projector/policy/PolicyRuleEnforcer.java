@@ -42,9 +42,6 @@ public class PolicyRuleEnforcer {
 
     //private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcer.class);
 
-    // deprecated
-    private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
-
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
 
@@ -104,6 +101,7 @@ public class PolicyRuleEnforcer {
         if (evaluatedAssignmentTriple == null) {
             return;
         }
+        //noinspection unchecked
         evaluatedAssignmentTriple.simpleAccept(assignment -> enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules()));
     }
 

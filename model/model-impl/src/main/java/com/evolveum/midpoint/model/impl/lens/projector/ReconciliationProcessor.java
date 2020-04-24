@@ -14,9 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -37,11 +41,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -82,38 +81,32 @@ import static com.evolveum.midpoint.util.MiscUtil.filter;
  * @author Radovan Semancik
  */
 @Component
-public class ReconciliationProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+public class ReconciliationProcessor implements ProjectorProcessor {
 
-    @Autowired
-    private ProvisioningService provisioningService;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired PrismContext prismContext;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private ClockworkMedic medic;
 
-    @Autowired
-    PrismContext prismContext;
-
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
-
-    private static final String PROCESS_RECONCILIATION = ReconciliationProcessor.class.getName() + ".processReconciliation";
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-    <F extends ObjectType> void processReconciliation(LensContext<F> context,
-                                                      LensProjectionContext projectionContext, Task task, OperationResult result) throws SchemaException,
+    @ProcessorMethod
+    <F extends FocusType> void processReconciliation(LensContext<F> context, LensProjectionContext projectionContext,
+            String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focal types.
-            return;
-        }
-        processReconciliationFocus(context, projectionContext, task, result);
+
+        processReconciliation(projectionContext, task, result);
+
+        projectionContext.recompute();
+        context.checkConsistenceIfNeeded();
+
+        medic.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionContext.getDescription(), false, context, false);
     }
 
-    private <F extends ObjectType> void processReconciliationFocus(LensContext<F> context,
-            LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException,
+    private void processReconciliation(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
         // Reconcile even if it was not explicitly requested and if we have full shadow
@@ -126,8 +119,7 @@ public class ReconciliationProcessor {
         }
 
         SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
-        if (policyDecision != null
-                && (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
+        if (((policyDecision == SynchronizationPolicyDecision.DELETE) || (policyDecision == SynchronizationPolicyDecision.UNLINK))) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
             }

@@ -79,18 +79,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
                 columns.add(column);
 
-                column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                        item.add(new Label(componentId, new IModel<String>() {
-                            @Override
-                            public String getObject() {
-                                return ColumnUtils.getActorsForCase(rowModel, getPageBase());
-                            }
-                        }));
-                    }
-                };
-                columns.add(column);
+                columns.add(ColumnUtils.createCaseActorsColumn(ChildCasesTabPanel.this.getPageBase()));
 
                 column = new PropertyColumn<SelectableBeanImpl<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
                     @Override

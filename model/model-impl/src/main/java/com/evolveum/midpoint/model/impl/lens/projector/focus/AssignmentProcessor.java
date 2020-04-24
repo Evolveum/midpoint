@@ -16,8 +16,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -89,7 +92,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 @Component
-public class AssignmentProcessor {
+@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class)
+public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -118,22 +122,16 @@ public class AssignmentProcessor {
     /**
      * Processing all the assignments.
      */
-    @SuppressWarnings("unchecked")
+    @ProcessorMethod
     public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignments(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for AssignmentHolderType.
-            return;
-        }
+        assert context.hasFocusOfType(AssignmentHolderType.class);
 
         OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignments");
         try {
             try {
+                //noinspection unchecked
                 processAssignmentsProjectionsWithFocus((LensContext<AH>) context, now, task, result);
             } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
                     CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
@@ -263,7 +261,7 @@ public class AssignmentProcessor {
 
                 LOGGER.trace("Projection processing done");
 
-                removeIgnoredContexts(context);
+                context.removeIgnoredContexts();
                 finishLegalDecisions(context);
             } else {
                 LOGGER.trace("Skipping evaluating constructions. Not a focus.");
@@ -797,12 +795,12 @@ public class AssignmentProcessor {
 
     }
 
-    public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
+    @ProcessorMethod
+    <F extends ObjectType> void processOrgAssignments(LensContext<F> context,
+            @SuppressWarnings("unused") XMLGregorianCalendar now, Task task,
+            OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
 
         Collection<PrismReferenceValue> shouldBeParentOrgRefs = new ArrayList<>();
 
@@ -894,41 +892,6 @@ public class AssignmentProcessor {
         addTenantRefDelta(context, objectNew, tenantOid);
     }
 
-    /**
-     * This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
-     * membership in resources and tasks.
-     */
-    public <O extends ObjectType> void computeTenantRefLegacy(LensContext<O> context, Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        String tenantOid = null;
-
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        PrismObject<O> objectNew = focusContext.getObjectNew();
-        if (objectNew == null) {
-            return;
-        }
-        if (!objectNew.canRepresent(ResourceType.class) && !objectNew.canRepresent(TaskType.class)) {
-            return;
-        }
-
-        String desc = "parentOrgRef in "+objectNew;
-        for (ObjectReferenceType parentOrgRef: objectNew.asObjectable().getParentOrgRef()) {
-            OrgType parentOrg = objectResolver.resolve(parentOrgRef, OrgType.class, null, desc, task, result);
-            ObjectReferenceType parentTenantRef = parentOrg.getTenantRef();
-            if (parentTenantRef == null || parentTenantRef.getOid() == null) {
-                continue;
-            }
-            if (tenantOid == null) {
-                tenantOid = parentTenantRef.getOid();
-            } else {
-                if (!parentTenantRef.getOid().equals(tenantOid)) {
-                    throw new PolicyViolationException("Two different tenants ("+tenantOid+", "+parentTenantRef.getOid()+") applicable to "+context.getFocusContext().getHumanReadableName());
-                }
-            }
-        }
-
-        addTenantRefDelta(context, objectNew, tenantOid);
-    }
-
     private <F extends ObjectType> void addTenantRefDelta(LensContext<F> context, PrismObject<F> objectNew, String tenantOid) throws SchemaException {
         LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectReferenceType currentTenantRef = objectNew.asObjectable().getTenantRef();
@@ -956,10 +919,13 @@ public class AssignmentProcessor {
         }
     }
 
-    public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
-            OperationResult result) throws PolicyViolationException, SchemaException {
+    @ProcessorMethod
+    <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
+            @SuppressWarnings("unused") XMLGregorianCalendar now,
+            @SuppressWarnings("unused") Task task,
+            @SuppressWarnings("unused") OperationResult result) throws PolicyViolationException, SchemaException {
         for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
-            if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
+            if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()) {
                 continue;
             }
             if (projectionContext.isTombstone()) {
@@ -1019,20 +985,6 @@ public class AssignmentProcessor {
         }
     }
 
-
-
-    public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {
-        Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
-        Iterator<LensProjectionContext> projectionIterator = projectionContexts.iterator();
-        while (projectionIterator.hasNext()) {
-            LensProjectionContext projectionContext = projectionIterator.next();
-
-            if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-                projectionIterator.remove();
-            }
-        }
-    }
-
     private <V extends PrismValue, D extends ItemDefinition, F extends AssignmentHolderType> XMLGregorianCalendar collectFocusTripleFromMappings(
             Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments,
             Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
@@ -1079,12 +1031,14 @@ public class AssignmentProcessor {
         return nextRecomputeTime;
     }
 
-    public <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
-            OperationResult result) throws SchemaException, PolicyViolationException, ConfigurationException {
+    @ProcessorMethod
+    <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
+            @SuppressWarnings("unused") XMLGregorianCalendar now,
+            @SuppressWarnings("unused") Task task,
+            @SuppressWarnings("unused") OperationResult result)
+            throws SchemaException, ConfigurationException {
+        assert context.hasFocusOfType(AssignmentHolderType.class);
         LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null || !AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            return;
-        }
 
         Collection<PrismReferenceValue> shouldBeRoleRefs = new ArrayList<>();
         Collection<PrismReferenceValue> shouldBeDelegatedRefs = new ArrayList<>();
@@ -1110,6 +1064,8 @@ public class AssignmentProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
         setReferences(focusContext, AssignmentHolderType.F_DELEGATED_REF, shouldBeDelegatedRefs);
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
+
+        context.recompute(); // really needed?
     }
 
     private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,

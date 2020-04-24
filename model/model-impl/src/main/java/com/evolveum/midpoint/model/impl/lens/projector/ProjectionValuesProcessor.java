@@ -6,17 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -27,11 +28,9 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -59,6 +58,10 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
  * behind by the assignment processor. It also does some checks, such as check of identifier uniqueness. It tries to
@@ -67,63 +70,38 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 @Component
-public class ProjectionValuesProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+public class ProjectionValuesProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionValuesProcessor.class);
 
-    @Autowired
-    private OutboundProcessor outboundProcessor;
+    @Autowired private OutboundProcessor outboundProcessor;
+    @Autowired private ConsolidationProcessor consolidationProcessor;
+    @Autowired private AssignmentProcessor assignmentProcessor;
+    @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private PrismContext prismContext;
+    @Autowired private SynchronizationService synchronizationService;
+    @Autowired private ContextLoader contextLoader;
+    @Autowired private ProvisioningService provisioningService;
 
-    @Autowired
-    private ConsolidationProcessor consolidationProcessor;
-
-    @Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    RepositoryService repositoryService;
-
-    @Autowired
-    private ExpressionFactory expressionFactory;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
-
-    @Autowired
-    private SynchronizationService synchronizationService;
-
-    @Autowired
-    private ContextLoader contextLoader;
-
-    @Autowired
-    private ProvisioningService provisioningService;
-
-    public <O extends ObjectType> void process(LensContext<O> context,
-            LensProjectionContext projectionContext, String activityDescription, Task task, OperationResult result)
+    @ProcessorMethod
+    public <F extends FocusType> void process(LensContext<F> context, LensProjectionContext projectionContext,
+            String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focus types.
-            return;
-        }
-        processProjections((LensContext<? extends FocusType>) context, projectionContext,
-                activityDescription, task, result);
+        processProjectionValues(context, projectionContext, activityDescription, task, result);
+        context.checkConsistenceIfNeeded();
+        projectionContext.recompute();
+        context.checkConsistenceIfNeeded();
     }
 
-    private <F extends FocusType> void processProjections(LensContext<F> context,
+    private <F extends FocusType> void processProjectionValues(LensContext<F> context,
             LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
-        checkSchemaAndPolicies(context, projContext, activityDescription, result);
+        checkSchemaAndPolicies(projContext, activityDescription);
 
         SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
@@ -135,7 +113,7 @@ public class ProjectionValuesProcessor {
             return;
         }
 
-        if (consistencyChecks) context.checkConsistence();
+        context.checkConsistenceIfNeeded();
 
         if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
             contextLoader.loadFullShadow(context, projContext, "iteration expression", task, result);
@@ -171,15 +149,13 @@ public class ProjectionValuesProcessor {
 
             // These are normally null. But there may be leftover from the previous iteration.
             // While that should not affect the algorithm (it should overwrite it) it may confuse
-            // people during debugging and unecessarily clutter the debug output.
+            // people during debugging and unnecessarily clutter the debug output.
             projContext.setOutboundConstruction(null);
             projContext.setSqueezedAttributes(null);
             projContext.setSqueezedAssociations(null);
 
             LOGGER.trace("Projection values iteration {}, token '{}' for {}",
                     iteration, iterationToken, projContext.getHumanReadableName());
-
-//            LensUtil.traceContext(LOGGER, activityDescription, "values (start)", false, context, true);
 
             if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, task, result)) {
 
@@ -188,33 +164,22 @@ public class ProjectionValuesProcessor {
                         iteration, iterationToken, projContext.getHumanReadableName());
             } else {
 
-                if (consistencyChecks) context.checkConsistence();
+                context.checkConsistenceIfNeeded();
 
                 // Re-evaluates the values in the account constructions (including roles)
                 assignmentProcessor.processAssignmentsAccountValues(projContext, result);
 
                 context.recompute();
-                if (consistencyChecks) context.checkConsistence();
+                context.checkConsistenceIfNeeded();
 
 //                policyRuleProcessor.evaluateShadowPolicyRules(context, projContext, activityDescription, task, result);
 
 
-//                LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
-
                 // Evaluates the values in outbound mappings
                 outboundProcessor.processOutbound(context, projContext, task, result);
 
-                context.recompute();
-                if (consistencyChecks) context.checkConsistence();
-
-//                LensUtil.traceContext(LOGGER, activityDescription, "values (outbound)", false, context, true);
-
                 // Merges the values together, processing exclusions and strong/weak mappings are needed
                 consolidationProcessor.consolidateValues(context, projContext, task, result);
-
-                if (consistencyChecks) context.checkConsistence();
-                context.recompute();
-                if (consistencyChecks) context.checkConsistence();
 
                 // Aux object classes may have changed during consolidation. Make sure we have up-to-date definitions.
                 context.refreshAuxiliaryObjectClassDefinitions();
@@ -229,13 +194,9 @@ public class ProjectionValuesProcessor {
                     iterationToken = null;
                     cleanupContext(projContext, null);
                     LOGGER.trace("Resetting iteration counter and token because we have rename");
-                    if (consistencyChecks) context.checkConsistence();
+                    context.checkConsistenceIfNeeded();
                     continue;
                 }
-
-                // Too noisy for now
-//                LensUtil.traceContext(LOGGER, activityDescription, "values (consolidation)", false, context, true);
-
 
                 if (policyDecision == SynchronizationPolicyDecision.DELETE) {
                     // No need to play the iterative game if the account is deleted
@@ -418,11 +379,11 @@ public class ProjectionValuesProcessor {
             LensUtil.checkMaxIterations(iteration, maxIterations, conflictMessage, projContext.getHumanReadableName());
 
             cleanupContext(projContext, null);
-            if (consistencyChecks) context.checkConsistence();
+            context.checkConsistenceIfNeeded();
         }
 
         addIterationTokenDeltas(projContext);
-        if (consistencyChecks) context.checkConsistence();
+        context.checkConsistenceIfNeeded();
     }
 
     private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
@@ -446,8 +407,7 @@ public class ProjectionValuesProcessor {
         return false;
     }
 
-
-
+    @SuppressWarnings("RedundantIfStatement")
     private boolean hasIterationExpression(LensProjectionContext accountContext) {
         ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
         if (accDef == null) {
@@ -517,8 +477,8 @@ public class ProjectionValuesProcessor {
      * Check that the primary deltas do not violate schema and policies
      * TODO: implement schema check
      */
-    public <F extends ObjectType> void checkSchemaAndPolicies(LensContext<F> context,
-            LensProjectionContext accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
+    private void checkSchemaAndPolicies(LensProjectionContext accountContext, String activityDescription)
+            throws SchemaException, PolicyViolationException {
         ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
         if (primaryDelta == null || primaryDelta.isDelete()) {
             return;
@@ -535,7 +495,7 @@ public class ProjectionValuesProcessor {
             ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
             if (attributesContainer != null) {
                 for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-                    RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getElementName());
+                    RefinedAttributeDefinition rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attribute.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
@@ -546,7 +506,7 @@ public class ProjectionValuesProcessor {
             for(ItemDelta<?,?> modification: primaryDelta.getModifications()) {
                 if (modification.getParentPath().equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
                     PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-                    RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getElementName());
+                    RefinedAttributeDefinition rAttrDef = requireNonNull(rAccountDef.findAttributeDefinition(attrDelta.getElementName()));
                     if (!rAttrDef.isTolerant()) {
                         throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
                                 "account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
@@ -563,42 +523,40 @@ public class ProjectionValuesProcessor {
      */
     private void cleanupContext(LensProjectionContext accountContext, PrismObject<ShadowType> fullConflictingShadow) throws SchemaException {
         // We must NOT clean up activation computation here. This has happened before, it will not happen again
-        // and it does not depend on iteration. But, in fact we want to cleaup up activation changes if they
+        // and it does not depend on iteration. But, in fact we want to cleanup up activation changes if they
         // are already applied to the new shadow.
         ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
         if (secondaryDelta != null) {
             boolean administrativeStatusDeltaRemoved = false;
             Collection<? extends ItemDelta> modifications = secondaryDelta.getModifications();
-            if (modifications != null) {
-                Iterator<? extends ItemDelta> iterator = modifications.iterator();
+            Iterator<? extends ItemDelta> iterator = modifications.iterator();
+            while (iterator.hasNext()) {
+                ItemDelta modification = iterator.next();
+                if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
+                    if (fullConflictingShadow != null) {
+                        if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, modification.getElementName())) {
+                            if (modification.isRedundant(fullConflictingShadow, false)) {
+                                LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
+                                iterator.remove();
+                            }
+                            administrativeStatusDeltaRemoved = true;
+                        }
+                    }
+                } else {
+                    iterator.remove();
+                }
+            }
+            if (administrativeStatusDeltaRemoved) {
+                iterator = modifications.iterator();
                 while (iterator.hasNext()) {
                     ItemDelta modification = iterator.next();
                     if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
-                        if (fullConflictingShadow != null) {
-                            if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, modification.getElementName())) {
-                                if (modification.isRedundant(fullConflictingShadow, false)) {
-                                    LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
-                                    iterator.remove();
-                                }
-                                administrativeStatusDeltaRemoved = true;
-                            }
-                        }
-                    } else {
-                        iterator.remove();
-                    }
-                }
-                if (administrativeStatusDeltaRemoved) {
-                    iterator = modifications.iterator();
-                    while (iterator.hasNext()) {
-                        ItemDelta modification = iterator.next();
-                        if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
-                            if (QNameUtil.match(ActivationType.F_ENABLE_TIMESTAMP, modification.getElementName()) ||
-                                    QNameUtil.match(ActivationType.F_DISABLE_TIMESTAMP, modification.getElementName()) ||
-                                    QNameUtil.match(ActivationType.F_DISABLE_REASON, modification.getElementName()) ||
-                                    QNameUtil.match(ActivationType.F_ARCHIVE_TIMESTAMP, modification.getElementName())) {
-                                LOGGER.trace("Removing secondary activation delta because redundant delta was removed before: {}", modification);
-                                iterator.remove();
-                            }
+                        if (QNameUtil.match(ActivationType.F_ENABLE_TIMESTAMP, modification.getElementName()) ||
+                                QNameUtil.match(ActivationType.F_DISABLE_TIMESTAMP, modification.getElementName()) ||
+                                QNameUtil.match(ActivationType.F_DISABLE_REASON, modification.getElementName()) ||
+                                QNameUtil.match(ActivationType.F_ARCHIVE_TIMESTAMP, modification.getElementName())) {
+                            LOGGER.trace("Removing secondary activation delta because redundant delta was removed before: {}", modification);
+                            iterator.remove();
                         }
                     }
                 }
@@ -610,7 +568,6 @@ public class ProjectionValuesProcessor {
         accountContext.clearIntermediateResults();
         accountContext.recompute();
     }
-
 
     /**
      * Adds deltas for iteration and iterationToken to the shadow if needed.
@@ -642,28 +599,11 @@ public class ProjectionValuesProcessor {
 
     }
 
-
-    public <O extends ObjectType> void processPostRecon(LensContext<O> context,
-            LensProjectionContext projectionContext, String activityDescription, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focus types.
-            return;
-        }
-        processProjectionsPostRecon((LensContext<? extends FocusType>) context, projectionContext,
-                activityDescription, task, result);
-    }
-
-    private <F extends FocusType> void processProjectionsPostRecon(LensContext<F> context,
-            LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
-
+    @ProcessorMethod
+    <F extends FocusType> void processPostRecon(LensContext<F> context, LensProjectionContext projContext,
+            @SuppressWarnings("unused") String activityDescription, @SuppressWarnings("unused") XMLGregorianCalendar now,
+            Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
         if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
             // We will not update accounts that are being unlinked.
@@ -675,7 +615,8 @@ public class ProjectionValuesProcessor {
         }
 
         consolidationProcessor.consolidateValuesPostRecon(context, projContext, task, result);
-
+        context.checkConsistenceIfNeeded();
+        projContext.recompute();
+        context.checkConsistenceIfNeeded();
     }
-
 }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -580,11 +581,33 @@ public class ColumnUtils {
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                                          String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                    RepeatingView actorLinks = new RepeatingView(componentId);
+                    actorLinks.setOutputMarkupId(true);
+                    List<ObjectReferenceType> assigneeRefs;
+                    if (CaseWorkItemUtil.doesAssigneeExist(unwrapRowModel(rowModel))){
+                        assigneeRefs = unwrapRowModel(rowModel).getAssigneeRef();
+                    } else {
+                        assigneeRefs = unwrapRowModel(rowModel).getCandidateRef();
+                    }
+                    if (assigneeRefs != null){
+                        assigneeRefs.forEach(assigneeRef -> {
+                            LinkPanel assigneeLinkPanel = new LinkPanel(actorLinks.newChildId(),
+                                    Model.of(WebModelServiceUtils.resolveReferenceName(assigneeRef, pageBase))) {
+                                private static final long serialVersionUID = 1L;
 
-                    String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false, true);
-                    cellItem.add(new Label(componentId,
-                            assignee != null ? assignee
-                                    : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true, true)));
+                                @Override
+                                public void onClick(AjaxRequestTarget target) {
+                                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+
+                                    dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                                }
+                            };
+                            assigneeLinkPanel.setOutputMarkupId(true);
+                            actorLinks.add(assigneeLinkPanel);
+                        });
+                    }
+                    cellItem.add(actorLinks);
                 }
 
                 @Override
@@ -707,18 +730,7 @@ public class ColumnUtils {
         columns.add(column);
 
         if (!isDashboard) {
-            column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
-                @Override
-                public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                    item.add(new Label(componentId, new IModel<String>() {
-                        @Override
-                        public String getObject() {
-                            return getActorsForCase(rowModel, pageBase);
-                        }
-                    }));
-                }
-            };
-            columns.add(column);
+            columns.add(createCaseActorsColumn(pageBase));
         }
 
         column = new AbstractColumn<SelectableBean<CaseType>, String>(
@@ -821,28 +833,55 @@ public class ColumnUtils {
         return columns;
     }
 
+    public static AbstractColumn<SelectableBean<CaseType>, String> createCaseActorsColumn(PageBase pageBase){
+        return new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+                CaseType caseInstance = rowModel != null ? rowModel.getObject().getValue() : null;
+                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null),
+                        caseInstance, pageBase));
+            }
+        };
+    }
+
+    public static RepeatingView getMultilineLinkPanel(String componentId, List<ObjectReferenceType> referencesList,
+            CaseType caseType, PageBase pageBase){
+        RepeatingView multilineLinkPanel = new RepeatingView(componentId);
+        multilineLinkPanel.setOutputMarkupId(true);
+        if (referencesList != null){
+            referencesList.forEach(reference -> {
+                LinkPanel assigneeLinkPanel = new LinkPanel(multilineLinkPanel.newChildId(),
+                        Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase))) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                    }
+                };
+                assigneeLinkPanel.setOutputMarkupId(true);
+                multilineLinkPanel.add(assigneeLinkPanel);
+            });
+        }
+        return multilineLinkPanel;
+    }
+
     public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel){
         return rowModel.getObject().getRealValue();
     }
 
-    public static String getActorsForCase(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {
-        String actors = null;
-        SelectableBean<CaseType> caseModel = rowModel.getObject();
-        if (caseModel != null) {
-            CaseType caseIntance = caseModel.getValue();
-            if (caseIntance != null) {
-                List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
-                List<String> actorsList = new ArrayList<String>();
-                for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-                    List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
-                    for (ObjectReferenceType actor : assignees) {
-                        actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
-                                pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
-                    }
+    public static List<ObjectReferenceType> getActorsForCase(CaseType caseType) {
+        List<ObjectReferenceType> actorsList = new ArrayList<>();
+        if (caseType != null) {
+            List<CaseWorkItemType> caseWorkItemTypes = caseType.getWorkItem();
+            for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
+                if (caseWorkItem.getAssigneeRef() != null && !caseWorkItem.getAssigneeRef().isEmpty()) {
+                    actorsList.addAll(caseWorkItem.getAssigneeRef());
+                } else {
+                    actorsList.addAll(caseWorkItem.getCandidateRef());
                 }
-                actors = String.join(", ", actorsList);
             }
         }
-        return actors;
+        return actorsList;
     }
 }

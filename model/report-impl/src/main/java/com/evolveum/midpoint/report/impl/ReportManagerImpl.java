@@ -107,24 +107,17 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     }
 
     @Override
-    public <T extends ObjectType> void invoke(PrismObject<T> object,
-                                              Collection<SelectorOptions<GetOperationOptions>> options, Task task,
-                                              OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    public <T extends ObjectType> void invoke(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task, OperationResult parentResult) throws SchemaException {
 
-        if (!ReportType.class.equals(object.getCompileTimeClass())) {
-            return;
-        }
-
-        boolean raw = isRaw(options);
-        if (!raw) {
+        if (ReportType.class.equals(object.getCompileTimeClass()) && !isRaw(options)) {
+            //noinspection unchecked
             ReportTypeUtil.applyDefinition((PrismObject<ReportType>) object, prismContext);
         }
     }
 
     private boolean isRaw(Collection<SelectorOptions<GetOperationOptions>> options) {
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        return rootOptions == null ? false : GetOperationOptions.isRaw(rootOptions);
+        return GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options));
     }
 
     /**
@@ -190,14 +183,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult parentResult)  {
         ModelState state = context.getState();
          if (state != ModelState.FINAL) {
-             if (LOGGER.isTraceEnabled()) {
-                 LOGGER.trace("report manager called in state = " + state + ", exiting.");
-             }
+             LOGGER.trace("report manager called in state = {}, exiting.", state);
              return HookOperationMode.FOREGROUND;
          } else {
-             if (LOGGER.isTraceEnabled()) {
-                 LOGGER.trace("report manager called in state = " + state + ", proceeding.");
-             }
+             LOGGER.trace("report manager called in state = {}, proceeding.", state);
          }
 
          boolean relatesToReport = false;

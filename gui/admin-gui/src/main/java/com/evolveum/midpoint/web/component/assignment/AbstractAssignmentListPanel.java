@@ -108,6 +108,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             }
         }
         target.add(getPageBase().getFeedbackPanel());
+        getPageBase().reloadShoppingCartIcon(target);
         reloadMainAssignmentsComponent(target);
     }
 

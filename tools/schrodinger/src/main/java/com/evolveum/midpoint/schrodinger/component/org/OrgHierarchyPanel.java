@@ -89,7 +89,7 @@ public class OrgHierarchyPanel<T> extends Component<T> {
         return this;
     }
 
-    public OrgTreeNodeDropDown editOrg(String orgName) {
+    public OrgTreeNodeDropDown showTreeNodeDropDownMenu(String orgName) {
         SelenideElement parentNode = getParentOrgNode(orgName);
         SelenideElement node = parentNode.$x(".//div[@"+Schrodinger.DATA_S_ID+"='node']");
         SelenideElement menuButton = node.$x(".//span[@" + Schrodinger.DATA_S_ID + "='menu']");
