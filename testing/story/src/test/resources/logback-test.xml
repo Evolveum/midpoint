@@ -59,7 +59,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ProjectionValuesProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusActivationProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG"/>

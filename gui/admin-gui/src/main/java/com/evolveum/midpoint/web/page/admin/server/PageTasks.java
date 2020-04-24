@@ -7,9 +7,26 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,25 +44,10 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PageDescriptor(
         urls = {
@@ -110,7 +112,7 @@ public class PageTasks extends PageAdmin {
         add(tablePanel);
     }
 
-    private Collection<? extends IColumn<SelectableBean<TaskType>, String>> addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
+    private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
         columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
             private static final long serialVersionUID = 1L;
             @Override
@@ -178,7 +180,6 @@ public class PageTasks extends PageAdmin {
                 return Model.of(createScheduledToRunAgain(rowModel));
             }
         });
-        return columns;
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
@@ -190,10 +191,9 @@ public class PageTasks extends PageAdmin {
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();
-        Collection<SelectorOptions<GetOperationOptions>> searchOptions = getOperationOptionsBuilder
+        return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
                 .build();
-        return searchOptions;
     }
 
     private Date getCurrentRuntime(IModel<SelectableBean<TaskType>> taskModel) {

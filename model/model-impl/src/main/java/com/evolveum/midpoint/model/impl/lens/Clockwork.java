@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.Components;
+
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -52,7 +57,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -95,6 +99,7 @@ public class Clockwork {
     @Autowired private Migrator migrator;
     @Autowired private ClockworkMedic medic;
     @Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
+    @Autowired private PolicyRuleEnforcer policyRuleEnforcer;
     @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
     @Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
@@ -124,9 +129,7 @@ public class Clockwork {
             }
 
             LOGGER.trace("Running clockwork for context {}", context);
-            if (InternalsConfig.consistencyChecks) {
-                context.checkConsistence();
-            }
+            context.checkConsistenceIfNeeded();
 
             int clicked = 0;
             ClockworkConflictResolver.Context conflictResolutionContext = new ClockworkConflictResolver.Context();
@@ -140,6 +143,8 @@ public class Clockwork {
                 enterAssociationSearchExpressionEvaluatorCache();
                 //enterDefaultSearchExpressionEvaluatorCache();
                 provisioningService.enterConstraintsCheckerCache();
+
+                executeInitialChecks(context);
 
                 while (context.getState() != ModelState.FINAL) {
 
@@ -188,6 +193,46 @@ public class Clockwork {
                 LevelOverrideTurboFilter.cancelLoggingOverride(); // reconsider
             }
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private <F extends ObjectType> void executeInitialChecks(LensContext<F> context) throws PolicyViolationException {
+        if (context.hasFocusOfType(AssignmentHolderType.class)) {
+            checkArchetypeRefDelta(context);
+        }
+    }
+
+    /**
+     * This check was originally present in AssignmentHolderProcessor. But it refers to focus primary delta only;
+     * so it's sufficient to execute it on clockwork entry (unless primary delta is manipulated e.g. in a scripting hook).
+     */
+    private <F extends ObjectType> void checkArchetypeRefDelta(LensContext<F> context) throws PolicyViolationException {
+        ObjectDelta<F> focusPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+        if (focusPrimaryDelta != null) {
+            ReferenceDelta archetypeRefDelta = focusPrimaryDelta.findReferenceModification(AssignmentHolderType.F_ARCHETYPE_REF);
+            if (archetypeRefDelta != null) {
+                // We want to allow this under special circumstances. E.g. we want be able to import user with archetypeRef.
+                // Otherwise we won't be able to export a user and re-import it again.
+                if (focusPrimaryDelta.isAdd()) {
+                    String archetypeOidFromAssignments = LensUtil.determineExplicitArchetypeOidFromAssignments(focusPrimaryDelta.getObjectToAdd());
+                    if (archetypeOidFromAssignments == null) {
+                        throw new PolicyViolationException("Attempt add archetypeRef without a matching assignment");
+                    } else {
+                        boolean match = true;
+                        for (PrismReferenceValue archetypeRefDeltaVal : archetypeRefDelta.getValuesToAdd()) {
+                            if (!archetypeOidFromAssignments.equals(archetypeRefDeltaVal.getOid())) {
+                                match = false;
+                            }
+                        }
+                        if (match) {
+                            return;
+                        } else {
+                            throw new PolicyViolationException("Attempt add archetypeRef that does not match assignment");
+                        }
+                    }
+                }
+                throw new PolicyViolationException("Attempt to modify archetypeRef directly");
+            }
         }
     }
 
@@ -246,6 +291,7 @@ public class Clockwork {
 
             projector.projectAllWaves(context, "preview", task, result);
             clockworkHookHelper.invokePreview(context, task, result);
+            policyRuleEnforcer.execute(context);
             policyRuleSuspendTaskExecutor.execute(context, task, result);
 
         } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
@@ -365,68 +411,20 @@ public class Clockwork {
                 context.generateRequestIdentifierIfNeeded();
                 // We need to do this BEFORE projection. If we would do that after projection
                 // there will be secondary changes that are not part of the request.
-                clockworkAuditHelper.audit(context, AuditEventStage.REQUEST, task, result, parentResult);        // we need to take the overall ("run" operation result) not the current one
+                clockworkAuditHelper.audit(context, AuditEventStage.REQUEST, task, result, parentResult); // we need to take the overall ("run" operation result) not the current one
             }
 
-            boolean recompute = false;
-            if (!context.isFresh()) {
-                LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
-                recompute = true;
-            } else if (context.getExecutionWave() > context.getProjectionWave()) {        // should not occur
-                LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
-                recompute = true;
-            } else if (state == ModelState.PRIMARY && ModelExecuteOptions.getInitialPartialProcessing(context.getOptions()) != null) {
-                LOGGER.trace("Initial phase was run with initialPartialProcessing option -- forcing cleanup and recomputation");
-                recompute = true;
-            }
-
-            if (recompute) {
-                context.cleanup();
-                LOGGER.trace("Running projector with cleaned-up context for execution wave {}", context.getExecutionWave());
-                projector.project(context, "PROJECTOR ("+state+")", task, result);
-            } else if (context.getExecutionWave() == context.getProjectionWave()) {
-                LOGGER.trace("Resuming projector for execution wave {}", context.getExecutionWave());
-                projector.resume(context, "PROJECTOR ("+state+")", task, result);
-            } else {
-                LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");
-            }
+            projectIfNeeded(context, task, result);
 
             if (!context.isRequestAuthorized()) {
                 clockworkAuthorizationHelper.authorizeContextRequest(context, task, result);
             }
 
             medic.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
-            if (InternalsConfig.consistencyChecks) {
-                try {
-                    context.checkConsistence();
-                } catch (IllegalStateException e) {
-                    throw new IllegalStateException(e.getMessage()+" in clockwork, state="+state, e);
-                }
-            }
-            if (InternalsConfig.encryptionChecks && !ModelExecuteOptions.isNoCrypt(context.getOptions())) {
-                context.checkEncrypted();
-            }
+            context.checkConsistenceIfNeeded();
+            context.checkEncryptedIfNeeded();
 
-            switch (state) {
-                case INITIAL:
-                    processInitialToPrimary(context);
-                    break;
-                case PRIMARY:
-                    processPrimaryToSecondary(context, task, result);
-                    break;
-                case SECONDARY:
-                    if (context.getExecutionWave() > context.getMaxWave() + 1) {
-                        processSecondaryToFinal(context, task, result);
-                    } else {
-                        processSecondary(context, task, result, parentResult);
-                    }
-                    break;
-                case FINAL:
-                    HookOperationMode mode = processFinal(context, task, result, parentResult);
-                    medic.clockworkFinish(context);
-                    return mode;
-            }
-            return clockworkHookHelper.invokeHooks(context, task, result);
+            return moveStateForward(context, task, parentResult, result, state);
 
         } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
                 PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
@@ -445,21 +443,76 @@ public class Clockwork {
         }
     }
 
+    private <F extends ObjectType> void projectIfNeeded(LensContext<F> context, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, PolicyViolationException, ExpressionEvaluationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException,
+            PreconditionViolationException {
+        boolean recompute = false;
+        if (!context.isFresh()) {
+            LOGGER.trace("Context is not fresh -- forcing cleanup and recomputation");
+            recompute = true;
+        } else if (context.getExecutionWave() > context.getProjectionWave()) {        // should not occur
+            LOGGER.warn("Execution wave is greater than projection wave -- forcing cleanup and recomputation");
+            recompute = true;
+        } else if (context.isInPrimary() && ModelExecuteOptions.getInitialPartialProcessing(context.getOptions()) != null) {
+            LOGGER.trace("Initial phase was run with initialPartialProcessing option -- forcing cleanup and recomputation");
+            recompute = true;
+        }
+
+        if (recompute) {
+            context.cleanup();
+            LOGGER.trace("Running projector with cleaned-up context for execution wave {}", context.getExecutionWave());
+            projector.project(context, "PROJECTOR ("+ context.getState() +")", task, result);
+        } else if (context.getExecutionWave() == context.getProjectionWave()) {
+            LOGGER.trace("Resuming projector for execution wave {}", context.getExecutionWave());
+            projector.resume(context, "PROJECTOR ("+ context.getState() +")", task, result);
+        } else {
+            LOGGER.trace("Skipping projection because the context is fresh and projection for current wave has already run");
+        }
+    }
+
+    private <F extends ObjectType> HookOperationMode moveStateForward(LensContext<F> context, Task task, OperationResult parentResult,
+            OperationResult result, ModelState state) throws PolicyViolationException, ObjectNotFoundException, SchemaException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, PreconditionViolationException {
+        switch (state) {
+            case INITIAL:
+                processInitialToPrimary(context);
+                break;
+            case PRIMARY:
+                processPrimaryToSecondary(context, task, result);
+                break;
+            case SECONDARY:
+                if (context.getExecutionWave() > context.getMaxWave() + 1) {
+                    processSecondaryToFinal(context, task, result);
+                } else {
+                    processSecondary(context, task, result, parentResult);
+                }
+                break;
+            case FINAL:
+                HookOperationMode mode = processFinal(context, task, result, parentResult);
+                medic.clockworkFinish(context);
+                return mode;
+        }
+        return clockworkHookHelper.invokeHooks(context, task, result);
+    }
+
     private <F extends ObjectType> void switchState(LensContext<F> context, ModelState newState) {
         medic.clockworkStateSwitch(context, newState);
         context.setState(newState);
     }
 
-    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context) {
-        // Context loaded, nothing special do. Bump state to PRIMARY.
+    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context) throws PolicyViolationException {
+        // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
+        policyRuleEnforcer.execute(context);
+
         switchState(context, ModelState.PRIMARY);
     }
 
     private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, ObjectNotFoundException, SchemaException {
-        // Nothing to do now. The context is already recomputed.
-        switchState(context, ModelState.SECONDARY);
-
         policyRuleSuspendTaskExecutor.execute(context, task, result);
+
+        switchState(context, ModelState.SECONDARY);
     }
 
     private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
@@ -468,13 +521,13 @@ public class Clockwork {
 
         Holder<Boolean> restartRequestedHolder = new Holder<>(false);
 
-        medic.partialExecute("execution",
+        medic.partialExecute(Components.EXECUTION,
                 (result1) -> {
                     boolean restartRequested = changeExecutor.executeChanges(context, task, result1);
                     restartRequestedHolder.setValue(restartRequested);
                 },
                 context.getPartialProcessingOptions()::getExecution,
-                Clockwork.class, context, result);
+                Clockwork.class, context, null, result);
 
         clockworkAuditHelper.audit(context, AuditEventStage.EXECUTION, task, result, overallResult);
 

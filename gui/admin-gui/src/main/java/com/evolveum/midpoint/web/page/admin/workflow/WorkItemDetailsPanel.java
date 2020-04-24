@@ -19,8 +19,10 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.ManualCaseTabPanel;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,17 +46,19 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by honchar
  */
-public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
+public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = WorkItemDetailsPanel.class.getName() + ".";
@@ -63,14 +66,14 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
     private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
     private static final String OPERATION_LOAD_CASE_FOCUS_OBJECT = DOT_CLASS + "loadCaseFocusObject";
-    private static final String OPERATION_CHECK_SUBMIT_AUTHORIZATION = DOT_CLASS + "checkApproveRejectAuthorization";
-    private static final String OPERATION_CHECK_DELEGATE_AUTHORIZATION = DOT_CLASS + "checkDelegateAuthorization";
-    private static final String OPERATION_CHECK_CLAIM_AUTHORIZATION = DOT_CLASS + "checkClaimAuthorization";
+    private static final String OPERATION_CHECK_ACTIONS_AUTHORIZATION = DOT_CLASS + "checkActionsAuthorization";
 
     private static final String ID_DISPLAY_NAME_PANEL = "displayNamePanel";
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
     private static final String ID_APPROVER = "approver";
+    private static final String ID_CANDIDATE_CONTAINER = "candidateContainer";
+    private static final String ID_CANDIDATE = "candidate";
     private static final String ID_PARENT_CASE_CONTAINER = "parentCaseContainer";
     private static final String ID_PARENT_CASE = "parentCase";
     private static final String ID_TARGET = "target";
@@ -145,12 +148,28 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
-
         LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER,
                 getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
                 Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of());
         approver.setOutputMarkupId(true);
         add(approver);
+
+        WebMarkupContainer candidateContainer = new WebMarkupContainer(ID_CANDIDATE_CONTAINER);
+        candidateContainer.setOutputMarkupId(true);
+        candidateContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        add(candidateContainer);
+
+        RepeatingView candidateLinksPanel = new RepeatingView(ID_CANDIDATE);
+        candidateLinksPanel.setOutputMarkupId(true);
+        List<ObjectReferenceType> candidates = getModelObject() != null ? getModelObject().getCandidateRef() : null;
+        if (candidates != null){
+            candidates.forEach(candidate -> {
+                LinkedReferencePanel candidatePanel = new LinkedReferencePanel(candidateLinksPanel.newChildId(), Model.of(candidate));
+                candidatePanel.setOutputMarkupId(true);
+                candidateLinksPanel.add(candidatePanel);
+            });
+        }
+        candidateContainer.add(candidateLinksPanel);
 
         WebMarkupContainer parentCaseContainer = new WebMarkupContainer(ID_PARENT_CASE_CONTAINER);
         parentCaseContainer.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
@@ -290,20 +309,23 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
     }
 
-    private boolean isAuthorizedForActions(){
-        Task checkApproveRejectAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_AUTHORIZATION);
-        Task checkDelegateAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
+    private boolean isAuthorizedForActions() {
+        Task task = getPageBase().createSimpleTask(OPERATION_CHECK_ACTIONS_AUTHORIZATION);
+        OperationResult result = task.getResult();
         try {
-            boolean isAuthorizedToSubmit = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(),
-                    checkApproveRejectAuthTask, checkApproveRejectAuthTask.getResult());
-            boolean isAuthorizedToDelegate = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(),
-                    checkDelegateAuthTask, checkDelegateAuthTask.getResult());
-            boolean isAuthorizedToClaim = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
-            return isAuthorizedToSubmit || isAuthorizedToClaim || isAuthorizedToDelegate;
-        } catch (Exception ex){
+            return WebComponentUtil.runUnderPowerOfAttorneyIfNeeded(() ->
+                            getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result) ||
+                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result) ||
+                                    getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject()),
+                    getPowerDonor(), getPageBase(), task, result);
+        } catch (Exception ex) {
             LOGGER.error("Unable to check user authorization for workitem actions: {}", ex.getLocalizedMessage());
         }
         return false;
+    }
+
+    protected PrismObject<? extends FocusType> getPowerDonor() {
+        return null;
     }
 
     // Expects that we deal with primary changes of the focus (i.e. not of projections)

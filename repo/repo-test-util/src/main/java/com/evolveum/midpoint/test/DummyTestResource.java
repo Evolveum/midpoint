@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import java.io.File;
 
@@ -15,7 +16,7 @@ import java.io.File;
  * Representation of Dummy Resource in tests.
  */
 @Experimental
-public class DummyTestResource extends TestResource {
+public class DummyTestResource extends TestResource<ResourceType> {
 
     public final String name;
     public DummyResourceContoller controller;

@@ -504,20 +504,20 @@ public class LensUtil {
     }
 
     public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
-            LensElementContext<?> accountContext, IterationSpecificationType iterationType,
+            LensElementContext<?> accountContext, IterationSpecificationType iterationSpecification,
             int iteration, String iterationToken, boolean beforeIteration,
             ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result)
                     throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (iterationType == null) {
+        if (iterationSpecification == null) {
             return true;
         }
         ExpressionType expressionType;
         String desc;
         if (beforeIteration) {
-            expressionType = iterationType.getPreIterationCondition();
+            expressionType = iterationSpecification.getPreIterationCondition();
             desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
         } else {
-            expressionType = iterationType.getPostIterationCondition();
+            expressionType = iterationSpecification.getPostIterationCondition();
             desc = "post-iteration expression in "+accountContext.getHumanReadableName();
         }
         if (expressionType == null) {

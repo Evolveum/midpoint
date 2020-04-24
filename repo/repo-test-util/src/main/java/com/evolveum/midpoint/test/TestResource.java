@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.File;
 
@@ -15,13 +17,18 @@ import java.io.File;
  * Representation of any prism object in tests.
  */
 @Experimental
-public class TestResource {
+public class TestResource<T extends ObjectType> {
 
     public final File file;
     public final String oid;
+    public PrismObject<T> object;
 
     public TestResource(File dir, String fileName, String oid) {
         this.file = new File(dir, fileName);
         this.oid = oid;
+    }
+
+    public String getNameOrig() {
+        return object.getName().getOrig();
     }
 }

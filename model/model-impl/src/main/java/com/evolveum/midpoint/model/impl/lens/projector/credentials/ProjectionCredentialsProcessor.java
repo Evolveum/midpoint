@@ -13,6 +13,10 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -25,16 +29,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
@@ -71,37 +69,36 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author Radovan Semancik
  */
 @Component
-public class ProjectionCredentialsProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenProjectionDeleted = true)
+public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionCredentialsProcessor.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private ContextLoader contextLoader;
-    @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ValuePolicyProcessor valuePolicyProcessor;
     @Autowired private Protector protector;
     @Autowired private OperationalDataManager operationalDataManager;
     @Autowired private ModelObjectResolver modelObjectResolver;
+    @Autowired private ClockworkMedic medic;
 
-    public <F extends ObjectType> void processProjectionCredentials(LensContext<F> context,
-            LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
-            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @ProcessorMethod
+    public <F extends FocusType> void processProjectionCredentials(LensContext<F> context,
+            LensProjectionContext projectionContext, String activityDescription, XMLGregorianCalendar now, Task task,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException,
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (projectionContext.isDelete()) {
-            return;
-        }
+        processProjectionCredentials(context, projectionContext, now, task, result);
+        context.checkConsistenceIfNeeded();
 
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+        projectionContext.recompute();
+        context.checkConsistenceIfNeeded();
 
-            processProjectionCredentialsFocus((LensContext<? extends FocusType>) context, projectionContext, now, task, result);
-
-        }
+        medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionContext.getDescription(), false, context, true);
     }
 
-    private <F extends FocusType> void processProjectionCredentialsFocus(LensContext<F> context,
+    private <F extends FocusType> void processProjectionCredentials(LensContext<F> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
                     SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {

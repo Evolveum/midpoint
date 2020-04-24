@@ -9,15 +9,10 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,7 +30,6 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ApprovalStageExecutionInformationDto.class);
     public static final String F_APPROVER_ENGAGEMENTS = "approverEngagements";
 
     private final int stageNumber;
@@ -57,23 +51,25 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         evaluationStrategy = definition.getEvaluationStrategy();
     }
 
-    static ApprovalStageExecutionInformationDto createFrom(ApprovalSchemaExecutionInformationType processInfo, int stageIndex,
+    static ApprovalStageExecutionInformationDto createFrom(ApprovalSchemaExecutionInformationType processInfo, int stageNumber,
             ObjectResolver resolver, ObjectResolver.Session session, Task opTask, OperationResult result) {
-        ApprovalStageExecutionInformationType stageInfo = processInfo.getStage().get(stageIndex);
+        ApprovalStageExecutionInformationType stageInfo = ApprovalSchemaExecutionInformationUtil.getStage(processInfo, stageNumber);
+        if (stageInfo == null) {
+            throw new IllegalStateException("No stage execution information in " + processInfo);
+        }
         ApprovalStageExecutionInformationDto rv = new ApprovalStageExecutionInformationDto(stageInfo.getDefinition());
-        int stageNumber = stageIndex+1;
         int currentStageNumber = defaultIfNull(processInfo.getCurrentStageNumber(), 0);
         if (stageNumber <= currentStageNumber) {
-            addInformationFromRecordedStage(rv, processInfo, stageInfo.getExecutionRecord(), currentStageNumber, resolver, session, opTask, result);
+            addInformationFromPastOrCurrentStage(rv, processInfo, stageNumber, currentStageNumber, resolver, session, opTask, result);
         } else {
-            addInformationFromPreviewedStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
+            addInformationFromFutureStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
         }
         // computing stage outcome that is to be displayed
         if (rv.automatedOutcome != null) {
             rv.outcome = rv.automatedOutcome;
         } else {
             if (stageNumber < currentStageNumber) {
-                rv.outcome = ApprovalLevelOutcomeType.APPROVE;      // no stage before current stage could be manually rejected
+                rv.outcome = ApprovalLevelOutcomeType.APPROVE; // no stage before current stage could be manually rejected
             } else if (stageNumber == currentStageNumber) {
                 rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(ApprovalContextUtil.getOutcome(processInfo));
             } else {
@@ -87,7 +83,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         return rv;
     }
 
-    private static void addInformationFromPreviewedStage(ApprovalStageExecutionInformationDto rv,
+    private static void addInformationFromFutureStage(ApprovalStageExecutionInformationDto rv,
             ApprovalStageExecutionPreviewType executionPreview, ObjectResolver resolver,
             ObjectResolver.Session session, Task opTask, OperationResult result) {
         if (executionPreview.getExpectedAutomatedCompletionReason() != null) {
@@ -96,7 +92,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         } else {
             for (ObjectReferenceType approver : executionPreview.getExpectedApproverRef()) {
                 resolve(approver, resolver, session, opTask, result);
-                rv.addApproverEngagement(new ApproverEngagementDto(approver, null));
+                rv.addApproverEngagement(new ApproverEngagementDto(approver));
             }
         }
         rv.errorMessage = executionPreview.getErrorMessage();
@@ -109,43 +105,25 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         }
     }
 
-    private static void addInformationFromRecordedStage(ApprovalStageExecutionInformationDto rv,
-            ApprovalSchemaExecutionInformationType processInfo, ApprovalStageExecutionRecordType executionRecord,
-            int currentStageNumber, ObjectResolver resolver,
-            ObjectResolver.Session session, Task opTask, OperationResult result) {
-        for (CaseEventType event : executionRecord.getEvent()) {
-            if (event instanceof WorkItemEventType) {
-                WorkItemEventType workItemEvent = (WorkItemEventType) event;
-                ObjectReferenceType approver;
-                if (event instanceof WorkItemDelegationEventType){
-                    List<ObjectReferenceType> delegateToList = ((WorkItemDelegationEventType)event).getDelegatedTo();
-                    approver = CollectionUtils.isNotEmpty(delegateToList) ? delegateToList.get(0) : null;
-                } else {
-                    approver = workItemEvent.getOriginalAssigneeRef();
-                }
-                if (approver == null) {
-                    LOGGER.warn("No original assignee in work item event {} -- ignoring it", workItemEvent);
-                    continue;
-                }
-                if (workItemEvent.getExternalWorkItemId() == null) {
-                    LOGGER.warn("No external work item ID in work item event {} -- ignoring it", workItemEvent);
-                    continue;
-                }
-                WorkItemId externalWorkItemId = WorkItemId.create(workItemEvent.getExternalWorkItemId());
-                ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
-                if (engagement == null) {
-                    resolve(approver, resolver, session, opTask, result);
-                    engagement = new ApproverEngagementDto(approver, externalWorkItemId);
-                    rv.addApproverEngagement(engagement);
-                }
-                if (event instanceof WorkItemCompletionEventType) {
-                    WorkItemCompletionEventType completionEvent = (WorkItemCompletionEventType) event;
-                    engagement.setCompletedAt(completionEvent.getTimestamp());
-                    resolve(completionEvent.getInitiatorRef(), resolver, session, opTask, result);
-                    engagement.setCompletedBy(completionEvent.getInitiatorRef());
-                    engagement.setAttorney(completionEvent.getAttorneyRef());
-                    engagement.setOutput(completionEvent.getOutput());
-                }
+    private static void addInformationFromPastOrCurrentStage(ApprovalStageExecutionInformationDto rv,
+            ApprovalSchemaExecutionInformationType processInfo, int stageNumber, int currentStageNumber,
+            ObjectResolver resolver, ObjectResolver.Session session, Task opTask, OperationResult result) {
+        assert stageNumber <= currentStageNumber;
+        CaseType aCase = ApprovalSchemaExecutionInformationUtil.getEmbeddedCaseBean(processInfo);
+
+        for (CaseEventType event : CaseEventUtil.getEventsForStage(aCase, stageNumber)) {
+            if (event instanceof WorkItemCompletionEventType) {
+                WorkItemCompletionEventType completionEvent = (WorkItemCompletionEventType) event;
+                ObjectReferenceType initiatorRef = completionEvent.getInitiatorRef();
+                ObjectReferenceType attorneyRef = completionEvent.getAttorneyRef();
+                resolve(initiatorRef, resolver, session, opTask, result);
+                resolve(attorneyRef, resolver, session, opTask, result);
+                ApproverEngagementDto engagement = new ApproverEngagementDto(initiatorRef);
+                engagement.setCompletedAt(completionEvent.getTimestamp());
+                engagement.setCompletedBy(initiatorRef);
+                engagement.setAttorney(attorneyRef);
+                engagement.setOutput(completionEvent.getOutput());
+                rv.addApproverEngagement(engagement);
             } else if (event instanceof StageCompletionEventType) {
                 StageCompletionEventType completionEvent = (StageCompletionEventType) event;
                 if (completionEvent.getAutomatedDecisionReason() != null) {
@@ -154,39 +132,22 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
                 }
             }
         }
-        // not needed after "create work item" events will be implemented
-        for (CaseWorkItemType workItem : executionRecord.getWorkItem()) {
-            if (workItem.getStageNumber() == null || workItem.getStageNumber() != currentStageNumber){
-                continue;
-            }
-            ObjectReferenceType approver = CollectionUtils.isNotEmpty(workItem.getAssigneeRef()) ?
-                    workItem.getAssigneeRef().get(0) : workItem.getOriginalAssigneeRef();
-            if (approver == null) {
-                LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);
-                continue;
-            }
-            WorkItemId externalWorkItemId = WorkItemId.create(processInfo.getCaseRef().getOid(), workItem.getId());
-            ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
-            if (engagement == null) {
-                resolve(approver, resolver, session, opTask, result);
-                engagement = new ApproverEngagementDto(approver, externalWorkItemId);
-                rv.addApproverEngagement(engagement);
+
+        // Obtaining information about open work items
+        if (stageNumber == currentStageNumber) {
+            for (CaseWorkItemType workItem : CaseWorkItemUtil.getWorkItemsForStage(aCase, stageNumber)) {
+                if (CaseWorkItemUtil.isCaseWorkItemNotClosed(workItem)) {
+                    for (ObjectReferenceType assigneeRef : workItem.getAssigneeRef()) {
+                        resolve(assigneeRef, resolver, session, opTask, result);
+                        rv.addApproverEngagement(new ApproverEngagementDto(assigneeRef));
+                    }
+                }
             }
         }
     }
 
     private void addApproverEngagement(ApproverEngagementDto engagement) {
         approverEngagements.add(engagement);
-    }
-
-    private ApproverEngagementDto findApproverEngagement(ObjectReferenceType approver, WorkItemId externalWorkItemId) {
-        for (ApproverEngagementDto engagement : approverEngagements) {
-            if (ObjectTypeUtil.matchOnOid(engagement.getApproverRef(), approver)
-                    && java.util.Objects.equals(engagement.getExternalWorkItemId(), externalWorkItemId)) {
-                return engagement;
-            }
-        }
-        return null;
     }
 
     public int getStageNumber() {
@@ -199,10 +160,6 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 
     public String getStageDisplayName() {
         return stageDisplayName;
-    }
-
-    public LevelEvaluationStrategyType getEvaluationStrategy() {
-        return evaluationStrategy;
     }
 
     public ApprovalLevelOutcomeType getAutomatedOutcome() {
@@ -238,7 +195,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
         return reachable;
     }
 
-    public void setReachable(boolean reachable) {
+    void setReachable(boolean reachable) {
         this.reachable = reachable;
     }
 }

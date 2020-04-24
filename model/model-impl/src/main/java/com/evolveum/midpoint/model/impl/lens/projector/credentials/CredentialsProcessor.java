@@ -11,6 +11,9 @@ import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -62,7 +65,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author Radovan Semancik
  */
 @Component
-public class CredentialsProcessor {
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class)
+public class CredentialsProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
@@ -74,14 +78,11 @@ public class CredentialsProcessor {
     @Autowired private LocalizationService localizationService;
     @Autowired private ContextLoader contextLoader;
 
-    /**
-     * @pre context.focusContext is not null and of FocusType.class
-     */
+    @ProcessorMethod
     public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-
         LensFocusContext<F> focusContext = context.getFocusContext();
 
         contextLoader.reloadSecurityPolicyIfNeeded(context, focusContext, task, result);

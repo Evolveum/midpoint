@@ -15,18 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.DownloadLink;
@@ -37,8 +32,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -70,13 +67,17 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
 
 
-    public OperationResultPanel(String id, IModel<OpResult> model, Page parentPage) {
+    public OperationResultPanel(String id, IModel<OpResult> model) {
         super(id, model);
-
-        initLayout(parentPage);
     }
 
-    public void initLayout(Page parentPage) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    public void initLayout() {
 
         WebMarkupContainer detailsBox = new WebMarkupContainer(ID_DETAILS_BOX);
         detailsBox.setOutputMarkupId(true);
@@ -84,7 +85,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         add(detailsBox);
 
         initHeader(detailsBox);
-        initDetails(detailsBox, parentPage);
+        initDetails(detailsBox);
     }
 
     private void initHeader(WebMarkupContainer box) {
@@ -248,17 +249,11 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             public File getObject() {
                 String home = getPageBase().getMidpointConfiguration().getMidpointHome();
                 File f = new File(home, "result");
-                DataOutputStream dos = null;
-                try {
-                    dos = new DataOutputStream(new FileOutputStream(f));
-
+                try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))){
                     dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
                 } catch (IOException e) {
                     LOGGER.error("Could not download result: {}", e.getMessage(), e);
-                } finally {
-                    IOUtils.closeQuietly(dos);
                 }
-
                 return f;
             }
 
@@ -273,43 +268,39 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     private Label createMessage() {
-        Label message = new Label(ID_MESSAGE_LABEL, new IModel<String>() {
+        Label message = new Label(ID_MESSAGE_LABEL, (IModel<String>) () -> {
+            OpResult result = OperationResultPanel.this.getModel().getObject();
 
-            @Override
-            public String getObject() {
-                OpResult result = OperationResultPanel.this.getModel().getObject();
+            PageBase page = getPageBase();
 
-                PageBase page = getPageBase();
+            String msg = null;
+            if (result.getUserFriendlyMessage() != null) {
 
-                String msg = null;
-                if (result.getUserFriendlyMessage() != null) {
+                //TODO: unify with WebModelServiceUtil.translateMessage()
+                LocalizationService service = page.getLocalizationService();
+                Locale locale = page.getSession().getLocale();
 
-                    //TODO: unify with WebModelServiceUtil.translateMessage()
-                    LocalizationService service = page.getLocalizationService();
-                    Locale locale = page.getSession().getLocale();
-
-                    msg = service.translate(result.getUserFriendlyMessage(), locale);
-                }
-
-                if (StringUtils.isNotBlank(msg)) {
-                    return msg;
-                }
-
-                msg = result.getMessage();
-                if (StringUtils.isNotBlank(msg)) {
-                    return msg;
-                }
-
-                String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
-                return page.getString(resourceKey, null, resourceKey);
+                msg = service.translate(result.getUserFriendlyMessage(), locale);
             }
+
+            if (StringUtils.isNotBlank(msg)) {
+                return msg;
+            }
+
+            msg = result.getMessage();
+            if (StringUtils.isNotBlank(msg)) {
+                return msg;
+            }
+
+            String resourceKey = OPERATION_RESOURCE_KEY_PREFIX + result.getOperation();
+            return page.getString(resourceKey, null, resourceKey);
         });
 
         message.setOutputMarkupId(true);
         return message;
     }
 
-    private void initDetails(WebMarkupContainer box, Page parentPage) {
+    private void initDetails(WebMarkupContainer box) {
 
         final WebMarkupContainer details = new WebMarkupContainer("details", getModel());
         details.setOutputMarkupId(true);
@@ -337,7 +328,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         details.add(operationPanel);
 
         Label operationLabel = new Label("operationLabel",
-                parentPage.getString("FeedbackAlertMessageDetails.operation"));
+                createStringResource("FeedbackAlertMessageDetails.operation"));
         operationLabel.setOutputMarkupId(true);
         operationPanel.add(operationLabel);
 
@@ -355,7 +346,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         operation.setOutputMarkupId(true);
         operationPanel.add(operation);
 
-        Label count = new Label("countLabel", parentPage.getString("FeedbackAlertMessageDetails.count"));
+        Label count = new Label("countLabel", createStringResource("FeedbackAlertMessageDetails.count"));
         count.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -385,7 +376,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         operationPanel.add(message);
 
-        Label messageLabel = new Label("messageLabel", parentPage.getString("FeedbackAlertMessageDetails.message"));
+        Label messageLabel = new Label("messageLabel", createStringResource("FeedbackAlertMessageDetails.message"));
         messageLabel.setOutputMarkupId(true);
 
         messageLabel.add(new VisibleEnableBehaviour() {
@@ -399,14 +390,14 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
         operationPanel.add(messageLabel);
 
-        initParams(operationPanel, getModel(), parentPage);
-        initContexts(operationPanel, getModel(), parentPage);
-        initError(operationPanel, getModel(), parentPage);
+        initParams(operationPanel, getModel());
+        initContexts(operationPanel, getModel());
+        initError(operationPanel, getModel());
     }
 
-    private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model, Page parentPage) {
+    private void initParams(WebMarkupContainer operationContent, final IModel<OpResult> model) {
 
-        Label paramsLabel = new Label("paramsLabel", parentPage.getString("FeedbackAlertMessageDetails.params"));
+        Label paramsLabel = new Label("paramsLabel", createStringResource("FeedbackAlertMessageDetails.params"));
         paramsLabel.setOutputMarkupId(true);
         paramsLabel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -445,7 +436,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             protected void populateItem(final ListItem<OpResult> item) {
-                Panel subresult = new OperationResultPanel("subresult", item.getModel(), getPage());
+                Panel subresult = new OperationResultPanel("subresult", item.getModel());
                 subresult.setOutputMarkupId(true);
                 item.add(subresult);
             }
@@ -464,9 +455,9 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
     }
 
-    private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model, Page parentPage) {
+    private void initContexts(WebMarkupContainer operationContent, final IModel<OpResult> model) {
 
-        Label contextsLabel = new Label("contextsLabel", parentPage.getString("FeedbackAlertMessageDetails.contexts"));
+        Label contextsLabel = new Label("contextsLabel", createStringResource("FeedbackAlertMessageDetails.contexts"));
         contextsLabel.setOutputMarkupId(true);
         contextsLabel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -500,8 +491,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
         operationContent.add(contexts);
     }
 
-    private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model, Page parentPage) {
-        Label errorLabel = new Label("errorLabel", parentPage.getString("FeedbackAlertMessageDetails.error"));
+    private void initError(WebMarkupContainer operationPanel, final IModel<OpResult> model) {
+        Label errorLabel = new Label("errorLabel", createStringResource("FeedbackAlertMessageDetails.error"));
         errorLabel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -690,52 +681,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             case WARNING:
             default:
                 return "left-warning";
-        }
-    }
-
-    private String getIconCss(final IModel<OpResult> model) {
-        OpResult result = model.getObject();
-
-        if (result == null || result.getStatus() == null) {
-            return "fa-warning text-warning";
-        }
-
-        switch (result.getStatus()) {
-            case IN_PROGRESS:
-            case NOT_APPLICABLE:
-                return "fa-info-circle  text-info";
-            case SUCCESS:
-                return "fa-check-circle-o text-success";
-            case FATAL_ERROR:
-
-                return "fa-times-circle-o text-danger";
-            case UNKNOWN:
-            case PARTIAL_ERROR:
-            case HANDLED_ERROR: // TODO:
-            case WARNING:
-            default:
-                return "fa-warning text-warning";
-        }
-    }
-
-    static String createMessageTooltip(final IModel<FeedbackMessage> model) {
-        FeedbackMessage message = model.getObject();
-        switch (message.getLevel()) {
-            case FeedbackMessage.INFO:
-                return "info";
-            case FeedbackMessage.SUCCESS:
-                return "success";
-            case FeedbackMessage.ERROR:
-                return "partialError";
-            case FeedbackMessage.FATAL:
-                return "fatalError";
-            case FeedbackMessage.UNDEFINED:
-                return "undefined";
-            case FeedbackMessage.DEBUG:
-                return "debug";
-            case FeedbackMessage.WARNING:
-            default:
-                return "warn";
         }
     }
 

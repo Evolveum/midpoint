@@ -1,10 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
-
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import java.util.*;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,7 +26,9 @@ import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -54,8 +53,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -65,8 +64,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
 
 @PageDescriptor(
         urls = {
@@ -365,11 +362,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
-                            deleteItem(TaskType.F_OPERATION_STATS);
-                        } catch (SchemaException e){
-                            LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                            deleteItem(target, TaskType.F_OPERATION_STATS);
+                        } catch (Exception e) {
+                            LOGGER.error("Cannot delete task operation statistics, {}", e.getMessage(), e);
+                            getSession().error(PageTask.this.getString("PageTask.cleanup.operationStatistics.failed"));
                         }
-                        saveTaskChanges(target);
                     }
                 };
                 showMainPopup(dialog, target);
@@ -378,6 +375,26 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         cleanupPerformance.add(AttributeAppender.append("class", "btn btn-default btn-margin-left btn-sm"));
         cleanupPerformance.add(new VisibleBehaviour(this::isNotRunning));
         repeatingView.add(cleanupPerformance);
+    }
+
+    private void deleteItem(AjaxRequestTarget target, ItemName... itemName) throws SchemaException {
+        List<ItemName> items = Arrays.asList(itemName);
+
+        Collection<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
+        for (ItemName item : items) {
+            ItemDelta<?, ?> delta = createDeleteItemDelta(item);
+            if (delta == null) {
+                LOGGER.trace("Nothing to delete for {}", item);
+                continue;
+            }
+            itemDeltas.add(delta);
+        }
+
+        ObjectDelta<TaskType> taskDelta = getPrismContext().deltaFor(TaskType.class)
+                .asObjectDelta(getTask().getOid());
+        taskDelta.addModifications(itemDeltas);
+
+        saveTaskChanges(target, taskDelta);
     }
 
     private void createCleanupResultsButton(RepeatingView repeatingView) {
@@ -397,12 +414,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     @Override
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
-                            deleteItem(TaskType.F_RESULT);
-                            deleteItem(TaskType.F_RESULT_STATUS);
-                        } catch (SchemaException e){
+                            deleteItem(target, TaskType.F_RESULT, TaskType.F_RESULT_STATUS);
+                        } catch (Exception e){
                             LOGGER.error("Cannot clear task results: {}", e.getMessage());
+                            getSession().error(PageTask.this.getString("PageTask.cleanup.result.failed"));
                         }
-                        saveTaskChanges(target);
                     }
                 };
                 showMainPopup(dialog, target);
@@ -413,32 +429,26 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         repeatingView.add(cleanupResults);
     }
 
-    private void deleteItem(ItemName itemName) throws SchemaException {
+    private ItemDelta<?, ?> createDeleteItemDelta(ItemName itemName) throws SchemaException {
         ItemWrapper<?, ?, ?, ?> item = getObjectWrapper().findItem(itemName, ItemWrapper.class);
         if (item == null) {
-            return;
+            return null;
         }
 
         PrismValueWrapper<?, ?> itemValue = item.getValue();
         if (itemValue == null) {
-            return;
+            return null;
         }
 
-        itemValue.setStatus(ValueStatus.DELETED);
+        PrismValue oldValue = itemValue.getOldValue().clone();
+
+        return getPrismContext().deltaFor(TaskType.class)
+                .item(itemName)
+                    .delete(oldValue)
+                .asItemDelta();
 
     }
-
-    private void saveTaskChanges(AjaxRequestTarget target) {
-        try {
-            ObjectDelta<TaskType> taskDelta = getObjectWrapper().getObjectDelta();
-            saveTaskChanges(target, taskDelta);
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Cannot get task delta.", e);
-            getSession().error("Cannot save changes, there were problems with computing changes: " + e.getMessage());
-            target.add(getFeedbackPanel());
-        }
-    }
-
+    
     private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
         if (taskDelta.isEmpty()) {
             getSession().warn("Nothing to save, no changes were made.");

@@ -10,6 +10,12 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.ChooseArchetypeMemberPopup;
@@ -396,7 +402,7 @@ public class MemberOperationsHelper {
         ScheduleType schedule = new ScheduleType();
         schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         operationalTask.makeSingle(schedule);
-        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
+        operationalTask.setName(WebComponentUtil.createPolyFromOrigString(pageBase.createStringResource(parentResult.getOperation()).getString()));
 
         PrismPropertyDefinition<QueryType> propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);

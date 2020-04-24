@@ -169,13 +169,13 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
+    public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
         try {
-            return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+            return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(caseOid, opTask, result);
         } catch (Throwable t) {
             result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
             throw t;

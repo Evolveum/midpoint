@@ -74,7 +74,7 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
                         targetName, triggers, running);
         int startingStageNumber = wholeProcess ? 1 : currentStageNumber+1;
         boolean reachable = true;
-        for (int i = startingStageNumber - 1; i < numberOfStages; i++) {
+        for (int i = startingStageNumber; i <= numberOfStages; i++) {
             ApprovalStageExecutionInformationDto stage = ApprovalStageExecutionInformationDto.createFrom(info, i, resolver, session, opTask, result);
             stage.setReachable(reachable);
             rv.stages.add(stage);

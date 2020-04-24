@@ -338,7 +338,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private <C extends Containerable> void logSubitemContainerDecision(AccessDecision subdecision, String location, PrismContainerValue<C> cval) {
         if (LOGGER.isTraceEnabled()) {
-            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    container {} for {} (processed subitems): decision={}", cval.getPath(), location, subdecision);
             }
         }
@@ -346,7 +346,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     private <C extends Containerable> void logSubitemDecision(AccessDecision subdecision, String location, ItemPath path) {
         if (LOGGER.isTraceEnabled()) {
-            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuhotizationLog()) {
+            if (subdecision != AccessDecision.ALLOW || InternalsConfig.isDetailedAuthorizationLog()) {
                 LOGGER.trace("    item {} for {}: decision={}", path, location, subdecision);
             }
         }
@@ -2174,13 +2174,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     }
 
     @Override
-    public MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends FocusType> MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal, String attorneyAuthorizationAction, PrismObject<F> donor, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (attorneyPrincipal.getAttorney() != null) {
             throw new UnsupportedOperationException("Transitive attorney is not supported yet");
         }
 
         AuthorizationLimitationsCollector limitationsCollector = new AuthorizationLimitationsCollector();
-        AuthorizationParameters<UserType, ObjectType> autzParams = AuthorizationParameters.Builder.buildObject(donor);
+        AuthorizationParameters<F, ObjectType> autzParams = AuthorizationParameters.Builder.buildObject(donor);
         AccessDecision decision = isAuthorizedInternal(attorneyPrincipal, attorneyAuthorizationAction, null, autzParams, null, limitationsCollector, task, result);
         if (!decision.equals(AccessDecision.ALLOW)) {
             failAuthorization(attorneyAuthorizationAction, null, autzParams, result);

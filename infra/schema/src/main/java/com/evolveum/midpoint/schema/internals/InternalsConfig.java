@@ -54,7 +54,7 @@ public class InternalsConfig {
      */
     private static TestingPaths testingPaths = null;
 
-    private static boolean detailedAuhotizationLog = false;
+    private static boolean detailedAuthorizationLog = false;
 
     public static boolean isPrismMonitoring() {
         return prismMonitoring;
@@ -120,12 +120,12 @@ public class InternalsConfig {
         InternalsConfig.testingPaths = testingPaths;
     }
 
-    public static boolean isDetailedAuhotizationLog() {
-        return detailedAuhotizationLog;
+    public static boolean isDetailedAuthorizationLog() {
+        return detailedAuthorizationLog;
     }
 
-    public static void setDetailedAuhotizationLog(boolean detailedAuhotizationLog) {
-        InternalsConfig.detailedAuhotizationLog = detailedAuhotizationLog;
+    public static void setDetailedAuthorizationLog(boolean detailedAuthorizationLog) {
+        InternalsConfig.detailedAuthorizationLog = detailedAuthorizationLog;
     }
 
     public static boolean isAllowClearDataLogging() {
@@ -159,7 +159,7 @@ public class InternalsConfig {
         prismMonitoring = internalsConfig.getBoolean("prismMonitoring", prismMonitoring);
         modelProfiling = internalsConfig.getBoolean("modelProfiling", modelProfiling);
         // TODO: testingPaths
-        detailedAuhotizationLog = internalsConfig.getBoolean("detailedAuhotizationLog", detailedAuhotizationLog);
+        detailedAuthorizationLog = internalsConfig.getBoolean("detailedAuhotizationLog", detailedAuthorizationLog);
 
     }
 
@@ -173,7 +173,7 @@ public class InternalsConfig {
         prismMonitoring = false;
         modelProfiling = false;
         testingPaths = null;
-        detailedAuhotizationLog = false;
+        detailedAuthorizationLog = false;
     }
 
     public static void setDevelopmentMode() {
