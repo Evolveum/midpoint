@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.org;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -14,6 +15,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
+import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
+import com.evolveum.midpoint.schrodinger.component.user.UsersTableDropDown;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -60,18 +63,8 @@ public class MemberPanel<T> extends Component<T> {
         return this;
     }
 
-    public AssignmentHolderObjectListTable<MemberPanel<T>, AssignmentHolderDetailsPage> table() {
+    public MemberTable<MemberPanel<T>> table() {
         SelenideElement table = getParentElement().$x(".//div[@" + Schrodinger.DATA_S_ID + "='table']");
-        return new AssignmentHolderObjectListTable<MemberPanel<T>, AssignmentHolderDetailsPage>(this, table) {
-            @Override
-            public AssignmentHolderDetailsPage getObjectDetailsPage() {
-                return new AssignmentHolderDetailsPage() {};
-            }
-
-            @Override
-            public <P extends TableWithPageRedirect<MemberPanel<T>>> TableHeaderDropDownMenu<P> clickHeaderActionDropDown() {
-                return null;
-            }
-        };
+        return new MemberTable<>(this, table);
     }
 }

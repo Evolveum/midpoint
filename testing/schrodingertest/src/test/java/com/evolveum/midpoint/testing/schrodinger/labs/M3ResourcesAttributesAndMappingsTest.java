@@ -49,7 +49,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         super.beforeClass();
     }
 
-    @Test
+    @Test(groups={"M3"})
     public void test0301ViewingResources() throws Exception {
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
@@ -143,7 +143,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }
 
-    @Test(dependsOnMethods = {"test0301ViewingResources"})
+    @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
     public void test0302BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
@@ -191,7 +191,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         PrismForm<AccountPage> accountForm = showShadow(CSV_1_RESOURCE_NAME, "Login", "kirk")
                 .form();
 
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim T."));
 
         showUser("kirk")
