@@ -8,8 +8,12 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +40,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
@@ -146,12 +152,132 @@ public class ClockworkMedic {
         }
     }
 
-    public void partialExecute(String componentName, ProjectorComponentRunnable runnable,
-            Supplier<PartialProcessingTypeType> optionSupplier,
-            Class<?> executingClass, LensContext<?> context, OperationResult parentResult)
+    @SuppressWarnings({ "rawtypes", "UnusedReturnValue" })
+    public boolean partialExecute(String componentName, ProjectorProcessor processor,
+            ProjectionAwareProcessorMethodRef method, Supplier<PartialProcessingTypeType> optionSupplier,
+            Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, String activityDescription,
+            XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-        partialExecute(componentName, runnable, optionSupplier, executingClass, context, null, parentResult);
+        if (shouldExecute(componentName, processor, context, projectionContext)) {
+            partialExecute(componentName, (result1) -> {
+                //noinspection unchecked
+                method.run(context, projectionContext, activityDescription, now, task, result1);
+            }, optionSupplier, executingClass, context, projectionContext, parentResult);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    public boolean partialExecute(String componentName, ProjectorProcessor processor,
+            ProcessorMethodRef method, Supplier<PartialProcessingTypeType> optionSupplier,
+            Class<?> executingClass, LensContext<?> context, String activityDescription,
+            XMLGregorianCalendar now, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+        if (shouldExecute(componentName, processor, context, null)) {
+            partialExecute(componentName, (result1) -> {
+                //noinspection unchecked
+                method.run(context, activityDescription, now, task, result1);
+            }, optionSupplier, executingClass, context, null, parentResult);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @SuppressWarnings({ "UnusedReturnValue", "rawtypes" })
+    public boolean partialExecute(String componentName, ProjectorProcessor processor,
+            SimplifiedProcessorMethodRef method, Supplier<PartialProcessingTypeType> optionSupplier,
+            Class<?> executingClass, LensContext<?> context,
+            XMLGregorianCalendar now, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+        if (shouldExecute(componentName, processor, context, null)) {
+            partialExecute(componentName, (result1) -> {
+                //noinspection unchecked
+                method.run(context, now, task, result1);
+            }, optionSupplier, executingClass, context, null, parentResult);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) throws SchemaException {
+        ProcessorExecution processorExecution = processor.getClass().getAnnotation(ProcessorExecution.class);
+        return processorExecution == null || focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
+                && focusDeletionCheckPasses(componentName, context.getFocusContext(), processorExecution)
+                && projectionDeletionCheckPasses(componentName, projectionContext, processorExecution);
+    }
+
+    private boolean focusPresenceAndTypeCheckPasses(String componentName, LensContext<?> context,
+            ProcessorExecution processorExecution) {
+        if (!processorExecution.focusRequired()) {
+            // intentionally skipping focus type check
+            return true;
+        }
+        LensFocusContext<?> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            LOGGER.trace("Skipping {} processing because focus context is null", componentName);
+            return false;
+        }
+        Class<? extends ObjectType> requiredFocusType = processorExecution.focusType();
+        if (!focusContext.isOfType(requiredFocusType)) {
+            LOGGER.trace("Skipping {} processing because focus context is not of required focus class ({})",
+                    componentName, requiredFocusType.getSimpleName());
+            return false;
+        }
+        return true;
+    }
+
+    private boolean focusDeletionCheckPasses(String componentName, LensFocusContext<?> focusContext,
+            ProcessorExecution processorExecution) throws SchemaException {
+        if (focusContext == null) {
+            // If we are OK with no focus context, then the deletion is irrelevant
+            return true;
+        }
+        SkipWhenFocusDeleted skipWhenFocusDeleted = processorExecution.skipWhenFocusDeleted();
+        switch (skipWhenFocusDeleted) {
+            case NONE:
+                return true;
+            case PRIMARY_OR_SECONDARY:
+                return focusPrimaryDeletionCheckPasses(focusContext, componentName)
+                        && focusSecondaryDeletionCheckPasses(focusContext, componentName);
+            case PRIMARY:
+                return focusPrimaryDeletionCheckPasses(focusContext, componentName);
+            default:
+                throw new AssertionError(skipWhenFocusDeleted);
+        }
+    }
+
+    private boolean focusPrimaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) {
+        if (focusContext.isDelete()) {
+            LOGGER.trace("Skipping '{}' because focus is being deleted (primary delta)", componentName);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean focusSecondaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) throws SchemaException {
+        if (focusContext.isSecondaryDelete()) {
+            LOGGER.trace("Skipping '{}' because focus is being deleted (secondary delta)", componentName);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean projectionDeletionCheckPasses(String componentName, LensProjectionContext projectionContext, ProcessorExecution processorExecution) {
+        if (processorExecution.skipWhenProjectionDeleted() && projectionContext != null && projectionContext.isDelete()) {
+            LOGGER.trace("Skipping '{}' because projection is being deleted", componentName);
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public void partialExecute(String baseComponentName, ProjectorComponentRunnable runnable,
@@ -159,6 +285,8 @@ public class ClockworkMedic {
             Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+
+        context.checkAbortRequested();
 
         OperationResult parentResult;
         if (initialParentResult == null) {

@@ -12,6 +12,12 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +26,6 @@ import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -37,13 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
@@ -64,73 +63,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @Component
-public class FocusProcessor {
+// shouldn't we skip on "secondary delete" as well?
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = SkipWhenFocusDeleted.PRIMARY)
+public class FocusActivationProcessor implements ProjectorProcessor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(FocusProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocusActivationProcessor.class);
 
     private PrismContainerDefinition<ActivationType> activationDefinition;
     private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
     @Autowired private PrismContext prismContext;
-    @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ActivationComputer activationComputer;
 
-    <AH extends AssignmentHolderType, F extends FocusType> void processActivationBeforeAssignments(LensContext<AH> context, XMLGregorianCalendar now,
-            OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-
-        if (isFocus(context)) {
-            //noinspection unchecked
-            processActivationBasic((LensContext<F>) context, now, result);
-        } else {
-            LOGGER.trace("Skipping activation processing. Not a focus.");
-        }
+    @ProcessorMethod
+    <F extends FocusType> void processActivationBeforeObjectTemplate(LensContext<F> context, XMLGregorianCalendar now,
+            @SuppressWarnings("unused") Task task, @SuppressWarnings("unused") OperationResult result) throws SchemaException {
+        processActivationBasic(context, now);
     }
 
-    private <AH extends AssignmentHolderType> boolean isFocus(LensContext<AH> context) {
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        return focusContext != null && focusContext.represents(FocusType.class);
+    @ProcessorMethod
+    <F extends FocusType> void processActivationAfterObjectTemplate(LensContext<F> context, XMLGregorianCalendar now,
+            @SuppressWarnings("unused") Task task, @SuppressWarnings("unused") OperationResult result) throws SchemaException {
+        processActivationBasic(context, now);
+        processAssignmentActivation(context); // really?
     }
 
-    <AH extends AssignmentHolderType, F extends FocusType> void processActivationAfterAssignments(LensContext<AH> context, XMLGregorianCalendar now,
-            OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-
-        processActivationBeforeAssignments(context, now, result);
-
-        processAssignmentActivation(context, now, result);
+    @ProcessorMethod
+    <F extends FocusType> void processActivationAfterAssignments(LensContext<F> context, XMLGregorianCalendar now,
+            @SuppressWarnings("unused") Task task, @SuppressWarnings("unused") OperationResult result) throws SchemaException {
+        processActivationBasic(context, now);
+        processAssignmentActivation(context);
     }
 
-    <AH extends AssignmentHolderType, F extends FocusType> void processCredentials(LensContext<AH> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        if (isFocus(context)) {
-            //noinspection unchecked
-            credentialsProcessor.processFocusCredentials((LensContext<F>) context, now, task, result);
-        } else {
-            LOGGER.trace("Skipping credentials processing. Not a focus.");
-        }
-    }
-    private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now,
-            OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    private <F extends FocusType> void processActivationBasic(LensContext<F> context, XMLGregorianCalendar now)
+            throws SchemaException {
         LensFocusContext<F> focusContext = context.getFocusContext();
-
-        if (focusContext.isDelete()) {
-            LOGGER.trace("Skipping processing of focus activation: focus delete");
-            return;
-        }
-
-        processActivationAdministrativeAndValidity(focusContext, now, result);
-
-        if (focusContext.represents(UserType.class)) {
-            //noinspection unchecked
-            processActivationLockout((LensFocusContext<UserType>) focusContext, now, result);
-        }
+        processActivationAdministrativeAndValidity(focusContext, now);
+        processActivationLockout(focusContext);
     }
 
-    private <F extends AssignmentHolderType> void processAssignmentActivation(LensContext<F> context, XMLGregorianCalendar now,
-            OperationResult result) throws SchemaException {
+    private <F extends AssignmentHolderType> void processAssignmentActivation(LensContext<F> context) throws SchemaException {
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             // Code path that should not normally happen. But is used in some tests and may
@@ -161,9 +133,7 @@ public class FocusProcessor {
         }
     }
 
-    private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now,
-            OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    private <F extends FocusType> void processActivationAdministrativeAndValidity(LensFocusContext<F> focusContext, XMLGregorianCalendar now) throws SchemaException {
 
         TimeIntervalStatusType validityStatusNew = null;
         TimeIntervalStatusType validityStatusCurrent = null;
@@ -224,7 +194,7 @@ public class FocusProcessor {
                     // some of the mappings will use effectiveStatus as a source, therefore there has to be a delta for the mapping to work correctly
                     recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
                 } else {
-                    //check computed effective status current with the saved one - e.g. there can be some inconsistencies so we need to check and force the change.. in other cases, effectvie status will be stored with
+                    //check computed effective status current with the saved one - e.g. there can be some inconsistencies so we need to check and force the change.. in other cases, effective status will be stored with
                     // incorrect value. Maybe another option is to not compute effectiveStatusCurrent if there is an existing (saved) effective status in the user.. TODO
                     if (activationCurrent != null && activationCurrent.getEffectiveStatus() != null) {
                         ActivationStatusType effectiveStatusSaved = activationCurrent.getEffectiveStatus();
@@ -239,15 +209,10 @@ public class FocusProcessor {
             LOGGER.trace("Effective status change {} -> {}", effectiveStatusCurrent, effectiveStatusNew);
             recordEffectiveStatusDelta(focusContext, effectiveStatusNew, now);
         }
-
-
     }
 
-    private <F extends FocusType> void processActivationLockout(LensFocusContext<UserType> focusContext, XMLGregorianCalendar now,
-            OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-
-        ObjectDelta<UserType> focusPrimaryDelta = focusContext.getPrimaryDelta();
+    private <F extends FocusType> void processActivationLockout(LensFocusContext<F> focusContext) throws SchemaException {
+        ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
         if (focusPrimaryDelta != null) {
             PropertyDelta<LockoutStatusType> lockoutStatusDelta = focusContext.getPrimaryDelta().findPropertyDelta(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
             if (lockoutStatusDelta != null) {
@@ -268,12 +233,12 @@ public class FocusProcessor {
         }
 
         ActivationType activationNew = null;
-        ActivationType activationCurrent = null;
+        ActivationType activationCurrent;
 
         LockoutStatusType lockoutStatusNew = null;
         LockoutStatusType lockoutStatusCurrent = null;
 
-        PrismObject<UserType> focusNew = focusContext.getObjectNew();
+        PrismObject<F> focusNew = focusContext.getObjectNew();
         if (focusNew != null) {
             activationNew = focusNew.asObjectable().getActivation();
             if (activationNew != null) {
@@ -281,7 +246,7 @@ public class FocusProcessor {
             }
         }
 
-        PrismObject<UserType> focusCurrent = focusContext.getObjectCurrent();
+        PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
         if (focusCurrent != null) {
             activationCurrent = focusCurrent.asObjectable().getActivation();
             if (activationCurrent != null) {
@@ -306,7 +271,7 @@ public class FocusProcessor {
                 resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
             }
 
-            if (activationNew != null && activationNew.getLockoutExpirationTimestamp() != null) {
+            if (activationNew.getLockoutExpirationTimestamp() != null) {
                 PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
                 PrismPropertyDefinition<XMLGregorianCalendar> lockoutExpirationTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
                 PropertyDelta<XMLGregorianCalendar> lockoutExpirationTimestampDelta
@@ -315,10 +280,10 @@ public class FocusProcessor {
                 focusContext.swallowToProjectionWaveSecondaryDelta(lockoutExpirationTimestampDelta);
             }
         }
-
     }
 
-    private void resetFailedLogins(LensFocusContext<UserType> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path) throws SchemaException{
+    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path)
+            throws SchemaException {
         if (credentialTypeNew != null) {
             Integer failedLogins = credentialTypeNew.getFailedLogins();
             if (failedLogins != null && failedLogins != 0) {
@@ -406,6 +371,4 @@ public class FocusProcessor {
         }
         return failedLoginsDefinition;
     }
-
-
 }

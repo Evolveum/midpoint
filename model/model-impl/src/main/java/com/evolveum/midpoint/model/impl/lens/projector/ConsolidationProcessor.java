@@ -71,14 +71,9 @@ public class ConsolidationProcessor {
 
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
 
-    @Autowired
-    private ContextLoader contextLoader;
-
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
-
-    @Autowired
-    PrismContext prismContext;
+    @Autowired private ContextLoader contextLoader;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private PrismContext prismContext;
 
     /**
      * Converts delta set triples to a secondary account deltas.
@@ -100,14 +95,16 @@ public class ConsolidationProcessor {
 
             SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
 
-            if (consistencyChecks) context.checkConsistence();
+            context.checkConsistenceIfNeeded();
             if (policyDecision == SynchronizationPolicyDecision.DELETE) {
                 // Nothing to do
             } else {
                 // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
                 consolidateValuesModifyProjection(context, accCtx, task, result);
+                context.checkConsistenceIfNeeded();
             }
-            if (consistencyChecks) context.checkConsistence();
+            context.recompute();
+            context.checkConsistenceIfNeeded();
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

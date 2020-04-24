@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,12 +46,14 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -69,6 +72,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
     private static final String ID_APPROVER = "approver";
+    private static final String ID_CANDIDATE_CONTAINER = "candidateContainer";
+    private static final String ID_CANDIDATE = "candidate";
     private static final String ID_PARENT_CASE_CONTAINER = "parentCaseContainer";
     private static final String ID_PARENT_CASE = "parentCase";
     private static final String ID_TARGET = "target";
@@ -143,12 +148,28 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
-
         LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER,
                 getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
                 Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of());
         approver.setOutputMarkupId(true);
         add(approver);
+
+        WebMarkupContainer candidateContainer = new WebMarkupContainer(ID_CANDIDATE_CONTAINER);
+        candidateContainer.setOutputMarkupId(true);
+        candidateContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        add(candidateContainer);
+
+        RepeatingView candidateLinksPanel = new RepeatingView(ID_CANDIDATE);
+        candidateLinksPanel.setOutputMarkupId(true);
+        List<ObjectReferenceType> candidates = getModelObject() != null ? getModelObject().getCandidateRef() : null;
+        if (candidates != null){
+            candidates.forEach(candidate -> {
+                LinkedReferencePanel candidatePanel = new LinkedReferencePanel(candidateLinksPanel.newChildId(), Model.of(candidate));
+                candidatePanel.setOutputMarkupId(true);
+                candidateLinksPanel.add(candidatePanel);
+            });
+        }
+        candidateContainer.add(candidateLinksPanel);
 
         WebMarkupContainer parentCaseContainer = new WebMarkupContainer(ID_PARENT_CASE_CONTAINER);
         parentCaseContainer.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
