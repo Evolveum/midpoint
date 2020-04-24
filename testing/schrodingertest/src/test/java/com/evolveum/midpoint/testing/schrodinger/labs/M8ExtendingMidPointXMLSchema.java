@@ -61,7 +61,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         super.springTestContextPrepareTestInstance();
     }
 
-    @Test
+    @Test(groups={"M8"}, dependsOnGroups={"M7"})
     public void test0801ExtendingMidPointXMLSchema() {
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = basicPage.newUser()
                 .selectTabBasic()
@@ -80,6 +80,11 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
                 .table()
+                    .search()
+                        .byName()
+                            .inputValue(HR_RESOURCE_NAME)
+                            .updateSearch()
+                        .and()
                     .clickByName(HR_RESOURCE_NAME)
                         .clickAccountsTab()
                         .clickSearchInResource();

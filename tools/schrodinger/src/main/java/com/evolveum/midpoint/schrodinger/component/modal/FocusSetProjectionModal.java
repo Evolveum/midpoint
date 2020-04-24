@@ -24,7 +24,8 @@ public class FocusSetProjectionModal<T> extends ModalBox<T> {
     }
 
     public FocusTableWithChoosableElements<FocusSetProjectionModal<T>> table() {
-        SelenideElement resourcesBox = $(By.cssSelector("box boxed-table"));
+        SelenideElement resourcesBox = getParentElement().$x(".//div[contains(@class, \"box\") "
+                + "and contains(@class, \"boxed-table\")]");
 
         return new FocusTableWithChoosableElements<>(this, resourcesBox);
     }
