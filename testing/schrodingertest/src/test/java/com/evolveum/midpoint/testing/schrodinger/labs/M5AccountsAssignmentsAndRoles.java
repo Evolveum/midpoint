@@ -61,7 +61,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final File SYSTEM_CONFIGURATION_FILE_5_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
 
     @Test(groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0501UsingRBAC() {
+    public void mod05test01UsingRBAC() {
         importObject(INTERNAL_EMPLOYEE_ROLE_FILE,true);
         importObject(INCOGNITO_ROLE_FILE,true);
         importObject(SECRET_I_ROLE_FILE,true);
@@ -97,7 +97,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0501UsingRBAC"}, groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0502SegregationOfDuties() {
+    public void mod05test02SegregationOfDuties() {
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt()
                     .table()
@@ -116,7 +116,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0502SegregationOfDuties"}, groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0504CreatingRoles() {
+    public void mod05test04CreatingRoles() {
         InducementsTab<AbstractRolePage> tab = basicPage.newRole()
                 .selectTabBasic()
                     .form()
@@ -141,7 +141,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0504CreatingRoles"}, groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0505DisableOnUnassign() {
+    public void mod05test05DisableOnUnassign() {
         importObject(CSV_1_RESOURCE_FILE_5_5,true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
 
@@ -181,7 +181,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0505DisableOnUnassign"}, groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0506InactiveAssignment() {
+    public void mod05test06InactiveAssignment() {
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -227,7 +227,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0506InactiveAssignment"}, groups={"M5"}, dependsOnGroups={"M4"})
-    public void test0507ArchetypesIntroduction() {
+    public void mod05test07ArchetypesIntroduction() {
 
         importObject(ARCHETYPE_EMPLOYEE_FILE, true);
         importObject(ARCHETYPE_EXTERNAL_FILE, true);

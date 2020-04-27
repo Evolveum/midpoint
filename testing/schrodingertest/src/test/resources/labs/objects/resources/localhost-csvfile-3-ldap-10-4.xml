@@ -48,14 +48,10 @@
                         <minOccurs>0</minOccurs>
                     </limitations>
                     <outbound>
-                        <!-- MID-101, LAB 8-1, part 1 of 2: Uncomment after custom schema is enabled -->
-                        <!--
                         <strength>strong</strength>
                         <source>
                             <path>extension/ouPath</path>
                         </source>
--->
-                        <!-- MID-101, LAB 8-1, part 1 of 2: end of comment -->
                         <source>
                             <path>givenName</path>
                         </source>
@@ -67,9 +63,7 @@
                                 <code>
                                     String[] tmpOuPath = []
 
-                                    <!-- MID-101, LAB 8-1, part 2 of 2: Uncomment after custom schema is enabled -->
-                                    <!-- tmpOuPath = ouPath ? ouPath.toString().split(':') : [] -->
-                                    <!-- MID-101, LAB 8-1, part 2 of 2: end of comment -->
+                                    tmpOuPath = ouPath ? ouPath.toString().split(':') : []
                                     tmpOuPathDn = ''
 
                                     for (i = 0; i &lt; tmpOuPath.size(); i++) {
@@ -164,6 +158,7 @@
                 <attribute>
                     <ref>ri:manager</ref>
                     <displayName>Manager</displayName>
+                    <tolerant>false</tolerant>
                     <outbound>
                         <strength>strong</strength>
                         <expression>
@@ -249,8 +244,6 @@ return midpoint.isUniqueAccountValue(resource, projection, 'mail', mail)
                     </filter>
                 </protected>
                 <activation>
-                    <!-- MID-101, LAB 5-5, part 1 of 2: Uncomment the section to use disable instead of delete -->
-                    <!--
                 <existence>
                     <outbound>
             <strength>weak</strength>
@@ -259,12 +252,8 @@ return midpoint.isUniqueAccountValue(resource, projection, 'mail', mail)
                         </expression>
                     </outbound>
                 </existence>
--->
-                    <!-- MID-101, LAB 5-5, part 1 of 2: end of comment -->
                     <administrativeStatus>
                         <outbound>
-                            <!-- MID-101, LAB 5-5, part 2 of 2: Uncomment the section to use disable instead of delete -->
-                            <!--
                         <expression>
                             <script>
                                 <code>
@@ -277,8 +266,6 @@ return midpoint.isUniqueAccountValue(resource, projection, 'mail', mail)
                                 </code>
                             </script>
                         </expression>
--->
-                            <!-- MID-101, LAB 5-5, part 2 of 2: end of comment -->
                         </outbound>
                     </administrativeStatus>
                 </activation>
@@ -289,8 +276,6 @@ return midpoint.isUniqueAccountValue(resource, projection, 'mail', mail)
                     </password>
                 </credentials>
             </objectType>
-            <!-- MID-101, LAB 6-1, part 1 of 2: Uncomment the section to use second intent -->
-            <!--
             <objectType>
         <kind>account</kind>
                 <intent>admin</intent>
@@ -410,8 +395,6 @@ else return ""+(iteration+1)
                     </password>
                 </credentials>
             </objectType>
--->
-            <!-- MID-101, LAB 6-1, part 1 of 2: end of comment -->
         </schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>
@@ -488,8 +471,6 @@ else return ""+(iteration+1)
                     <situation>unmatched</situation>
                 </reaction>
             </objectSynchronization>
-            <!-- MID-101, LAB 6-1, part 2 of 2: Uncomment the section to use second intent -->
-            <!--
             <objectSynchronization>
                     <name>Admin account</name>
                     <description>Admin accounts are in ou=_Administrators container</description>
@@ -551,8 +532,6 @@ basic.getAttributeValue(projection, "dn") ==~ re
                     <situation>unmatched</situation>
                 </reaction>
             </objectSynchronization>
--->
-            <!-- MID-101, LAB 6-1, part 2 of 2: end of comment -->
         </synchronization>
     </c:resource>
 </c:objects>

@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.schrodinger.component.configuration;
 
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 
 /**
@@ -17,6 +20,11 @@ public class SystemTab extends Component<SystemPage> {
 
     public SystemTab(SystemPage parent, SelenideElement parentElement) {
         super(parent, parentElement);
+    }
+
+    public PrismForm<SystemTab> form() {
+        SelenideElement element = null;
+        return new PrismForm<SystemTab>(this, element);
     }
 
     public void auditRecordsCleanupInterval(String interval) {
