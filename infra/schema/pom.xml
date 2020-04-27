@@ -269,6 +269,10 @@
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
+                            <!--
+                            This avoids going online for schema checking which may slow down the build sometimes extremely,
+                            e.g. when firewall is set to drop SYN packet silently during connection.
+                            -->
                             <additionalJvmArgs>-Dcom.sun.tools.xjc.api.impl.s2j.SchemaCompilerImpl.noCorrectnessCheck=true</additionalJvmArgs>
                         </configuration>
                         <goals>
