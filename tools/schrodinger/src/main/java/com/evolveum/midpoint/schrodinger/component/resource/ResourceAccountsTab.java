@@ -71,7 +71,7 @@ public class ResourceAccountsTab<T> extends Component<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         $(Schrodinger.byDataId("a", "repositorySearch"))
-                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .waitUntil(Condition.cssClass("active"), MidPoint.TIMEOUT_MEDIUM_6_S);
 
         return this;
     }
@@ -80,7 +80,7 @@ public class ResourceAccountsTab<T> extends Component<T> {
         $(Schrodinger.byDataId("a", "resourceSearch"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         $(Schrodinger.byDataId("a", "resourceSearch"))
-                .waitUntil(Condition.enabled, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .waitUntil(Condition.cssClass("active"), MidPoint.TIMEOUT_MEDIUM_6_S);
         return this;
     }
 

@@ -15,9 +15,11 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author skublik
@@ -34,7 +36,7 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
 
-    @Test
+    @Test(groups={"M6"}, dependsOnGroups={"M5"})
     public void test0601UsingAccountIntentsForProvisioning() {
 
         importObject(CSV_1_RESOURCE_FILE_6_1,true);

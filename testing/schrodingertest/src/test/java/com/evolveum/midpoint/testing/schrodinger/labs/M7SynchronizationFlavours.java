@@ -34,7 +34,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
-    @Test
+    @Test(groups={"M7"}, dependsOnGroups={"M6"})
     public void test0701RunningImportFromResource() throws IOException {
         hrTargetFile = new File(csvTargetDir, HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
@@ -87,7 +87,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
     }
 
-    @Test(dependsOnMethods = {"test0701RunningImportFromResource"})
+    @Test(dependsOnMethods = {"test0701RunningImportFromResource"}, groups={"M7"}, dependsOnGroups={"M6"})
     public void test0702RunningAccountReconciliation() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         createReconTask("CSV-1 Reconciliation", CSV_1_RESOURCE_NAME);
@@ -109,7 +109,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertTrue(containsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com"));
     }
 
-    @Test(dependsOnMethods = {"test0702RunningAccountReconciliation"})
+    @Test(dependsOnMethods = {"test0702RunningAccountReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
     public void test0703RunningAttributeReconciliation() throws IOException {
         FileUtils.copyFile(CSV_1_SOURCE_FILE_7_3, csv1TargetFile);
 
@@ -126,7 +126,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     }
 
-    @Test(dependsOnMethods = {"test0703RunningAttributeReconciliation"})
+    @Test(dependsOnMethods = {"test0703RunningAttributeReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
     public void test0704RunningLiveSync() throws IOException {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         TaskPage task = basicPage.newTask();
@@ -141,6 +141,11 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                     .editRefValue("objectRef")
                         .selectType("Resource")
                         .table()
+                            .search()
+                                .byName()
+                                    .inputValue(HR_RESOURCE_NAME)
+                                    .updateSearch()
+                                .and()
                             .clickByName(HR_RESOURCE_NAME)
                     .and()
                 .and()
@@ -214,6 +219,11 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                     .editRefValue("objectRef")
                         .selectType("Resource")
                             .table()
+                                .search()
+                                    .byName()
+                                        .inputValue(resource)
+                                        .updateSearch()
+                                    .and()
                                 .clickByName(resource)
                 .and()
             .and()

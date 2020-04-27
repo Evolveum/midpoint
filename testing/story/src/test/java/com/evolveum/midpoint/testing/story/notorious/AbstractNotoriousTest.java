@@ -260,7 +260,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 2);
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2)*2);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
@@ -479,7 +479,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         displayCountersAndInspector();
 
-        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
+        assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 2);
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES)*2);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }

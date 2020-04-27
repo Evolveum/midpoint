@@ -111,7 +111,9 @@ public class ProjectionsTab<P extends AssignmentHolderDetailsPage> extends Compo
         $(Schrodinger.byElementAttributeValue("i", "class", "fa fa-plus "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"));
+        SelenideElement actualModal = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Choose object"))
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_LONG_1_M)
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         return new FocusSetProjectionModal<ProjectionsTab<P>>(this, actualModal);
     }

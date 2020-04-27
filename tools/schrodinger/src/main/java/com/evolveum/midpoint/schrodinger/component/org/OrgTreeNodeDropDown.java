@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.org;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -27,6 +28,7 @@ public class OrgTreeNodeDropDown<T> extends DropDown<T> {
     public OrgPage edit(){
         getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='TreeTablePanel.edit']").parent()
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new OrgPage();
     }
 }

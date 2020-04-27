@@ -26,8 +26,8 @@ public class Search<T> extends Component<T> {
 
         choiceBasicSearch();
 
-        getParentElement().$(Schrodinger.byDataId("a", "mainButton")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(2000);
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='mainButton']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new Popover<>(this, getDisplayedPopover());
     }
 
@@ -56,12 +56,12 @@ public class Search<T> extends Component<T> {
 
     public Search<T> addSearchItem(String name) {
         choiceBasicSearch();
-        getParentElement().$(Schrodinger.byDataId("a", "more")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
-        popover.$(Schrodinger.byDataId("input", "addText")).setValue(name);
+        popover.$x(".//input[@"+Schrodinger.DATA_S_ID+"='addText']").setValue(name);
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        popover.$(Schrodinger.byDataId("a", "propLink")).click();
+        popover.$x(".//a[@"+Schrodinger.DATA_S_ID+"='propLink']").click();
         return this;
     }
 
@@ -72,7 +72,7 @@ public class Search<T> extends Component<T> {
         SelenideElement item = getItemByName(name);
         if (item == null) {
             addSearchItem(name);
-            Selenide.sleep(2000);
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         }
         item = getItemByName(name);
         if (item == null) {
@@ -80,7 +80,7 @@ public class Search<T> extends Component<T> {
         }
 
         item.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new Popover<>(this, getDisplayedPopover());
     }
 
@@ -112,7 +112,7 @@ public class Search<T> extends Component<T> {
         SelenideElement nameItem = getItemByName("Name");
         if (nameItem != null) {
             nameItem.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-            Selenide.sleep(1000);
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
             new Popover<>(this, nameItem).inputValue("").updateSearch();
         }
 

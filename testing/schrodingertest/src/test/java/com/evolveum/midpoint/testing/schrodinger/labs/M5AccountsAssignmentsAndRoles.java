@@ -60,7 +60,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_5_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
 
-    @Test
+    @Test(groups={"M5"}, dependsOnGroups={"M4"})
     public void test0501UsingRBAC() {
         importObject(INTERNAL_EMPLOYEE_ROLE_FILE,true);
         importObject(INCOGNITO_ROLE_FILE,true);
@@ -96,7 +96,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0501UsingRBAC"})
+    @Test(dependsOnMethods = {"test0501UsingRBAC"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0502SegregationOfDuties() {
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt()
@@ -115,7 +115,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
                     .isError();
     }
 
-    @Test(dependsOnMethods = {"test0502SegregationOfDuties"})
+    @Test(dependsOnMethods = {"test0502SegregationOfDuties"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0504CreatingRoles() {
         InducementsTab<AbstractRolePage> tab = basicPage.newRole()
                 .selectTabBasic()
@@ -140,7 +140,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
 
-    @Test(dependsOnMethods = {"test0504CreatingRoles"})
+    @Test(dependsOnMethods = {"test0504CreatingRoles"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0505DisableOnUnassign() {
         importObject(CSV_1_RESOURCE_FILE_5_5,true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -180,7 +180,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
     }
 
-    @Test(dependsOnMethods = {"test0505DisableOnUnassign"})
+    @Test(dependsOnMethods = {"test0505DisableOnUnassign"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0506InactiveAssignment() {
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
@@ -226,7 +226,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
 
-    @Test(dependsOnMethods = {"test0506InactiveAssignment"})
+    @Test(dependsOnMethods = {"test0506InactiveAssignment"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0507ArchetypesIntroduction() {
 
         importObject(ARCHETYPE_EMPLOYEE_FILE, true);

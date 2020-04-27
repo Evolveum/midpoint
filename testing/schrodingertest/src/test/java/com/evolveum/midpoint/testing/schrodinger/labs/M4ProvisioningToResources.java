@@ -45,7 +45,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     private static final File CSV_3_RESOURCE_FILE_4_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-4.xml");
 
 
-    @Test
+    @Test(groups={"M4"}, dependsOnGroups={"M3"})
     public void test0401BasicProvisioningToMultipleResources() {
         importObject(CSV_1_RESOURCE_FILE,true);
 
@@ -181,7 +181,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
     }
 
-    @Test(dependsOnMethods = {"test0401BasicProvisioningToMultipleResources"})
+    @Test(dependsOnMethods = {"test0401BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void test0402AddingMappings() {
 
         importObject(CSV_1_RESOURCE_FILE_4_2,true);
@@ -216,7 +216,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0402AddingMappings"})
+    @Test(dependsOnMethods = {"test0402AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void test0403ModifyingExistingMappings() {
         importObject(CSV_1_RESOURCE_FILE_4_3,true);
 
@@ -271,7 +271,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0403ModifyingExistingMappings"})
+    @Test(dependsOnMethods = {"test0403ModifyingExistingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void test0404AddingANewAttribute() {
         ((PrismFormWithActionButtons<AbstractTableWithPrismView<ProjectionsTab<UserPage>>>)
                 ((AbstractTableWithPrismView)showUser("kirk")
