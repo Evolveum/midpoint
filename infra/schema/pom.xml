@@ -273,6 +273,7 @@
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
+                            <additionalJvmArgs>-Djavax.xml.accessExternalSchema=file</additionalJvmArgs>
                         </configuration>
                         <goals>
                             <goal>wsdl2java</goal>
