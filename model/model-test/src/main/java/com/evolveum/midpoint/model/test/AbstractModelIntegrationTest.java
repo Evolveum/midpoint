@@ -5395,6 +5395,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object.getOid();
     }
 
+    protected String addAndRecompute(TestResource testResource, Task task, OperationResult result) throws Exception {
+        PrismObject<ObjectType> object = repoAddObjectFromFile(testResource.file, result);
+        modelService.recompute(object.asObjectable().getClass(), object.getOid(), null, task, result);
+        PrismObject<? extends ObjectType> after = getObject(object.asObjectable().getClass(), object.getOid());
+        display("Object: " + testResource.file, after);
+        testResource.object = after;
+        return after.getOid();
+    }
+
     protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
         Set<AuditReferenceValue> values = event.getReferenceValues(refName);
         assertEquals("Wrong # of reference values of '" + refName + "'", 1, values.size());
@@ -5935,6 +5944,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         CaseAsserter<Void> asserter = CaseAsserter.forCase(acase, message);
         initializeAsserter(asserter);
         asserter.assertOid(oid);
+        return asserter;
+    }
+
+    protected CaseAsserter<Void> assertCase(CaseType aCase, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        CaseAsserter<Void> asserter = CaseAsserter.forCase(aCase.asPrismObject(), message);
+        initializeAsserter(asserter);
         return asserter;
     }
 

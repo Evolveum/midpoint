@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -26,6 +27,11 @@ public class ResourcesPageTable<T> extends TableWithPageRedirect<T> {
     @Override
     public TableWithPageRedirect<T> selectCheckboxByName(String name) {
         return this;
+    }
+
+    @Override
+    public TableHeaderDropDownMenu<ResourcesPageTable> clickHeaderActionDropDown() {
+        return null;
     }
 
     @Override

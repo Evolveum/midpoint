@@ -96,11 +96,11 @@ public interface WorkflowManager {
      *
      * Does not need authorization checks before execution; it uses model calls in order to gather any information needed.
      *
-     * @param taskOid OID of an approval task that should be analyzed
+     * @param caseOid OID of an approval case that should be analyzed
      * @param opTask task under which this operation is carried out
      * @param parentResult operation result
      */
-    ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask, OperationResult parentResult)
+    ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException;
 

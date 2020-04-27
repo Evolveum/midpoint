@@ -82,7 +82,8 @@ public interface ChangeProcessor {
      * @throws SchemaException
      */
     void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException;
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException,
+            ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
     /**
      * Prepares a process instance-related audit record.

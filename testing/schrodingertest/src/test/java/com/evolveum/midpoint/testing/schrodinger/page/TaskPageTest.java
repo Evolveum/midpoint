@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Selenide;
 
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
@@ -31,10 +32,9 @@ public class TaskPageTest extends AbstractSchrodingerTest {
     public void test001createNewTask() {
 
         String name = "NewTest";
-        String handler = "Recompute task";
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         TaskPage task = basicPage.newTask();
-        task.selectTabBasic().form().addAttributeValue("handlerUri", handler);
-        Selenide.sleep(4000);
+        task.setHandlerUriForNewTask("Recompute task");
         task.selectTabBasic()
                 .form()
                     .addAttributeValue("name", name)
@@ -47,16 +47,16 @@ public class TaskPageTest extends AbstractSchrodingerTest {
         ListTasksPage tasksPage = basicPage.listTasks();
         PrismForm<AssignmentHolderBasicTab<TaskPage>> taskForm = tasksPage
                 .table()
-                .search()
-                .byName()
-                .inputValue(name)
-                .updateSearch()
-                .and()
-                .clickByName(name)
-                .selectTabBasic()
-                .form();
+                    .search()
+                        .byName()
+                            .inputValue(name)
+                            .updateSearch()
+                        .and()
+                    .clickByName(name)
+                        .selectTabBasic()
+                            .form();
 
         Assert.assertTrue(taskForm.compareInputAttributeValue("name", name));
-        Assert.assertTrue(taskForm.compareInputAttributeValue("handlerUri", handler));
+        Assert.assertTrue(taskForm.compareInputAttributeValue("handlerUri", "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3"));
     }
 }

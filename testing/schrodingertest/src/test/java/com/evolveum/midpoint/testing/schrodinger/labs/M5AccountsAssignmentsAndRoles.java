@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import com.codeborne.selenide.Selenide;
@@ -18,7 +17,6 @@ import com.evolveum.midpoint.schrodinger.component.AssignmentHolderBasicTab;
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 import com.evolveum.midpoint.schrodinger.component.InducementsTab;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AbstractRolePage;
 import com.evolveum.midpoint.schrodinger.page.archetype.ArchetypePage;
@@ -36,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -46,9 +42,9 @@ import javax.xml.namespace.QName;
  * @author skublik
  */
 
-public class AccountsAssignmentsAndRoles extends AbstractLabTest {
+public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AccountsAssignmentsAndRoles.class);
+    private static final Logger LOG = LoggerFactory.getLogger(M5AccountsAssignmentsAndRoles.class);
 
     private static final File INCOGNITO_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-incognito.xml");
     private static final File INTERNAL_EMPLOYEE_ROLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "roles/role-internal-employee.xml");
@@ -61,11 +57,10 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
     private static final File ARCHETYPE_EMPLOYEE_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-employee.xml");
     private static final String ARCHETYPE_EMPLOYEE_NAME = "Employee";
     private static final String ARCHETYPE_EMPLOYEE_LABEL = "Employee";
-    private static final String ARCHETYPE_EMPLOYEE_PLURAL_LABEL = "Employees";
     private static final File ARCHETYPE_EXTERNAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-external.xml");
     private static final File SYSTEM_CONFIGURATION_FILE_5_7 = new File(LAB_OBJECTS_DIRECTORY + "systemConfiguration/system-configuration-5-7.xml");
 
-    @Test
+    @Test(groups={"M5"}, dependsOnGroups={"M4"})
     public void test0501UsingRBAC() {
         importObject(INTERNAL_EMPLOYEE_ROLE_FILE,true);
         importObject(INCOGNITO_ROLE_FILE,true);
@@ -101,7 +96,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0501UsingRBAC"})
+    @Test(dependsOnMethods = {"test0501UsingRBAC"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0502SegregationOfDuties() {
         showUser("kirk").selectTabAssignments()
                 .clickAddAssignemnt()
@@ -120,7 +115,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
                     .isError();
     }
 
-    @Test(dependsOnMethods = {"test0502SegregationOfDuties"})
+    @Test(dependsOnMethods = {"test0502SegregationOfDuties"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0504CreatingRoles() {
         InducementsTab<AbstractRolePage> tab = basicPage.newRole()
                 .selectTabBasic()
@@ -145,7 +140,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
 
-    @Test(dependsOnMethods = {"test0504CreatingRoles"})
+    @Test(dependsOnMethods = {"test0504CreatingRoles"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0505DisableOnUnassign() {
         importObject(CSV_1_RESOURCE_FILE_5_5,true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -185,7 +180,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
     }
 
-    @Test(dependsOnMethods = {"test0505DisableOnUnassign"})
+    @Test(dependsOnMethods = {"test0505DisableOnUnassign"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0506InactiveAssignment() {
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
         AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
@@ -231,7 +226,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
     }
 
-    @Test(dependsOnMethods = {"test0506InactiveAssignment"})
+    @Test(dependsOnMethods = {"test0506InactiveAssignment"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void test0507ArchetypesIntroduction() {
 
         importObject(ARCHETYPE_EMPLOYEE_FILE, true);
@@ -254,7 +249,7 @@ public class AccountsAssignmentsAndRoles extends AbstractLabTest {
         FormLoginPage login = midPoint.formLogin();
         login.login(getUsername(), getPassword());
 
-        basicPage.listUsers().newUser(ARCHETYPE_EMPLOYEE_LABEL)
+        basicPage.listUsers().newUser("New "+ARCHETYPE_EMPLOYEE_LABEL.toLowerCase())
                 .selectTabBasic()
                     .form()
                         .addAttributeValue(UserType.F_NAME, "janeway")

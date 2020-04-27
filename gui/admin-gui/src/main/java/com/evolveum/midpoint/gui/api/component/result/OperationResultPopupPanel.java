@@ -32,7 +32,7 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
         super.onInitialize();
 
         OperationResultPanel operationResultPanel = new OperationResultPanel(ID_OPERATION_RESULTS_PANEL,
-                Model.of(OpResult.getOpResult(getPageBase(), getModelObject())), getPageBase());
+                Model.of(OpResult.getOpResult(getPageBase(), getModelObject())));
         operationResultPanel.setOutputMarkupId(true);
         add(operationResultPanel);
     }

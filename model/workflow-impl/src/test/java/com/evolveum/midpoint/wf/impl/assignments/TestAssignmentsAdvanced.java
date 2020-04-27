@@ -146,13 +146,6 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
     }
 
-    @Override
-    protected TracingProfileType getTestMethodTracingProfile() {
-        return null;
-//        return createModelAndWorkflowLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
-
     @Test
     public void test102AddRoles123AssignmentYYYYDeputy() throws Exception {
         login(userAdministrator);

@@ -95,19 +95,23 @@ public class ApprovalSchemaExecutionInformationHelper {
             return rv;
         }
         rv.setCurrentStageNumber(aCase.getStageNumber());
-        Integer currentStageNumber = !purePreview ? aCase.getStageNumber() : 0;
-        if (currentStageNumber == null) {
-            result.recordFatalError("Information on current stage number in " + aCase + " is missing or not accessible.");
-            return rv;
+        int currentStageNumber;
+        if (purePreview) {
+            currentStageNumber = 0;
+        } else {
+            if (aCase.getStageNumber() != null) {
+                currentStageNumber = aCase.getStageNumber();
+            } else {
+                result.recordFatalError("Information on current stage number in " + aCase + " is missing or not accessible.");
+                return rv;
+            }
         }
         List<ApprovalStageDefinitionType> stagesDef = ApprovalContextUtil.sortAndCheckStages(approvalSchema);
         for (ApprovalStageDefinitionType stageDef : stagesDef) {
             ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
             stageExecution.setNumber(stageDef.getNumber());
             stageExecution.setDefinition(stageDef);
-            if (stageDef.getNumber() <= currentStageNumber) {
-                stageExecution.setExecutionRecord(createStageExecutionRecord(aCase, stageDef.getNumber(), currentStageNumber));
-            } else {
+            if (stageDef.getNumber() > currentStageNumber) {
                 stageExecution.setExecutionPreview(createStageExecutionPreview(aCase, opTask.getChannel(), stageDef, opTask, result));
             }
             rv.getStage().add(stageExecution);
@@ -133,19 +137,6 @@ public class ApprovalSchemaExecutionInformationHelper {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute stage execution preview", t);
             rv.setErrorMessage(MiscUtil.formatExceptionMessageWithCause(t));
             rv.getExpectedApproverRef().addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef()));      // at least something here
-        }
-        return rv;
-    }
-
-    private ApprovalStageExecutionRecordType createStageExecutionRecord(CaseType aCase, Integer stageNumberObject,
-            int currentStageNumber) {
-        int stageNumber = stageNumberObject;
-        ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
-        aCase.getEvent().stream()
-                .filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
-                .forEach(e -> rv.getEvent().add(e.clone()));
-        if (stageNumber == currentStageNumber) {
-            rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(aCase.getWorkItem()));
         }
         return rv;
     }

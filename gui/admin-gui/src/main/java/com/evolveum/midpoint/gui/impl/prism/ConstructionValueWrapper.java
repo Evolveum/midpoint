@@ -10,13 +10,20 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import org.apache.commons.lang.StringUtils;
+
 public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<ConstructionType> {
+
+    private static final transient Trace LOGGER = TraceManager.getTrace(ConstructionValueWrapper.class);
 
     private PrismObject<ResourceType> resource;
     private transient RefinedResourceSchema resourceSchema;
@@ -45,11 +52,38 @@ public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<Con
     }
 
     public ShadowKindType getKind() {
-        return getNewValue().asContainerable().getKind();
+        ShadowKindType kind =  getNewValue().asContainerable().getKind();
+        if (kind == null) {
+            kind = ShadowKindType.ACCOUNT;
+        }
+        return kind;
     }
 
     public String getIntent() {
-        return getNewValue().asContainerable().getIntent();
+        String intent = getNewValue().asContainerable().getIntent();
+        if (StringUtils.isBlank(intent)) {
+            ObjectClassComplexTypeDefinition def;
+            try {
+                def = findDefaultObjectClassDefinition();
+                if (def != null) {
+                    intent = def.getIntent();
+                }
+            } catch (SchemaException e) {
+                LOGGER.error("Cannot get default object class definition, {}", e.getMessage(), e);
+                intent = "default";
+            }
+
+        }
+        return intent;
+    }
+
+    private ObjectClassComplexTypeDefinition findDefaultObjectClassDefinition() throws SchemaException{
+        RefinedResourceSchema schema = getResourceSchema();
+        if (schema == null) {
+            return null;
+        }
+
+        return schema.findDefaultObjectClassDefinition(getKind());
     }
 
 }

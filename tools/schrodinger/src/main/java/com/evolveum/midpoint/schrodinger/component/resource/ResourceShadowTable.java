@@ -9,14 +9,12 @@ package com.evolveum.midpoint.schrodinger.component.resource;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
-import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
-import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
+import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-
-import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -30,8 +28,9 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
 
     @Override
     public AccountPage clickByName(String name) {
-        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        SelenideElement link = getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name));
+        link.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        link.waitWhile(Condition.exist, MidPoint.TIMEOUT_LONG_1_M);
 
         return new AccountPage();
     }
@@ -39,20 +38,30 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     @Override
     public ResourceShadowTable<T> selectCheckboxByName(String name) {
 
-        $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("input", "type", "checkbox", "data-s-id", "3", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        SelenideElement check = $(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("input", "type", "checkbox", "data-s-id", "3", name));
+        check.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        check.waitUntil(Condition.selected, MidPoint.TIMEOUT_MEDIUM_6_S);
+
         return this;
     }
 
-    public ResourceShadowTableCog<ResourceShadowTable<T>> clickCog() {
+    public UserPage clickOnOwnerByName(String name) {
 
+        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        return new UserPage();
+    }
+
+    @Override
+    public ResourceShadowTableHeaderDropDown<ResourceShadowTable<T>> clickHeaderActionDropDown() {
         $(Schrodinger.byElementAttributeValue("button", "data-toggle", "dropdown"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement cog = $(Schrodinger.byElementAttributeValue("ul","role","menu"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new ResourceShadowTableCog<>(this, cog);
+        return new ResourceShadowTableHeaderDropDown<>(this, cog);
     }
 
     @Override

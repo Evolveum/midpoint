@@ -11,12 +11,10 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -52,11 +50,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     List<? extends ItemWrapper<?,?,?,?>> getNonContainers();
 
-//    PrismContainerWrapper<C> getParent();
-
     List<? extends ItemWrapper<?,?,?,?>> getItems();
-
-//    PrismContainerValue<C> getNewValue();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;

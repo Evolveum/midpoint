@@ -96,7 +96,6 @@ public class WfHook implements ChangeHook {
         result.addArbitraryObjectAsContext("model state", context.getState());
         try {
             WfConfigurationType wfConfigurationType = configurationHelper.getWorkflowConfiguration(context, result);
-            // TODO consider this if it's secure enough
             if (wfConfigurationType != null && Boolean.FALSE.equals(wfConfigurationType.isModelHookEnabled())) {
                 LOGGER.info("Workflow model hook is disabled. Proceeding with operation execution as if everything is approved.");
                 result.recordSuccess();

@@ -7,26 +7,23 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -36,14 +33,9 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar.
@@ -77,10 +69,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         tabPanel.setOutputMarkupPlaceholderTag(true);
         form.add(tabPanel);
 
-        Label warningMessage = new Label(ID_WARNING_MESSAGE, this :: getWarningMessageModel);
+        MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
         warningMessage.setOutputMarkupId(true);
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
-        form.add(warningMessage);
+        add(warningMessage);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
                 createStringResource("userBrowserDialog.button.cancelButton")) {
@@ -109,18 +101,18 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     if (assignmentPanel == null){
                         return;
                     }
-
-                    (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsMap()).forEach((k, v) ->
-                            selectedAssignmentsMap.putIfAbsent((String)k, (AssignmentType) v));
-
-
+                    if (AbstractAssignmentPopupTabPanel.class.isAssignableFrom(assignmentPanel.getClass())) {
+                        Map<String, AssignmentType> map = (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsMap());
+                        map.forEach(selectedAssignmentsMap::putIfAbsent);
+                    }
                 });
                 List<AssignmentType> assignments = new ArrayList<>(selectedAssignmentsMap.values());
+                getPageBase().hideMainPopup(target);
                 addPerformed(target, assignments);
             }
         };
         addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
-        addButton.add(new EnableBehaviour(() -> isAssignButtonEnabled()));
+        addButton.add(new EnableBehaviour(this::isAssignButtonEnabled));
         addButton.setOutputMarkupId(true);
         form.add(addButton);
     }
@@ -401,7 +393,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){
-        if (panel != null && panel instanceof AbstractAssignmentPopupTabPanel){
+        if (panel instanceof AbstractAssignmentPopupTabPanel){
             return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
@@ -428,7 +420,6 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     protected void addPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
-        getPageBase().hideMainPopup(target);
     }
 
     private IModel<String> getAddButtonTitleModel(){

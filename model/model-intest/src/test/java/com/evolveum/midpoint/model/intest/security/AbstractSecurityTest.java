@@ -497,7 +497,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 
-        InternalsConfig.setDetailedAuhotizationLog(true);
+        InternalsConfig.setDetailedAuthorizationLog(true);
     }
 
     protected int getNumberOfRoles() {

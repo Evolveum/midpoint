@@ -82,8 +82,8 @@ public class Table<T> extends Component<T> {
         return new Search<>(this, searchElement);
     }
 
-    public Paging<T> paging() {
-        SelenideElement pagingElement = getParentElement().$(By.className("boxed-table-footer-paging"));
+    public <P extends Table<T>> Paging<P> paging() {
+        SelenideElement pagingElement = getParentElement().$x(".//div[@class='boxed-table-footer-paging']");
 
         return new Paging(this, pagingElement);
     }

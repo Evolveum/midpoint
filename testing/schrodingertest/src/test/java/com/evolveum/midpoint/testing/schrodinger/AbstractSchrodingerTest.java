@@ -13,15 +13,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 
 import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
 
+import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 
 import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.By;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -52,7 +56,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("default")
 @SpringBootTest(classes = MidPointSpringApplication.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })//, "webdriverLocation=234234234" })
+@TestPropertySource(properties = { "server.port=8180", "midpoint.schrodinger=true" })
 @Listeners({ BrowserPerClass.class })
 public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
@@ -155,7 +159,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                 .clickYes();
     }
 
-    protected void importObject(File source, Boolean overrideExistingObject) {
+    protected void importObject(File source, boolean overrideExistingObject, boolean ignoreWarning) {
         ImportObjectPage importPage = basicPage.importObject();
 
         if (overrideExistingObject) {
@@ -163,17 +167,33 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
                     .checkOverwriteExistingObject();
         }
 
-        Assert.assertTrue(
-                importPage
-                        .getObjectsFromFile()
-                        .chooseFile(source)
+        FeedbackBox<? extends BasicPage> feedback = importPage
+                .getObjectsFromFile()
+                    .chooseFile(source)
                         .clickImportFileButton()
-                        .feedback()
-                        .isSuccess());
+                            .feedback();
+
+        boolean isSuccess = false;
+        try {
+            isSuccess = feedback.isSuccess();
+        } catch (ElementNotFound e) {
+            if (!ignoreWarning) {
+                throw e;
+            }
+            // else ignoring exception but isSuccess is still false
+        }
+        if (!isSuccess && ignoreWarning) {
+            isSuccess = feedback.isWarning();
+        }
+        Assert.assertTrue(isSuccess);
+    }
+
+    protected void importObject(File source, boolean overrideExistingObject) {
+        importObject(source, overrideExistingObject, false);
     }
 
     protected void importObject(File source) {
-        importObject(source, false);
+        importObject(source, false, false);
     }
 
     protected String fetchMidpointHome() {

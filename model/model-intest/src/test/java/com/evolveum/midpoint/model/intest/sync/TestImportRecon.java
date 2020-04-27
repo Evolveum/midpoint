@@ -94,7 +94,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final String USER_AUGUSTUS_NAME = "augustus";
 
-    private static class AccountTestResource extends TestResource {
+    private static class AccountTestResource extends TestResource<ShadowType> {
         private final String name;
         @SuppressWarnings({ "FieldCanBeLocal", "unused" })
         private final String fullName;

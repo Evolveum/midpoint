@@ -313,6 +313,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="approvalSchemaExecutionInformation" type="c:ApprovalSchemaExecutionInformationType" />
 
     <xsd:complexType name="ApprovalStageExecutionInformationType">
         <xsd:annotation>
@@ -411,10 +412,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 Record of an actual execution of an approval stage.
+                Note that this structure is deprecated. Everything we need can be found in the case object
+                attached to (enclosing) ApprovalSchemaExecutionInformationType.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.7</a:since>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.1</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

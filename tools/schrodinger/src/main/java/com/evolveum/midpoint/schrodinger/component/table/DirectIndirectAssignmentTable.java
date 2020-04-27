@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.component.table;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
@@ -20,7 +21,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class DirectIndirectAssignmentTable<T> extends DropDown<T> {
+public class DirectIndirectAssignmentTable<T> extends Component<T> {
 
     public DirectIndirectAssignmentTable(T parent, SelenideElement parentElement) {
         super(parent, parentElement);

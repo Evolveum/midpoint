@@ -15,9 +15,11 @@ import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
+import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -84,7 +86,7 @@ public class DecisionDto extends Selectable {
 
     // if pageBase is null, references will not be resolved
     @Nullable
-    public static DecisionDto create(CaseEventType e, @Nullable PageBase pageBase) {
+    public static <O extends ObjectType> DecisionDto create(CaseEventType e, @Nullable PageBase pageBase) {
 
         // we want to show user decisions, automatic decisions and delegations
         DecisionDto rv = new DecisionDto();
@@ -125,9 +127,10 @@ public class DecisionDto extends Selectable {
                 rv.comment = event.getComment();
             }
 
-            String assigneeBeforeNamesList = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(event.getAssigneeBefore(), false);
-            String assigneeAfterNamesList = WebComponentUtil.getReferencedObjectDisplayNamesAndNames(event.getDelegatedTo(), false);
-            rv.assigneeChange =  assigneeBeforeNamesList + " -> " + assigneeAfterNamesList;
+            String assigneeBeforeNames = getReferencedObjectListDisplayNames(event.getAssigneeBefore(), pageBase);
+            String assigneeAfterNames = getReferencedObjectListDisplayNames(event.getDelegatedTo(), pageBase);
+
+            rv.assigneeChange =  assigneeBeforeNames + " -> " + assigneeAfterNames;
             return rv;
         } else if (e instanceof StageCompletionEventType) {
             StageCompletionEventType completion = (StageCompletionEventType) e;
@@ -148,5 +151,17 @@ public class DecisionDto extends Selectable {
         } else {
             return null;
         }
+    }
+
+    private static <O extends ObjectType> String getReferencedObjectListDisplayNames(List<ObjectReferenceType> referencedObjects, PageBase pageBase){
+        if (referencedObjects == null){
+            return "";
+        }
+        List<O> assigneeBeforeObjectsList = WebComponentUtil.loadReferencedObjectList(referencedObjects,
+                pageBase.getClass().getSimpleName() + ".resolveReferenceName", pageBase);
+        return assigneeBeforeObjectsList
+                .stream()
+                .map(obj -> WebComponentUtil.getDisplayNameOrName(obj.asPrismObject()))
+                .collect(Collectors.joining(", "));
     }
 }

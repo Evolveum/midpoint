@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -491,7 +492,8 @@ public class PageAuditLogDetails extends PageBase {
                                 for (RawType rawType : itemDelta.getValue()) {
                                     if (rawType != null && QNameUtil.match(rawType.getExplicitTypeName(), ObjectReferenceType.COMPLEX_TYPE)) {
                                         try {
-                                            ObjectReferenceType ref = rawType.getParsedRealValue(ObjectReferenceType.class);
+                                            //TODO change this after hack in asReferencable is fixed
+                                            Referencable ref = rawType.getParsedRealValue(ObjectReferenceType.class);
                                             if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
                                                 String resource = (delta.getResourceName() != null) ? delta.getResourceName().getOrig() : delta.getResourceOid();
                                                 resourceForShadow.put(ref.getOid(), resource);

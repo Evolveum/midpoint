@@ -102,7 +102,7 @@ public class ChangeExecutor {
     private static final String OPERATION_UPDATE_SITUATION_IN_SHADOW = ChangeExecutor.class.getName() + ".updateSituationInShadow";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired(required = false) private WorkflowManager workflowManager; // not available e.g. during tests
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
     @Autowired private ProvisioningService provisioning;
     @Autowired private PrismContext prismContext;
@@ -113,6 +113,7 @@ public class ChangeExecutor {
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private OperationalDataManager metadataManager;
     @Autowired private CredentialsProcessor credentialsProcessor;
+    @Autowired private ClockworkConflictResolver clockworkConflictResolver;
 
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -182,12 +183,8 @@ public class ChangeExecutor {
                         executeDelta(focusDelta, focusContext, context, null, conflictResolution, null, task, subResult);
 
                         if (focusDelta.isAdd() && focusDelta.getOid() != null) {
-                            // The watcher can already exist; if the OID was pre-existing in the object.
-                            if (context.getFocusConflictWatcher() == null) {
-                                ConflictWatcher watcher = context
-                                        .createAndRegisterFocusConflictWatcher(focusDelta.getOid(), cacheRepositoryService);
-                                watcher.setExpectedVersion(focusDelta.getObjectToAdd().getVersion());
-                            }
+                            clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),
+                                    focusDelta.getObjectToAdd().getVersion());
                         }
                         subResult.computeStatus();
 
@@ -1420,7 +1417,7 @@ public class ChangeExecutor {
                 taskManager.deleteTask(oid, result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
                 taskManager.deleteNode(oid, result);
-            } else if (CaseType.class.isAssignableFrom(objectTypeClass)) {
+            } else if (workflowManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
                 workflowManager.deleteCase(oid, task, result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
