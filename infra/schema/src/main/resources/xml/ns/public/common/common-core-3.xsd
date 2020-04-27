@@ -867,6 +867,7 @@
                         <a:displayName>MetadataType.requestTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:since>3.5</a:since>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -879,6 +880,7 @@
                         <a:displayName>MetadataType.requestorRef</a:displayName>
                         <a:operational>true</a:operational>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

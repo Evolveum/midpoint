@@ -46,6 +46,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author lazyman
@@ -144,6 +145,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             }
         }
         return value;
+    }
+    
+    @Override
+    public Optional<ValueMetadata> valueMetadata() {
+        return Optional.empty();
     }
 
     public XNodeImpl getRawElement() {

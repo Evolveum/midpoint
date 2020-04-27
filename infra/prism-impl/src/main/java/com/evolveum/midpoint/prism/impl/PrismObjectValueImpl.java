@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Extension of PrismContainerValue that holds object-specific data (OID and version).
@@ -73,6 +74,11 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
         this.version = version;
     }
 
+    @Override
+    public Optional<ValueMetadata> valueMetadata() {
+        return ValueMetadataAdapter.from(this);
+    }
+    
     public O asObjectable() {
         return asContainerable();
     }

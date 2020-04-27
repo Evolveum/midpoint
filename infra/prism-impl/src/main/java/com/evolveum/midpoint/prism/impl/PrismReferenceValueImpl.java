@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -71,6 +72,11 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         this.oid = oid;
     }
 
+    @Override
+    public Optional<ValueMetadata> valueMetadata() {
+        return Optional.empty();
+    }
+    
     /**
      * OID of the object that this reference refers to (reference target).
      *

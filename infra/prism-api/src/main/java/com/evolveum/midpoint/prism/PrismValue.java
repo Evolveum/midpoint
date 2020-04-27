@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author semancik
@@ -44,6 +45,9 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     Itemable getParent();
 
     void setParent(Itemable parent);
+
+    @Experimental
+    Optional<ValueMetadata> valueMetadata();
 
     @NotNull
     ItemPath getPath();
