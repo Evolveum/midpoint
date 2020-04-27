@@ -210,4 +210,9 @@ public class ExpressionFactory implements Cacheable {
                         .size(cache.size())
         );
     }
+
+    @Override
+    public void dumpContent() {
+        // Implement eventually
+    }
 }

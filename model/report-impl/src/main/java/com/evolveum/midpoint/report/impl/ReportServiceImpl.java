@@ -378,7 +378,8 @@ public class ReportServiceImpl implements ReportService {
         context.setObjectResolver(objectResolver);
 
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
-                expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(), context.getTask(), context.getResult());
+                expressionType, context.getOutputDefinition(), context.getExpressionProfile(), expressionFactory, context.getContextDescription(),
+                context.getResult());
 
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context.getTask(), context.getResult()));
         List<PrismValue> expressionResult;

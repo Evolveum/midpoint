@@ -10,6 +10,8 @@ package com.evolveum.midpoint.repo.cache;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 /**
@@ -18,11 +20,11 @@ import java.util.Objects;
  */
 public class QueryKey {
 
-    private final Class<? extends ObjectType> type;
+    @NotNull private final Class<? extends ObjectType> type;
     private final ObjectQuery query;
     private Integer cachedHashCode;
 
-    <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query) {
+    <T extends ObjectType> QueryKey(@NotNull Class<T> type, ObjectQuery query) {
         this.type = type;
         this.query = query != null ? query.clone() : null;
     }
@@ -48,7 +50,7 @@ public class QueryKey {
         return cachedHashCode;
     }
 
-    public Class<? extends ObjectType> getType() {
+    @NotNull public Class<? extends ObjectType> getType() {
         return type;
     }
 
@@ -59,7 +61,7 @@ public class QueryKey {
     @Override
     public String toString() {
         return "QueryKey{" +
-                "type=" + type +
+                "type=" + type.getSimpleName() +
                 ", query=" + query +
                 '}';
     }

@@ -34,7 +34,7 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
      * @see com.evolveum.midpoint.model.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
      */
     @Override
-    public boolean isSupported(QName xsdType) {
+    public boolean supports(QName xsdType) {
         // We support everything. We are the default.
         return true;
     }

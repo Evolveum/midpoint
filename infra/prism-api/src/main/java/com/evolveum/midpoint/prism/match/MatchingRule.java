@@ -29,7 +29,7 @@ public interface MatchingRule<T> {
     /**
      * Returns true if the rule can be applied to the specified XSD type.
      */
-    boolean isSupported(QName xsdType);
+    boolean supports(QName xsdType);
 
     /**
      * Matches two objects.

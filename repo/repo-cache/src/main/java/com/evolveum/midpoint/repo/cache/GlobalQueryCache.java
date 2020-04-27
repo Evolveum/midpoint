@@ -14,9 +14,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryPolicy;
 import org.cache2k.processor.EntryProcessor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -33,10 +36,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GlobalQueryCache extends AbstractGlobalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(GlobalQueryCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(GlobalQueryCache.class.getName() + ".content");
 
     private static final String CACHE_NAME = "queryCache";
 
-    private org.cache2k.Cache<QueryKey, SearchResultList> cache;
+    private org.cache2k.Cache<QueryKey, GlobalCacheQueryValue> cache;
 
     public void initialize() {
         if (cache != null) {
@@ -48,7 +52,7 @@ public class GlobalQueryCache extends AbstractGlobalCache {
             LOGGER.warn("Capacity for " + getCacheType() + " is set to 0; this cache will be disabled (until system restart)");
             cache = null;
         } else {
-            cache = new Cache2kBuilder<QueryKey, SearchResultList>() {}
+            cache = new Cache2kBuilder<QueryKey, GlobalCacheQueryValue>() {}
                     .name(CACHE_NAME)
                     .entryCapacity(capacity)
                     .expiryPolicy(getExpirePolicy())
@@ -57,7 +61,7 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    private ExpiryPolicy<QueryKey, SearchResultList> getExpirePolicy() {
+    private ExpiryPolicy<QueryKey, GlobalCacheQueryValue> getExpirePolicy() {
         return (key, value, loadTime, oldEntry) -> getExpiryTime(key.getType());
     }
 
@@ -74,8 +78,13 @@ public class GlobalQueryCache extends AbstractGlobalCache {
     }
 
     public <T extends ObjectType> SearchResultList<PrismObject<T>> get(QueryKey key) {
-        //noinspection unchecked
-        return cache != null ? cache.peek(key) : null;
+        if (cache != null) {
+            GlobalCacheQueryValue value = cache.peek(key);
+            //noinspection unchecked
+            return value != null ? value.getResult() : null;
+        } else {
+            return null;
+        }
     }
 
     public void remove(QueryKey cacheKey) {
@@ -84,13 +93,14 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    public <T extends ObjectType> void put(QueryKey key, SearchResultList<PrismObject<T>> cacheObject) {
+    public <T extends ObjectType> void put(QueryKey key, @NotNull SearchResultList<PrismObject<T>> cacheObject) {
         if (cache != null) {
-            cache.put(key, cacheObject);
+            //noinspection unchecked
+            cache.put(key, new GlobalCacheQueryValue(cacheObject));
         }
     }
 
-    public void invokeAll(EntryProcessor<QueryKey, SearchResultList, Void> entryProcessor) {
+    void invokeAll(EntryProcessor<QueryKey, GlobalCacheQueryValue, Void> entryProcessor) {
         if (cache != null) {
             cache.invokeAll(cache.keys(), entryProcessor);
         }
@@ -113,25 +123,50 @@ public class GlobalQueryCache extends AbstractGlobalCache {
     }
 
     Collection<SingleCacheStateInformationType> getStateInformation() {
-        Map<Class<?>, Integer> counts = new HashMap<>();
-        AtomicInteger size = new AtomicInteger(0);
+        Map<Class<?>, MutablePair<Integer, Integer>> counts = new HashMap<>();
+        AtomicInteger queries = new AtomicInteger(0);
+        AtomicInteger objects = new AtomicInteger(0);
         if (cache != null) {
             cache.invokeAll(cache.keys(), e -> {
-                Class<?> objectType = e.getKey().getType();
-                counts.compute(objectType, (type, count) -> count != null ? count+1 : 1);
-                size.incrementAndGet();
+                QueryKey queryKey = e.getKey();
+                Class<?> objectType = queryKey.getType();
+                int resultingObjects = e.getValue().getResult().size();
+                MutablePair<Integer, Integer> value = counts.get(objectType);
+                if (value == null) {
+                    value = new MutablePair<>(0, 0);
+                    counts.put(objectType, value);
+                }
+                value.setLeft(value.getLeft() + 1);
+                value.setRight(value.getRight() + resultingObjects);
+                queries.incrementAndGet();
+                objects.addAndGet(resultingObjects);
                 return null;
             });
             SingleCacheStateInformationType info = new SingleCacheStateInformationType(prismContext)
                     .name(GlobalQueryCache.class.getName())
-                    .size(size.get());
-            counts.forEach((type, count) ->
+                    .size(queries.get())
+                    .secondarySize(objects.get());
+            counts.forEach((type, pair) ->
                     info.beginComponent()
                             .name(type.getSimpleName())
-                            .size(count));
+                            .size(pair.getLeft())
+                            .secondarySize(pair.getRight()));
             return Collections.singleton(info);
         } else {
             return Collections.emptySet();
+        }
+    }
+
+    void dumpContent() {
+        if (cache != null && LOGGER_CONTENT.isInfoEnabled()) {
+            cache.invokeAll(cache.keys(), e -> {
+                QueryKey key = e.getKey();
+                GlobalCacheQueryValue<?> value = e.getValue();
+                @NotNull SearchResultList<?> queryResult = value.getResult();
+                LOGGER_CONTENT.info("Cached query of {} ({} object(s), cached {} ms ago): {}: {}",
+                        key.getType().getSimpleName(), queryResult.size(), value.getAge(), key.getQuery(), queryResult);
+                return null;
+            });
         }
     }
 }

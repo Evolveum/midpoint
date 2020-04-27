@@ -10,48 +10,49 @@ package com.evolveum.midpoint.repo.cache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class GlobalCacheObjectValue<T extends ObjectType> {
+class GlobalCacheObjectValue<T extends ObjectType> extends AbstractGlobalCacheValue {
 
-    private PrismObject<T> object;
+    @NotNull private final PrismObject<T> object;
 
-    private long timeToLive;
+    private long timeToCheckVersion;
 
-    public GlobalCacheObjectValue(PrismObject<T> object, long timeToLive) {
+    GlobalCacheObjectValue(@NotNull PrismObject<T> object, long timeToCheckVersion) {
         this.object = object;
-        this.timeToLive = timeToLive;
+        this.timeToCheckVersion = timeToCheckVersion;
     }
 
-    public long getTimeToLive() {
-        return timeToLive;
+    long getTimeToCheckVersion() {
+        return timeToCheckVersion;
     }
 
-    public String getObjectOid() {
+    String getObjectOid() {
         return object.getOid();
     }
 
-    public Class<?> getObjectType() {
+    Class<?> getObjectType() {
         return object.getCompileTimeClass();
     }
 
-    public String getObjectVersion() {
+    String getObjectVersion() {
         return object.getVersion();
     }
 
-    public PrismObject<T> getObject() {
+    @NotNull PrismObject<T> getObject() {
         return object;      // cloning is done in RepositoryCache
     }
 
-    public void setTimeToLive(long timeToLive) {
-        this.timeToLive = timeToLive;
+    void setTimeToCheckVersion(long timeToCheckVersion) {
+        this.timeToCheckVersion = timeToCheckVersion;
     }
 
     @Override
     public String toString() {
-        return "CacheObject{" + "ttl=" + timeToLive
-                + ", object=" + object
-                + '}';
+        return "GlobalCacheObjectValue{" + "timeToCheckVersion=" + timeToCheckVersion + " (" + (timeToCheckVersion-System.currentTimeMillis()) + " left)"
+                + ", object=" + object + " (version " + object.getVersion() + ")}";
     }
 }
