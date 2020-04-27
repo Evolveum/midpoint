@@ -96,21 +96,13 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
                     };
 
                 };
-//                checkFormGroup.getCheck().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 checkFormGroup.getCheck().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-//                checkFormGroup.getCheck().add(new OnChangeAjaxBehavior() {
-//
-//                    @Override
-//                    protected void onUpdate(AjaxRequestTarget target) {
-//                        item.getModelObject().setSelected(!item.getModelObject().isSelected());
-//                    }
-//                });
                 checkFormGroup.add(AttributeAppender.append("class", " checkbox-without-margin-bottom "));
                 checkFormGroup.setOutputMarkupId(true);
                 item.add(checkFormGroup);
 
                 String displayNameKey = item.getModelObject() != null ? item.getModelObject().getDisplayName() : "";
-                Label definition = new Label(ID_DEFINITION, new StringResourceModel(displayNameKey));
+                Label definition = new Label(ID_DEFINITION, new StringResourceModel(displayNameKey).setDefaultValue(displayNameKey));
                 definition.setOutputMarkupId(true);
                 item.add(definition);
             }
