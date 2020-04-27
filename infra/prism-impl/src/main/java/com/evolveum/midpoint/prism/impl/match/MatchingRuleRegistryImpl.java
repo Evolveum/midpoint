@@ -23,7 +23,7 @@ import java.util.Map;
 public class MatchingRuleRegistryImpl implements MatchingRuleRegistry {
 
     @NotNull private final MatchingRule<?> defaultMatchingRule;
-    @NotNull private final Map<QName, ? extends MatchingRule<?>> matchingRules = new HashMap<>();
+    @NotNull private final Map<QName, MatchingRule<?>> matchingRules = new HashMap<>();
 
     MatchingRuleRegistryImpl() {
         this.defaultMatchingRule = new DefaultMatchingRule<>();
@@ -34,27 +34,39 @@ public class MatchingRuleRegistryImpl implements MatchingRuleRegistry {
     @NotNull
     public <T> MatchingRule<T> getMatchingRule(QName ruleName, QName typeQName) throws SchemaException {
         if (ruleName == null) {
+            //noinspection unchecked
             return (MatchingRule<T>) defaultMatchingRule;
         }
-        MatchingRule<T> matchingRule = (MatchingRule<T>) matchingRules.get(ruleName);
-        if (matchingRule == null) {
-            //try match according to the localPart
-            if (QNameUtil.matchAny(ruleName, matchingRules.keySet())){
-                ruleName = QNameUtil.resolveNs(ruleName, matchingRules.keySet());
-                matchingRule = (MatchingRule<T>) matchingRules.get(ruleName);
-            }
-            if (matchingRule == null) {
-                throw new SchemaException("Unknown matching rule for name " + ruleName);
-            }
+        MatchingRule<T> matchingRule = findMatchingRule(ruleName);
+        if (typeQName == null || matchingRule.supports(typeQName)) {
+            return matchingRule;
+        } else {
+            throw new SchemaException("Matching rule " + ruleName + " does not support type " + typeQName);
         }
-        if (typeQName != null && !matchingRule.isSupported(typeQName)) {
-            throw new SchemaException("Matching rule "+ruleName+" does not support type "+typeQName);
-        }
-        return matchingRule;
     }
 
-    <T> void registerMatchingRule(MatchingRule<T> rule) {
-        ((Map)this.matchingRules).put(rule.getName(), rule);
+    @NotNull
+    private <T> MatchingRule<T> findMatchingRule(QName ruleName) throws SchemaException {
+        //noinspection unchecked
+        MatchingRule<T> rule = (MatchingRule<T>) matchingRules.get(ruleName);
+        if (rule != null) {
+            return rule;
+        }
+
+        // try match according to the localPart
+        QName qualifiedRuleName = QNameUtil.resolveNs(ruleName, matchingRules.keySet());
+        if (qualifiedRuleName != null) {
+            //noinspection unchecked
+            MatchingRule<T> ruleAfterQualification = (MatchingRule<T>) matchingRules.get(qualifiedRuleName);
+            if (ruleAfterQualification != null) {
+                return ruleAfterQualification;
+            }
+        }
+
+        throw new SchemaException("Couldn't find matching rule named '" + ruleName + "'");
     }
 
+    void registerMatchingRule(MatchingRule<?> rule) {
+        matchingRules.put(rule.getName(), rule);
+    }
 }

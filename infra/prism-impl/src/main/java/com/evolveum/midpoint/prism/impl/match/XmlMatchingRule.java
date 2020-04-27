@@ -37,7 +37,7 @@ public class XmlMatchingRule implements MatchingRule<String> {
     }
 
     @Override
-    public boolean isSupported(QName xsdType) {
+    public boolean supports(QName xsdType) {
         return (DOMUtil.XSD_STRING.equals(xsdType));
     }
 

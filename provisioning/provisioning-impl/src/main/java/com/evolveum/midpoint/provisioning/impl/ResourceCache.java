@@ -48,6 +48,7 @@ import static com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLe
 public class ResourceCache implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ResourceCache.class.getName() + ".content");
 
     @Autowired private PrismContext prismContext;
     @Autowired private CacheRegistry cacheRegistry;
@@ -65,8 +66,8 @@ public class ResourceCache implements Cacheable {
     }
 
     /**
-     * Note that prism objects in this map are always immutable. And they must remain immutable after getting them
-     * from the cache.
+     * Note that prism objects in this map are always not null and immutable.
+     * And they must remain immutable after getting them from the cache.
      *
      * As for ConcurrentHashMap: Although we use synchronization whenever possible, let's be extra cautious here.
      */
@@ -198,5 +199,13 @@ public class ResourceCache implements Cacheable {
                         .name(ResourceCache.class.getName())
                         .size(cache.size())
         );
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            cache.forEach((oid, resource) -> LOGGER_CONTENT.info("Cached resource: {}: {} (version: {})",
+                    oid, resource, resource.getVersion()));
+        }
     }
 }

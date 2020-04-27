@@ -43,10 +43,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 
 /**
  * @author mederly
@@ -87,7 +85,8 @@ public class ScriptExecutor extends BaseActionExecutor {
 
         ScriptExpression scriptExpression;
         try {
-            scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionProfile, expressionFactory, "script", context.getTask(), globalResult);
+            scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionProfile, expressionFactory, "script",
+                    globalResult);
         } catch (ExpressionSyntaxException | SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
         }

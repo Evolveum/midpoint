@@ -66,4 +66,9 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.emptySet();
     }
+
+    @Override
+    public void dumpContent() {
+        // nothing to do here
+    }
 }

@@ -229,8 +229,8 @@ public abstract class AbstractHigherUnitTest extends AbstractUnitTest implements
                 }
 
                 @Override
-                public boolean isSupported(QName xsdType) {
-                    return nameMatchingRule.isSupported(xsdType);
+                public boolean supports(QName xsdType) {
+                    return nameMatchingRule.supports(xsdType);
                 }
 
                 @Override

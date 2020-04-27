@@ -46,7 +46,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
 
     @Test(groups={"M4"}, dependsOnGroups={"M3"})
-    public void test0401BasicProvisioningToMultipleResources() {
+    public void mod04test01BasicProvisioningToMultipleResources() {
         importObject(CSV_1_RESOURCE_FILE,true);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -182,7 +182,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0401BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
-    public void test0402AddingMappings() {
+    public void mod04test02AddingMappings() {
 
         importObject(CSV_1_RESOURCE_FILE_4_2,true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -217,7 +217,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0402AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
-    public void test0403ModifyingExistingMappings() {
+    public void mod04test03ModifyingExistingMappings() {
         importObject(CSV_1_RESOURCE_FILE_4_3,true);
 
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);
@@ -272,7 +272,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0403ModifyingExistingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
-    public void test0404AddingANewAttribute() {
+    public void mod04test04AddingANewAttribute() {
         ((PrismFormWithActionButtons<AbstractTableWithPrismView<ProjectionsTab<UserPage>>>)
                 ((AbstractTableWithPrismView)showUser("kirk")
                         .selectTabProjections()

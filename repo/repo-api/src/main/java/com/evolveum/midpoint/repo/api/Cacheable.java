@@ -18,4 +18,6 @@ public interface Cacheable {
 
     @NotNull
     Collection<SingleCacheStateInformationType> getStateInformation();
+
+    void dumpContent();
 }

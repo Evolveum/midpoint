@@ -164,7 +164,6 @@
                 <attribute>
                     <ref>ri:manager</ref>
                     <displayName>Manager</displayName>
-                    <tolerant>false</tolerant>
                     <outbound>
                         <strength>strong</strength>
                         <expression>

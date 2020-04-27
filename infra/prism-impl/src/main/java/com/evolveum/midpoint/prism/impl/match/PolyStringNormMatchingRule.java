@@ -34,7 +34,7 @@ public class PolyStringNormMatchingRule implements MatchingRule<PolyString> {
      * @see com.evolveum.midpoint.prism.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
      */
     @Override
-    public boolean isSupported(QName xsdType) {
+    public boolean supports(QName xsdType) {
         return (PolyStringType.COMPLEX_TYPE.equals(xsdType));
     }
 

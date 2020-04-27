@@ -32,13 +32,17 @@ public class SystemPage extends BasicPage {
     }
 
     public SystemTab systemTab() {
-        //todo implement
-        SelenideElement element = null;
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.system.title");
         return new SystemTab(this, element);
     }
 
+    public ObjectPolicyTab objectPolicyTab() {
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.objectPolicy.title");
+        return new ObjectPolicyTab(this, element);
+    }
+
     public NotificationsTab notificationsTab() {
-        SelenideElement element = findTabPanel().clickTab("pageSystemConfiguration.notifications.title");
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.notifications.title");
         return new NotificationsTab(this, element);
     }
 
@@ -61,7 +65,7 @@ public class SystemPage extends BasicPage {
     }
 
     public InfrastructureTab infrastructureTab() {
-        SelenideElement element = findTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
         return new InfrastructureTab(this, element);
     }
 
@@ -69,7 +73,7 @@ public class SystemPage extends BasicPage {
         return new RoleManagementTab(this, null);
     }
 
-    protected TabPanel findTabPanel() {
+    protected TabPanel getTabPanel() {
         SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new TabPanel<>(this, tabPanelElement);

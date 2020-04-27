@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public class CacheDispatcherImpl implements CacheDispatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(CacheDispatcherImpl.class);
 
-    private List<CacheListener> cacheListeners = new ArrayList<>();
+    private final List<CacheListener> cacheListeners = new ArrayList<>();
 
     @Override
     public synchronized void registerCacheListener(CacheListener cacheListener) {
@@ -53,5 +52,4 @@ public class CacheDispatcherImpl implements CacheDispatcher {
             listener.invalidate(type, oid, clusterwide, context);
         }
     }
-
 }

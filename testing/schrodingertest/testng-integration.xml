@@ -117,6 +117,7 @@
             <class name="com.evolveum.midpoint.testing.schrodinger.labs.M7SynchronizationFlavours"/>
             <class name="com.evolveum.midpoint.testing.schrodinger.labs.M8ExtendingMidPointXMLSchema"/>
             <class name="com.evolveum.midpoint.testing.schrodinger.labs.M9OrganizationalStructure"/>
+            <class name="com.evolveum.midpoint.testing.schrodinger.labs.M9OrganizationalStructure"/>
         </classes>
     </test>
 </suite>

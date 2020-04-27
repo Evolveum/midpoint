@@ -14,7 +14,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
@@ -50,7 +49,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
     }
 
     @Test(groups={"M3"})
-    public void test0301ViewingResources() throws Exception {
+    public void mod03test01ViewingResources() throws Exception {
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
         csv1TargetFile = new File(csvTargetDir, CSV_1_FILE_SOURCE_NAME);
@@ -144,7 +143,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
     }
 
     @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
-    public void test0302BasicProvisioning() {
+    public void mod03test02BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
                 .form()

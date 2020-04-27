@@ -208,9 +208,10 @@ public class ClockworkMedic {
 
     private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) throws SchemaException {
         ProcessorExecution processorExecution = processor.getClass().getAnnotation(ProcessorExecution.class);
-        return processorExecution == null || focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
-                && focusDeletionCheckPasses(componentName, context.getFocusContext(), processorExecution)
-                && projectionDeletionCheckPasses(componentName, projectionContext, processorExecution);
+        return processorExecution == null ||
+                focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
+                        && focusDeletionCheckPasses(componentName, context.getFocusContext(), processorExecution)
+                        && projectionDeletionCheckPasses(componentName, projectionContext, processorExecution);
     }
 
     private boolean focusPresenceAndTypeCheckPasses(String componentName, LensContext<?> context,

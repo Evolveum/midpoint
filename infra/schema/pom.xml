@@ -220,7 +220,6 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                         <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>
@@ -236,7 +235,6 @@
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!--                                         <extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
@@ -252,7 +250,6 @@
                                     <extraargs>
                                         <extraarg>-impl</extraarg>
                                         <extraarg>-verbose</extraarg>
-                                        <!--<extraarg>-validate</extraarg> ERROR: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized. -->
                                         <extraarg>-xjc-Xts</extraarg>
                                         <extraarg>-xjc-XhashCode</extraarg>
                                         <extraarg>
@@ -268,11 +265,15 @@
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
-                                        <!--                                         <extraargs>-version</extraargs> -->
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                     </extraargs>
                                 </wsdlOption>
                             </wsdlOptions>
+                            <!--
+                            This avoids going online for schema checking which may slow down the build sometimes extremely,
+                            e.g. when firewall is set to drop SYN packet silently during connection.
+                            -->
+                            <additionalJvmArgs>-Dcom.sun.tools.xjc.api.impl.s2j.SchemaCompilerImpl.noCorrectnessCheck=true</additionalJvmArgs>
                         </configuration>
                         <goals>
                             <goal>wsdl2java</goal>
@@ -350,4 +351,3 @@
         </resources>
     </build>
 </project>
-
