@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -36,8 +35,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
 
 /**
  * @author mederly
@@ -205,7 +202,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         summaryPanel.setOutputMarkupId(true);
         add(summaryPanel);
 
-        WorkItemDetailsPanel workItemDetailsPanel = new WorkItemDetailsPanel(ID_WORK_ITEM_DETAILS, caseWorkItemModel);
+        WorkItemDetailsPanel workItemDetailsPanel = new WorkItemDetailsPanel(ID_WORK_ITEM_DETAILS, caseWorkItemModel) {
+            @Override
+            protected PrismObject<UserType> getPowerDonor() {
+                return PageCaseWorkItem.this.getPowerDonor();
+            }
+        };
         workItemDetailsPanel.setOutputMarkupId(true);
         add(workItemDetailsPanel);
 
