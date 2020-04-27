@@ -53,7 +53,7 @@ public class ProgressReporter implements ProgressListener {
 
     private Map<String, String> nameCache = new HashMap<>();
     private ProgressDto progress = new ProgressDto();
-    private boolean abortRequested;
+    private volatile boolean abortRequested;
 
     // Operation result got from the asynchronous operation (null if async op not yet finished)
     private OperationResult asyncOperationResult;

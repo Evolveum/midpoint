@@ -27,9 +27,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -41,7 +38,6 @@ import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
-import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
 import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
@@ -323,7 +319,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
             if (case0 != null) {
                 if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(ctx.modelContext.getOptions())) {
-                    submitExecutionTask(case0, false, result);
+                    executionHelper.submitExecutionTask(case0, false, result);
                 } else {
                     executionHelper.closeCaseInRepository(case0, result);
                 }
@@ -422,7 +418,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
      */
     @Override
     public void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
-            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
         CaseType currentCase = ctx.getCurrentCase();
 
         ObjectTreeDeltas<?> deltas = prepareDeltaOut(currentCase);
@@ -463,7 +459,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                     } else {
                         waiting = false;
                     }
-                    submitExecutionTask(currentCase, waiting, result);
+                    executionHelper.submitExecutionTask(currentCase, waiting, result);
                 } else {
                     LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
                     executionHelper.closeCaseInRepository(currentCase, result);
@@ -476,7 +472,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
                 if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
                     LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
-                    submitExecutionTask(rootCase, false, result);
+                    executionHelper.submitExecutionTaskIfNeeded(rootCase, subcases, ctx.getTask(), result);
                 } else {
                     LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
                     for (CaseType subcase : subcases) {
@@ -486,30 +482,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
                 }
             }
         }
-    }
-
-    private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-
-        // We must do this before the task is started, because as part of task completion we set state to CLOSED.
-        // So if we set state to EXECUTING after the task is started, the case might be already closed at that point.
-        // (If task is fast enough.)
-        executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
-
-        Task task = taskManager.createTaskInstance("execute");
-        task.setName("Execution of " + aCase.getName().getOrig());
-        task.setOwner(getExecutionTaskOwner(result));
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
-        task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
-        if (waiting) {
-            task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
-        }
-        executionHelper.setExecutionConstraints(task, aCase, result);
-        taskManager.switchToBackground(task, result);
-    }
-
-    private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
     }
 
     private ObjectTreeDeltas<?> prepareDeltaOut(CaseType aCase) throws SchemaException {

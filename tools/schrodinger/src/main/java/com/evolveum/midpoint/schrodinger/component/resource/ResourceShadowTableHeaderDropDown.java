@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.modal.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -18,21 +19,21 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 5/25/2018.
  */
-public class ResourceShadowTableCog<T> extends DropDown<T> {
-    public ResourceShadowTableCog(T parent, SelenideElement parentElement) {
+public class ResourceShadowTableHeaderDropDown<T> extends TableHeaderDropDownMenu<T> {
+    public ResourceShadowTableHeaderDropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
 
     public T clickEnable() {
-        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.enableAccounts"))
+        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.enableAccount"))
                 .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T clickDisable() {
-        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.disableAccounts"))
+        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.disableAccount"))
                 .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
@@ -49,14 +50,14 @@ public class ResourceShadowTableCog<T> extends DropDown<T> {
     }
 
     public T clickImport() {
-        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.importAccounts"))
+        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.importAccount"))
                 .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
     }
 
     public T clickRemoveOwner() {
-        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.removeOwners"))
+        $(Schrodinger.byDataResourceKey("pageContentAccounts.menu.removeOwner"))
                 .parent().waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();

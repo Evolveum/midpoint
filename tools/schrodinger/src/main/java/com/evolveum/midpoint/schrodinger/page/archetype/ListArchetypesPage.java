@@ -8,6 +8,8 @@ package com.evolveum.midpoint.schrodinger.page.archetype;
 
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
@@ -20,6 +22,11 @@ public class ListArchetypesPage extends AssignmentHolderObjectListPage<Assignmen
     @Override
     public AssignmentHolderObjectListTable<ListArchetypesPage, ArchetypePage> table() {
         return new AssignmentHolderObjectListTable<ListArchetypesPage, ArchetypePage>(this, getTableBoxElement()) {
+            @Override
+            public <P extends TableWithPageRedirect<ListArchetypesPage>> TableHeaderDropDownMenu<P> clickHeaderActionDropDown() {
+                return null;
+            }
+
             @Override
             public ArchetypePage getObjectDetailsPage() {
                 return new ArchetypePage();

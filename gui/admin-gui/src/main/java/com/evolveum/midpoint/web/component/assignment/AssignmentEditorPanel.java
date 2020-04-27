@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
@@ -55,6 +56,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -93,9 +95,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-    private static final String ID_ACTIVATION = "activation";
+//    private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_EXPAND = "expand";
+    private static final String ID_REMOVE_BUTTON = "removeButton";
     protected static final String ID_BODY = "body";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
@@ -118,8 +121,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_TENANT_CHOOSER = "tenantRefChooser";
     private static final String ID_CONTAINER_ORG_REF = "orgRefContainer";
     private static final String ID_ORG_CHOOSER = "orgRefChooser";
-    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
-    private static final String ID_ERROR_ICON = "errorIcon";
+//    private static final String ID_BUTTON_SHOW_MORE = "errorLink";
+//    private static final String ID_ERROR_ICON = "errorIcon";
     private static final String ID_METADATA_CONTAINER = "metadataContainer";
     private static final String ID_PROPERTY_CONTAINER = "propertyContainer";
     private static final String ID_DESCRIPTION_CONTAINER = "descriptionContainer";
@@ -214,16 +217,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
-        Label errorIcon = new Label(ID_ERROR_ICON);
-        errorIcon.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isTargetValid();
-            }
-        });
-        headerRow.add(errorIcon);
+//        Label errorIcon = new Label(ID_ERROR_ICON);
+//        errorIcon.add(new VisibleEnableBehaviour() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return !isTargetValid();
+//            }
+//        });
+//        headerRow.add(errorIcon);
 
         AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
             private static final long serialVersionUID = 1L;
@@ -235,30 +238,30 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         };
         headerRow.add(name);
 
-        AjaxLink<Void> errorLink = new AjaxLink<Void>(ID_BUTTON_SHOW_MORE) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showErrorPerformed(target);
-            }
-        };
-        errorLink.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isTargetValid();
-            }
-        });
-        headerRow.add(errorLink);
+//        AjaxLink<Void> errorLink = new AjaxLink<Void>(ID_BUTTON_SHOW_MORE) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                showErrorPerformed(target);
+//            }
+//        };
+//        errorLink.add(new VisibleEnableBehaviour() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return !isTargetValid();
+//            }
+//        });
+//        headerRow.add(errorLink);
 
         Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(false));
         nameLabel.setOutputMarkupId(true);
         name.add(nameLabel);
 
-        Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", getPageBase()));
-        headerRow.add(activation);
+//        Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", getPageBase()));
+//        headerRow.add(activation);
 
         ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
@@ -283,7 +286,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return !getModel().getObject().isSimpleView();
             }
         });
+        expandButton.setOutputMarkupId(true);
         headerRow.add(expandButton);
+
+        AjaxButton removeButton = new AjaxButton(ID_REMOVE_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removeButtonClickPerformed(AssignmentEditorPanel.this.getModelObject(), target);
+            }
+        };
+        removeButton.add(AttributeAppender.append("title", getPageBase().createStringResource("AssignmentTablePanel.menu.unassign")));
+        removeButton.setOutputMarkupId(true);
+        headerRow.add(removeButton);
     }
 
     protected IModel<String> createAssignmentNameLabelModel(final boolean isManager) {
@@ -1164,5 +1180,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         }
         return constraints;
     }
+
+    protected void removeButtonClickPerformed(AssignmentEditorDto assignmentDto, AjaxRequestTarget target){
+        //Override if needed
+    }
+
 
 }

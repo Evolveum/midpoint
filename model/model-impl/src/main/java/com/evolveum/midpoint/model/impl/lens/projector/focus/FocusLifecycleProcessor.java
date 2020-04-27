@@ -11,6 +11,9 @@ import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,49 +46,31 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY_OR_SECONDARY;
+
 /**
  * @author Radovan Semancik
  */
 @Component
-public class FocusLifecycleProcessor {
+@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class, skipWhenFocusDeleted = PRIMARY_OR_SECONDARY)
+public class FocusLifecycleProcessor implements ProjectorProcessor {
 
     @Autowired private ExpressionFactory expressionFactory;
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusLifecycleProcessor.class);
 
-    public <O extends ObjectType> void processLifecycle(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-        if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for FocusType.
-            return;
-        }
-
-        //noinspection unchecked
-        processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
-    }
-
-    private <F extends AssignmentHolderType> void processLifecycleWithFocus(LensContext<F> context, XMLGregorianCalendar now,
-            Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @ProcessorMethod
+    public <F extends AssignmentHolderType> void process(LensContext<F> context, XMLGregorianCalendar now,
+            Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
+            CommunicationException, SecurityViolationException {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
-        ObjectDelta<F> focusDelta = focusContext.getDelta();
-
-        if (focusDelta != null && focusDelta.isDelete()) {
-            LOGGER.trace("Skipping lifecycle processing because of focus delete");
-            return;
-        }
 
         LifecycleStateModelType lifecycleStateModel = focusContext.getLifecycleModel();
         if (lifecycleStateModel == null) {
@@ -169,12 +154,12 @@ public class FocusLifecycleProcessor {
             List<LifecycleStateActionType> actions, String actionTypeDesc, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
         for (LifecycleStateActionType action: actions) {
             LOGGER.trace("Execute {} action {} for state {} of {}", actionTypeDesc, action.getName(), targetLifecycleState, context.getFocusContext().getObjectNew());
-            executeDataReduction(context, action.getDataReduction(), now, task, result);
+            executeDataReduction(context, action.getDataReduction());
         }
     }
 
-    private <F extends AssignmentHolderType> void executeDataReduction(LensContext<F> context, LifecycleStateActionDataReductionType dataReduction,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
+    private <F extends AssignmentHolderType> void executeDataReduction(LensContext<F> context, LifecycleStateActionDataReductionType dataReduction)
+            throws SchemaException {
         if (dataReduction == null) {
             return;
         }
@@ -189,5 +174,4 @@ public class FocusLifecycleProcessor {
             focusContext.swallowToSecondaryDelta(purgeItemDelta);
         }
     }
-
 }

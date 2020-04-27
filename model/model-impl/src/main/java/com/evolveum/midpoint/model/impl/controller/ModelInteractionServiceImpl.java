@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -128,13 +129,6 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -1507,7 +1501,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+    public MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         MidPointPrincipal attorneyPrincipal = securityContextManager.getPrincipal();
         MidPointPrincipal donorPrincipal =  securityEnforcer.createDonorPrincipal(attorneyPrincipal, ModelAuthorizationAction.ATTORNEY.getUrl(), donor, task, result);
 
@@ -1548,6 +1542,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
 
         return previousPrincipal;
+    }
+
+    @Override
+    public <T> T runUnderPowerOfAttorney(Producer<T> producer,
+            PrismObject<? extends FocusType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        assumePowerOfAttorney(donor, task, result);
+        try {
+            return producer.run();
+        } finally {
+            dropPowerOfAttorney(task, result);
+        }
     }
 
     @Override

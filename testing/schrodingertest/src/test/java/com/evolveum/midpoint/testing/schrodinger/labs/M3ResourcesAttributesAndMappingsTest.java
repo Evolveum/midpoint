@@ -41,27 +41,7 @@ import static com.codeborne.selenide.Selenide.$;
  * @author skublik
  */
 
-public class ResourcesAttributesAndMappingsTest extends AbstractLabTest {
-
-//    @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextBeforeTestClass" })
-//    @Override
-//    protected void springTestContextPrepareTestInstance() throws Exception {
-//
-//        String home = System.getProperty("midpoint.home");
-//        File schemaDir = new File(home, "schema");
-//
-//        if (!schemaDir.mkdir()) {
-//            if (schemaDir.exists()) {
-//                FileUtils.cleanDirectory(schemaDir);
-//            } else {
-//                throw new IOException("Creation of directory \"" + schemaDir.getAbsolutePath() + "\" unsuccessful");
-//            }
-//        }
-//        File schemaFile = new File(schemaDir, EXTENSION_SCHEMA_NAME);
-//        FileUtils.copyFile(EXTENSION_SCHEMA_FILE, schemaFile);
-//
-//        super.springTestContextPrepareTestInstance();
-//    }
+public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
     @BeforeClass(alwaysRun = true, dependsOnMethods = { "springTestContextPrepareTestInstance" })
     @Override
@@ -69,7 +49,7 @@ public class ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         super.beforeClass();
     }
 
-    @Test
+    @Test(groups={"M3"})
     public void test0301ViewingResources() throws Exception {
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
@@ -163,7 +143,7 @@ public class ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }
 
-    @Test(dependsOnMethods = {"test0301ViewingResources"})
+    @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
     public void test0302BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
@@ -211,7 +191,7 @@ public class ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         PrismForm<AccountPage> accountForm = showShadow(CSV_1_RESOURCE_NAME, "Login", "kirk")
                 .form();
 
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim T."));
 
         showUser("kirk")

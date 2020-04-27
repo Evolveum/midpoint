@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -23,34 +24,41 @@ public class Popover<T> extends Component<T> {
     }
 
     public Popover<T> inputValue(String input) {
-        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("textInput"))).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
-
+        SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='textInput']")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        if(!input.equals(inputField.getValue())) {
+            inputField.setValue(input);
+        }
         return this;
     }
 
     public Popover<T> inputRefOid(String oid) {
-        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("oid"))).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(oid);
+        getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='oid']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(oid);
 
         return this;
     }
 
     public Popover<T> inputValueWithEnter(String input) {
-        SelenideElement inputField = getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("textInput")));
-        inputField.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).setValue(input);
-        inputField.sendKeys(Keys.ENTER);
+        SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='textInput']")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        if(!input.equals(inputField.getValue())) {
+            inputField.setValue(input);
+            inputField.sendKeys(Keys.ENTER);
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+        }
         return this;
     }
 
     public T updateSearch() {
-        SelenideElement button = getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("update")));
+        SelenideElement button = getParentElement().parent().$x(".//a[@"+Schrodinger.DATA_S_ID+"='update']");
         button.click();
-        button.waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        button.waitUntil(Condition.disappears, MidPoint.TIMEOUT_MEDIUM_6_S);
 
         return this.getParent();
     }
 
     public T close() {
-        getDisplayedElement(getParentElement().$$(Schrodinger.byDataId("searchSimple"))).click();
+        getDisplayedElement(getParentElement().$$(".//a[@"+Schrodinger.DATA_S_ID+"='searchSimple']")).click();
 
         return this.getParent();
     }

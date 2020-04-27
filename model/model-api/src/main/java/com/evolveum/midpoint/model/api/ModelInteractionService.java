@@ -27,7 +27,10 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.CheckedProducer;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
@@ -151,7 +154,7 @@ public interface ModelInteractionService {
     <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> assignmentHolder, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
-     * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted
+     * Returns filter for lookup of donors of power of attorney. The donors are the users that have granted
      * the power of attorney to the currently logged-in user.
      *
      * TODO: authorization limitations
@@ -352,11 +355,19 @@ public interface ModelInteractionService {
      */
     ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 
-    MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result)
+    MidPointPrincipal assumePowerOfAttorney(PrismObject<? extends FocusType> donor, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    <T> T runUnderPowerOfAttorney(Producer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    default <T> T runUnderPowerOfAttorneyChecked(CheckedProducer<T> producer, PrismObject<? extends FocusType> donor, Task task, OperationResult result)
+            throws CommonException {
+        return MiscUtil.runChecked((p) -> runUnderPowerOfAttorney(p, donor, task, result), producer);
+    }
 
     // Maybe a bit of hack: used to deduplicate processing of localizable message templates
     @NotNull

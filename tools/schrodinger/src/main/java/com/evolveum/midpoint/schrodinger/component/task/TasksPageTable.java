@@ -11,6 +11,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -26,9 +27,9 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     @Override
     public TaskPage clickByName(String name) {
 
-        getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
+        SelenideElement label = getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name));
+        label.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        label.waitWhile(Condition.exist, MidPoint.TIMEOUT_MEDIUM_6_S);
 
         return new TaskPage();
     }
@@ -37,6 +38,11 @@ public class TasksPageTable extends AssignmentHolderObjectListTable<ListTasksPag
     public TableWithPageRedirect selectCheckboxByName(String name) {
         //TODO implement
 
+        return null;
+    }
+
+    @Override
+    public TableHeaderDropDownMenu<TasksPageTable> clickHeaderActionDropDown() {
         return null;
     }
 

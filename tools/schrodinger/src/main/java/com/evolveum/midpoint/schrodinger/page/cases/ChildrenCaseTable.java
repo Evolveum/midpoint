@@ -10,6 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
@@ -34,6 +35,11 @@ public class ChildrenCaseTable extends TableWithPageRedirect<CasePage> {
         //TODO implement
 
         return this;
+    }
+
+    @Override
+    public TableHeaderDropDownMenu<ChildrenCaseTable> clickHeaderActionDropDown() {
+        return null;
     }
 
     public CasePage clickByPartialName(String name) {

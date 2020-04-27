@@ -499,8 +499,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+        getPage().success(getPageBase().createStringResource("AbstractShoppingCartTabPanel.itemIsAddedToShoppingCart",
+                getRoleCatalogStorage().getAssignmentShoppingCart().size()).getString());
         getPageBase().reloadShoppingCartIcon(target);
         target.add(AbstractShoppingCartTabPanel.this);
+        target.add(getPageBase().getFeedbackPanel());
     }
 
     protected QName getNewAssignmentRelation() {

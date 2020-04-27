@@ -13,6 +13,7 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -412,5 +413,18 @@ public class PrismForm<T> extends Component<T> {
                     .is(Condition.not(Condition.exist));
         }
         return this;
+    }
+
+    public ObjectBrowserModal<PrismForm<T>> editRefValue(String attributeName) {
+        SelenideElement property = findProperty(attributeName);
+        property.$x(".//button[@" + Schrodinger.DATA_S_ID + "='edit']")
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+        SelenideElement modalWindow = $(By.className("wicket-modal"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+
+        ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(this, modalWindow);
+
+        return objectBrowserModal;
     }
 }

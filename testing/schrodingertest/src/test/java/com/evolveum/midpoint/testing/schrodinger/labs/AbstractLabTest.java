@@ -44,20 +44,33 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final File CSV_1_SIMPLE_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-simple.xml");
     protected static final File CSV_1_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access.xml");
     protected static final File CSV_1_SOURCE_FILE = new File(LAB_SOURCES_DIRECTORY + "csv-1.csv");
+    protected static final File CSV_1_SOURCE_FILE_7_3 = new File(LAB_SOURCES_DIRECTORY + "csv-1-7-3.csv");
     protected static final File NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE = new File(LAB_OBJECTS_DIRECTORY + "valuePolicies/numeric-pin-first-nonzero-policy.xml");
     protected static final File CSV_2_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-2-canteen.xml");
     protected static final File CSV_2_SOURCE_FILE = new File(LAB_SOURCES_DIRECTORY + "csv-2.csv");
     protected static final File CSV_3_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap.xml");
     protected static final File CSV_3_SOURCE_FILE = new File(LAB_SOURCES_DIRECTORY + "csv-3.csv");
+    protected static final File HR_NO_EXTENSION_RESOURCE_FILE = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-hr-noextension.xml");
+    protected static final File HR_SOURCE_FILE = new File(LAB_SOURCES_DIRECTORY + "source.csv");
+    protected static final File HR_SOURCE_FILE_7_4_PART_1 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-1.csv");
+    protected static final File HR_SOURCE_FILE_7_4_PART_2 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-2.csv");
+    protected static final File HR_SOURCE_FILE_7_4_PART_3 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-3.csv");
+    protected static final File HR_SOURCE_FILE_7_4_PART_4 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-4.csv");
+
 
     protected static final String DIRECTORY_CURRENT_TEST = "labTests";
     protected static final String EXTENSION_SCHEMA_NAME = "extension-example.xsd";
     protected static final String CSV_1_FILE_SOURCE_NAME = "csv-1.csv";
     protected static final String CSV_1_RESOURCE_NAME = "CSV-1 (Document Access)";
+    protected static final String CSV_1_RESOURCE_OID = "10000000-9999-9999-0000-a000ff000002";
     protected static final String CSV_2_FILE_SOURCE_NAME = "csv-2.csv";
     protected static final String CSV_2_RESOURCE_NAME = "CSV-2 (Canteen Ordering System)";
+    protected static final String CSV_2_RESOURCE_OID = "10000000-9999-9999-0000-a000ff000003";
     protected static final String CSV_3_FILE_SOURCE_NAME = "csv-3.csv";
     protected static final String CSV_3_RESOURCE_NAME = "CSV-3 (LDAP)";
+    protected static final String CSV_3_RESOURCE_OID = "10000000-9999-9999-0000-a000ff000004";
+    protected static final String HR_FILE_SOURCE_NAME = "source.csv";
+    protected static final String HR_RESOURCE_NAME = "ExAmPLE, Inc. HR Source";
 
     protected static final String PASSWORD_ATTRIBUTE_RESOURCE_KEY = "User password attribute name";
     protected static final String UNIQUE_ATTRIBUTE_RESOURCE_KEY = "Unique attribute name";
@@ -65,12 +78,14 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final String CSV_1_UNIQUE_ATTRIBUTE_NAME = "login";
     protected static final String CSV_1_PASSWORD_ATTRIBUTE_NAME = "password";
     protected static final String CSV_1_ACCOUNT_OBJECT_CLASS_LINK = "AccountObjectClass (Default Account)";
+    protected static final String ARCHETYPE_EMPLOYEE_PLURAL_LABEL = "Employees";
 
     protected static final List<String> CSV_1_RESOURCE_ATTRIBUTES = Arrays.asList("login", "lname", "groups", "enumber", "phone", "dep", "fname", "dis");
 
     protected static File csv1TargetFile;
     protected static File csv2TargetFile;
     protected static File csv3TargetFile;
+    protected static File hrTargetFile;
 
     @AfterClass
     @Override

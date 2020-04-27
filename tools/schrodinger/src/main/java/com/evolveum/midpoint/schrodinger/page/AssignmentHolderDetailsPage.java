@@ -50,7 +50,8 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
 
     public TabPanel getTabPanel() {
         SelenideElement tabPanelElement = $(Schrodinger.byDataId("div", "tabPanel"))
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_DEFAULT_2_S);
+        tabPanelElement.waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new TabPanel<>(this, tabPanelElement);
     }
 

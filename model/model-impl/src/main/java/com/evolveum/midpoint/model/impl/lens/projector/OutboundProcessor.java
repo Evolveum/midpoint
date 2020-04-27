@@ -170,6 +170,9 @@ public class OutboundProcessor {
         if (nextRecompute != null) {
             nextRecompute.createTrigger(context.getFocusContext());
         }
+
+        context.recompute();
+        context.checkConsistenceIfNeeded();
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)

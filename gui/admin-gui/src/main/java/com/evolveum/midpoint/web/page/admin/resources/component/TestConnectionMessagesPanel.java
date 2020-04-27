@@ -145,7 +145,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
 
     public void initResultsPanel(RepeatingView resultView, List<OpResult> opresults, Page parentPage) {
         for (OpResult result : opresults) {
-            OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<>(result), parentPage);
+            OperationResultPanel resultPanel = new OperationResultPanel(resultView.newChildId(), new Model<>(result));
             resultPanel.setOutputMarkupId(true);
             resultView.add(resultPanel);
         }

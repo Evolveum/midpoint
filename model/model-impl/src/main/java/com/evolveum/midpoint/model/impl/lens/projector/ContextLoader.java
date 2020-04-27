@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.*;
@@ -65,6 +67,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * Context loader loads the missing parts of the context. The context enters the projector with just the minimum information.
  * Context loader gets missing data such as accounts. It gets them from the repository or provisioning as necessary. It follows
@@ -74,7 +78,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 @Component
-public class ContextLoader {
+@ProcessorExecution()
+public class ContextLoader implements ProjectorProcessor {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -93,12 +98,11 @@ public class ContextLoader {
     private static final String OPERATION_LOAD = CLASS_DOT + "load";
     private static final String OPERATION_LOAD_PROJECTION = CLASS_DOT + "loadProjection";
 
-    public <F extends ObjectType> void load(LensContext<F> context, String activityDescription,
-            Task task, OperationResult parentResult)
+    @ProcessorMethod
+    <F extends ObjectType> void load(LensContext<F> context, String activityDescription,
+            @SuppressWarnings("unused") XMLGregorianCalendar now, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-
-        context.checkAbortRequested();
 
         context.recompute();
 
@@ -121,7 +125,7 @@ public class ContextLoader {
                 preprocessProjectionContext(context, projectionContext, task, result);
             }
 
-            if (consistencyChecks) context.checkConsistence();
+            context.checkConsistenceIfNeeded();
 
             determineFocusContext(context, task, result);
 
@@ -163,7 +167,7 @@ public class ContextLoader {
 
             removeRottenContexts(context);
 
-            if (consistencyChecks) context.checkConsistence();
+            context.checkConsistenceIfNeeded();
 
             for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
                 context.checkAbortRequested();
@@ -179,13 +183,16 @@ public class ContextLoader {
                 projectionResult.computeStatus();
             }
 
-            if (consistencyChecks) context.checkConsistence();
-
+            context.checkConsistenceIfNeeded();
             context.recompute();
 
             if (consistencyChecks) {
                 fullCheckConsistence(context);
             }
+
+            // Set the "fresh" mark now so following consistency check will be stricter
+            context.setFresh(true);
+            context.checkConsistenceIfNeeded();
 
             medic.traceContext(LOGGER, activityDescription, "after load", false, context, false);
 
@@ -250,8 +257,10 @@ public class ContextLoader {
     /**
      * Make sure that the projection context is loaded as appropriate.
      */
-    public <F extends ObjectType> void makeSureProjectionIsLoaded(LensContext<F> context,
-                                                                  LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    <F extends ObjectType> void makeSureProjectionIsLoaded(LensContext<F> context,
+            LensProjectionContext projectionContext, Task task, OperationResult result) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         preprocessProjectionContext(context, projectionContext, task, result);
         finishLoadOfProjectionContext(context, projectionContext, task, result);
     }
@@ -492,7 +501,7 @@ public class ContextLoader {
 
         if (context.getFocusTemplate() == null) {
             // TODO is the nullity check needed here?
-            setFocusTemplate(context, result);
+            updateFocusTemplate(context, result);
         }
 
         if (context.getAccountSynchronizationSettings() == null) {
@@ -555,7 +564,7 @@ public class ContextLoader {
     }
 
     // expects that object policy configuration is already set in focusContext
-    public <F extends ObjectType> void setFocusTemplate(LensContext<F> context, OperationResult result)
+    public <F extends ObjectType> void updateFocusTemplate(LensContext<F> context, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
         // 1. When this method is called after inbound processing, we might want to change the existing template
@@ -616,17 +625,17 @@ public class ContextLoader {
             LOGGER.trace("loadLinkRefsFromFocus done");
         }
 
-        if (consistencyChecks) context.checkConsistence();
+        context.checkConsistenceIfNeeded();
 
         loadLinkRefsFromDelta(context, focusCurrent, focusContext, task, result);
         LOGGER.trace("loadLinkRefsFromDelta done");
 
-        if (consistencyChecks) context.checkConsistence();
+        context.checkConsistenceIfNeeded();
 
         loadProjectionContextsSync(context, task, result);
         LOGGER.trace("loadProjectionContextsSync done");
 
-        if (consistencyChecks) context.checkConsistence();
+        context.checkConsistenceIfNeeded();
     }
 
     /**

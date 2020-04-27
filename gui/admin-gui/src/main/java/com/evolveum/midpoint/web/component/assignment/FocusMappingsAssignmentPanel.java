@@ -79,8 +79,4 @@ public class FocusMappingsAssignmentPanel extends AssignmentPanel {
         return ItemVisibility.AUTO;
     }
 
-    @Override
-    protected boolean getContainerReadability(ItemWrapper<?, ?, ?, ?> wrapper) {
-        return false;
-    }
 }

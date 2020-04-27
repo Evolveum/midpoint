@@ -45,7 +45,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -1503,5 +1501,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSynchronizationSource(boolean synchronizationSource) {
         this.synchronizationSource = synchronizationSource;
+    }
+
+    public String getDescription() {
+        if (resource != null) {
+            return resource + "("+ resourceShadowDiscriminator.getIntent()+")";
+        } else {
+            if (resourceShadowDiscriminator != null) {
+                return resourceShadowDiscriminator.toString();
+            } else {
+                return "(UNKNOWN)";
+            }
+        }
     }
 }

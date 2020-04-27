@@ -7,9 +7,29 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -31,7 +51,10 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -41,27 +64,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @PageDescriptor(
         urls = {
@@ -100,7 +102,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, TaskType object) {
-        taskDetailsPerformed(target, object.getOid());
+        taskDetailsPerformed(object.getOid());
     }
 
     @Override
@@ -159,10 +161,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return getPageBase().getFeedbackPanel();
     }
 
-    private void navigateToNext(Class<? extends WebPage> page, PageParameters parameters) {
-        getPageBase().navigateToNext(page, parameters);
-    }
-
     private void synchronizeTasksPerformed(AjaxRequestTarget target) {
         Task opTask = createSimpleTask(OPERATION_SYNCHRONIZE_TASKS);
         OperationResult result = opTask.getResult();
@@ -186,10 +184,10 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         target.add(getTable());
     }
 
-    private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
+    private void taskDetailsPerformed(String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageTask.class, parameters);
+        getPageBase().navigateToNext(PageTask.class, parameters);
     }
 
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
@@ -227,30 +225,28 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         columns.add(createTaskExecutionStatusColumn());
 
-        columns.add(createProgressColumn("pageTasks.task.progress"));
-        columns.add(createErrorsColumn("pageTasks.task.errors"));
+        columns.add(createProgressColumn());
+        columns.add(createErrorsColumn());
 
         columns.add(new IconColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.status"), TaskType.F_RESULT_STATUS.getLocalPart()) {
 
             @Override
             protected DisplayType getIconDisplayType(final IModel<SelectableBean<TaskType>> rowModel) {
-                String icon = "";
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue().getResultStatus() != null) {
+                String icon;
+                String title;
+
+                TaskType task = getTask(rowModel, false);
+
+                if (task != null && task.getResultStatus() != null) {
                     icon = OperationResultStatusPresentationProperties
-                            .parseOperationalResultStatus(rowModel.getObject().getValue().getResultStatus()).getIcon()
+                            .parseOperationalResultStatus(task.getResultStatus()).getIcon()
                             + " fa-lg";
+                    title = createStringResource(task.getResultStatus()).getString();
                 } else {
                     icon = OperationResultStatusPresentationProperties.UNKNOWN.getIcon() + " fa-lg";
-                }
-
-                String title = "";
-                TaskType dto = rowModel.getObject().getValue();
-
-                if (dto != null && dto.getResultStatus() != null) {
-                    title = createStringResource(dto.getResultStatus()).getString();
-                } else {
                     title = createStringResource(OperationResultStatusType.UNKNOWN).getString();
                 }
+
                 return WebComponentUtil.createDisplayType(icon, "", title);
             }
         });
@@ -269,8 +265,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
-    private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn(String titleKey) {
-        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource(titleKey)) {
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createProgressColumn() {
+        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.progress")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, final IModel<SelectableBean<TaskType>> rowModel) {
@@ -284,7 +280,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                         public void onClick(AjaxRequestTarget target) {
                             PageParameters pageParams = new PageParameters();
                             pageParams.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
-                            navigateToNext(PageTask.class, pageParams);
+                            getPageBase().navigateToNext(PageTask.class, pageParams);
                         }
                     });
                 }
@@ -298,8 +294,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         };
     }
 
-    private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn(String titleKey) {
-        return new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource(titleKey)) {
+    private AbstractColumn<SelectableBean<TaskType>, String> createErrorsColumn() {
+        return new AbstractColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.errors")) {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<TaskType>>> cellItem, String componentId, IModel<SelectableBean<TaskType>> rowModel) {
                 TaskType task = rowModel.getObject().getValue();
@@ -701,7 +697,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         OperationResult result = opTask.getResult();
         try {
             List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
+            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
             boolean suspendedPlain = suspendPlainTasks(plainTasks, result, opTask);
             boolean suspendedTrees = suspendTrees(trees, result, opTask);
             result.computeStatus();
@@ -730,7 +726,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         OperationResult result = opTask.getResult();
         try {
             List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
+            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
             getTaskService().resumeTasks(getOids(plainTasks), opTask, result);
             for (TaskType tree : trees) {
                 getTaskService().resumeTaskTree(tree.getOid(), opTask, result);
@@ -780,7 +776,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
 
         if (selectedTasks.isEmpty()) {
-            getSession().warn("PagetTasks.nothing.selected");
             target.add(getFeedbackPanel());
             return null;
         }
@@ -957,40 +952,60 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         target.add(getFeedbackPanel());
     }
 
-    private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName) {
-        if (action.getRowModel() == null) {
-            return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
-//                    WebComponentUtil.getSelectedData(()).size());
-        } else {
-            String objectName = ((SelectableBean<TaskType>) (action.getRowModel().getObject())).getValue().getName().getOrig();
+    private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction<SelectableBean<TaskType>> action, String actionName) {
+        if (action.getRowModel() != null) {
+            String objectName = WebComponentUtil.getName(getTask(action.getRowModel(), false));
             return createStringResource("pageTasks.message.confirmationMessageForSingleTaskObject", actionName, objectName);
         }
 
+        if (CollectionUtils.isEmpty(getSelectedObjects())) {
+            getSession().warn(getString("pageTasks.message.confirmationMessageForNoTaskObject", actionName));
+            return null; //confirmation popup should not be shown
+        }
+
+        return createStringResource("pageTasks.message.confirmationMessageForMultipleTaskObject", actionName, getSelectedObjects().size());
     }
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
+    @SuppressWarnings("unchecked")
     private static boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
-        SelectableBean<TaskType> dto = getDto(rowModel, isHeader);
-        return dto != null && TaskTypeUtil.isCoordinator(dto.getValue());
+        if (isNotTaskModel(rowModel)) {
+            return false;
+        }
+        TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
+        return task != null && TaskTypeUtil.isCoordinator(task);
     }
 
 
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
+    @SuppressWarnings("unchecked")
     private static boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
-        SelectableBean<TaskType> dto = getDto(rowModel, isHeader);
-        return dto != null && isManageableTreeRoot(dto.getValue());
+        if (isNotTaskModel(rowModel)) {
+            return false;
+        }
+        TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
+        return task != null && isManageableTreeRoot(task);
+    }
+
+    private static boolean isNotTaskModel(IModel<?> rowModel) {
+        if (rowModel == null) {
+            return false;
+        }
+        return rowModel.getObject() instanceof SelectableBean;
     }
 
     private static boolean isManageableTreeRoot(TaskType taskType) {
         return TaskTypeUtil.isCoordinator(taskType) || TaskTypeUtil.isPartitionedMaster(taskType);
     }
 
-    private static SelectableBean<TaskType> getDto(IModel<?> rowModel, boolean isHeader) {
+    private static TaskType getTask(IModel<SelectableBean<TaskType>> rowModel, boolean isHeader) {
         if (rowModel != null && !isHeader) {
-            Object object = rowModel.getObject();
-            if (object instanceof SelectableBean) {
-                return (SelectableBean<TaskType>) object;
+            SelectableBean<TaskType> object = rowModel.getObject();
+            if (object == null) {
+                return null;
             }
+
+            return object.getValue();
         }
         return null;
     }

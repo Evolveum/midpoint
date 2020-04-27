@@ -10,6 +10,8 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
+import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
+import com.evolveum.midpoint.schrodinger.component.table.TableHeaderDropDownMenu;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -21,6 +23,11 @@ public class CasesListTable extends AssignmentHolderObjectListTable<CasesPage, C
 
     public CasesListTable(CasesPage parent, SelenideElement parentElement){
         super(parent, parentElement);
+    }
+
+    @Override
+    public TableHeaderDropDownMenu<CasesListTable> clickHeaderActionDropDown() {
+        return null;
     }
 
     @Override
