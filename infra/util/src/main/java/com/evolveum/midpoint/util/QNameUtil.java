@@ -259,15 +259,14 @@ public class QNameUtil {
         return match(qname, uriToQName(uri, true));
     }
 
-
-    public static QName resolveNs(QName a, Collection<QName> col){
+    public static QName resolveNs(QName a, Collection<QName> col) {
         if (col == null) {
             return null;
         }
         QName found = null;
         for (QName b: col) {
             if (match(a, b)) {
-                if (found != null){
+                if (found != null) {
                     throw new IllegalStateException("Found more than one suitable qnames( "+ found + b + ") for attribute: " + a);
                 }
                 found = b;

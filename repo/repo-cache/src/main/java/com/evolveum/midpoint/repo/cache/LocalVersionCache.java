@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 public class LocalVersionCache extends AbstractThreadLocalCache {
+
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(LocalVersionCache.class.getName() + ".content");
 
     private final Map<String, String> data = new ConcurrentHashMap<>();
 
@@ -39,5 +43,11 @@ public class LocalVersionCache extends AbstractThreadLocalCache {
     @Override
     protected int getSize() {
         return data.size();
+    }
+
+    public void dumpContent(String threadName) {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            data.forEach((k, v) -> LOGGER_CONTENT.info("Cached version [{}] {}: {}", threadName, k, v));
+        }
     }
 }

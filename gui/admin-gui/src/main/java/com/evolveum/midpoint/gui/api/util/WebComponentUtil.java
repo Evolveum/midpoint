@@ -2102,6 +2102,11 @@ public final class WebComponentUtil {
         PrismObjectDefinition<AHT> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
         PrismObject<AHT> obj = def.instantiate();
         AHT assignmentHolder = obj.asObjectable();
+        initNewObjectWithReference(pageBase, assignmentHolder, newReferences);
+    }
+
+
+    public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, AHT assignmentHolder, List<ObjectReferenceType> newReferences) throws SchemaException {
         if (newReferences != null) {
             newReferences.stream().forEach(ref -> {
                 AssignmentType assignment = new AssignmentType();
@@ -2119,7 +2124,7 @@ public final class WebComponentUtil {
             });
         }
 
-        WebComponentUtil.dispatchToObjectDetailsPage(obj, true, pageBase);
+        WebComponentUtil.dispatchToObjectDetailsPage(assignmentHolder.asPrismObject(), true, pageBase);
     }
 
     public static String createErrorIcon(OperationResult result) {

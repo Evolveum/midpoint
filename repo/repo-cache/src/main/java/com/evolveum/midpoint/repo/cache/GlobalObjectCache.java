@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GlobalObjectCache extends AbstractGlobalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(GlobalObjectCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(GlobalObjectCache.class.getName() + ".content");
 
     private static final String CACHE_NAME = "objectCache";
 
@@ -138,6 +139,17 @@ public class GlobalObjectCache extends AbstractGlobalCache {
             return Collections.singleton(info);
         } else {
             return Collections.emptySet();
+        }
+    }
+
+    void dumpContent() {
+        if (cache != null && LOGGER_CONTENT.isInfoEnabled()) {
+            cache.invokeAll(cache.keys(), e -> {
+                String key = e.getKey();
+                GlobalCacheObjectValue<?> value = e.getValue();
+                LOGGER_CONTENT.info("Cached object: {}: {} (cached {} ms ago)", key, value, value.getAge());
+                return null;
+            });
         }
     }
 }

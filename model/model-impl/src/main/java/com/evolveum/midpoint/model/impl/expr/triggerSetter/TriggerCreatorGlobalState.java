@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.expr.triggerSetter;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TriggerCreatorGlobalState implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerCreatorGlobalState.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(TriggerCreatorGlobalState.class.getName() + ".content");
 
     private AtomicLong lastExpirationCleanup = new AtomicLong(0L);
 
@@ -105,6 +107,13 @@ public class TriggerCreatorGlobalState implements Cacheable {
                         .name(TriggerCreatorGlobalState.class.getName())
                         .size(state.size())
         );
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            state.forEach((k, v) -> LOGGER_CONTENT.info("Cached trigger creation: {}: {}", k, v));
+        }
     }
 
     @PostConstruct

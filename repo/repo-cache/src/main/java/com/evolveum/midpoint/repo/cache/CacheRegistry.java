@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class CacheRegistry implements CacheListener {
 
-    private List<Cacheable> cacheableServices = new ArrayList<>();
+    private final List<Cacheable> cacheableServices = new ArrayList<>();
 
     @Autowired private CacheDispatcher dispatcher;
     @Autowired private PrismContext prismContext;
@@ -68,6 +68,10 @@ public class CacheRegistry implements CacheListener {
         CachesStateInformationType rv = new CachesStateInformationType(prismContext);
         cacheableServices.forEach(cacheable -> rv.getEntry().addAll(cacheable.getStateInformation()));
         return rv;
+    }
+
+    public void dumpContent() {
+        cacheableServices.forEach(Cacheable::dumpContent);
     }
 }
 

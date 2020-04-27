@@ -329,7 +329,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
                         }
                         objectToReturn = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, result);
                     } else {
-                        cacheObject.setTimeToLive(System.currentTimeMillis() + getTimeToVersionCheck(global.typeConfig,
+                        cacheObject.setTimeToCheckVersion(System.currentTimeMillis() + getTimeToVersionCheck(global.typeConfig,
                                 global.cacheConfig));    // version matches, renew ttl
                         collector.registerWeakHit(GlobalObjectCache.class, type, global.statisticsLevel);
                         log("Cache (global): HIT with version check - getObject {} ({})", global.traceMiss, oid,
@@ -1212,7 +1212,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         globalQueryCache.invokeAll(entry -> {
             QueryKey queryKey = entry.getKey();
             all.incrementAndGet();
-            if (change.mayAffect(queryKey, entry.getValue(), matchingRuleRegistry)) {
+            if (change.mayAffect(queryKey, entry.getValue().getResult(), matchingRuleRegistry)) {
                 LOGGER.trace("Removing (from global cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
                 entry.remove();
                 removed.incrementAndGet();
@@ -1721,7 +1721,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     }
 
     private boolean shouldCheckVersion(GlobalCacheObjectValue object) {
-        return object.getTimeToLive() < System.currentTimeMillis();
+        return object.getTimeToCheckVersion() < System.currentTimeMillis();
     }
 
     private <T extends ObjectType> PrismObject<T> loadAndCacheObject(Class<T> objectClass, String oid,
@@ -1918,14 +1918,25 @@ public class RepositoryCache implements RepositoryService, Cacheable {
                 .name(LocalObjectCache.class.getName())
                 .size(LocalObjectCache.getTotalSize(LOCAL_OBJECT_CACHE_INSTANCE)));
         rv.add(new SingleCacheStateInformationType(prismContext)
-                .name(LocalQueryCache.class.getName())
-                .size(LocalQueryCache.getTotalSize(LOCAL_QUERY_CACHE_INSTANCE)));
-        rv.add(new SingleCacheStateInformationType(prismContext)
                 .name(LocalVersionCache.class.getName())
                 .size(LocalVersionCache.getTotalSize(LOCAL_VERSION_CACHE_INSTANCE)));
+        rv.add(new SingleCacheStateInformationType(prismContext)
+                .name(LocalQueryCache.class.getName())
+                .size(LocalQueryCache.getTotalSize(LOCAL_QUERY_CACHE_INSTANCE))
+                .secondarySize(LocalQueryCache.getTotalCachedObjects(LOCAL_QUERY_CACHE_INSTANCE)));
         rv.addAll(globalObjectCache.getStateInformation());
         rv.addAll(globalVersionCache.getStateInformation());
         rv.addAll(globalQueryCache.getStateInformation());
         return rv;
+    }
+
+    @Override
+    public void dumpContent() {
+        LocalObjectCache.dumpContent(LOCAL_OBJECT_CACHE_INSTANCE);
+        LocalVersionCache.dumpContent(LOCAL_VERSION_CACHE_INSTANCE);
+        LocalQueryCache.dumpContent(LOCAL_QUERY_CACHE_INSTANCE);
+        globalObjectCache.dumpContent();
+        globalVersionCache.dumpContent();
+        globalQueryCache.dumpContent();
     }
 }

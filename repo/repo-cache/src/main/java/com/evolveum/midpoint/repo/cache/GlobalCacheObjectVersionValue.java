@@ -10,10 +10,7 @@ package com.evolveum.midpoint.repo.cache;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
-public class GlobalCacheObjectVersionValue<T extends ObjectType> {
+public class GlobalCacheObjectVersionValue<T extends ObjectType> extends AbstractGlobalCacheValue {
 
     @NotNull private final Class<?> objectType;
     private final String version;

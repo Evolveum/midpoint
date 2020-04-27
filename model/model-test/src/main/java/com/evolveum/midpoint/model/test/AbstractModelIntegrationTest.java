@@ -1873,7 +1873,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(accounts.get(0), "shadow for username " + username + " on " + resource);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -3861,11 +3860,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void addObject(TestResource resource, Task task, OperationResult result)
+    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
-        addObject(resource.file, task, result);
+        PrismObject<T> parsedObject = addObject(resource.file, task, result);
+        PrismObject<T> storedObject = modelService.getObject(parsedObject.getCompileTimeClass(), resource.oid, null, task, result);
+        resource.object = storedObject;
+        return storedObject;
     }
 
     protected <T extends ObjectType> PrismObject<T> repoAddObject(TestResource resource, OperationResult result)
@@ -4971,7 +4973,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        //noinspection unchecked
         Collection<ObjectDelta<? extends ObjectType>> deltas = singleton(createAddAccountDelta(userOid, accountFile));
         modelService.executeChanges(deltas, null, task, result);
     }
@@ -5078,21 +5079,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         CompiledGuiProfile compiledGuiProfile = ((GuiProfiledPrincipal) principal).getCompiledGuiProfile();
         CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, "in principal " + principal);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected CompiledGuiProfileAsserter<Void> assertCompiledGuiProfile(CompiledGuiProfile compiledGuiProfile) {
         CompiledGuiProfileAsserter<Void> asserter = new CompiledGuiProfileAsserter<>(compiledGuiProfile, null, null);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected EvaluatedPolicyRulesAsserter<Void> assertEvaluatedPolicyRules(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, PrismObject<?> sourceObject) {
         EvaluatedPolicyRulesAsserter<Void> asserter = new EvaluatedPolicyRulesAsserter<>(evaluatedPolicyRules, null, sourceObject.toString());
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -5145,7 +5143,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         RoleSelectionSpecification spec = getAssignableRoleSpecification(targetHolder);
         RoleSelectionSpecificationAsserter<Void> asserter = new RoleSelectionSpecificationAsserter<>(spec, null, "for holder " + targetHolder);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -5156,7 +5153,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         RoleSelectionSpecification spec = getAssignableRoleSpecification(targetHolder, roleType, order);
         RoleSelectionSpecificationAsserter<Void> asserter = new RoleSelectionSpecificationAsserter<>(spec, null, "for holder " + targetHolder + ", role type " + roleType.getSimpleName() + ",  order " + order);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -5775,34 +5771,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        UserAsserter<Void> asserter = assertUser(oid, "after");
-        asserter.assertOid(oid);
-        return asserter;
+        return assertUser(oid, "after")
+                .display();
     }
 
     protected UserAsserter<Void> assertUserAfterByUsername(String username) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        UserAsserter<Void> asserter = assertUserByUsername(username, "after");
-        asserter.display();
-        asserter.assertName(username);
-        return asserter;
+        return assertUserByUsername(username, "after")
+                .display();
     }
 
     protected UserAsserter<Void> assertUserBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        UserAsserter<Void> asserter = assertUser(oid, "before");
-        asserter.assertOid(oid);
-        return asserter;
+        return assertUser(oid, "before")
+                .display();
     }
 
     protected UserAsserter<Void> assertUserBeforeByUsername(String username) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        UserAsserter<Void> asserter = assertUserByUsername(username, "before");
-        asserter.display();
-        asserter.assertName(username);
-        return asserter;
+        return assertUserByUsername(username, "before")
+                .display();
     }
 
     protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = getUser(oid);
-        return assertUser(user, message);
+        return assertUser(user, message)
+                .assertOid(oid);
     }
 
     protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {
@@ -5827,7 +5818,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) {
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -5836,6 +5826,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertNotNull("User with username '" + username + "' was not found", user);
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
+        asserter.assertName(username);
         return asserter;
     }
 
@@ -5853,10 +5844,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected OrgAsserter<Void> assertOrgAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        OrgAsserter<Void> asserter = assertOrg(oid, "after");
-        asserter.display();
-        asserter.assertOid(oid);
-        return asserter;
+        return assertOrg(oid, "after")
+                .display();
     }
 
     protected OrgAsserter<Void> assertOrgByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -5886,23 +5875,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected RoleAsserter<Void> assertRole(PrismObject<RoleType> role, String message) {
         RoleAsserter<Void> asserter = RoleAsserter.forRole(role, message);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected RoleAsserter<Void> assertRoleBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        RoleAsserter<Void> asserter = assertRole(oid, "before");
-        return asserter;
+        return assertRole(oid, "before")
+                .display();
     }
 
     protected RoleAsserter<Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        RoleAsserter<Void> asserter = assertRole(oid, "after");
-        return asserter;
+        return assertRole(oid, "after")
+                .display();
     }
 
     protected RoleAsserter<Void> assertRoleAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        RoleAsserter<Void> asserter = assertRoleByName(name, "after");
-        return asserter;
+        return assertRoleByName(name, "after")
+                .display();
     }
 
     protected FocusAsserter<ServiceType, Void> assertService(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -5928,7 +5916,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected FocusAsserter<ServiceType, Void> assertServiceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        return assertService(oid, "after");
+        return assertService(oid, "after")
+                .display();
     }
 
     protected void assertNoServiceByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -5954,17 +5943,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected CaseAsserter<Void> assertCaseAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        CaseAsserter<Void> asserter = assertCase(oid, "after");
-        asserter.display();
-        asserter.assertOid(oid);
-        return asserter;
+        return assertCase(oid, "after")
+                .display();
     }
 
     protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = getShadowModel(oid);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model");
-        asserter
-                .display();
+        asserter.display();
         return asserter;
     }
 
@@ -5976,8 +5962,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ShadowAsserter<Void> assertModelShadowFuture(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> repoShadow = getShadowModelFuture(oid);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(future)");
-        asserter
-                .display();
+        asserter.display();
         return asserter;
     }
 
@@ -5986,8 +5971,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         options.setNoFetch(true);
         PrismObject<ShadowType> repoShadow = getShadowModel(oid, options, true);
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(future,noFetch)");
-        asserter
-                .display();
+        asserter.display();
         return asserter;
     }
 
@@ -5999,14 +5983,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) {
         ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceAsserter<Void> asserter = assertResource(oid, "after");
-        asserter.assertOid(oid);
-        return asserter;
+        return assertResource(oid, "after")
+                .display();
     }
 
     // Change to PrismObjectDefinitionAsserter later
@@ -6017,21 +5999,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected <C extends Containerable> PrismContainerDefinitionAsserter<C, Void> assertContainerDefinition(PrismContainerDefinition<C> containerDef) {
         PrismContainerDefinitionAsserter<C, Void> asserter = PrismContainerDefinitionAsserter.forContainerDefinition(containerDef);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
         ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
     protected OperationResultAsserter<Void> assertOperationResult(OperationResult result) {
         OperationResultAsserter<Void> asserter = OperationResultAsserter.forResult(result);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -6513,7 +6492,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ArchetypePolicyType archetypePolicy = modelInteractionService.determineArchetypePolicy(object, result);
         ArchetypePolicyAsserter<Void> asserter = new ArchetypePolicyAsserter<>(archetypePolicy, null, "for " + object);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -6522,7 +6500,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentTargetSpecification(object, result);
         AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "targets for " + object);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -6531,7 +6508,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         AssignmentCandidatesSpecification targetSpec = modelInteractionService.determineAssignmentHolderSpecification(object, result);
         AssignmentCandidatesSpecificationAsserter<Void> asserter = new AssignmentCandidatesSpecificationAsserter<>(targetSpec, null, "holders for " + object);
         initializeAsserter(asserter);
-        asserter.display();
         return asserter;
     }
 
@@ -6558,5 +6534,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             System.out.println(String.format("%30s%20s%20s %s", shadow.getName(), shadow.getKind(),
                     shadow.getSynchronizationSituation(), Boolean.TRUE.equals(shadow.isProtectedObject()) ? " (protected)" : ""));
         }
+    }
+
+    protected <T extends ObjectType> void refresh(TestResource<T> resource, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        resource.object = modelService.getObject(resource.object.getCompileTimeClass(), resource.oid, null, task, result);
     }
 }

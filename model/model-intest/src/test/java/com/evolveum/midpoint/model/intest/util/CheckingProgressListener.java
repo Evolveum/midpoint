@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -19,12 +18,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class CheckingProgressListener implements ProgressListener {
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.ProgressListener#onProgressAchieved(com.evolveum.midpoint.model.api.context.ModelContext, com.evolveum.midpoint.model.api.ProgressInformation)
-     */
     @Override
     public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
-        LensContext<ObjectType> lensContext = (LensContext<ObjectType>)modelContext;
+        LensContext<?> lensContext = (LensContext<?>)modelContext;
         lensContext.checkConsistence();
         for (LensProjectionContext projectionContext: lensContext.getProjectionContexts()) {
             // MID-3213
@@ -32,12 +28,8 @@ public class CheckingProgressListener implements ProgressListener {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.ProgressListener#isAbortRequested()
-     */
     @Override
     public boolean isAbortRequested() {
         return false;
     }
-
 }
