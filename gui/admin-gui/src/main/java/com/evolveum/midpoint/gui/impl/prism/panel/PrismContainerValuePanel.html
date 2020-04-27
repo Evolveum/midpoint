@@ -8,23 +8,24 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="prism-header" wicket:id="header">
-        <div class="pull-left">
-            <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
-                    class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
-       </div>
-        <div class="labelContainer" wicket:id="labelContainer">
-            <a class="prism-title" wicket:id="label"/>
-            <i class="helpTextIcon" wicket:id="help"/>
-        </div>
-        <button wicket:id="showMetadata" wicket:message="title:PrismObjectPanel.showMetadata" class="btn btn-box-tool"><i class="fa fa-asterisk"></i></button>
-        <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool"><i class="fa fa-sort-alpha-asc"></i></button>
-        <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
-        <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+    <form wicket:id="valueForm">
+        <div class="prism-header" wicket:id="header">
+            <div class="pull-left">
+                <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                        class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
+           </div>
+            <div class="labelContainer" wicket:id="labelContainer">
+                <a class="prism-title" wicket:id="label"/>
+                <i class="helpTextIcon" wicket:id="help"/>
+            </div>
+            <button wicket:id="showMetadata" wicket:message="title:PrismObjectPanel.showMetadata" class="btn btn-box-tool"><i class="fa fa-asterisk"></i></button>
+            <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool"><i class="fa fa-sort-alpha-asc"></i></button>
+            <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+            <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
 
-    </div>
-    <div wicket:id="valueContainer">
-        <form wicket:id="form">
+        </div>
+        <div wicket:id="valueContainer">
+
             <div wicket:id="input">
                 <div class="prism-properties">
                     <div wicket:id="propertiesLabel">
@@ -39,13 +40,18 @@
                         </div>
                     </div>
 
-                    <div class="prism-containers" wicket:id="containers">
-                        <div class="row prism-property" wicket:id="container"/>
+                    <div wicket:id="containersLabel">
+                        <div class="prism-containers" wicket:id="containers">
+                            <div class="row prism-property" wicket:id="container"/>
+                        </div>
                     </div>
                 </div>
             </div>
-        </form>
-    </div>
+            <div class="row" style="margin-left: 15px;">
+                <span wicket:id="feedback" class="text-danger"/>
+            </div>
 
+        </div>
+    </form>
 </wicket:panel>
 </html>

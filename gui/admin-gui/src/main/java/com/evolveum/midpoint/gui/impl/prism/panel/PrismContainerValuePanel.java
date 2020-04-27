@@ -14,6 +14,7 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismContainerPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ListContainersPopup;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperVisibilitySpecification;
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
  * @author katka
  *
  */
-public class PrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismValuePanel<C, PrismContainerValue<C>, CVW>{
+public class PrismContainerValuePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismValuePanel<C, PrismContainerWrapper<C>, CVW> {
 
     private static final long serialVersionUID = 1L;
 
@@ -79,15 +80,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_CONTAINERS_LABEL = "containersLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
-    private ItemPanelSettings settings;
 
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
     @Override
-    protected PrismContainerPanelContext<C> createPanelCtx() {
-        return new PrismContainerPanelContext<C>(getModelObject().getParent());
+    protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismContainerWrapper<C>> wrapper) {
+        return (PC) new PrismContainerPanelContext<C>(wrapper);
     }
 
     @Override
@@ -179,8 +179,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     @Override
-    protected <IW extends ItemWrapper<?, ?>> PrismContainerValue<C> createNewValue(IW itemWrapper) {
-        return ((PrismContainer)itemWrapper.getItem()).createNewValue();
+    protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {
+        return (PV) itemWrapper.getItem().createNewValue();
     }
 
     private <IW extends ItemWrapper<?,?>> WebMarkupContainer createNonContainersPanel() {
@@ -296,36 +296,36 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (List<IW>) nonContainers;
     }
 
-    private ItemVisibilityHandler getVisibilityHandler() {
-        if (settings == null) {
-            return null;
-        }
-
-        return settings.getVisibilityHandler();
-    }
-
-    private ItemEditabilityHandler getReadabilityHandler() {
-        if (settings == null) {
-            return null;
-        }
-
-        return settings.getEditabilityHandler();
-    }
-
-    private ItemMandatoryHandler getMandatoryHandler() {
-        if (settings == null) {
-            return null;
-        }
-        return settings.getMandatoryHandler();
-    }
-
-    private boolean isShowOnTopLevel() {
-        if (settings == null) {
-            return false;
-        }
-
-        return settings.isShowOnTopLevel();
-    }
+//    private ItemVisibilityHandler getVisibilityHandler() {
+//        if (settings == null) {
+//            return null;
+//        }
+//
+//        return settings.getVisibilityHandler();
+//    }
+//
+//    private ItemEditabilityHandler getReadabilityHandler() {
+//        if (settings == null) {
+//            return null;
+//        }
+//
+//        return settings.getEditabilityHandler();
+//    }
+//
+//    private ItemMandatoryHandler getMandatoryHandler() {
+//        if (settings == null) {
+//            return null;
+//        }
+//        return settings.getMandatoryHandler();
+//    }
+//
+//    private boolean isShowOnTopLevel() {
+//        if (settings == null) {
+//            return false;
+//        }
+//
+//        return settings.isShowOnTopLevel();
+//    }
 
     private <IW extends ItemWrapper<?,?>> void populateNonContainer(ListItem<IW> item) {
         item.setOutputMarkupId(true);
@@ -338,7 +338,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(getVisibilityHandler())
-                    .editabilityHandler(getReadabilityHandler())
+                    .editabilityHandler(getEditabilityHandler())
                     .mandatoryHandler(getMandatoryHandler())
                     .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
@@ -371,7 +371,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
+            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), getSettings());
             panel.setOutputMarkupId(true);
             container.add(panel);
         } catch (SchemaException e) {

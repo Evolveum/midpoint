@@ -8,24 +8,25 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="row">
-        <div class="col-xs-10" wicket:id="valueContainer">
-            <form wicket:id="form">
+    <form wicket:id="valueForm">
+        <div class="row">
+            <div class="col-xs-10" wicket:id="valueContainer">
                 <div wicket:id="input"/>
-            </form>
+                <div class="row" style="margin-left: 15px;">
+                    <span wicket:id="feedback" class="text-danger"/>
+                </div>
+            </div>
+
+            <div class="col-xs-2" wicket:id="header">
+                <span class="btn-group">
+                        <!-- <a class="btn btn-danger btn-sm" wicket:id="removeButton"><i class="glyphicon glyphicon-minus"/></a>
+                        <a class="btn btn-success btn-sm" wicket:id="addButton"><i class="glyphicon glyphicon-plus"/></a> -->
+                    <a class="btn btn-box-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete"><i class="fa fa-minus-circle"/></a>
+    <!--                <a class="btn btn-box-tool" wicket:id="addButton" wicket:message="title:prismValuePanel.add"><i class="fa fa-plus-circle"/></a>-->
+                </span>
+            </div>
         </div>
 
-        <div class="col-xs-2" wicket:id="header">
-            <span class="btn-group">
-                    <!-- <a class="btn btn-danger btn-sm" wicket:id="removeButton"><i class="glyphicon glyphicon-minus"/></a>
-                    <a class="btn btn-success btn-sm" wicket:id="addButton"><i class="glyphicon glyphicon-plus"/></a> -->
-                <a class="btn btn-box-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete"><i class="fa fa-minus-circle"/></a>
-<!--                <a class="btn btn-box-tool" wicket:id="addButton" wicket:message="title:prismValuePanel.add"><i class="fa fa-plus-circle"/></a>-->
-            </span>
-        </div>
-    </div>
-    <div class="row" style="margin-left: 15px;">
-        <span wicket:id="feedback" class="text-danger"/>
-    </div>
+    </form>
 </wicket:panel>
 </html>

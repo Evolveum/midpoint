@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
@@ -26,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -45,10 +43,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
 
-public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends PrismValueWrapper<T, PV>> extends BasePanel<VW> {
+public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T, ?>> extends BasePanel<VW> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
@@ -63,7 +62,7 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
     private static final String ID_HEADER_CONTAINER = "header";
 
 
-    private static final String ID_FORM = "form";
+//    private static final String ID_FORM = "form";
     private static final String ID_INPUT = "input";
 
     private ItemPanelSettings settings;
@@ -77,21 +76,22 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        setOutputMarkupId(true);
     }
 
     private void initLayout() {
         Form<VW> form = new Form<>(ID_VALUE_FORM);
         add(form);
-        WebMarkupContainer buttonContainer = createHeaderPanel();
-        GuiComponentFactory factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
-        createValuePanel(factory);
+        form.add(createHeaderPanel());
+
+        createValuePanel(form);
     }
 
     private WebMarkupContainer createHeaderPanel() {
 
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
 //        buttonContainer.add(new AttributeModifier("class", getButtonsCssClass()));
-        add(buttonContainer);
+//        add(buttonContainer);
 
 //        // buttons
 //        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
@@ -124,10 +124,10 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
         buttonContainer.add(removeButton);
 
 
-        add(AttributeModifier.append("class", createStyleClassModel(getModel())));
+        buttonContainer.add(AttributeModifier.append("class", createStyleClassModel(getModel())));
 
 //        add(new VisibleBehaviour(() -> isVisibleValue(getModel())));
-
+        addToHeader(buttonContainer);
         return buttonContainer;
     }
 
@@ -135,35 +135,33 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
 
     }
 
-    protected WebMarkupContainer createValuePanel(GuiComponentFactory factory) {
+    private WebMarkupContainer createValuePanel(Form form) {
 
+        GuiComponentFactory factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
             WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
             valueContainer.setOutputMarkupId(true);
-            add(valueContainer);
+            form.add(valueContainer);
             // feedback
             FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
             feedback.setOutputMarkupId(true);
-            add(feedback);
+            valueContainer.add(feedback);
 
-            PrismPropertyWrapper<T> modelObject = getModelObject().getParent();
+            IW modelObject = getModelObject().getParent();
 
             LOGGER.trace("create input component for: {}", modelObject.debugDump());
 
-            Panel component = null;
 
-            org.apache.wicket.markup.html.form.Form<?> form = new org.apache.wicket.markup.html.form.Form<>(ID_FORM);
-            valueContainer.add(form);
 
         if (factory == null) {
-            form.add(createDefaultPanel(ID_INPUT));
+            valueContainer.add(createDefaultPanel(ID_INPUT));
             return valueContainer;
         }
 
 
 
-                ItemPanelContext<T, ItemWrapper<?,?>> panelCtx = createPanelCtx();
+                ItemPanelContext<T, ItemWrapper<?,?>> panelCtx = createPanelCtx(new PropertyModel<>(getModel(), "parent"));
         panelCtx.setComponentId(ID_INPUT);
-                panelCtx.setForm(form);
+                panelCtx.setForm(getForm());
                 panelCtx.setRealValueModel(getModel());
                 panelCtx.setParentComponent(this);
                 panelCtx.setAjaxEventBehavior(createEventBehavior());
@@ -173,13 +171,16 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
                 panelCtx.setFeedback(feedback);
 
                 try {
-                    component = factory.createPanel(panelCtx);
-                    form.add(component);
+                    Panel component = factory.createPanel(panelCtx);
+                    valueContainer.add(component);
+                    factory.configure(panelCtx, component);
                 } catch (Throwable e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
                     getSession().error("Cannot create panel");
                     throw new RuntimeException(e);
                 }
+
+
 
 
 //            if (component instanceof Validatable) {
@@ -259,7 +260,11 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
         };
     }
 
-    private ItemMandatoryHandler getMandatoryHandler() {
+    protected ItemPanelSettings getSettings() {
+        return settings;
+    }
+
+    protected ItemMandatoryHandler getMandatoryHandler() {
         if (settings == null) {
             return null;
         }
@@ -267,12 +272,28 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
         return settings.getMandatoryHandler();
     }
 
-    private ItemEditabilityHandler getEditabilityHandler() {
+    protected ItemEditabilityHandler getEditabilityHandler() {
         if (settings == null) {
              return null;
         }
 
         return settings.getEditabilityHandler();
+    }
+
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        if (settings == null) {
+            return null;
+        }
+
+        return settings.getVisibilityHandler();
+    }
+
+    protected boolean isShowOnTopLevel() {
+        if (settings == null) {
+            return false;
+        }
+
+        return settings.isShowOnTopLevel();
     }
 
     protected ExpressionValidator<T> createExpressionValidator() {
@@ -290,7 +311,7 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
         return"col-xs-2";
     }
 
-    protected abstract <PC extends ItemPanelContext> PC createPanelCtx();
+    protected abstract <PC extends ItemPanelContext> PC createPanelCtx(IModel<IW> wrapper);
 
     protected IModel<String> createStyleClassModel(final IModel<VW> value) {
         return new IModel<String>() {
@@ -353,7 +374,7 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
 //        target.add(ItemPanel.this);
     }
 
-    protected abstract <IW extends ItemWrapper<?,?>> PV createNewValue(IW itemWrapper);
+    protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
     //TODO move to the ItemPanel, exception handling
     protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
@@ -433,6 +454,6 @@ public abstract class PrismValuePanel<T, PV extends PrismValue, VW extends Prism
     }
 
     protected FeedbackAlerts getFeedback() {
-        return (FeedbackAlerts) get(ID_FEEDBACK);
+        return (FeedbackAlerts) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_FEEDBACK));
     }
 }

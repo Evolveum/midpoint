@@ -11,30 +11,26 @@ import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+
+import com.evolveum.midpoint.prism.PrismValue;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
-public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismPropertyValue<T>, PrismPropertyValueWrapper<T>> {
+public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
-    private static final String ID_INPUT = "input";
 
     public PrismPropertyValuePanel(String id, IModel<PrismPropertyValueWrapper<T>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
     @Override
-    protected PrismPropertyPanelContext<T> createPanelCtx() {
-        PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<>(getModelObject().getParent());
-//        panelCtx.setComponentId(ID_INPUT);
-        return panelCtx;
-    }
-
-    @Override
-    protected <IW extends ItemWrapper<?, ?>> PrismPropertyValue<T> createNewValue(IW itemWrapper) {
-        return getPrismContext().itemFactory().createPropertyValue();
+    protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismPropertyWrapper<T>> wrapper) {
+        PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<>(wrapper);
+        return (PC) panelCtx;
     }
 
     @Override
@@ -46,5 +42,10 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
                 noComponent.setVisible(false);
                 return noComponent;
             }
+    }
+
+    @Override
+    protected <PV extends PrismValue> PV createNewValue(PrismPropertyWrapper<T> itemWrapper) {
+        return (PV) getPrismContext().itemFactory().createPropertyValue();
     }
 }

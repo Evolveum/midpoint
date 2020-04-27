@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.factory.panel.PrismReferencePanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -37,21 +38,21 @@ import javax.xml.namespace.QName;
 import java.util.Arrays;
 import java.util.List;
 
-public class PrismReferenceValuePanel<R extends Referencable> extends PrismValuePanel<R, PrismReferenceValue, PrismReferenceValueWrapperImpl<R>> {
+public class PrismReferenceValuePanel<R extends Referencable> extends PrismValuePanel<R, PrismReferenceWrapper<R>, PrismReferenceValueWrapperImpl<R>> {
 
     public PrismReferenceValuePanel(String id, IModel<PrismReferenceValueWrapperImpl<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
     @Override
-    protected PrismReferencePanelContext<R> createPanelCtx() {
-        PrismReferencePanelContext<R> panelCtx = new PrismReferencePanelContext<>(getModelObject().getParent());
-        return panelCtx;
+    protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismReferenceWrapper<R>> wrapper) {
+        PrismReferencePanelContext<R> panelCtx = new PrismReferencePanelContext<>(wrapper);
+        return (PC) panelCtx;
     }
 
     @Override
-    protected <IW extends ItemWrapper<?, ?>> PrismReferenceValue createNewValue(IW itemWrapper) {
-        return getPrismContext().itemFactory().createReferenceValue();
+    protected <PV extends PrismValue> PV createNewValue(PrismReferenceWrapper<R> itemWrapper) {
+        return (PV) getPrismContext().itemFactory().createReferenceValue();
     }
 
     @Override

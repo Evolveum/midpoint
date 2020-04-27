@@ -74,7 +74,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     boolean isColumn();
     void setColumn(boolean column);
 
-    <D extends ItemDelta<? extends PrismValue, ?>> Collection<D> getDelta() throws SchemaException;
+    <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException;
 
     ItemStatus findObjectStatus();
 
