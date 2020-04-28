@@ -12,13 +12,12 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListTable;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
+import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.AbstractSchrodingerTest;
-import com.evolveum.midpoint.testing.schrodinger.scenarios.SynchronizationTests;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +55,10 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static final File HR_SOURCE_FILE_7_4_PART_2 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-2.csv");
     protected static final File HR_SOURCE_FILE_7_4_PART_3 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-3.csv");
     protected static final File HR_SOURCE_FILE_7_4_PART_4 = new File(LAB_SOURCES_DIRECTORY + "source-7-4-part-4.csv");
+    protected static final File HR_SOURCE_FILE_10_1 = new File(LAB_SOURCES_DIRECTORY + "source-10-1.csv");
+    protected static final File HR_SOURCE_FILE_10_2_PART1 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part1.csv");
+    protected static final File HR_SOURCE_FILE_10_2_PART2 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part2.csv");
+    protected static final File HR_SOURCE_FILE_10_2_PART3 = new File(LAB_SOURCES_DIRECTORY + "source-10-2-part3.csv");
 
 
     protected static final String DIRECTORY_CURRENT_TEST = "labTests";
@@ -161,5 +164,16 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
                         .inputValueWithEnter(itemValue)
                     .and()
                 .and();
+    }
+
+    protected TaskPage showTask(String name) {
+        return basicPage.listTasks()
+                .table()
+                    .search()
+                        .byName()
+                            .inputValue(name)
+                            .updateSearch()
+                    .and()
+                    .clickByName(name);
     }
 }

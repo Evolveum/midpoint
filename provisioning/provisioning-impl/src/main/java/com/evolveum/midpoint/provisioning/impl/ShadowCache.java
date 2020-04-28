@@ -408,7 +408,7 @@ public class ShadowCache {
         }
         if (shadowState == ShadowState.TOMBSTONE) {
             // Once shadow is buried it stays nine feet under. Therefore there is no point in trying to access the resource.
-            // NOTE: this is just for tombstone! Schroedinger's shadows (corpse) will still work as if they were alive.
+            // NOTE: this is just for tombstone! Schrodinger's shadows (corpse) will still work as if they were alive.
             return true;
         }
         long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));

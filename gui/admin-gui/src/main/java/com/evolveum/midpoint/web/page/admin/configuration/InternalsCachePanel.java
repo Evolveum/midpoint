@@ -10,6 +10,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.KeyValueTreeNode;
 import com.evolveum.midpoint.util.TreeNode;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -24,11 +26,16 @@ import org.apache.wicket.model.IModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 public class InternalsCachePanel extends BasePanel<Void>{
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(InternalsCachePanel.class);
+
     private static final String ID_CLEAR_CACHES_BUTTON = "clearCaches";
+    private static final String ID_DUMP_CONTENT_BUTTON = "dumpContent";
     private static final String ID_INFORMATION = "information";
 
     public InternalsCachePanel(String id) {
@@ -58,7 +65,7 @@ public class InternalsCachePanel extends BasePanel<Void>{
         informationText.setMode(null);
         add(informationText);
 
-        AjaxButton clearCaches = new AjaxButton(ID_CLEAR_CACHES_BUTTON, createStringResource("InternalsCachePanel.button.clearCaches")) {
+        add(new AjaxButton(ID_CLEAR_CACHES_BUTTON, createStringResource("InternalsCachePanel.button.clearCaches")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -67,54 +74,89 @@ public class InternalsCachePanel extends BasePanel<Void>{
                 getPageBase().getCacheDispatcher().dispatchInvalidation(null, null, true, null);
                 target.add(InternalsCachePanel.this);
             }
-        };
+        });
 
-        add(clearCaches);
+        add(new AjaxButton(ID_DUMP_CONTENT_BUTTON, createStringResource("InternalsCachePanel.button.dumpContent")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                String cacheInformation = getCacheInformation();
+                LOGGER.info("Dumping the content of the caches.\nCurrent counters:\n{}\n", cacheInformation);
+                MidPointApplication.get().getCacheRegistry().dumpContent();
+
+                getSession().success(getPageBase().getString("InternalsCachePanel.result.dumped"));
+                target.add(getPageBase());
+            }
+        });
+    }
+
+    private static class SizeInformation {
+        private final int size;
+        private final int secondarySize;
+
+        private SizeInformation(SingleCacheStateInformationType info) {
+            size = defaultIfNull(info.getSize(), 0);
+            secondarySize = defaultIfNull(info.getSecondarySize(), 0);
+        }
+
+        private SizeInformation(ComponentSizeInformationType info) {
+            size = defaultIfNull(info.getSize(), 0);
+            secondarySize = defaultIfNull(info.getSecondarySize(), 0);
+        }
     }
 
     private String getCacheInformation() {
         StringBuilder sb = new StringBuilder();
-        MidPointApplication midPointApplication = MidPointApplication.get();
-        if (midPointApplication != null) {
-            CachesStateInformationType state = midPointApplication.getCacheRegistry().getStateInformation();
-            List<KeyValueTreeNode<String, Integer>> trees = new ArrayList<>();
-            for (SingleCacheStateInformationType entry : state.getEntry()) {
-                KeyValueTreeNode<String, Integer> root = new KeyValueTreeNode<>(entry.getName(), entry.getSize());
-                trees.add(root);
-                addComponents(root, entry.getComponent());
-            }
-            Holder<Integer> maxLabelLength = new Holder<>(0);
-            Holder<Integer> maxSize = new Holder<>(0);
-            trees.forEach(tree -> tree.acceptDepthFirst(node -> {
-                int labelLength = node.getUserObject().getKey().length() + node.getDepth() * 2;
-                Integer size = node.getUserObject().getValue();
-                if (labelLength > maxLabelLength.getValue()) {
-                    maxLabelLength.setValue(labelLength);
-                }
-                if (size != null && size > maxSize.getValue()) {
-                    maxSize.setValue(size);
-                }
-            }));
-            int labelSize = Math.max(maxLabelLength.getValue() + 1, 30);
-            int sizeSize = Math.max((int) Math.log10(maxSize.getValue()) + 2, 7);
-            int firstPart = labelSize + 3;
-            int secondPart = sizeSize + 3;
-            String headerFormatString = "  %-" + labelSize + "s | %" + sizeSize + "s  \n";
-            String valueFormatString = "  %-" + labelSize + "s | %" + sizeSize + "d  \n";
-            //System.out.println("valueFormatString = " + valueFormatString);
-            sb.append("\n");
-            sb.append(String.format(headerFormatString, "Cache", "Size"));
-            sb.append(StringUtils.repeat("=", firstPart)).append("+").append(StringUtils.repeat("=", secondPart)).append("\n");
-            trees.forEach(tree -> {
-                tree.acceptDepthFirst(node -> printNode(sb, valueFormatString, node));
-                sb.append(StringUtils.repeat("-", firstPart)).append("+").append(StringUtils.repeat("-", secondPart)).append("\n");
-            });
+        CachesStateInformationType state = MidPointApplication.get().getCacheRegistry().getStateInformation();
+        List<KeyValueTreeNode<String, SizeInformation>> trees = new ArrayList<>();
+        for (SingleCacheStateInformationType entry : state.getEntry()) {
+            KeyValueTreeNode<String, SizeInformation> root = new KeyValueTreeNode<>(entry.getName(), new SizeInformation(entry));
+            trees.add(root);
+            addComponents(root, entry.getComponent());
         }
+        Holder<Integer> maxLabelLength = new Holder<>(0);
+        Holder<Integer> maxSize = new Holder<>(1); // to avoid issues with log10
+        Holder<Integer> maxSecondarySize = new Holder<>(1); // to avoid issues with log10
+        trees.forEach(tree -> tree.acceptDepthFirst(node -> {
+            int labelLength = node.getUserObject().getKey().length() + node.getDepth() * 2;
+            int size = node.getUserObject().getValue().size;
+            int secondarySize = node.getUserObject().getValue().secondarySize;
+            if (labelLength > maxLabelLength.getValue()) {
+                maxLabelLength.setValue(labelLength);
+            }
+            if (size > maxSize.getValue()) {
+                maxSize.setValue(size);
+            }
+            if (secondarySize > maxSecondarySize.getValue()) {
+                maxSecondarySize.setValue(secondarySize);
+            }
+        }));
+        int labelSize = Math.max(maxLabelLength.getValue() + 1, 30);
+        int sizeSize = Math.max((int) Math.log10(maxSize.getValue()) + 2, 7);
+        int secondarySizeSize = Math.max((int) Math.log10(maxSecondarySize.getValue()) + 2, 8);
+        int firstPart = labelSize + 3;
+        int secondPart = sizeSize + 2;
+        int thirdPart = secondarySizeSize + 3;
+        String headerFormatString = "  %-" + labelSize + "s | %" + sizeSize + "s | %" + secondarySizeSize + "s\n";
+        String valueFormatString = "  %-" + labelSize + "s | %" + sizeSize + "d | %" + secondarySizeSize + "s\n";
+        sb.append("\n");
+        sb.append(String.format(headerFormatString, "Cache", "Size", "Sec. size"));
+        sb.append(StringUtils.repeat("=", firstPart)).append("+")
+                .append(StringUtils.repeat("=", secondPart)).append("+")
+                .append(StringUtils.repeat("=", thirdPart)).append("\n");
+        trees.forEach(tree -> {
+            tree.acceptDepthFirst(node -> printNode(sb, valueFormatString, node));
+            sb.append(StringUtils.repeat("-", firstPart)).append("+")
+                    .append(StringUtils.repeat("-", secondPart)).append("+")
+                    .append(StringUtils.repeat("-", thirdPart)).append("\n");
+        });
         return sb.toString();
     }
 
-    private void printNode(StringBuilder sb, String formatString, TreeNode<Pair<String, Integer>> node) {
-        Pair<String, Integer> pair = node.getUserObject();
+    private void printNode(StringBuilder sb, String formatString, TreeNode<Pair<String, SizeInformation>> node) {
+        Pair<String, SizeInformation> pair = node.getUserObject();
         if (pair != null) {
             int depth = node.getDepth();
             StringBuilder prefix = new StringBuilder();
@@ -124,13 +166,22 @@ public class InternalsCachePanel extends BasePanel<Void>{
                 }
                 prefix.append("- ");
             }
-            sb.append(String.format(formatString, prefix + pair.getKey(), pair.getValue()));
+            sb.append(String.format(formatString, prefix + pair.getKey(), pair.getValue().size,
+                    emptyIfZero(pair.getValue().secondarySize)));
         }
     }
 
-    private void addComponents(KeyValueTreeNode<String, Integer> node, List<ComponentSizeInformationType> components) {
+    private String emptyIfZero(int number) {
+        if (number != 0) {
+            return String.valueOf(number);
+        } else {
+            return "";
+        }
+    }
+
+    private void addComponents(KeyValueTreeNode<String, SizeInformation> node, List<ComponentSizeInformationType> components) {
         for (ComponentSizeInformationType component : components) {
-            KeyValueTreeNode<String, Integer> child = node.createChild(component.getName(), component.getSize());
+            KeyValueTreeNode<String, SizeInformation> child = node.createChild(component.getName(), new SizeInformation(component));
             addComponents(child, component.getComponent());
         }
     }

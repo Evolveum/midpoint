@@ -34,8 +34,8 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
     private static final String CSV1_TESTER_ROLE_NAME = "CSV-1 Tester";
     private static final String CSV3_ADMIN_ROLE_NAME = "CSV-3 Admin";
 
-    @Test
-    public void test0601UsingAccountIntentsForProvisioning() {
+    @Test(groups={"M6"}, dependsOnGroups={"M5"})
+    public void mod06test01UsingAccountIntentsForProvisioning() {
 
         importObject(CSV_1_RESOURCE_FILE_6_1,true);
         changeResourceAttribute(CSV_1_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv1TargetFile.getAbsolutePath(), true);

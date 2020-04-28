@@ -28,31 +28,19 @@ public class ProjectionsDropDown<T> extends TableHeaderDropDownMenu<T> {
     }
 
     public T enable() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.enable"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        return this.getParent();
+        return clickByDataResourceKey("pageAdminFocus.button.enable");
     }
 
     public T disable() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.disable"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        return this.getParent();
+        return clickByDataResourceKey("pageAdminFocus.button.disable");
     }
 
     public T unlink() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.unlink"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        return this.getParent();
+        return clickByDataResourceKey("pageAdminFocus.button.unlink");
     }
 
     public T unlock() {
-        $(Schrodinger.byDataResourceKey("pageAdminFocus.button.unlock"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-
-        return this.getParent();
+        return clickByDataResourceKey("pageAdminFocus.button.unlock");
     }
 
 //    public FocusSetProjectionModal<T> addProjection() {

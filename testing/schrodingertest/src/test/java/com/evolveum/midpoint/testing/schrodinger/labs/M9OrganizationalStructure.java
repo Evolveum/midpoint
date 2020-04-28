@@ -6,30 +6,22 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author skublik
  */
 
 public class M9OrganizationalStructure extends AbstractLabTest{
-
-    private static final Logger LOG = LoggerFactory.getLogger(M9OrganizationalStructure.class);
 
     private static final File ARCHETYPE_ORG_COMPANY_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-company.xml");
     private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");
@@ -38,33 +30,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
 
-    @AfterClass
-    @Override
-    public void afterClass() {
-        super.afterClass();
-
-        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-
-        LOG.info("After: Login name " + username + " pass " + password);
-
-        AboutPage aboutPage = basicPage.aboutPage();
-        aboutPage
-                .clickSwitchToFactoryDefaults()
-                .clickYes();
-    }
-
-    @BeforeClass
-    @Override
-    public void beforeClass() throws IOException {
-        super.beforeClass();
-        csv1TargetFile = new File("/home/lskublik/Documents/Evolveum/actual/master/05-02-2020/midpoint/testing/schrodingertest/target/midpoint-home/schrodinger/labTests/csv-1.csv");
-        csv2TargetFile = new File ("/home/lskublik/Documents/Evolveum/actual/master/05-02-2020/midpoint/testing/schrodingertest/target/midpoint-home/schrodinger/labTests/csv-2.csv");
-        csv3TargetFile = new File ("/home/lskublik/Documents/Evolveum/actual/master/05-02-2020/midpoint/testing/schrodingertest/target/midpoint-home/schrodinger/labTests/csv-3.csv");
-        hrTargetFile = new File ("/home/lskublik/Documents/Evolveum/actual/master/05-02-2020/midpoint/testing/schrodingertest/target/midpoint-home/schrodinger/labTests/source.csv");
-    }
-
-    @Test
-    public void test0901ImportStaticOrgStructure() {
+    @Test(groups={"M9"}, dependsOnGroups={"M8"})
+    public void mod09test01ImportStaticOrgStructure() {
         importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
         importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
         importObject(ARCHETYPE_ORG_GROUP_FILE, true);
@@ -93,8 +60,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
     }
 
-    @Test(dependsOnMethods = {"test0901ImportStaticOrgStructure"})
-    public void test0902CreateStaticOrgStructure() {
+    @Test(dependsOnMethods = {"test0901ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    public void mod09test02CreateStaticOrgStructure() {
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
@@ -119,7 +86,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .getOrgHierarchyPanel()
                         .expandOrg("Secret Operations")
                         .expandOrg("Transportation and Logistics Department")
-                        .editOrg("Warp Speed Research")
+                        .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
                                 .selectTabBasic()
                                     .form()
@@ -162,6 +129,142 @@ public class M9OrganizationalStructure extends AbstractLabTest{
             .clickSave()
                 .feedback()
                     .isSuccess();
+    }
+
+    @Test(dependsOnMethods = {"test0902CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    public void mod09test03OrganizationActingAsARole() {
+        Assert.assertFalse(basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .expandOrg("Secret Operations")
+                        .expandOrg("Transportation and Logistics Department")
+                        .selectOrgInTree("Warp Speed Research")
+                        .and()
+                    .getMemberPanel()
+                        .selectType("User")
+                            .table()
+                            .containsText("kirk"));
+
+        basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .showTreeNodeDropDownMenu("Warp Speed Research")
+                            .edit()
+                                .selectTabInducements()
+                                    .clickAddInducement()
+                                        .table()
+                                            .search()
+                                                .byName()
+                                                    .inputValue("Secret Projects I")
+                                                    .updateSearch()
+                                                    .and()
+                                            .selectCheckboxByName("Secret Projects I")
+                                            .and()
+                                        .clickAdd()
+                                    .and()
+                                .clickSave()
+                                    .feedback()
+                                        .isSuccess();
+
+        basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .selectOrgInTree("Warp Speed Research")
+                        .and()
+                    .getMemberPanel()
+                        .table()
+                            .clickHeaderActionDropDown()
+                                .assign()
+                                    .selectType("User")
+                                    .table()
+                                        .search()
+                                            .byName()
+                                                .inputValue("kirk")
+                                                .updateSearch()
+                                            .and()
+                                        .selectCheckboxByName("kirk")
+                                        .and()
+                                    .clickAdd()
+                                .and()
+                            .and()
+                        .and()
+                    .feedback()
+                        .isInfo();
+
+        Assert.assertTrue(basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .expandOrg("Secret Operations")
+                        .expandOrg("Transportation and Logistics Department")
+                        .selectOrgInTree("Warp Speed Research")
+                        .and()
+                    .getMemberPanel()
+                        .selectType("User")
+                            .table()
+                            .containsText("kirk"));
+
+        Assert.assertTrue(
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                        .form()
+                        .compareInputAttributeValues("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel"));
+
+        basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .expandOrg("Secret Operations")
+                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Warp Speed Research")
+                            .edit()
+                                .selectTabInducements()
+                                    .clickAddInducement()
+                                        .selectType("Role")
+                                        .table()
+                                            .search()
+                                                .byName()
+                                                    .inputValue("Secret Projects II")
+                                                    .updateSearch()
+                                                .and()
+                                            .selectCheckboxByName("Secret Projects II")
+                                            .and()
+                                        .clickAdd()
+                                    .and()
+                                .clickSave()
+                                    .feedback()
+                                        .isSuccess();
+
+        Assert.assertTrue(
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                        .form()
+                        .compareInputAttributeValues("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel"));
+
+        basicPage.orgStructure()
+                .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
+                    .getOrgHierarchyPanel()
+                        .selectOrgInTree("Warp Speed Research")
+                        .and()
+                    .getMemberPanel()
+                        .table()
+                            .clickHeaderActionDropDown()
+                                .recompute()
+                                    .clickYes()
+                            .and()
+                        .and()
+                    .and()
+                .feedback()
+                    .isInfo();
+
+        Assert.assertTrue(
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                        .form()
+                        .compareInputAttributeValues("groups", "Internal Employees",
+                                "Essential Documents", "Teleportation", "Time Travel", "Lucky Numbers",
+                                "Presidential Candidates Motivation"));
+
+        Assert.assertTrue(showUser("kirk").selectTabAssignments()
+                .selectTypeAllDirectIndirect()
+                    .containsIndirectAssignments("Secret Projects II"));
     }
 
 }

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileCompiler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cacheable;
@@ -56,6 +57,7 @@ import java.util.Collections;
 public class SystemObjectCache implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(SystemObjectCache.class.getName() + ".content");
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -69,7 +71,7 @@ public class SystemObjectCache implements Cacheable {
     private PrismObject<SecurityPolicyType> securityPolicy;
     private Long securityPolicyCheckTimestamp;
 
-    private ExpressionProfiles expressionProfiles;
+    private volatile ExpressionProfiles expressionProfiles;
 
     @PostConstruct
     public void register() {
@@ -217,6 +219,7 @@ public class SystemObjectCache implements Cacheable {
         securityPolicyCheckTimestamp = null;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         // TODO: make this efficient (use cache)
         return cacheRepositoryService.getObject(ArchetypeType.class, oid, null, result);
@@ -262,6 +265,7 @@ public class SystemObjectCache implements Cacheable {
         if (type == null || type.isAssignableFrom(SystemConfigurationType.class)) {
             invalidateCaches();
         }
+        expressionProfiles = null;
     }
 
     @NotNull
@@ -274,7 +278,28 @@ public class SystemObjectCache implements Cacheable {
     }
 
     private int getSize() {
+        ExpressionProfiles cachedProfiles = this.expressionProfiles;
+
         return (systemConfiguration != null ? 1 : 0) +
-                (expressionProfiles != null ? expressionProfiles.size() : 0);
+                (cachedProfiles != null ? cachedProfiles.size() : 0);
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            PrismObject<SystemConfigurationType> cachedConfiguration = this.systemConfiguration;
+            if (cachedConfiguration != null) {
+                LOGGER_CONTENT.info("Cached system configuration: {} (version {}); systemConfigurationCheckTimestamp: {}",
+                        cachedConfiguration, cachedConfiguration.getVersion(),
+                        XmlTypeConverter.createXMLGregorianCalendar(systemConfigurationCheckTimestamp));
+            } else {
+                LOGGER_CONTENT.info("No cached system configuration");
+            }
+
+            ExpressionProfiles cachedProfiles = this.expressionProfiles;
+            if (cachedProfiles != null) {
+                cachedProfiles.getProfiles().forEach((k, v) -> LOGGER_CONTENT.info("Cached expression profile: {}: {}", k, v));
+            }
+        }
     }
 }

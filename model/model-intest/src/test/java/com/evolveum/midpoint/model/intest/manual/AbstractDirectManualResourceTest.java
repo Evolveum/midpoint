@@ -1120,7 +1120,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
     /**
      * Case is closed. The unassign operation is complete.
      * However, in the semi-manual case this gets really interesting.
-     * We have Schroedinger's shadow here.  deleted account, ticket closed, account is deleted
+     * We have Schrodinger's shadow here.  deleted account, ticket closed, account is deleted
      * by administrator in the target system. But the account is still in the backing store (CSV)
      * because scheduled export has not refreshed the file yet.
      */
@@ -1237,7 +1237,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
     }
 
     /**
-     * For semi-manual case this is the place where the quantum state of Schroedinger's
+     * For semi-manual case this is the place where the quantum state of Schrodinger's
      * shadow collapses. From now on we should have ordinary tombstone shadow.
      */
     @Test

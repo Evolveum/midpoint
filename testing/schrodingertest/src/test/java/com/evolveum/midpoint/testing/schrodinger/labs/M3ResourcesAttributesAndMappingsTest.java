@@ -14,7 +14,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.resource.ResourceShadowTable;
 import com.evolveum.midpoint.schrodinger.page.resource.AccountPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ResourceWizardPage;
@@ -49,8 +48,8 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         super.beforeClass();
     }
 
-    @Test
-    public void test0301ViewingResources() throws Exception {
+    @Test(groups={"M3"})
+    public void mod03test01ViewingResources() throws Exception {
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
         csv1TargetFile = new File(csvTargetDir, CSV_1_FILE_SOURCE_NAME);
@@ -143,8 +142,8 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }
 
-    @Test(dependsOnMethods = {"test0301ViewingResources"})
-    public void test0302BasicProvisioning() {
+    @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
+    public void mod03test02BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
                 .form()
@@ -191,7 +190,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         PrismForm<AccountPage> accountForm = showShadow(CSV_1_RESOURCE_NAME, "Login", "kirk")
                 .form();
 
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         Assert.assertTrue(accountForm.compareInputAttributeValue("fname", "Jim T."));
 
         showUser("kirk")

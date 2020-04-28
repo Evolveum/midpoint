@@ -20,7 +20,6 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -61,8 +60,8 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         super.springTestContextPrepareTestInstance();
     }
 
-    @Test
-    public void test0801ExtendingMidPointXMLSchema() {
+    @Test(groups={"M8"}, dependsOnGroups={"M7"})
+    public void mod08test01ExtendingMidPointXMLSchema() {
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = basicPage.newUser()
                 .selectTabBasic()
                     .form();
@@ -72,6 +71,8 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         form.findProperty("isManager");
         form.findProperty("empStatus");
 
+        showTask("HR Synchronization").clickSuspend();
+
         importObject(HR_RESOURCE_FILE_8_1,true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);
 
@@ -80,6 +81,11 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         ResourceAccountsTab<ViewResourcePage> accountTab = basicPage.listResources()
                 .table()
+                    .search()
+                        .byName()
+                            .inputValue(HR_RESOURCE_NAME)
+                            .updateSearch()
+                        .and()
                     .clickByName(HR_RESOURCE_NAME)
                         .clickAccountsTab()
                         .clickSearchInResource();
