@@ -181,7 +181,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
         Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
     }
 
-    @Test(dependsOnMethods = {"test0401BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
+    @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test02AddingMappings() {
 
         importObject(CSV_1_RESOURCE_FILE_4_2,true);
@@ -216,7 +216,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0402AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
+    @Test(dependsOnMethods = {"mod04test02AddingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test03ModifyingExistingMappings() {
         importObject(CSV_1_RESOURCE_FILE_4_3,true);
 
@@ -271,7 +271,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
 
     }
 
-    @Test(dependsOnMethods = {"test0403ModifyingExistingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
+    @Test(dependsOnMethods = {"mod04test03ModifyingExistingMappings"}, groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test04AddingANewAttribute() {
         ((PrismFormWithActionButtons<AbstractTableWithPrismView<ProjectionsTab<UserPage>>>)
                 ((AbstractTableWithPrismView)showUser("kirk")

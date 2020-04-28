@@ -60,7 +60,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
     }
 
-    @Test(dependsOnMethods = {"test0901ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
     public void mod09test02CreateStaticOrgStructure() {
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
@@ -131,7 +131,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {"test0902CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    @Test(dependsOnMethods = {"mod09test02CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
     public void mod09test03OrganizationActingAsARole() {
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")

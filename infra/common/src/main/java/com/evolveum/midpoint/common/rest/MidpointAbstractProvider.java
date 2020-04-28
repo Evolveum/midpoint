@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +86,10 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
                 .options(SerializationOptions.createSerializeReferenceNames());
 
         try {
-            if (object instanceof PrismObject) {
+            if (object instanceof ObjectType) {
+                ObjectType ot = (ObjectType) object;
+                serializedForm = serializer.serialize(ot.asPrismObject());
+            } else if (object instanceof PrismObject) {
                 serializedForm = serializer.serialize((PrismObject<?>) object);
             } else if (object instanceof OperationResult) {
                 Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);

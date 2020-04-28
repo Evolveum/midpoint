@@ -142,7 +142,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }
 
-    @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
+    @Test(dependsOnMethods = {"mod03test01ViewingResources"}, groups={"M3"})
     public void mod03test02BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()
