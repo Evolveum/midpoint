@@ -315,6 +315,11 @@ public class BasicPage {
         return new SystemPage().adminGuiTab();
     }
 
+    public DeploymentInformationTab deploymentInformation() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.deploymentInformation");
+        return new SystemPage().deploymentInformationTab();
+    }
+
     public InfrastructureTab infrastructure() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.infrastructure");
         return new SystemPage().infrastructureTab();

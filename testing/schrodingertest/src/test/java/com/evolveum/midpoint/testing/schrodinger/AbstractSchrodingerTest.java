@@ -13,19 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.ex.ElementNotFound;
 import com.codeborne.selenide.testng.BrowserPerClass;
 
-import com.evolveum.midpoint.schrodinger.component.AssignmentsTab;
-
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWithPrismView;
-import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 
 import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.By;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -70,7 +64,7 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractSchrodingerTest.class);
 
-    protected static File csvTargetDir;
+    protected static File testTargetDir;
 
     protected EnvironmentConfiguration configuration;
 
@@ -220,19 +214,19 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
         String home = fetchMidpointHome();
         File parentDir = new File(home, "schrodinger");
         parentDir.mkdir();
-        csvTargetDir = new File(parentDir, dir);
+        testTargetDir = new File(parentDir, dir);
 
-        if (csvTargetDir.mkdir()) {
+        if (testTargetDir.mkdir()) {
 
-            return csvTargetDir;
+            return testTargetDir;
         } else {
-            if (csvTargetDir.exists()) {
+            if (testTargetDir.exists()) {
 
-                FileUtils.cleanDirectory(csvTargetDir);
-                return csvTargetDir;
+                FileUtils.cleanDirectory(testTargetDir);
+                return testTargetDir;
             } else {
 
-                throw new IOException("Creation of directory \"" + csvTargetDir.getAbsolutePath() + "\" unsuccessful");
+                throw new IOException("Creation of directory \"" + testTargetDir.getAbsolutePath() + "\" unsuccessful");
             }
         }
     }

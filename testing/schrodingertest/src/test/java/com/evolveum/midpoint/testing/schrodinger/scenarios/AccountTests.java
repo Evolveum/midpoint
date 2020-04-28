@@ -56,7 +56,7 @@ public class AccountTests extends AbstractSchrodingerTest {
 
         initTestDirectory(DIRECTORY_CURRENT_TEST);
 
-        csvTargetFile = new File(csvTargetDir, FILE_RESOUCE_NAME);
+        csvTargetFile = new File(testTargetDir, FILE_RESOUCE_NAME);
         FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE, csvTargetFile);
 
         UserPage user = basicPage.newUser();
