@@ -534,8 +534,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";
     protected static final String NOTIFIER_ACCOUNT_ACTIVATION_NAME = "accountActivationNotifier";
 
-    protected PrismObject<UserType> userAdministrator;
-
     public AbstractConfiguredModelIntegrationTest() {
         super();
     }
