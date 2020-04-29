@@ -690,7 +690,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 .showOnTopLevel(true)
                 .editabilityHandler(this::getContainerReadability)
                 .build();
-        getPageBase().initContainerValuePanel(idPanel, model, settings);
         return getPageBase().initContainerValuePanel(idPanel, model, settings);
     }
 

@@ -60,4 +60,13 @@ public class ItemPanelSettings implements Serializable {
     public void setMandatoryHandler(ItemMandatoryHandler mandatoryHandler) {
         this.mandatoryHandler = mandatoryHandler;
     }
+
+    public ItemPanelSettings copy() {
+        return new ItemPanelSettingsBuilder()
+                .editabilityHandler(editabilityHandler)
+                .visibilityHandler(visibilityHandler)
+                .headerVisibility(headerVisible)
+                .mandatoryHandler(mandatoryHandler)
+                .build();
+    }
 }

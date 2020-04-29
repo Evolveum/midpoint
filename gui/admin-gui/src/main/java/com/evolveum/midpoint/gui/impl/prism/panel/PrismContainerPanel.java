@@ -86,7 +86,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
-        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<>("value", item.getModel(), getSettings());
+        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<>("value", item.getModel(), getSettings().copy());
         item.add(panel);
         return panel;
 //        if (componentFactory == null) {;

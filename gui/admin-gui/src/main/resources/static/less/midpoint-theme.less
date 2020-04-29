@@ -845,34 +845,46 @@ body .treeview-menu > li > span:hover {
 }
 
 .top-level-prism-container {
-	border-top: 1px solid #ddd;
-	padding-top: 5px;
-}
+  border-top: 1px solid @table-divider-color;
+  padding-top: 5px;
 
-.multivalue-container > .container-wrapper > div {
-	padding-left: 40px;
-}
+    .prism-properties {
+      .prism-container {
+        padding-left: 0px;
+        border-top: 1px solid @table-divider-color;
 
-//top-level-prism-container is class for first showed container
-.top-level-prism-container > .container-wrapper > div > div >
-.prism-properties > .prism-containers {
-  	padding-left: 0px; //align one-level containers
-}
+        .prism-container {
+          padding-left: 40px;
+          border-top: 0px solid @table-divider-color;
+        }
+        .prism-container.multivalue-container {
+          padding-left: 40px;
+          border-top: 0px solid @table-divider-color;
+        }
 
-//top-level-prism-container is class for first showed container
-.top-level-prism-container > .container-wrapper > div > div >
-.prism-properties > .prism-containers > .prism-property {
-  	border-top: 1px solid #ddd;	// line over area of container
-}
+      }
 
-.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers {
-  padding-left: 40px;
-}
-.prism-containers > .top-level-prism-container > .container-wrapper > div > div > .prism-properties > .prism-containers > .prism-property {
-  border-top: 0px solid #ddd;
-}
+      .prism-container.multivalue-container {
+        padding-left: 0px;
+        border-top: 1px solid @table-divider-color;
 
+        .prism-container.multivalue-container {
+          padding-left: 40px;
+          border-top: 0px solid @table-divider-color;
+        }
 
+        .container-wrapper {
+          padding-left: 40px;
+          border-top: 0px solid @table-divider-color;
+
+          .container-wrapper {
+            padding-left: 0px;
+            border-top: 0px solid @table-divider-color;
+          }
+        }
+      }
+    }
+}
 
 .top-level-prism-container .row {
 	margin-right: 0px;
@@ -883,12 +895,6 @@ body .treeview-menu > li > span:hover {
   margin-bottom: 0px;
   padding-top: 5px;
   padding-bottom: 5px;
-}
-
-.prism-container {
-//	border-bottom: 1px solid @table-divider-color;
-	margin-bottom: 15px;
-	padding-bottom: 15px;
 }
 
 .multivalue-container > .container-wrapper > div > .added-value-background {
@@ -905,13 +911,16 @@ body .treeview-menu > li > span:hover {
 
 .prism-properties {
 
-  & > div {
+
+  .prism-property {
     padding-left: 40px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
+    }
   }
 
-  .stripe {
-    background-color: @table-stripe-bg-color;
-  }
+
 }
 .prism-header {
 	margin-bottom: 15px;

@@ -124,7 +124,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         buttonContainer.add(removeButton);
 
 
-        buttonContainer.add(AttributeModifier.append("class", createStyleClassModel(getModel())));
+//        buttonContainer.add(AttributeModifier.append("class", createStyleClassModel(getModel())));
 
 //        add(new VisibleBehaviour(() -> isVisibleValue(getModel())));
         addToHeader(buttonContainer);
@@ -313,20 +313,20 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected abstract <PC extends ItemPanelContext> PC createPanelCtx(IModel<IW> wrapper);
 
-    protected IModel<String> createStyleClassModel(final IModel<VW> value) {
-        return new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (getIndexOfValue(value.getObject()) > 0) {
-                    return getItemCssClass();
-                }
-
-                return null;
-            }
-        };
-    }
+//    protected IModel<String> createStyleClassModel(final IModel<VW> value) {
+//        return new IModel<String>() {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//                if (getIndexOfValue(value.getObject()) > 0) {
+//                    return getItemCssClass();
+//                }
+//
+//                return null;
+//            }
+//        };
+//    }
 
     private int getIndexOfValue(VW value) {
         ItemWrapper<?, VW> property = value.getParent();

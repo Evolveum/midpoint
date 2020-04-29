@@ -133,6 +133,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             if (getModelObject() != null && ValueStatus.DELETED == getModelObject().getStatus()) {
                 cssClasses = " removed-value-background";
             }
+            if (isShowOnTopLevel()) {
+                cssClasses = " top-level-prism-container";
+            }
             return cssClasses;
         }));
 
@@ -343,6 +346,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                     .showOnTopLevel(isShowOnTopLevel());
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
             panel.setOutputMarkupId(true);
+            panel.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
 //            panel.add(new VisibleEnableBehaviour() {
 //
 //                private static final long serialVersionUID = 1L;
@@ -364,14 +368,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
         }
-
-        item.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
     }
 
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), getSettings());
+            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), getSettings().copy());
             panel.setOutputMarkupId(true);
             container.add(panel);
         } catch (SchemaException e) {
