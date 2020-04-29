@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -581,12 +581,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getConstructionDeltaSetTriple() {
-        return constructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> PrismValueDeltaSetTriple<PrismPropertyValue<Construction<AH>>> getConstructionDeltaSetTriple() {
+        //noinspection unchecked
+        return (PrismValueDeltaSetTriple)constructionDeltaSetTriple;
     }
 
-    public void setConstructionDeltaSetTriple(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
+    public void setConstructionDeltaSetTriple(PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
         this.constructionDeltaSetTriple = constructionDeltaSetTriple;
     }
 
@@ -1097,19 +1097,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (getObjectNew() != null) {
             PrismProperty<?> attrNew = getObjectNew().findProperty(attrPath);
             if (attrNew != null && !attrNew.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
-        if (acPpvSet == null) {
-            return false;
-        }
-        for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
-            Construction ac = acPpv.getValue();
-            if (ac.hasValueForAttribute(attributeName)) {
                 return true;
             }
         }

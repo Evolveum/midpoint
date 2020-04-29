@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,21 +29,18 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,6 +53,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
  * it also contains "live" objects and can evaluate the construction. It also
  * contains intermediary and side results of the evaluation.
  *
+ * This class represents the definiton of a construction.
+ * Single definition may produce many "evaluated" constructions,
+ * e.g. in case that multiaccouts (tags) are used.
+ * Evaluated constructions are represented by evaluatedConstructionTriple.
+ *
  * @author Radovan Semancik
  * <p>
  * This class is Serializable but it is not in fact serializable. It
@@ -63,7 +68,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 
-    private static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
+    protected static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
 
     private ObjectType orderOneObject;
     private String resourceOid;
@@ -71,8 +76,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private ExpressionProfile expressionProfile;
     private MappingFactory mappingFactory;
     private MappingEvaluator mappingEvaluator;
-    private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
-    private Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings;
+    private ContextLoader contextLoader;
+    private XMLGregorianCalendar now;
     private RefinedObjectClassDefinition refinedObjectClassDefinition;
     private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
     private AssignmentPathVariables assignmentPathVariables = null;
@@ -81,12 +86,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionTriple;
 
-    // TODO: remove
-
-
     public Construction(ConstructionType constructionType, ObjectType source) {
         super(constructionType, source);
-        this.attributeMappings = null;
         // TODO: this is wrong. It should be set up during the evaluation process.
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
@@ -111,8 +112,40 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         this.mappingEvaluator = mappingEvaluator;
     }
 
+    public ContextLoader getContextLoader() {
+        return contextLoader;
+    }
+
+    public void setContextLoader(ContextLoader contextLoader) {
+        this.contextLoader = contextLoader;
+    }
+
+    public XMLGregorianCalendar getNow() {
+        return now;
+    }
+
+    public void setNow(XMLGregorianCalendar now) {
+        this.now = now;
+    }
+
     public PrismObject<SystemConfigurationType> getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    public ResolvedResource getResolvedResource() {
+        return resolvedResource;
+    }
+
+    protected void setResolvedResource(ResolvedResource resolvedResource) {
+        this.resolvedResource = resolvedResource;
+    }
+
+    public ObjectType getOrderOneObject() {
+        return orderOneObject;
+    }
+
+    public AssignmentPathVariables getAssignmentPathVariables() {
+        return assignmentPathVariables;
     }
 
     public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
@@ -153,38 +186,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return refinedObjectClassDefinition.getIntent();
     }
 
-    public Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
-        if (attributeMappings == null) {
-            attributeMappings = new ArrayList<>();
-        }
-        return attributeMappings;
-    }
-
-    MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(
-            QName attrName) {
-        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
-            if (myVc.getItemName().equals(attrName)) {
-                return myVc;
-            }
-        }
-        return null;
-    }
-
-    public void addAttributeMapping(
-            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
-        getAttributeMappings().add(mapping);
-    }
-
-    public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
-        if (associationMappings == null) {
-            associationMappings = new ArrayList<>();
-        }
-        return associationMappings;
-    }
-
-    public void addAssociationMapping(
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
-        getAssociationMappings().add(mapping);
+    public DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionTriple() {
+        return evaluatedConstructionTriple;
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -317,7 +320,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         }
     }
 
-    public void evaluate(Task task, OperationResult parentResult)
+    public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
         // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
@@ -328,8 +331,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             if (resource != null) {
                 evaluateKindIntentObjectClass(resource, task, result);
                 createEvaluatedConstructions(task, result);
-                evaluateAttributes(task, result);
-                evaluateAssociations(task, result);
+                evaluateConstructions(task, result);
                 result.recordSuccess();
             } else {
                 // If we are here (and not encountered an exception) it means that the resourceRef integrity was relaxed or lax.
@@ -343,6 +345,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             result.recordFatalError(e);
             throw e;
         }
+
+        return null;
     }
 
     private void evaluateKindIntentObjectClass(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
@@ -394,7 +398,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     }
 
-    private void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
         LOGGER.info("XXXX: tagTriple\n{}", DebugUtil.debugDump(tagTriple));
 
@@ -402,7 +406,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
         if (tagTriple == null) {
             // Singleaccount case (not multiaccount). We just create a simple EvaluatedConstruction
-            EvaluatedConstructionImpl<AH> evaluatedConstruction = createEvaluatedConstruction(null);
+            EvaluatedConstructionImpl<AH> evaluatedConstruction = createEvaluatedConstruction((String)null);
             evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
 
         } else {
@@ -447,101 +451,53 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private EvaluatedConstructionImpl<AH> createEvaluatedConstruction(String tag) {
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
-        EvaluatedConstructionImpl<AH> evaluatedConstruction = new EvaluatedConstructionImpl<>(this, rsd);
-        evaluatedConstruction.initialize();
-        return evaluatedConstruction;
+        return createEvaluatedConstruction(rsd);
     }
 
-    private void evaluateAttributes(Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        attributeMappings = new ArrayList<>();
-        for (ResourceAttributeDefinitionType attributeDefinition : getConstructionType().getAttribute()) {
-            QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
-            if (attrName == null) {
-                throw new SchemaException(
-                        "No attribute name (ref) in attribute definition in account construction in "
-                                + getSource());
-            }
-            if (!attributeDefinition.getInbound().isEmpty()) {
-                throw new SchemaException("Cannot process inbound section in definition of attribute "
-                        + attrName + " in account construction in " + getSource());
-            }
-            MappingType outboundMappingType = attributeDefinition.getOutbound();
-            if (outboundMappingType == null) {
-                throw new SchemaException("No outbound section in definition of attribute " + attrName
-                        + " in account construction in " + getSource());
-            }
-            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
-                    attributeDefinition, task, result);
-            if (attributeMapping != null) {
-                attributeMappings.add(attributeMapping);
-            }
-        }
+    protected EvaluatedConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
+        return new EvaluatedConstructionImpl<>(this, rsd);
     }
 
-    private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
-            ResourceAttributeDefinitionType attributeDefinition, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
-        if (attrName == null) {
-            throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
-                    + getSource());
-        }
-        if (!attributeDefinition.getInbound().isEmpty()) {
-            throw new SchemaException("Cannot process inbound section in definition of attribute " + attrName
-                    + " in account construction in " + getSource());
-        }
-        MappingType outboundMappingType = attributeDefinition.getOutbound();
-        if (outboundMappingType == null) {
-            throw new SchemaException("No outbound section in definition of attribute " + attrName
-                    + " in account construction in " + getSource());
-        }
-        ResourceAttributeDefinition<T> outputDefinition = findAttributeDefinition(attrName);
-        if (outputDefinition == null) {
-            throw new SchemaException("Attribute " + attrName + " not found in schema for account type "
-                    + getIntent() + ", " + resolvedResource.resource
-                    + " as defined in " + getSource(), attrName);
-        }
-        MappingImpl.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = mappingFactory.createMappingBuilder(
-                outboundMappingType,
-                "for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getSource());
-
-        MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping;
-
-        //noinspection CaughtExceptionImmediatelyRethrown
+    protected void evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         try {
-
-            evaluatedMapping = evaluateMapping(builder, ShadowType.F_ATTRIBUTES.append(attrName),
-                    attrName, outputDefinition, null, task, result);
-
-        } catch (SchemaException e) {
-            throw new SchemaException(getAttributeEvaluationErrorMessage(attrName, e), e);
-        } catch (ExpressionEvaluationException e) {
-            // No need to specially handle this here. It was already handled in the expression-processing
-            // code and it has proper description.
-            throw e;
-        } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException(getAttributeEvaluationErrorMessage(attrName, e), e);
-        } catch (SecurityViolationException e) {
-            throw new SecurityViolationException(getAttributeEvaluationErrorMessage(attrName, e), e);
-        } catch (ConfigurationException e) {
-            throw new ConfigurationException(getAttributeEvaluationErrorMessage(attrName, e), e);
-        } catch (CommunicationException e) {
-            throw new CommunicationException(getAttributeEvaluationErrorMessage(attrName, e), e);
+            evaluatedConstructionTriple.foreach( evaluatedConstruction -> {
+                try {
+                    evaluateConstruction(evaluatedConstruction, task, result);
+                } catch (Exception e) {
+                    throw new TunnelException(e);
+                }
+            });
+        } catch (TunnelException te) {
+            Exception e = (Exception) te.getCause();
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException)e;
+            }
+            if (e instanceof CommunicationException) {
+                throw (CommunicationException)e;
+            }
+            if (e instanceof ObjectNotFoundException) {
+                throw (ObjectNotFoundException)e;
+            }
+            if (e instanceof SchemaException) {
+                throw (SchemaException)e;
+            }
+            if (e instanceof SecurityViolationException) {
+                throw (SecurityViolationException)e;
+            }
+            if (e instanceof ConfigurationException) {
+                throw (ConfigurationException)e;
+            }
+            if (e instanceof ExpressionEvaluationException) {
+                throw (ExpressionEvaluationException)e;
+            }
+            throw new SystemException(e);
         }
-
-        LOGGER.trace("Evaluated mapping for attribute {}: {}", attrName, evaluatedMapping);
-        return evaluatedMapping;
     }
 
-    private String getAttributeEvaluationErrorMessage(QName attrName, Exception e) {
-        return "Error evaluating mapping for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getHumanReadableConstructionDescription() + ": " + e.getMessage();
+    protected void evaluateConstruction(EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        evaluatedConstruction.evaluate(task, result);
     }
 
-    private String getHumanReadableConstructionDescription() {
-        return "construction for (" + (resolvedResource != null ? resolvedResource.resource : null)
-                + "/" + getKind() + "/" + getIntent() + ") in " + getSource();
-    }
 
     public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
         if (refinedObjectClassDefinition == null) {
@@ -562,81 +518,18 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return null;
     }
 
-    boolean hasValueForAttribute(QName attributeName) {
-        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
-            if (attributeName.equals(attributeConstruction.getItemName())) {
-                PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
-                        .getOutputTriple();
-                if (outputTriple != null && !outputTriple.isEmpty()) {
-                    return true;
-                }
-            }
+    public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
+        if (associationContainerDefinition == null) {
+            PrismObjectDefinition<ShadowType> shadowDefinition = getPrismContext().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
+            associationContainerDefinition = shadowDefinition
+                    .findContainerDefinition(ShadowType.F_ASSOCIATION);
         }
-        return false;
-    }
-
-    private void evaluateAssociations(Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        associationMappings = new ArrayList<>();
-        for (ResourceObjectAssociationType associationDefinitionType : getConstructionType().getAssociation()) {
-            QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
-            if (assocName == null) {
-                throw new SchemaException(
-                        "No association name (ref) in association definition in construction in " + getSource());
-            }
-            MappingType outboundMappingType = associationDefinitionType.getOutbound();
-            if (outboundMappingType == null) {
-                throw new SchemaException("No outbound section in definition of association " + assocName
-                        + " in construction in " + getSource());
-            }
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping =
-                    evaluateAssociation(associationDefinitionType, task, result);
-            if (assocMapping != null) {
-                associationMappings.add(assocMapping);
-            }
-        }
-    }
-
-    private MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
-            ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
-        if (assocName == null) {
-            throw new SchemaException("Missing 'ref' in association in construction in " + getSource());
-        }
-
-        RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociationDefinition(assocName);
-        if (rAssocDef == null) {
-            throw new SchemaException("No association " + assocName + " in object class "
-                    + refinedObjectClassDefinition.getHumanReadableName() + " in construction in " + getSource());
-        }
-        // Make sure that assocName is complete with the namespace and all.
-        assocName = rAssocDef.getName();
-
-        MappingType outboundMappingType = associationDefinitionType.getOutbound();
-        if (outboundMappingType == null) {
-            throw new SchemaException("No outbound section in definition of association " + assocName
-                    + " in construction in " + getSource());
-        }
-        PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-
-        MappingImpl.Builder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
-                mappingFactory.<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>createMappingBuilder()
-                        .mappingType(outboundMappingType)
-                        .contextDescription("for association " + PrettyPrinter.prettyPrint(assocName) + " in " + getSource())
-                        .originType(OriginType.ASSIGNMENTS)
-                        .originObject(getSource());
-
-        ItemPath implicitTargetPath = ShadowType.F_ASSOCIATION.append(assocName); // not quite correct
-        MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(
-                mappingBuilder, implicitTargetPath, assocName, outputDefinition, rAssocDef.getAssociationTarget(), task, result);
-
-        LOGGER.trace("Evaluated mapping for association {}: {}", assocName, evaluatedMapping);
-        return evaluatedMapping;
+        return associationContainerDefinition;
     }
 
     @SuppressWarnings("ConstantConditions")
-    private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
+    public <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl.Builder<V, D> initializeMappingBuilder(
             MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -652,7 +545,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                 .defaultTargetDefinition(outputDefinition)
                 .originType(getOriginType())
                 .originObject(getSource())
-                .refinedObjectClassDefinition(refinedObjectClassDefinition)
+                .refinedObjectClassDefinition(getRefinedObjectClassDefinition())
                 .rootNode(getFocusOdo())
                 .addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdo())
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdo())
@@ -660,14 +553,14 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
-                .addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject, ObjectType.class);
+                .addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, getOrderOneObject(), ObjectType.class);
 
         if (assocTargetObjectClassDefinition != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
                     assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
-        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, getPrismContext());
+        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), getPrismContext());
         if (getSystemConfiguration() != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
         }
@@ -684,20 +577,24 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             builder = builder.conditionMaskNew(false);
         }
 
+        return builder;
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
+            MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
+            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+
+        initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
+
         MappingImpl<V, D> mapping = builder.build();
-        mappingEvaluator.evaluateMapping(mapping, getLensContext(), projectionContext, task, result);
+        getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
 
         return mapping;
     }
 
-    private PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
-        if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = getPrismContext().getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            associationContainerDefinition = shadowDefinition
-                    .findContainerDefinition(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainerDefinition;
+    protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
     }
 
     @Override
@@ -730,20 +627,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
                 return false;
             }
         } else if (!associationContainerDefinition.equals(other.associationContainerDefinition)) {
-            return false;
-        }
-        if (associationMappings == null) {
-            if (other.associationMappings != null) {
-                return false;
-            }
-        } else if (!associationMappings.equals(other.associationMappings)) {
-            return false;
-        }
-        if (attributeMappings == null) {
-            if (other.attributeMappings != null) {
-                return false;
-            }
-        } else if (!attributeMappings.equals(other.attributeMappings)) {
             return false;
         }
         if (auxiliaryObjectClassDefinitions == null) {
@@ -791,10 +674,48 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return true;
     }
 
+
+    /**
+     * Should this construction be ignored e.g. because the resource couldn't be resolved?
+     * The construction was already evaluated.
+     */
+    public boolean isIgnored() {
+        return getResource() == null;
+    }
+
+    public static class ResolvedResource {
+        @Nullable public final ResourceType resource;
+        public boolean warning;
+
+        ResolvedResource(@NotNull ResourceType resource) {
+            this.resource = resource;
+            this.warning = false;
+        }
+
+        private ResolvedResource(boolean warning) {
+            this.resource = null;
+            this.warning = warning;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) { return true; }
+            if (!(o instanceof ResolvedResource)) { return false; }
+            ResolvedResource that = (ResolvedResource) o;
+            return warning == that.warning &&
+                    Objects.equals(resource, that.resource);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(resource, warning);
+        }
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpLabel(sb, "Construction", indent);
+        DebugUtil.debugDumpLabel(sb, this.getClass().getSimpleName(), indent);
         if (refinedObjectClassDefinition == null) {
             sb.append(" (no object class definition)");
             if (getConstructionType() != null && getConstructionType().getResourceRef() != null) { // should
@@ -838,22 +759,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
             DebugUtil.debugDumpLabel(sb, "description", indent + 1);
             sb.append(" ").append(getConstructionType().getDescription());
         }
-        if (attributeMappings != null && !attributeMappings.isEmpty()) {
-            sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
-            for (MappingImpl<?, ?> mapping : attributeMappings) {
-                sb.append("\n");
-                sb.append(mapping.debugDump(indent + 2));
-            }
-        }
-        if (associationMappings != null && !associationMappings.isEmpty()) {
-            sb.append("\n");
-            DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
-            for (MappingImpl<?, ?> mapping : associationMappings) {
-                sb.append("\n");
-                sb.append(mapping.debugDump(indent + 2));
-            }
-        }
+
         if (getAssignmentPath() != null) {
             sb.append("\n");
             sb.append(getAssignmentPath().debugDump(indent + 1));
@@ -885,40 +791,4 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return sb.toString();
     }
 
-    /**
-     * Should this construction be ignored e.g. because the resource couldn't be resolved?
-     * The construction was already evaluated.
-     */
-    public boolean isIgnored() {
-        return getResource() == null;
-    }
-
-    public static class ResolvedResource {
-        @Nullable public final ResourceType resource;
-        public boolean warning;
-
-        private ResolvedResource(@NotNull ResourceType resource) {
-            this.resource = resource;
-            this.warning = false;
-        }
-
-        private ResolvedResource(boolean warning) {
-            this.resource = null;
-            this.warning = warning;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (!(o instanceof ResolvedResource)) { return false; }
-            ResolvedResource that = (ResolvedResource) o;
-            return warning == that.warning &&
-                    Objects.equals(resource, that.resource);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(resource, warning);
-        }
-    }
 }

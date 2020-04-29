@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
@@ -114,6 +115,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @Autowired private ConstructionProcessor constructionProcessor;
     @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private ContextLoader contextLoader;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -1134,6 +1136,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 .prismContext(prismContext)
                 .mappingFactory(mappingFactory)
                 .mappingEvaluator(mappingEvaluator)
+                .contextLoader(contextLoader)
                 .activationComputer(activationComputer)
                 .now(now)
                 .systemConfiguration(context.getSystemConfiguration())

@@ -163,19 +163,24 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * API class instead.
      */
     @Override
-    public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) {
-        DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
-        for (PlusMinusZero whichSet : PlusMinusZero.values()) {
-            Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
-            if (constructionSet != null) {
-                for (Construction<AH> construction : constructionSet) {
-                    if (!construction.isIgnored()) {
-                        rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction));
-                    }
-                }
+    @NotNull
+    public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) {
+        DeltaSetTriple<EvaluatedConstructionImpl<AH>> rv = prismContext.deltaFactory().createDeltaSetTriple();
+        for (Construction<AH> construction : constructionTriple.getPlusSet()) {
+            for (EvaluatedConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonNegativeValues()) {
+                rv.addToPlusSet(evaluatedConstruction);
             }
         }
-        return rv;
+        for (Construction<AH> construction : constructionTriple.getZeroSet()) {
+            rv.merge(construction.getEvaluatedConstructionTriple());
+        }
+        for (Construction<AH> construction : constructionTriple.getMinusSet()) {
+            for (EvaluatedConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonPositiveValues()) {
+                rv.addToPlusSet(evaluatedConstruction);
+            }
+        }
+        //noinspection unchecked
+        return (DeltaSetTriple)rv;
     }
 
     Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {

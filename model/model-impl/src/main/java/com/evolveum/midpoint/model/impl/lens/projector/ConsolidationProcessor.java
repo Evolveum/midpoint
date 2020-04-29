@@ -10,12 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.Construction;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -44,8 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -727,8 +720,8 @@ public class ConsolidationProcessor {
             fillInAssociationNames(squeezedAssociations);
         }
 
-        MappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F> auxiliaryObjectClassExtractor =
-            construction -> {
+        EvaluatedConstructionMappingExtractor<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>,F> auxiliaryObjectClassExtractor =
+            evaluatedConstruction -> {
                 PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> prod = new PrismValueDeltaSetTripleProducer<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>>() {
                     @Override
                     public QName getMappingQName() {
@@ -737,8 +730,8 @@ public class ConsolidationProcessor {
                     @Override
                     public PrismValueDeltaSetTriple<PrismPropertyValue<QName>> getOutputTriple() {
                         PrismValueDeltaSetTriple<PrismPropertyValue<QName>> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
-                        if (construction.getAuxiliaryObjectClassDefinitions() != null) {
-                            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: construction.getAuxiliaryObjectClassDefinitions()) {
+                        if (evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions() != null) {
+                            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: evaluatedConstruction.getConstruction().getAuxiliaryObjectClassDefinitions()) {
                                 triple.addToZeroSet(prismContext.itemFactory().createPropertyValue(auxiliaryObjectClassDefinition.getTypeName()));
                             }
                         }
@@ -770,7 +763,7 @@ public class ConsolidationProcessor {
                     }
                     @Override
                     public String toHumanReadableDescription() {
-                        return "auxiliary object class construction " + construction;
+                        return "auxiliary object class construction " + evaluatedConstruction;
                     }
                     @Override
                     public String toString() {
@@ -788,38 +781,38 @@ public class ConsolidationProcessor {
     }
 
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> sqeeze(
-            LensProjectionContext projCtx, MappingExtractor<V,D,F> extractor) throws SchemaException {
+            LensProjectionContext projCtx, EvaluatedConstructionMappingExtractor<V,D,F> extractor) throws SchemaException {
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
         if (projCtx.getConstructionDeltaSetTriple() != null) {
-            sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)projCtx.getConstructionDeltaSetTriple(),
+            squeezeMappingsFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)projCtx.getConstructionDeltaSetTriple(),
                     extractor, projCtx.getAssignmentPolicyEnforcementType());
         }
         if (projCtx.getOutboundConstruction() != null) {
             // The plus-minus-zero status of outbound account construction is determined by the type of account delta
             if (projCtx.isAdd()) {
-                sqeezeAttributesFromConstructionNonminusToPlus(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
+                squeezeMappingsFromConstructionNonminusToPlus(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
             } else if (projCtx.isDelete()) {
-                sqeezeAttributesFromConstructionNonminusToMinus(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
+                squeezeMappingsFromConstructionNonminusToMinus(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
             } else {
-                sqeezeAttributesFromConstruction(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
+                squeezeMappingsFromConstructionStraight(squeezedMap, projCtx.getOutboundConstruction(), extractor, AssignmentPolicyEnforcementType.RELATIVE);
             }
         }
         return squeezedMap;
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionTriple(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionTriple(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction<F>>> constructionDeltaSetTriple, MappingExtractor<V,D,F> extractor,
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction<F>>> constructionDeltaSetTriple, EvaluatedConstructionMappingExtractor<V,D,F> extractor,
             AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
         // Zero account constructions go normally, plus to plus, minus to minus
-        sqeezeAttributesFromAccountConstructionSet(squeezedMap, constructionDeltaSetTriple.getZeroSet(), extractor, enforcement);
+        squeezeMappingsFromAccountConstructionSetStraight(squeezedMap, constructionDeltaSetTriple.getZeroSet(), extractor, enforcement);
         // Plus accounts: zero and plus values go to plus
-        sqeezeAttributesFromAccountConstructionSetNonminusToPlus(squeezedMap, constructionDeltaSetTriple.getPlusSet(), extractor, enforcement);
+        squeezeMappingsFromAccountConstructionSetNonminusToPlus(squeezedMap, constructionDeltaSetTriple.getPlusSet(), extractor, enforcement);
         // Minus accounts: all values go to minus
-        sqeezeAttributesFromConstructionSetAllToMinus(squeezedMap, constructionDeltaSetTriple.getMinusSet(), extractor, enforcement);
+        squeezeMappingsFromConstructionSetAllToMinus(squeezedMap, constructionDeltaSetTriple.getMinusSet(), extractor, enforcement);
 
         // Why all values in the last case: imagine that mapping M evaluated to "minus: A" on delta D.
         // The mapping itself is in minus set, so it disappears when delta D is applied. Therefore, value of A
@@ -832,127 +825,204 @@ public class ConsolidationProcessor {
         // in this way for a long time. It seems to be unnecessary but also harmless. So let's keep it there, for now.
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromAccountConstructionSet(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromAccountConstructionSetStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Collection<PrismPropertyValue<Construction<F>>> constructionSet, MappingExtractor<V,D,F> extractor,
+            Collection<PrismPropertyValue<Construction<F>>> constructionSet, EvaluatedConstructionMappingExtractor<V,D,F> extractor,
             AssignmentPolicyEnforcementType enforcement) {
         if (constructionSet == null) {
             return;
         }
         for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
-            sqeezeAttributesFromConstruction(squeezedMap, construction.getValue(), extractor, enforcement);
+            squeezeMappingsFromConstructionStraight(squeezedMap, construction.getValue(), extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromAccountConstructionSetNonminusToPlus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromAccountConstructionSetNonminusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Collection<PrismPropertyValue<Construction<F>>> constructionSet, MappingExtractor<V,D,F> extractor,
+            Collection<PrismPropertyValue<Construction<F>>> constructionSet, EvaluatedConstructionMappingExtractor<V,D,F> extractor,
             AssignmentPolicyEnforcementType enforcement) {
         if (constructionSet == null) {
             return;
         }
         for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
-            sqeezeAttributesFromConstructionNonminusToPlus(squeezedMap, construction.getValue(), extractor, enforcement);
+            squeezeMappingsFromConstructionNonminusToPlus(squeezedMap, construction.getValue(), extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionSetNonminusToMinus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionSetNonminusToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Collection<PrismPropertyValue<Construction<F>>> constructionSet, MappingExtractor<V,D,F> extractor,
+            Collection<PrismPropertyValue<Construction<F>>> constructionSet, EvaluatedConstructionMappingExtractor<V,D,F> extractor,
             AssignmentPolicyEnforcementType enforcement) {
         if (constructionSet == null) {
             return;
         }
         for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
-            sqeezeAttributesFromConstructionNonminusToMinus(squeezedMap, construction.getValue(), extractor, enforcement);
+            squeezeMappingsFromConstructionNonminusToMinus(squeezedMap, construction.getValue(), extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionSetAllToMinus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionSetAllToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Collection<PrismPropertyValue<Construction<F>>> constructionSet, MappingExtractor<V,D,F> extractor,
+            Collection<PrismPropertyValue<Construction<F>>> constructionSet, EvaluatedConstructionMappingExtractor<V,D,F> extractor,
             AssignmentPolicyEnforcementType enforcement) {
         if (constructionSet == null) {
             return;
         }
         for (PrismPropertyValue<Construction<F>> construction: constructionSet) {
-            sqeezeAttributesFromConstructionAllToMinus(squeezedMap, construction.getValue(), extractor, enforcement);
+            squeezeMappingsFromConstructionAllToMinus(squeezedMap, construction.getValue(), extractor, enforcement);
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstruction(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionStraight(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Construction<F> construction, MappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+            Construction<F> construction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(construction)) {
+        DeltaSetTriple<EvaluatedConstructionImpl<F>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        if (evaluatedConstructionTriple == null) {
+            return;
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
+            squeezeMappingsFromEvaluatedConstructionStraight(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
+            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getMinusSet()) {
+            squeezeMappingsFromEvaluatedConstructionAllToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        /////////////
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionNonminusToPlus(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+            Construction<F> construction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+        if (enforcement == AssignmentPolicyEnforcementType.NONE) {
+            return;
+        }
+
+        DeltaSetTriple<EvaluatedConstructionImpl<F>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        if (evaluatedConstructionTriple == null) {
+            return;
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
+            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
+            squeezeMappingsFromEvaluatedConstructionNonminusToPlus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        // Ignore minus set
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionNonminusToMinus(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+            Construction<F> construction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+        if (enforcement == AssignmentPolicyEnforcementType.NONE) {
+            return;
+        }
+
+        DeltaSetTriple<EvaluatedConstructionImpl<F>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        if (evaluatedConstructionTriple == null) {
+            return;
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
+            squeezeMappingsFromEvaluatedConstructionNonminusToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
+            squeezeMappingsFromEvaluatedConstructionNonminusToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        // Ignore minus set
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromConstructionAllToMinus(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+            Construction<F> construction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+        if (enforcement == AssignmentPolicyEnforcementType.NONE) {
+            return;
+        }
+        DeltaSetTriple<EvaluatedConstructionImpl<F>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        if (evaluatedConstructionTriple == null) {
+            return;
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getZeroSet()) {
+            squeezeMappingsFromEvaluatedConstructionAllToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getPlusSet()) {
+            squeezeMappingsFromEvaluatedConstructionAllToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+        for (EvaluatedConstructionImpl<F> eConstruction : evaluatedConstructionTriple.getMinusSet()) {
+            squeezeMappingsFromEvaluatedConstructionAllToMinus(squeezedMap, eConstruction, extractor, enforcement);
+        }
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromEvaluatedConstructionStraight(
+            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
+            EvaluatedConstructionImpl<F> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
             }
             QName name = mapping.getMappingQName();
             DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
-            convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, construction);
-            convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), mapping, construction);
+            convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
+            convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), mapping, evaluatedConstruction);
             if (enforcement == AssignmentPolicyEnforcementType.POSITIVE) {
-                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getZeroSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
             } else {
-                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
             }
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionNonminusToPlus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromEvaluatedConstructionNonminusToPlus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Construction<F> construction, MappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
-        if (enforcement == AssignmentPolicyEnforcementType.NONE) {
-            return;
-        }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(construction)) {
+            EvaluatedConstructionImpl<F> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
             }
             QName name = mapping.getMappingQName();
             DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
-            convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getPlusSet(), mapping, construction);
-            convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), mapping, construction);
+            convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getPlusSet(), mapping, evaluatedConstruction);
+            convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getPlusSet(), mapping, evaluatedConstruction);
             // Ignore minus set
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionNonminusToMinus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromEvaluatedConstructionNonminusToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Construction<F> construction, MappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+            EvaluatedConstructionImpl<F> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(construction)) {
+        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
             }
             QName name = mapping.getMappingQName();
             DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple
-                                                    = getSqueezeMapTriple(squeezedMap, name);
+                    = getSqueezeMapTriple(squeezedMap, name);
             if (enforcement == AssignmentPolicyEnforcementType.POSITIVE) {
-                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getZeroSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
             } else {
-                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
             }
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void sqeezeAttributesFromConstructionAllToMinus(
+    private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void squeezeMappingsFromEvaluatedConstructionAllToMinus(
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap,
-            Construction<F> construction, MappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
+            EvaluatedConstructionImpl<F> evaluatedConstruction, EvaluatedConstructionMappingExtractor<V,D,F> extractor, AssignmentPolicyEnforcementType enforcement) {
         if (enforcement == AssignmentPolicyEnforcementType.NONE) {
             return;
         }
-        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(construction)) {
+        for (PrismValueDeltaSetTripleProducer<V, D> mapping: extractor.getMappings(evaluatedConstruction)) {
             PrismValueDeltaSetTriple<V> vcTriple = mapping.getOutputTriple();
             if (vcTriple == null) {
                 continue;
@@ -960,23 +1030,24 @@ public class ConsolidationProcessor {
             QName name = mapping.getMappingQName();
             DeltaSetTriple<ItemValueWithOrigin<V,D>> squeezeTriple = getSqueezeMapTriple(squeezedMap, name);
             if (enforcement == AssignmentPolicyEnforcementType.POSITIVE) {
-                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getZeroSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getZeroSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getZeroSet(), mapping, evaluatedConstruction);
             } else {
-                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, construction);
-                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), mapping, construction);
+                convertSqueezeSet(vcTriple.getZeroSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getPlusSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
+                convertSqueezeSet(vcTriple.getMinusSet(), squeezeTriple.getMinusSet(), mapping, evaluatedConstruction);
             }
         }
     }
 
+
     private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> void convertSqueezeSet(Collection<V> fromSet,
             Collection<ItemValueWithOrigin<V,D>> toSet,
-            PrismValueDeltaSetTripleProducer<V, D> mapping, Construction<F> construction) {
+            PrismValueDeltaSetTripleProducer<V, D> mapping, EvaluatedConstructionImpl<F> evaluatedConstruction) {
         if (fromSet != null) {
             for (V from: fromSet) {
-                ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<>(from, mapping, construction);
+                ItemValueWithOrigin<V,D> pvwo = new ItemValueWithOrigin<>(from, mapping, evaluatedConstruction.getConstruction());
                 toSet.add(pvwo);
             }
         }

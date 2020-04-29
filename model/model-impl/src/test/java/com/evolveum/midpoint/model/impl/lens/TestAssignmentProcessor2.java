@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;
@@ -113,6 +114,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ActivationComputer activationComputer;
+    @Autowired private ContextLoader contextLoader;
 
     // first part
     private RoleType role1, role2, role4, role5, role6;
@@ -519,6 +521,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .prismContext(prismContext)
                 .mappingFactory(mappingFactory)
                 .mappingEvaluator(mappingEvaluator)
+                .contextLoader(contextLoader)
                 .activationComputer(activationComputer)
                 .now(clock.currentTimeXMLGregorianCalendar())
                 .systemConfiguration(context.getSystemConfiguration())

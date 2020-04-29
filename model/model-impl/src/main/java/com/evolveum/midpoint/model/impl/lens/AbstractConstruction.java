@@ -107,7 +107,7 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         return prismContext;
     }
 
-    void setPrismContext(PrismContext prismContext) {
+    public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
