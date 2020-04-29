@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GlobalVersionCache extends AbstractGlobalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(GlobalVersionCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(GlobalVersionCache.class.getName() + ".content");
 
     private static final String CACHE_NAME = "versionCache";
 
@@ -147,6 +148,15 @@ public class GlobalVersionCache extends AbstractGlobalCache {
     public void put(String oid, Class<? extends ObjectType> type, String version) {
         if (cache != null) {
             cache.put(oid, new GlobalCacheObjectVersionValue<>(type, version));
+        }
+    }
+
+    void dumpContent() {
+        if (cache != null && LOGGER_CONTENT.isInfoEnabled()) {
+            cache.invokeAll(cache.keys(), e -> {
+                LOGGER_CONTENT.info("Cached version: {}: {} (cached {} ms ago)", e.getKey(), e.getValue(), e.getValue().getAge());
+                return null;
+            });
         }
     }
 }

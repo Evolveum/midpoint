@@ -40,5 +40,12 @@ public class FunctionLibrary {
         this.genericFunctions = genericFunctions;
     }
 
-
+    @Override
+    public String toString() {
+        return "FunctionLibrary{" +
+                "variableName='" + variableName + '\'' +
+                ", namespace='" + namespace + '\'' +
+                ", genericFunctions=" + genericFunctions +
+                '}';
+    }
 }

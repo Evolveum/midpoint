@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author semancik
@@ -15,7 +16,7 @@ import java.util.Map;
  */
 public class ExpressionProfiles {
 
-    private final Map<String,ExpressionProfile> profiles = new HashMap<>();
+    private final Map<String,ExpressionProfile> profiles = new ConcurrentHashMap<>();
 
     public ExpressionProfile getProfile(String identifier) {
         return profiles.get(identifier);
@@ -27,5 +28,9 @@ public class ExpressionProfiles {
 
     public int size() {
         return profiles.size();
+    }
+
+    public Map<String, ExpressionProfile> getProfiles() {
+        return Collections.unmodifiableMap(profiles);
     }
 }

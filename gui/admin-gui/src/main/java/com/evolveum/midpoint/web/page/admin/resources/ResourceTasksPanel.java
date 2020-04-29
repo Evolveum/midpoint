@@ -9,9 +9,17 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -55,6 +63,11 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     private static final String ID_SUSPEND = "suspend";
 
     private PageBase pageBase;
+    private IModel<PrismObject<ResourceType>> resourceModel;
+    String[] resourceTaskArchetypeOids = new String[] { SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
+            SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
+            SystemObjectsType.ARCHETYPE_IMPORT_TASK.value(),
+            SystemObjectsType.ARCHETYPE_ASYNC_UPDATE_TASK.value() };
 
     public ResourceTasksPanel(String id, ListModel<TaskType> tasks, PageBase pageBase) {
         super(id);
@@ -66,17 +79,18 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     public ResourceTasksPanel(String id, final IModel<PrismObject<ResourceType>> resourceModel, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
+        this.resourceModel = resourceModel;
 
-        ListModel<TaskType> model = createTaskModel(resourceModel.getObject());
+        ListModel<TaskType> model = createTaskModel();
         initLayout(model);
     }
 
-    private ListModel<TaskType> createTaskModel(PrismObject<ResourceType> object) {
+    private ListModel<TaskType> createTaskModel() {
         OperationResult result = new OperationResult(OPERATION_LOAD_TASKS);
         List<PrismObject<TaskType>> tasks = WebModelServiceUtils
                 .searchObjects(TaskType.class,
                         pageBase.getPrismContext().queryFor(TaskType.class)
-                                .item(TaskType.F_OBJECT_REF).ref(object.getOid())
+                                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
                                 .build(),
                         result, pageBase);
         List<TaskType> tasksType = new ArrayList<>();
@@ -90,36 +104,70 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     private void initLayout(final ListModel<TaskType> tasks){
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, TableId.PAGE_RESOURCE_TASKS_PANEL, null) {
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-            @Override
-            protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
-                return new SelectableListDataProvider<>(pageBase, tasks);
-            }
+                    @Override
+                    protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
+                        return new SelectableListDataProvider<>(pageBase, tasks);
+                    }
 
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return null;
-            }
+                    @Override
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        return null;
+                    }
 
-            @Override
-            public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
-                getPageBase().navigateToNext(PageTask.class, parameters);
-            }
+                    @Override
+                    public void objectDetailsPerformed(AjaxRequestTarget target, TaskType task) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getOid());
+                        getPageBase().navigateToNext(PageTask.class, parameters);
+                    }
 
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                getPageBase().navigateToNext(PageTask.class);
+                    @Override
+                    protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
+                        if (collectionView == null){
+                            collectionView = getObjectCollectionView();
+                        }
 
-            }
+                        List<ObjectReferenceType> archetypeRef = getReferencesList(collectionView);
+                        try {
+                            PrismContext prismContext = pageBase.getPrismContext();
+                            PrismObjectDefinition<TaskType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(TaskType.COMPLEX_TYPE);
+                            PrismObject<TaskType> obj = def.instantiate();
+                            TaskType newTask = obj.asObjectable();
 
-            @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                return ColumnUtils.getDefaultTaskColumns();
-            }
-        };
+                            ObjectReferenceType resourceRef = new ObjectReferenceType();
+                            resourceRef.setOid(resourceModel.getObject().getOid());
+                            resourceRef.setType(ResourceType.COMPLEX_TYPE);
+                            newTask.setObjectRef(resourceRef);
+
+                            WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
+                        } catch (SchemaException ex){
+                            getPageBase().getFeedbackMessages().error(ResourceTasksPanel.this, ex.getUserFriendlyMessage());
+                            target.add(getPageBase().getFeedbackPanel());
+                        }
+                    }
+
+                    @Override
+                    protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
+                        return ColumnUtils.getDefaultTaskColumns();
+                    }
+
+                    @Override
+                    protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
+                        List<CompiledObjectCollectionView> newObjectInfluencesList = super.getNewObjectInfluencesList();
+                        List<CompiledObjectCollectionView> filteredInfluencesList = new ArrayList<>();
+                        if (newObjectInfluencesList != null){
+                            newObjectInfluencesList.forEach(influence -> {
+                                if (influence.getCollection() != null && influence.getCollection().getCollectionRef() != null &&
+                                        ArrayUtils.contains(resourceTaskArchetypeOids, influence.getCollection().getCollectionRef().getOid())){
+                                    filteredInfluencesList.add(influence);
+                                }
+                            });
+                        }
+                        return filteredInfluencesList;
+                    }
+                };
         tasksPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_TASK_BOX_CSS_CLASSES);
         add(tasksPanel);
 

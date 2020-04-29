@@ -43,7 +43,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstraintsCheckingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -383,6 +383,8 @@ public class ConstraintsChecker {
 
     public static class Cache extends AbstractThreadLocalCache {
 
+        private static final Trace LOGGER_CONTENT = TraceManager.getTrace(Cache.class.getName() + ".content");
+
         private final Set<Situation> conflictFreeSituations = ConcurrentHashMap.newKeySet();
 
         private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName,
@@ -455,14 +457,6 @@ public class ConstraintsChecker {
             return cacheInstances.get(Thread.currentThread());
         }
 
-        public static void remove(PolyStringType name) {
-            Cache cache = getCache();
-            if (name != null && cache != null) {
-                log("Cache REMOVE for {}", false, name);
-                cache.conflictFreeSituations.remove(name.getOrig());
-            }
-        }
-
         @Override
         public String description() {
             return "conflict-free situations: " + conflictFreeSituations;
@@ -471,6 +465,14 @@ public class ConstraintsChecker {
         @Override
         protected int getSize() {
             return conflictFreeSituations.size();
+        }
+
+        @Override
+        protected void dumpContent(String threadName) {
+            if (LOGGER_CONTENT.isInfoEnabled()) {
+                conflictFreeSituations.forEach(situation ->
+                        LOGGER_CONTENT.info("Cached conflict-free situation [{}]: {}", threadName, situation));
+            }
         }
     }
 

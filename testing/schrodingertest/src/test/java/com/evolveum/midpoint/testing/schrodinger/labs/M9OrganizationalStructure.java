@@ -6,32 +6,22 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.labs;
 
-import com.codeborne.selenide.Selenide;
-
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgPage;
 import com.evolveum.midpoint.schrodinger.page.org.OrgTreePage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author skublik
  */
 
 public class M9OrganizationalStructure extends AbstractLabTest{
-
-    private static final Logger LOG = LoggerFactory.getLogger(M9OrganizationalStructure.class);
 
     private static final File ARCHETYPE_ORG_COMPANY_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-company.xml");
     private static final File ARCHETYPE_ORG_FUNCTIONAL_FILE = new File(LAB_OBJECTS_DIRECTORY + "archetypes/archetype-org-functional.xml");
@@ -40,23 +30,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
     private static final File ORG_EXAMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-example.xml");
     private static final File ORG_SECRET_OPS_FILE = new File(LAB_OBJECTS_DIRECTORY + "org/org-secret-ops.xml");
 
-    @AfterClass
-    @Override
-    public void afterClass() {
-        super.afterClass();
-
-        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-
-        LOG.info("After: Login name " + username + " pass " + password);
-
-        AboutPage aboutPage = basicPage.aboutPage();
-        aboutPage
-                .clickSwitchToFactoryDefaults()
-                .clickYes();
-    }
-
     @Test(groups={"M9"}, dependsOnGroups={"M8"})
-    public void test0901ImportStaticOrgStructure() {
+    public void mod09test01ImportStaticOrgStructure() {
         importObject(ARCHETYPE_ORG_FUNCTIONAL_FILE, true, true);
         importObject(ARCHETYPE_ORG_COMPANY_FILE, true);
         importObject(ARCHETYPE_ORG_GROUP_FILE, true);
@@ -85,8 +60,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                         .containsChildOrg("Secret Operations", "Transportation and Logistics Department"));
     }
 
-    @Test(dependsOnMethods = {"test0901ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
-    public void test0902CreateStaticOrgStructure() {
+    @Test(dependsOnMethods = {"mod09test01ImportStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    public void mod09test02CreateStaticOrgStructure() {
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
@@ -156,8 +131,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .isSuccess();
     }
 
-    @Test(dependsOnMethods = {"test0902CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
-    public void test0903OrganizationActingAsARole() {
+    @Test(dependsOnMethods = {"mod09test02CreateStaticOrgStructure"}, groups={"M9"}, dependsOnGroups={"M8"})
+    public void mod09test03OrganizationActingAsARole() {
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()

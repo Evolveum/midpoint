@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.Map;
@@ -18,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 public class LocalObjectCache extends AbstractThreadLocalCache {
+
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(LocalObjectCache.class.getName() + ".content");
 
     private final Map<String, PrismObject<? extends ObjectType>> data = new ConcurrentHashMap<>();
 
@@ -41,5 +45,11 @@ public class LocalObjectCache extends AbstractThreadLocalCache {
     @Override
     protected int getSize() {
         return data.size();
+    }
+
+    public void dumpContent(String threadName) {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            data.forEach((k, v) -> LOGGER_CONTENT.info("Cached object [{}] {}: {}", threadName, k, v));
+        }
     }
 }

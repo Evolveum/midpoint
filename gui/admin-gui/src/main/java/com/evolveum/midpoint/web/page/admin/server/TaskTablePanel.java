@@ -182,6 +182,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         // refresh feedback and table
         refreshTable(TaskType.class, target);
         target.add(getTable());
+        clearCache();
     }
 
     private void taskDetailsPerformed(String oid) {
@@ -715,6 +716,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
+        clearCache();
+
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -742,6 +745,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
+        clearCache();
+
     }
 
     private boolean suspendPlainTasks(List<TaskType> plainTasks, OperationResult result, Task opTask)
@@ -805,6 +810,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
+        clearCache();
 
     }
 
@@ -832,6 +838,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
         // refresh feedback and table
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void reconcileWorkersConfirmedPerformed(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -851,6 +858,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void suspendRootOnly(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -867,6 +875,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void resumeRootOnly(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -882,6 +891,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void deleteWorkersAndWorkState(AjaxRequestTarget target, @NotNull IModel<SelectableBean<TaskType>> task) {
@@ -898,6 +908,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void deleteWorkStatePerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> task) {
@@ -922,6 +933,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         showResult(result);
 
         refreshTable(TaskType.class, target);
+        clearCache();
     }
 
     private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {

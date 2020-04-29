@@ -48,4 +48,11 @@ public class ConfiguredConnectorInstanceEntry {
         this.connectorInstance = connectorInstance;
     }
 
+    @Override
+    public String toString() {
+        return "ConfiguredConnectorInstanceEntry{" +
+                "connectorOid='" + connectorOid + '\'' +
+                ", connectorInstance=" + connectorInstance +
+                '}';
+    }
 }

@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -34,7 +33,7 @@ public class PolyStringStrictMatchingRule implements MatchingRule<PolyString> {
      * @see com.evolveum.midpoint.prism.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
      */
     @Override
-    public boolean isSupported(QName xsdType) {
+    public boolean supports(QName xsdType) {
         return (PolyStringType.COMPLEX_TYPE.equals(xsdType));
     }
 
