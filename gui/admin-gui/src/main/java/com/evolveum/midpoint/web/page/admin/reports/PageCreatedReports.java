@@ -205,7 +205,11 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
         // TODO Auto-generated method stub
+    }
 
+    @Override
+    protected boolean isCreateNewObjectEnabled(){
+        return false;
     }
 
     @Override

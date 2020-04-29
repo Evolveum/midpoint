@@ -64,6 +64,11 @@ public class SystemPage extends BasicPage {
         return new AdminGuiTab(this, element);
     }
 
+    public DeploymentInformationTab deploymentInformationTab() {
+        SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.deploymentInformation.title");
+        return new DeploymentInformationTab(this, element);
+    }
+
     public InfrastructureTab infrastructureTab() {
         SelenideElement element = getTabPanel().clickTab("pageSystemConfiguration.infrastructure.title");
         return new InfrastructureTab(this, element);
