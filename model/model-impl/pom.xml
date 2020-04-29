@@ -386,7 +386,7 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
+            <artifactId>javax.servlet-api</artifactId>
             <!-- TODO: compile scope for ModelRestService - I think it should go to more infrastructural module (Virgo) -->
             <!--<scope>test</scope>-->
         </dependency>
