@@ -78,9 +78,9 @@ public class OutboundConstruction<AH extends AssignmentHolderType> extends Const
         try {
             initializeDefinitions();
             createEvaluatedConstructions(task, result);
-            evaluateConstructions(task, result);
+            NextRecompute nextRecompute = evaluateConstructions(task, result);
             result.recordSuccess();
-            return null;
+            return nextRecompute;
         } catch (Throwable e) {
             result.recordFatalError(e);
             throw e;

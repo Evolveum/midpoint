@@ -133,6 +133,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     public NextRecompute evaluate(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         initializeProjectionContext();
         evaluateAttributes(task, result);
+        evaluateAssociations(task, result);
         return null;
     }
 
@@ -326,7 +327,8 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, this.getClass().getSimpleName(), indent);
         DebugUtil.debugDumpWithLabelShortDumpLn(sb, "discriminator", rsd, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "construction", construction, indent + 1);
+        // We do not want to dump construction here. This can lead to cycles.
+        // We usually dump EvaluatedConstruction is a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
         if (attributeMappings != null && !attributeMappings.isEmpty()) {
             sb.append("\n");

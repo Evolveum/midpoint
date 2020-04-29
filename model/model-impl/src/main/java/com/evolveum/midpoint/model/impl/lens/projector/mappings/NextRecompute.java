@@ -80,4 +80,12 @@ public class NextRecompute {
             return existing;
         }
     }
+
+    public static <V extends PrismValue, D extends ItemDefinition> NextRecompute update(NextRecompute mappingNextRecompute, NextRecompute existing) {
+        if (mappingNextRecompute != null && (existing == null || existing.nextRecomputeTime.compare(mappingNextRecompute.nextRecomputeTime) == DatatypeConstants.GREATER)) {
+            return mappingNextRecompute;
+        } else {
+            return existing;
+        }
+    }
 }

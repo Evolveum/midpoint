@@ -71,7 +71,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     protected static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
 
     private ObjectType orderOneObject;
-    private String resourceOid;
     private ResolvedResource resolvedResource;
     private ExpressionProfile expressionProfile;
     private MappingFactory mappingFactory;
@@ -351,13 +350,11 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
     private void evaluateKindIntentObjectClass(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         if (getConstructionType().getResourceRef() != null) {
-            resourceOid = getConstructionType().getResourceRef().getOid();
+            String resourceOid = getConstructionType().getResourceRef().getOid();
             if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
                 throw new IllegalStateException(
                         "The specified resource and the resource in construction does not match");
             }
-        } else {
-            resourceOid = null;
         }
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
@@ -450,7 +447,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     }
 
     private EvaluatedConstructionImpl<AH> createEvaluatedConstruction(String tag) {
-        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
+        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(getResourceOid(), refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
         return createEvaluatedConstruction(rsd);
     }
 
@@ -458,44 +455,29 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return new EvaluatedConstructionImpl<>(this, rsd);
     }
 
-    protected void evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        try {
-            evaluatedConstructionTriple.foreach( evaluatedConstruction -> {
-                try {
-                    evaluateConstruction(evaluatedConstruction, task, result);
-                } catch (Exception e) {
-                    throw new TunnelException(e);
-                }
-            });
-        } catch (TunnelException te) {
-            Exception e = (Exception) te.getCause();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException)e;
-            }
-            if (e instanceof CommunicationException) {
-                throw (CommunicationException)e;
-            }
-            if (e instanceof ObjectNotFoundException) {
-                throw (ObjectNotFoundException)e;
-            }
-            if (e instanceof SchemaException) {
-                throw (SchemaException)e;
-            }
-            if (e instanceof SecurityViolationException) {
-                throw (SecurityViolationException)e;
-            }
-            if (e instanceof ConfigurationException) {
-                throw (ConfigurationException)e;
-            }
-            if (e instanceof ExpressionEvaluationException) {
-                throw (ExpressionEvaluationException)e;
-            }
-            throw new SystemException(e);
+    protected NextRecompute evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        NextRecompute nextRecompute = null;
+
+        // This code may seem primitive and old-fashioned.
+        // But equivalent functional code (using foreach()) is just insane due to nextRecompute and exception handling.
+        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
+            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
+            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
         }
+        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
+            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
+            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
+        }
+        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
+            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
+            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
+        }
+
+        return nextRecompute;
     }
 
-    protected void evaluateConstruction(EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        evaluatedConstruction.evaluate(task, result);
+    protected NextRecompute evaluateConstruction(EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        return evaluatedConstruction.evaluate(task, result);
     }
 
 
@@ -763,6 +745,16 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (getAssignmentPath() != null) {
             sb.append("\n");
             sb.append(getAssignmentPath().debugDump(indent + 1));
+        }
+        sb.append("\n");
+        DebugUtil.debugDumpLabel(sb, "evaluated constructions", indent + 1);
+        if (evaluatedConstructionTriple == null) {
+            sb.append(" (null)");
+        } else if (evaluatedConstructionTriple.isEmpty()) {
+            sb.append(" (empty)");
+        } else {
+            sb.append("\n");
+            sb.append(evaluatedConstructionTriple.debugDump(indent + 2));
         }
         return sb.toString();
     }
