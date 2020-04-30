@@ -220,7 +220,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                         put(FAMILY_NAME_COLUMN, UserType.F_FAMILY_NAME);
                         put(FULL_NAME_COLUMN, UserType.F_FULL_NAME);
                         put(EMAIL_COLUMN, UserType.F_EMAIL_ADDRESS);
-                        put(ACCOUNTS_COLUMN, ItemPath.create(AbstractRoleType.F_LINK_REF, CUSTOM));
+                        put(ACCOUNTS_COLUMN, ItemPath.create(CUSTOM));
                     }
                 });
 
@@ -751,7 +751,8 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
             if(!(valueObject instanceof PrismObject)){
                 return "";
             }
-            return String.valueOf(((PrismObject)valueObject).getRealValues().size());
+            Item item = ((PrismObject) valueObject).findItem(ItemPath.create(AbstractRoleType.F_LINK_REF));
+            return String.valueOf(item.getRealValues().size());
         case CURRENT_RUN_TIME_COLUMN:
             if(!(valueObject instanceof PrismObject)
                     && !(((PrismObject)valueObject).getRealValue() instanceof TaskType)){
@@ -940,8 +941,10 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         switch (nameOfColumn) {
         case ACCOUNTS_COLUMN:
             key = "FocusType.accounts";
+            break;
         case CURRENT_RUN_TIME_COLUMN:
             key = "TaskType.currentRunTime";
+            break;
         }
         return getMessage(key);
     }
