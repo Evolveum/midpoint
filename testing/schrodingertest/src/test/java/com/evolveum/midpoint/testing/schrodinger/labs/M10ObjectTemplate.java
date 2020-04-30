@@ -229,6 +229,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
         rootTab.getMemberPanel()
                 .selectType("User")
                 .table()
+                    .search()
+                        .resetBasicSearch()
+                    .and()
                 .clickByName("X000158");
         Assert.assertTrue(new UserPage().selectTabProjections()
                 .table()

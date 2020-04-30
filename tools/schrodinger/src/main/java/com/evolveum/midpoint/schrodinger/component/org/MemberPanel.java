@@ -60,6 +60,7 @@ public class MemberPanel<T> extends Component<T> {
     public MemberPanel<T> selectType(String type) {
         getParentElement().$x(".//select[@name='type:propertyLabel:row:selectWrapper:select']")
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).selectOption(type);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 

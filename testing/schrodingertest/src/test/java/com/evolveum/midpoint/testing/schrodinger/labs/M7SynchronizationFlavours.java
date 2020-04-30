@@ -36,7 +36,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     @Test(groups={"M7"}, dependsOnGroups={"M6"})
     public void mod07test01RunningImportFromResource() throws IOException {
-        hrTargetFile = new File(testTargetDir, HR_FILE_SOURCE_NAME);
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
 
         importObject(HR_NO_EXTENSION_RESOURCE_FILE,true);
