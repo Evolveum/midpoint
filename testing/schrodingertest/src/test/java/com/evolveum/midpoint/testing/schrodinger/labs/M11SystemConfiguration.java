@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -61,7 +62,9 @@ public class M11SystemConfiguration extends AbstractLabTest {
 
     @Test(groups={"M11"}, dependsOnGroups={"M10"})
     public void mod11test01ConfiguringNotifications() throws IOException {
-        notificationFile = new File(testTargetDir, NOTIFICATION_FILE_NAME);
+        showTask("HR Synchronization").clickResume();
+
+        notificationFile = new File(getTestTargetDir(), NOTIFICATION_FILE_NAME);
         notificationFile.createNewFile();
 
         importObject(SYSTEM_CONFIGURATION_FILE_11_1, true);

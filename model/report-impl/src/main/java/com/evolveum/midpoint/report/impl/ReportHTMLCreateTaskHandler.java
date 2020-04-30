@@ -649,12 +649,23 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
     private String getRealValueAsString(String nameOfColumn, PrismObject<ObjectType> object, ItemPath itemPath,
             ExpressionType expression, Task task, OperationResult result) {
-        Iterator<QName> iterator = (Iterator<QName>) itemPath.getSegments().iterator();
+        Iterator<?> iterator = itemPath.getSegments().iterator();
         Item valueObject = object;
 
 
         while (iterator.hasNext()) {
-            QName name = iterator.next();
+            Object segment = iterator.next();
+            if (!(segment instanceof ItemPathType) && !(segment instanceof QName) ) {
+                continue;
+            }
+            QName name;
+            if (segment instanceof ItemPathType || segment instanceof String) {
+                name = new QName(segment.toString());
+            } else if (segment instanceof QName) {
+                name = (QName) segment;
+            } else {
+                continue;
+            }
             if (QNameUtil.match(name, CUSTOM)) {
                 return getCustomValueForColumn(valueObject, nameOfColumn);
             }

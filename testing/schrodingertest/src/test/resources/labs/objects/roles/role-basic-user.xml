@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+oid="ca24e79a-f474-11e7-9a22-139aea34bb50">
+    <name>Basic user</name>
+    <description>Role authorizing end users to log in, change their passwords and review assigned accounts.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/>
+        <!-- System role -->
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000320" relation="org:default" type="c:ArchetypeType">
+        <!-- System Role -->
+    </archetypeRef>
+    <roleMembershipRef oid="00000000-0000-0000-0000-000000000320" relation="org:default" type="c:ArchetypeType">
+        <!-- System Role -->
+    </roleMembershipRef>
+    <authorization>
+        <name>gui-self-service-access</name>
+        <description>
+            Allow access to all self-service operations in GUI.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    </authorization>
+    <authorization>
+        <name>self-read</name>
+        <description>
+            Allow to read all the properties of "self" object. I.e. every logged-in user can read
+            object that represent his own identity.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-shadow-read</name>
+        <description>
+            Allow to read all the properties of all the shadows that belong to "self" object.
+            I.e. every logged-in user can read all his accounts.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-persona-read</name>
+        <description>
+            Allow to read all the personas of currently logged-in user.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-credentials-request</name>
+        <description>
+            Allow to modify user's own credentials.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>credentials</item>
+    </authorization>
+    <authorization>
+        <name>self-shadow-credentials-request</name>
+        <description>
+            Allow to modify credentials of all users accounts.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
+        <phase>request</phase>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+        <item>credentials</item>
+    </authorization>
+    <authorization>
+        <name>read-requestable-roles</name>
+        <description>
+            Allow to read requestable roles. This allows to search for requestable roles in user interface.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>requestable</q:path>
+                    <q:value>true</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <!-- Note: for production use you should consider limiting the items that can be read. -->
+    </authorization>
+    <authorization>
+        <name>requestable-role-details</name>
+        <description>
+            Allow to show details of requestable roles in the user interface.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+        <!-- Note: object specification should be here to limit this authorization to requestable roles.
+             But this is not yet supported. -->
+    </authorization>
+    <authorization>
+        <name>assign-requestable-roles</name>
+        <description>
+            Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+            The requestable roles will be displayed in the role request dialog by default.
+            Please note that the roles also need an approval definition to go through the approval process.
+            Otherwise they will be assigned automatically without any approval.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>requestable</q:path>
+                    <q:value>true</q:value>
+                </q:equal>
+            </filter>
+        </target>
+    </authorization>
+    <authorization>
+        <name>self-execution-modify</name>
+        <description>
+            Authorization that allows to self-modification of some properties, but only in execution phase.
+            The limitation real limitation of these operations is done in the request phase.
+            E.g. the modification of assignments is controlled in the request phase by using the #assign
+            authorization.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <item>credentials</item>
+        <item>assignment</item>
+    </authorization>
+    <authorization>
+        <name>self-shadow-execution-add-modify-delete</name>
+        <description>
+            Authorization that allows to self-modification of user's accounts, but only in execution phase.
+            The real limitation of these operations is done in the request phase.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <phase>execution</phase>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <name>assignment-target-get</name>
+        <description>
+            Authorization that allows to read all the object that are possible assignment targets. We want that
+            to display the targets in the selection windows.
+            Note that this authorization may be too broad for production use. Normally it should be limited to just
+            selected properties such as name and description.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <object>
+            <type>ServiceType</type>
+        </object>
+        <object>
+            <!-- Deputy delegations may have users as targets -->
+            <type>UserType</type>
+        </object>
+        <object>
+            <!-- MID-101 addition: Lookup tables are fetched by oid (object template value reference) -->
+            <type>LookupTableType</type>
+        </object>
+        <object>
+            <!-- MID-101 addition: Archetypes are fetched by oid -->
+            <type>ArchetypeType</type>
+        </object>
+        <object>
+            <!-- MID-101 addition: ObjectCollections are fetched by oid -->
+            <type>ObjectCollectionType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>assignment-target-read-case</name>
+        <description>
+            Authorization that allows to read approval status of cases. This is used to display requests
+            to the end users, especially in the "My Requests" box in user dashboard.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>CaseType</type>
+            <requester>
+                <special>self</special>
+            </requester>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-owned-task-read</name>
+        <description>
+            Authorization that allows to see all tasks owned by a currently logged-in user.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>TaskType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <name>self-owned-task-add-execute-changes</name>
+        <description>
+            Authorization to create a new 'execute changes' task owned by a currently logged-in user.
+            This is needed to execute asynchronous operations from the GUI.
+        </description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>TaskType</type>
+            <filter>
+                <q:or>
+                    <q:equal>
+                        <q:path>handlerUri</q:path>
+                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>handlerUri</q:path>
+                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>
+                        <!-- members-related operations -->
+                    </q:equal>
+                </q:or>
+            </filter>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <!-- MID-101, LAB 12-1: Uncomment this section and replace the TODO
+placeholder with the information from the Lab Guide -->
+    <!--
+    <authorization>
+        <name>gui-list-roles-page-access</name>
+        <description>Allow access to the role list page.</description>
+        <action>TODO: Paste the authorization from the Lab Guide here</action>
+    </authorization>
+-->
+    <!-- MID-101, LAB 12-1: End of comment -->
+    <!-- MID-101, LAB 12-3: Uncomment this section -->
+    <!--
+<inducement>
+    <targetRef oid="e36da528-2220-11e8-9351-778879167717" type="c:RoleType"/>
+    <condition>
+        <source>
+            <path>extension/isManager</path>
+        </source>
+        <expression>
+            <script>
+                <code>return isManager</code>
+            </script>
+        </expression>
+    </condition>
+</inducement>
+-->
+    <!-- MID-101, LAB 12-3: End of comment -->
+    <subtype>system</subtype>
+</role>

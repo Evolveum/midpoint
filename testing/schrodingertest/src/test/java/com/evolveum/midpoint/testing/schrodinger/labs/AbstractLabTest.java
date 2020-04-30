@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -91,7 +92,7 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
     protected static File csv2TargetFile;
     protected static File csv3TargetFile;
     protected static File hrTargetFile;
-    protected static File notificationFile = new File("./target/notification.txt");
+    protected static File notificationFile;
 
     @AfterClass
     @Override
@@ -101,6 +102,13 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
         Selenide.clearBrowserCookies();
         Selenide.clearBrowserLocalStorage();
         Selenide.close();
+    }
+
+    protected File getTestTargetDir() throws IOException {
+        if (testTargetDir == null) {
+            initTestDirectory(DIRECTORY_CURRENT_TEST, false);
+        }
+        return testTargetDir;
     }
 
     public UserPage showUser(String userName){
