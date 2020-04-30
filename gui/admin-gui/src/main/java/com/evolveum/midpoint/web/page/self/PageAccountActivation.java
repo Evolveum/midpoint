@@ -181,7 +181,7 @@ public class PageAccountActivation extends PageBase {
             target.add(getFeedbackPanel());
         }
         };
-
+        form.setDefaultButton(confirmPasswrod);
         form.add(confirmPasswrod);
 
         WebMarkupContainer confirmationContainer = new WebMarkupContainer(ID_CONFIRMATION_CONTAINER);

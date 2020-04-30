@@ -62,7 +62,7 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Normalized name of midPoint home directory.
      * After successful initialization (see {@link #init()} it always ends with /.
      * TODO: this normalization is safe, but ugly when used in XML configs like
-     * ${midpoint.home}/keystore.jceks - which, on the ohter hand, would be ugly without /.
+     * ${midpoint.home}/keystore.jceks - which, on the other hand, would be ugly without /.
      * Better yet is to normalize home directory NOT to end with / and use Paths.get(...)
      * and similar constructs in Java code and never string concatenation.
      * Also - maybe even this can be typed to Path in the end.
