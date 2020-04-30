@@ -210,6 +210,10 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
     }
 
     protected File initTestDirectory(String dir) throws IOException {
+        return initTestDirectory(dir, true);
+    }
+
+    protected File initTestDirectory(String dir, boolean clearExist) throws IOException {
 
         String home = fetchMidpointHome();
         File parentDir = new File(home, "schrodinger");
@@ -221,8 +225,9 @@ public abstract class AbstractSchrodingerTest extends AbstractIntegrationTest {
             return testTargetDir;
         } else {
             if (testTargetDir.exists()) {
-
-                FileUtils.cleanDirectory(testTargetDir);
+                if (clearExist) {
+                    FileUtils.cleanDirectory(testTargetDir);
+                }
                 return testTargetDir;
             } else {
 

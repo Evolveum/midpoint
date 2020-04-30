@@ -216,6 +216,10 @@ public final class JAXBUtil {
         String namespace = PACKAGE_NAMESPACES.get(pkg);
         if (namespace == null) {
             XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
+            if (xmlSchemaAnnotation == null) {
+                LOGGER.error("Package namespace unknown, there is also no XmlSchema annotation on package {}, type {}", pkg.getName(), typeName);
+            }
+
             namespace = xmlSchemaAnnotation.namespace();
             PACKAGE_NAMESPACES.put(pkg, namespace);
         }
