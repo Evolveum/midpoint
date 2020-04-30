@@ -68,6 +68,11 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
     }
 
 
+    protected void initializeProjectionContext() {
+        projectionContext = construction.getLensContext().findProjectionContext(rsd);
+        // projection context may not exist yet (existence might not be yet decided)
+    }
+
     private NextRecompute evaluateAttributes(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 

@@ -86,7 +86,7 @@ public class OutboundProcessor {
 
         ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
 
-        OutboundConstruction<F> outboundConstruction = new OutboundConstruction<>(rOcDef, projCtx.getResource());
+        OutboundConstruction<F> outboundConstruction = new OutboundConstruction<>(rOcDef, projCtx);
         outboundConstruction.setFocusOdo(focusOdo);
         outboundConstruction.setLensContext(context);
         outboundConstruction.setObjectResolver(objectResolver);

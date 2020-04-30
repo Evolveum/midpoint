@@ -64,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
  * implements Serializable interface only to be storable in the
  * PrismPropertyValue.
  */
-public class Construction<AH extends AssignmentHolderType> extends AbstractConstruction<AH, ConstructionType> {
+public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedConstructionImpl<AH>> extends AbstractConstruction<AH, ConstructionType, EC> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 
@@ -83,7 +83,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
     private PrismObject<SystemConfigurationType> systemConfiguration; // only to provide $configuration variable (MID-2372)
 
-    private DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionTriple;
+    private DeltaSetTriple<EC> evaluatedConstructionTriple;
 
     public Construction(ConstructionType constructionType, ObjectType source) {
         super(constructionType, source);
@@ -185,7 +185,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return refinedObjectClassDefinition.getIntent();
     }
 
-    public DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionTriple() {
+    public DeltaSetTriple<EC> getEvaluatedConstructionTriple() {
         return evaluatedConstructionTriple;
     }
 
@@ -403,7 +403,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
         if (tagTriple == null) {
             // Singleaccount case (not multiaccount). We just create a simple EvaluatedConstruction
-            EvaluatedConstructionImpl<AH> evaluatedConstruction = createEvaluatedConstruction((String)null);
+            EC evaluatedConstruction = createEvaluatedConstruction((String)null);
             evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
 
         } else {
@@ -446,13 +446,13 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         return evaluatedMapping.getOutputTriple();
     }
 
-    private EvaluatedConstructionImpl<AH> createEvaluatedConstruction(String tag) {
+    private EC createEvaluatedConstruction(String tag) {
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(getResourceOid(), refinedObjectClassDefinition.getKind(), refinedObjectClassDefinition.getIntent(), tag, false);
         return createEvaluatedConstruction(rsd);
     }
 
-    protected EvaluatedConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return new EvaluatedConstructionImpl<>(this, rsd);
+    protected EC createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
+        return (EC) new EvaluatedConstructionImpl<AH>(this, rsd);
     }
 
     protected NextRecompute evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -596,7 +596,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         if (getClass() != obj.getClass()) {
             return false;
         }
-        Construction<?> other = (Construction<?>) obj;
+        Construction<?,?> other = (Construction<?,?>) obj;
         if (assignmentPathVariables == null) {
             if (other.assignmentPathVariables != null) {
                 return false;

@@ -144,13 +144,13 @@ public class PersonaProcessor {
 
             @Override
             public void after(PersonaKey key, String desc,
-                    DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple) {
+                    DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<PersonaConstruction<F>>> constructionMapTriple) {
             }
 
 
         };
 
-        DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple =
+        DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<PersonaConstruction<F>>> constructionMapTriple =
             constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
                 evaluatedAssignment -> evaluatedAssignment.getPersonaConstructionTriple(),
                 construction -> new PersonaKey(construction.getConstructionType()),
@@ -165,11 +165,11 @@ public class PersonaProcessor {
             FocusType existingPersona = findPersona(existingPersonas, key);
             LOGGER.trace("existingPersona: {}", existingPersona);
             // TODO: add ability to merge several constructions
-            ConstructionPack<PersonaConstruction<F>> pack = constructionMapTriple.getPlusMap().get(key);
+            EvaluatedConstructionPack<PersonaConstruction<F>> pack = constructionMapTriple.getPlusMap().get(key);
             if (pack == null) {
                 pack = constructionMapTriple.getZeroMap().get(key);
             }
-            Collection<PrismPropertyValue<PersonaConstruction<F>>> constructions = pack.getConstructions();
+            Collection<PrismPropertyValue<PersonaConstruction<F>>> constructions = pack.getEvaluatedConstructions();
             if (constructions.isEmpty()) {
                 continue;
             }

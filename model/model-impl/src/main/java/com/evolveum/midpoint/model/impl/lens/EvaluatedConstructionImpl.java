@@ -37,12 +37,13 @@ import java.util.Collection;
 
 /**
  * @author mederly
+ * @author Radovan Semancik
  */
 public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstruction {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedConstructionImpl.class);
 
-    @NotNull final private Construction<AH> construction;
+    @NotNull final private Construction<AH,?> construction;
     @NotNull final private ResourceShadowDiscriminator rsd;
     @NotNull final private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();;
     @NotNull final private Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
@@ -51,12 +52,12 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     /**
      * @pre construction is already evaluated and not ignored (has resource)
      */
-    EvaluatedConstructionImpl(@NotNull final Construction<AH> construction, @NotNull final ResourceShadowDiscriminator rsd) {
+    EvaluatedConstructionImpl(@NotNull final Construction<AH,?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
         this.construction = construction;
         this.rsd = rsd;
     }
 
-    public Construction<AH> getConstruction() {
+    public Construction<AH,?> getConstruction() {
         return construction;
     }
 

@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -19,30 +20,29 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractConstruction<F extends AssignmentHolderType, T extends AbstractConstructionType> implements DebugDumpable, Serializable {
+public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedConstructionImpl<AH>> implements DebugDumpable, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractConstruction.class);
 
     private AssignmentPathImpl assignmentPath;
-    private T constructionType;
+    private ACT constructionType;
     private ObjectType source;
     private OriginType originType;
     private String channel;
-    private LensContext<F> lensContext;
-    private ObjectDeltaObject<F> focusOdo;
+    private LensContext<AH> lensContext;
+    private ObjectDeltaObject<AH> focusOdo;
     private ObjectResolver objectResolver;
     private PrismContext prismContext;
     private boolean isValid = true;
     private boolean wasValid = true;
     private PlusMinusZero relativityMode;
 
-    public AbstractConstruction(T constructionType, ObjectType source) {
+    public AbstractConstruction(ACT constructionType, ObjectType source) {
         this.constructionType = constructionType;
         this.source = source;
         this.assignmentPath = null;
@@ -72,23 +72,23 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         this.channel = channel;
     }
 
-    public LensContext<F> getLensContext() {
+    public LensContext<AH> getLensContext() {
         return lensContext;
     }
 
-    public void setLensContext(LensContext<F> lensContext) {
+    public void setLensContext(LensContext<AH> lensContext) {
         this.lensContext = lensContext;
     }
 
-    public T getConstructionType() {
+    public ACT getConstructionType() {
         return constructionType;
     }
 
-    public ObjectDeltaObject<F> getFocusOdo() {
+    public ObjectDeltaObject<AH> getFocusOdo() {
         return focusOdo;
     }
 
-    public void setFocusOdo(ObjectDeltaObject<F> focusOdo) {
+    public void setFocusOdo(ObjectDeltaObject<AH> focusOdo) {
         if (focusOdo.getDefinition() == null) {
             throw new IllegalArgumentException("No definition in focus ODO "+focusOdo);
         }
@@ -150,6 +150,8 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
     public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
         this.assignmentPath = assignmentPath;
     }
+
+    public abstract DeltaSetTriple<EC> getEvaluatedConstructionTriple();
 
     @Override
     public int hashCode() {
