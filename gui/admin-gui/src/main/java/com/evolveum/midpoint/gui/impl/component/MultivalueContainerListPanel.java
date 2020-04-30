@@ -519,8 +519,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override
@@ -533,8 +533,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
 
             @Override

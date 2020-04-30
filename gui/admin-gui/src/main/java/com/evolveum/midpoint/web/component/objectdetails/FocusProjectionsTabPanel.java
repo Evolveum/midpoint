@@ -9,14 +9,12 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -52,7 +50,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrappe
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
@@ -63,16 +60,13 @@ import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -91,7 +85,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -505,8 +498,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 }
 
                 @Override
-                public String getButtonIconCssClass() {
-                    return "fa fa-check";
+                public CompositedIconBuilder getIconCompositedBuilder() {
+                    return getDefaultCompositedIconBuilder("fa fa-check");
                 }
             };
             items.add(item);
@@ -591,8 +584,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
 
             @Override
