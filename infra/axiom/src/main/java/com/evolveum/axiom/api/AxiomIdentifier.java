@@ -1,0 +1,68 @@
+package com.evolveum.axiom.api;
+
+import java.util.Objects;
+
+import com.google.common.base.Preconditions;
+
+public class AxiomIdentifier {
+
+    public static final String AXIOM_NAMESPACE = "https://ns.evolveum.com/axiom";
+    private final String namespace;
+    private final String localName;
+
+    public AxiomIdentifier(String namespace, String localName) {
+        this.namespace = Preconditions.checkNotNull(namespace, "namespace");
+        this.localName = Preconditions.checkNotNull(localName, "localName");
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getLocalName() {
+        return localName;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((localName == null) ? 0 : localName.hashCode());
+        result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof AxiomIdentifier))
+            return false;
+        AxiomIdentifier other = (AxiomIdentifier) obj;
+        if (localName == null) {
+            if (other.localName != null)
+                return false;
+        } else if (!localName.equals(other.localName))
+            return false;
+        if (namespace == null) {
+            if (other.namespace != null)
+                return false;
+        } else if (!namespace.equals(other.namespace))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return localName;
+    }
+
+    public static AxiomIdentifier axiom(String identifier) {
+        return new AxiomIdentifier(AXIOM_NAMESPACE, identifier);
+    }
+
+    public static AxiomIdentifier from(String namespace, String localName) {
+        return new AxiomIdentifier(namespace, localName);
+    }
+
+}
