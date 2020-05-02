@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.global;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,12 +96,13 @@ public class GlobalQueryCache extends AbstractGlobalCache {
 
     public <T extends ObjectType> void put(QueryKey key, @NotNull SearchResultList<PrismObject<T>> cacheObject) {
         if (cache != null) {
+            cacheObject.checkImmutable();
             //noinspection unchecked
             cache.put(key, new GlobalCacheQueryValue(cacheObject));
         }
     }
 
-    void invokeAll(EntryProcessor<QueryKey, GlobalCacheQueryValue, Void> entryProcessor) {
+    public void invokeAll(EntryProcessor<QueryKey, GlobalCacheQueryValue, Void> entryProcessor) {
         if (cache != null) {
             cache.invokeAll(cache.keys(), entryProcessor);
         }
@@ -122,7 +124,7 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    Collection<SingleCacheStateInformationType> getStateInformation() {
+    public Collection<SingleCacheStateInformationType> getStateInformation() {
         Map<Class<?>, MutablePair<Integer, Integer>> counts = new HashMap<>();
         AtomicInteger queries = new AtomicInteger(0);
         AtomicInteger objects = new AtomicInteger(0);
@@ -157,7 +159,7 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    void dumpContent() {
+    public void dumpContent() {
         if (cache != null && LOGGER_CONTENT.isInfoEnabled()) {
             cache.invokeAll(cache.keys(), e -> {
                 QueryKey key = e.getKey();

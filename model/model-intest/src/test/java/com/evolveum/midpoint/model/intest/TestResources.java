@@ -367,7 +367,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  8);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 2);
 
         for (PrismObject<ResourceType> resource: resources) {
             assertResource(resource, false);
@@ -415,7 +415,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 2);
 
         for (PrismObject<ResourceType> resource: resources) {
             assertResource(resource, false);
@@ -774,14 +774,14 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         // WHEN
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, options , task, result);
 
         // THEN
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         SqlRepoTestUtil.assertVersionProgress(null, resource.getVersion());
         lastVersion =  resource.getVersion();
         displayValue("Initial version", lastVersion);
@@ -1121,14 +1121,14 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
                 .createModifyDelta(RESOURCE_DUMMY_OID, itemDelta, ResourceType.class);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         ModelExecuteOptions options = ModelExecuteOptions.createRaw();
         // WHEN
         modelService.executeChanges(deltas, options , task, result);
 
         // THEN
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         Collection<SelectorOptions<GetOperationOptions>> getOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, getOptions, task, result);
         SqlRepoTestUtil.assertVersionProgress(lastVersion, resourceAfter.getVersion());
@@ -1141,7 +1141,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
             assertNotNull("No targetNamespace in schema after application of "+objectDelta, targetNamespace);
         }
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         ant.assertModification(resourceAfter, iteration);
     }

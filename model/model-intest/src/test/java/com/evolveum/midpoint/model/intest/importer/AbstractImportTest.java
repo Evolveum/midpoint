@@ -450,7 +450,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DUMMY_FILE_NAME, true));
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         dummyAuditService.clear();
 
         // WHEN
@@ -461,16 +461,16 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after import", result);
         TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_FILE_NAME + " has failed (result)", result, 2);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         display("Imported resource (repo)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertDummyResource(importedRepoResource, true);
 
         importedResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         display("Imported resource (model)", importedResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertDummyResource(importedResource, false);
 
         ResourceType importedResourceType = importedResource.asObjectable();
@@ -479,7 +479,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         display("Imported resource (repo2)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertDummyResource(importedRepoResource, true);
 
         // Check audit
@@ -502,7 +502,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         ImportOptionsType options = getDefaultImportOptions();
         options.setOverwrite(true);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         dummyAuditService.clear();
 
         // WHEN
@@ -513,20 +513,20 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after import", result);
         TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_CHANGED_FILE_NAME + " has failed (result)", result, 2);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
         display("Reimported resource (repo)", repoResource);
         assertDummyResource(repoResource, true);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         MidPointAsserts.assertVersionIncrease(importedRepoResource, repoResource);
 
         PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
         display("Reimported resource (model)", resource);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         assertDummyResource(resource, false);
 
@@ -552,7 +552,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DERBY_FILE_NAME, false));
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         dummyAuditService.clear();
 
         // WHEN
@@ -563,24 +563,24 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after import", result);
         TestUtil.assertSuccess("Import of " + RESOURCE_DERBY_FILE_NAME + " has failed (result)", result, 2);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
         display("Imported resource (repo)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
                 CONNECOTR_DBTABLE_OID);
 
         importedResource = modelService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, task, result);
         display("Imported resource (model)", importedResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
                 CONNECOTR_DBTABLE_OID);
 
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
         display("Imported resource (repo2)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedRepoResource, "Embedded Test Derby: Import test", RESOURCE_DERBY_NAMESPACE,
                 CONNECOTR_DBTABLE_OID);
 
@@ -604,7 +604,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         OperationResult result = task.getResult();
         FileInputStream stream = new FileInputStream(getFile(RESOURCE_DUMMY_RUNTIME_FILE_NAME, false));
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         dummyAuditService.clear();
 
         // WHEN
@@ -615,22 +615,22 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         display("Result after import", result);
         TestUtil.assertSuccess("Import of " + RESOURCE_DUMMY_RUNTIME_FILE_NAME + " has failed (result)", result, 2);
 
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
 
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, result);
         display("Imported resource (repo)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
 
         importedResource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, task, result);
         display("Imported resource (model)", importedResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
 
         // Read it from repo again. The read from model triggers schema fetch which increases version
         importedRepoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_RUNTIME_OID, null, result);
         display("Imported resource (repo2)", importedRepoResource);
-        IntegrationTestTools.assertNoRepoCache();
+        IntegrationTestTools.assertNoRepoThreadLocalCache();
         assertResource(importedRepoResource, "Dummy Resource (runtime)", MidPointConstants.NS_RI, null);
     }
 

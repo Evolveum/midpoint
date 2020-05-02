@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.local;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * Thread-local cache for storing query results.
  */
 public class LocalQueryCache extends AbstractThreadLocalCache {
 
@@ -27,12 +30,14 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
 
     private final Map<QueryKey, SearchResultList> data = new ConcurrentHashMap<>();
 
-    public SearchResultList get(QueryKey key) {
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> get(QueryKey key) {
+        //noinspection unchecked
         return data.get(key);
     }
 
-    public void put(QueryKey key, @NotNull SearchResultList objects) {
-        data.put(key, objects);
+    public void put(QueryKey key, @NotNull SearchResultList list) {
+        list.checkImmutable();
+        data.put(key, list);
     }
 
     public void remove(QueryKey key) {
@@ -57,7 +62,7 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
     }
 
     @SuppressWarnings("SameParameterValue")
-    static int getTotalCachedObjects(ConcurrentHashMap<Thread, LocalQueryCache> cacheInstances) {
+    public static int getTotalCachedObjects(ConcurrentHashMap<Thread, LocalQueryCache> cacheInstances) {
         int rv = 0;
         for (LocalQueryCache cacheInstance : cacheInstances.values()) {
             rv += cacheInstance.getCachedObjects();
@@ -73,7 +78,7 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
         return rv;
     }
 
-    Iterator<Map.Entry<QueryKey, SearchResultList>> getEntryIterator() {
+    public Iterator<Map.Entry<QueryKey, SearchResultList>> getEntryIterator() {
         return data.entrySet().iterator();
     }
 }

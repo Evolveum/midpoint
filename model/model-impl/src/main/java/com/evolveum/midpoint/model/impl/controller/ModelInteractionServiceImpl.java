@@ -221,7 +221,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         LensContext<F> context = null;
 
         try {
-            RepositoryCache.enter(cacheConfigurationManager);
+            RepositoryCache.enterLocalCaches(cacheConfigurationManager);
             // used cloned deltas instead of origin deltas, because some of the
             // values should be lost later..
             context = contextFactory.createContext(clonedDeltas, options, task, result);
@@ -231,7 +231,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         } finally {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
 
         return context;
@@ -1363,7 +1363,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             Set<String> oidsToSkip = new HashSet<>();
             List<ObjectReferenceType> deputies = new ArrayList<>();
@@ -1375,7 +1375,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             result.recordFatalError(t.getMessage(), t);
             throw t;
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
     }
 
@@ -1384,7 +1384,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assigneeRef, QName limitationItemName, Task task,
             OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             Set<String> oidsToSkip = new HashSet<>();
             oidsToSkip.add(assigneeRef.getOid());
@@ -1396,7 +1396,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             result.recordFatalError(t.getMessage(), t);
             throw t;
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
     }
 

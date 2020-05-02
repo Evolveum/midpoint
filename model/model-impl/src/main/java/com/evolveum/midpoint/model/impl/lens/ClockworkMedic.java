@@ -70,13 +70,13 @@ public class ClockworkMedic {
         }
 
         if (enterCache) {
-            RepositoryCache.enter(cacheConfigurationManager);
+            RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         }
     }
 
     public void exitModelMethod(boolean exitCache) {
         if (exitCache) {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
 
         DiagnosticContext ctx = DiagnosticContextHolder.pop();
