@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -152,8 +153,8 @@ public class PageReports extends PageAdmin {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_START_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
             @Override
@@ -178,8 +179,8 @@ public class PageReports extends PageAdmin {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
 
             @Override

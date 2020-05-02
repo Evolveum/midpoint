@@ -457,7 +457,10 @@ public class WebModelServiceUtils {
         OperationResult parentResult = new OperationResult(OPERATION_COUNT_OBJECT);
         int count = 0;
         try {
-            count = page.getModelService().countObjects(type, query, null, task, parentResult);
+            Collection<SelectorOptions<GetOperationOptions>> options = page.getOperationOptionsBuilder()
+                    .distinct(true)
+                    .build();
+            count = page.getModelService().countObjects(type, query, options, task, parentResult);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
                 | ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
             parentResult.recordFatalError(page.createStringResource("WebModelUtils.couldntCountObjects").getString(), ex);

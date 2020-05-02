@@ -11,17 +11,15 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -31,7 +29,6 @@ import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -220,8 +217,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_ICON_NO_OBJECTS;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
             }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("pageWorkItem.button.approve")) {
@@ -239,8 +236,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
             }
 
             @Override

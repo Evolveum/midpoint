@@ -37,6 +37,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -162,7 +164,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AjaxIconButton createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+                    protected Component createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
                         AjaxIconButton btn = null;
                         switch (index) {
                             case 0:

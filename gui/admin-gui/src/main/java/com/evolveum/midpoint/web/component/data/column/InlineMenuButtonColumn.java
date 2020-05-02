@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.repeater.Item;
@@ -112,16 +115,18 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AjaxIconButton createButton(int index, String componentId, IModel<T> model) {
-                AjaxIconButton btn = buildDefaultButton(componentId,
-                        new Model<>(getButtonIconCss(index, buttonMenuItems)),
-                        new Model<>(getButtonTitle(index, buttonMenuItems)),
-                        new Model<>(getButtonCssClass()),
-                        target -> {
-                            setRowModelToButtonAction(rowModel, buttonMenuItems);
-                            buttonMenuItemClickPerformed(index, buttonMenuItems, target);
-                        });
-                btn.showTitleAsLabel(false);
+            protected Component createButton(int index, String componentId, IModel<T> model) {
+                CompositedIconBuilder builder = getIconCompositedBuilder(index, buttonMenuItems);
+                AjaxCompositedIconButton btn = new AjaxCompositedIconButton(componentId, builder.build(),
+                        Model.of(getButtonTitle(index, buttonMenuItems))) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        setRowModelToButtonAction(rowModel, buttonMenuItems);
+                        buttonMenuItemClickPerformed(index, buttonMenuItems, target);
+                    }
+                };
+
+                btn.add(AttributeAppender.append("class", " btn btn-default btn-xs"));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
 
                 return btn;
@@ -209,11 +214,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return buttonMenuItems.get(id).getEnabled().getObject().booleanValue();
     }
 
-    private String getButtonIconCss(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
+    private CompositedIconBuilder getIconCompositedBuilder(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()){
             return null;
         }
-        return buttonMenuItems.get(id).getButtonIconCssClass() + " fa-fw";
+        return buttonMenuItems.get(id).getIconCompositedBuilder(); // + " fa-fw";
     }
 
     private String getButtonTitle(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
@@ -287,8 +292,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                         }
 
                         @Override
-                        public String getButtonIconCssClass() {
-                            return ((ButtonInlineMenuItem) item).getButtonIconCssClass();
+                        public CompositedIconBuilder getIconCompositedBuilder() {
+                            return ((ButtonInlineMenuItem) item).getIconCompositedBuilder();
                         }
 
                         public IModel<String> getConfirmationMessageModel() {

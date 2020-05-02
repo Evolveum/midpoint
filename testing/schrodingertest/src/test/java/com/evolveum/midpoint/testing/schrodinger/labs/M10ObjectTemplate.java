@@ -18,17 +18,13 @@ import com.evolveum.midpoint.schrodinger.component.common.PrismFormWithActionBut
 import com.evolveum.midpoint.schrodinger.component.configuration.ObjectPolicyTab;
 import com.evolveum.midpoint.schrodinger.component.org.OrgRootTab;
 import com.evolveum.midpoint.schrodinger.component.resource.ResourceAccountsTab;
-import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import com.evolveum.midpoint.schrodinger.page.task.TaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -40,28 +36,11 @@ import java.io.IOException;
 
 public class M10ObjectTemplate extends AbstractLabTest{
 
-    private static final Logger LOG = LoggerFactory.getLogger(M10ObjectTemplate.class);
-
     private static final File OBJECT_TEMPLATE_USER_SIMPLE_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-simple.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user.xml");
     private static final File OBJECT_TEMPLATE_USER_FILE_10_3 = new File(LAB_OBJECTS_DIRECTORY + "objectTemplate/object-template-example-user-10-3.xml");
     private static final File LOOKUP_EMP_STATUS_FILE = new File(LAB_OBJECTS_DIRECTORY + "lookupTables/lookup-emp-status.xml");
     private static final File CSV_3_RESOURCE_FILE_10_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-10-4.xml");
-
-    @AfterClass
-    @Override
-    public void afterClass() {
-        super.afterClass();
-
-        midPoint.formLogin().loginWithReloadLoginPage(username, password);
-
-        LOG.info("After: Login name " + username + " pass " + password);
-
-        AboutPage aboutPage = basicPage.aboutPage();
-        aboutPage
-                .clickSwitchToFactoryDefaults()
-                .clickYes();
-    }
 
     @Test(groups={"M10"}, dependsOnGroups={"M9"})
     public void mod10test01SimpleObjectTemplate() throws IOException {
@@ -250,6 +229,9 @@ public class M10ObjectTemplate extends AbstractLabTest{
         rootTab.getMemberPanel()
                 .selectType("User")
                 .table()
+                    .search()
+                        .resetBasicSearch()
+                    .and()
                 .clickByName("X000158");
         Assert.assertTrue(new UserPage().selectTabProjections()
                 .table()

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.valuePolicy;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -16,7 +17,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -100,8 +100,8 @@ public class PageValuePolicies extends PageAdminObjectList<ValuePolicyType> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override

@@ -50,9 +50,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
     @Test(groups={"M3"})
     public void mod03test01ViewingResources() throws Exception {
-        initTestDirectory(DIRECTORY_CURRENT_TEST);
-
-        csv1TargetFile = new File(csvTargetDir, CSV_1_FILE_SOURCE_NAME);
+        csv1TargetFile = new File(getTestTargetDir(), CSV_1_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_1_SOURCE_FILE, csv1TargetFile);
 
         importObject(CSV_1_SIMPLE_RESOURCE_FILE,true);
@@ -127,14 +125,14 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
         importObject(NUMERIC_PIN_FIRST_NONZERO_POLICY_FILE,true);
 
-        csv2TargetFile = new File(csvTargetDir, CSV_2_FILE_SOURCE_NAME);
+        csv2TargetFile = new File(getTestTargetDir(), CSV_2_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_2_SOURCE_FILE, csv2TargetFile);
 
         importObject(CSV_2_RESOURCE_FILE,true);
 
         changeResourceAttribute(CSV_2_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv2TargetFile.getAbsolutePath(), true);
 
-        csv3TargetFile = new File(csvTargetDir, CSV_3_FILE_SOURCE_NAME);
+        csv3TargetFile = new File(getTestTargetDir(), CSV_3_FILE_SOURCE_NAME);
         FileUtils.copyFile(CSV_3_SOURCE_FILE, csv3TargetFile);
 
         importObject(CSV_3_RESOURCE_FILE,true);
@@ -142,7 +140,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
         changeResourceAttribute(CSV_3_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csv3TargetFile.getAbsolutePath(), true);
     }
 
-    @Test(dependsOnMethods = {"test0301ViewingResources"}, groups={"M3"})
+    @Test(dependsOnMethods = {"mod03test01ViewingResources"}, groups={"M3"})
     public void mod03test02BasicProvisioning() {
         UserPage user = basicPage.newUser();
         user.selectTabBasic()

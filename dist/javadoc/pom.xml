@@ -42,8 +42,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-annotations-api</artifactId>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>

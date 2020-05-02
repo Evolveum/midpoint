@@ -100,8 +100,7 @@
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>compile</scope>
+            <artifactId>javax.servlet-api</artifactId>
         </dependency>
     </dependencies>
 </project>
