@@ -6,12 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -40,17 +35,11 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
- *
  */
 public abstract class AbstractModificationConverter implements DebugDumpable {
 
@@ -163,13 +152,13 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
         ObjectClassComplexTypeDefinition structuralObjectClassDefinition = resourceSchema.findObjectClassDefinition(objectClassDef.getTypeName());
         if (structuralObjectClassDefinition == null) {
-            throw new SchemaException("No definition of structural object class "+objectClassDef.getTypeName()+" in "+connectorDescription);
+            throw new SchemaException("No definition of structural object class " + objectClassDef.getTypeName() + " in " + connectorDescription);
         }
-        Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
+        Map<QName, ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap = new HashMap<>();
         if (auxiliaryObjectClassDelta != null) {
             // Auxiliary object class change means modification of __AUXILIARY_OBJECT_CLASS__ attribute
             collect(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, auxiliaryObjectClassDelta, null,
-                    (pvals,midPointAttributeName) -> covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
+                    (pvals, midPointAttributeName) -> covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
         }
 
         for (Operation operation : changes) {
@@ -182,7 +171,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                         ResourceAttributeDefinition def = objectClassDef
                                 .findAttributeDefinition(delta.getElementName());
                         if (def == null) {
-                            String message = "No definition for attribute "+delta.getElementName()+" used in modification delta";
+                            String message = "No definition for attribute " + delta.getElementName() + " used in modification delta";
                             throw new SchemaException(message);
                         }
                         try {
@@ -202,7 +191,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // auxiliary object class and the change of the attributes must be done in
                             // one operation. Otherwise we get schema error. And as auxiliary object class
                             // is removed, the attributes must be removed as well.
-                            for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToDelete()) {
+                            for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToDelete()) {
                                 ObjectClassComplexTypeDefinition auxDef = auxiliaryObjectClassMap.get(auxPval.getValue());
                                 ResourceAttributeDefinition<Object> attrDef = auxDef.findAttributeDefinition(delta.getElementName());
                                 if (attrDef != null) {
@@ -218,7 +207,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                             // auxiliary object class and the change of the attributes must be done in
                             // one operation. Otherwise we get schema error. And as auxiliary object class
                             // is added, the attributes must be added as well.
-                            for (PrismPropertyValue<QName> auxPval: auxiliaryObjectClassDelta.getValuesToAdd()) {
+                            for (PrismPropertyValue<QName> auxPval : auxiliaryObjectClassDelta.getValuesToAdd()) {
                                 ObjectClassComplexTypeDefinition auxOcDef = auxiliaryObjectClassMap.get(auxPval.getValue());
                                 ResourceAttributeDefinition<Object> auxAttrDef = auxOcDef.findAttributeDefinition(delta.getElementName());
                                 if (auxAttrDef != null) {
@@ -250,7 +239,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
             }
 
         }
-
 
     }
 
@@ -303,12 +291,12 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
             LOGGER.debug("Setting null password.");
             collectReplace(OperationalAttributes.PASSWORD_NAME, null);
         } else if (newPassword.getRealValue().canGetCleartext()) {
-            // We have password and we can get a cleartext value of the passowrd. This is normal case
+            // We have password and we can get a cleartext value of the password. This is normal case
             GuardedString guardedPassword = passwordToGuardedString(newPassword.getRealValue(), "new password");
             collectReplace(OperationalAttributes.PASSWORD_NAME, guardedPassword);
         } else {
             // We have password, but we cannot get a cleartext value. Just to nothing.
-            LOGGER.debug("We would like to set password, but we do not have cleartext value. Skipping the opearation.");
+            LOGGER.debug("We would like to set password, but we do not have cleartext value. Skipping the operation.");
         }
     }
 
@@ -319,12 +307,12 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T> T getPropertyNewValue(PropertyDelta propertyDelta, Class<T> clazz) throws SchemaException {
         PrismProperty<PrismPropertyValue<T>> prop = propertyDelta.getPropertyNewMatchingPath();
-        if (prop == null){
+        if (prop == null) {
             return null;
         }
         PrismPropertyValue<T> propValue = prop.getValue(clazz);
 
-        if (propValue == null){
+        if (propValue == null) {
             return null;
         }
 
@@ -333,7 +321,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 
     protected <T> List<Object> covertAttributeValuesToConnId(Collection<PrismPropertyValue<T>> pvals, QName midPointAttributeName) throws SchemaException {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
-        for (PrismPropertyValue<T> pval: pvals) {
+        for (PrismPropertyValue<T> pval : pvals) {
             connIdVals.add(covertAttributeValueToConnId(pval, midPointAttributeName));
         }
         return connIdVals;
@@ -343,13 +331,13 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
         return ConnIdUtil.convertValueToConnId(pval, protector, midPointAttributeName);
     }
 
-    private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(Collection<PrismPropertyValue<QName>> pvals, QName midPointAttributeName, Map<QName,ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap) throws SchemaException {
+    private <T> List<Object> covertAuxiliaryObjectClassValuesToConnId(Collection<PrismPropertyValue<QName>> pvals, QName midPointAttributeName, Map<QName, ObjectClassComplexTypeDefinition> auxiliaryObjectClassMap) throws SchemaException {
         List<Object> connIdVals = new ArrayList<>(pvals.size());
-        for (PrismPropertyValue<QName> pval: pvals) {
+        for (PrismPropertyValue<QName> pval : pvals) {
             QName auxQName = pval.getValue();
             ObjectClassComplexTypeDefinition auxDef = resourceSchema.findObjectClassDefinition(auxQName);
             if (auxDef == null) {
-                throw new SchemaException("Auxiliary object class "+auxQName+" not found in the schema");
+                throw new SchemaException("Auxiliary object class " + auxQName + " not found in the schema");
             }
             auxiliaryObjectClassMap.put(auxQName, auxDef);
             ObjectClass icfOc = connIdNameMapper.objectClassToConnId(pval.getValue(), resourceSchemaNamespace, connectorType, false);
@@ -367,7 +355,7 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
                 throw e;
             }
             if (operation instanceof PropertyModificationOperation) {
-                PropertyDelta<?> delta = ((PropertyModificationOperation)operation).getPropertyDelta();
+                PropertyDelta<?> delta = ((PropertyModificationOperation) operation).getPropertyDelta();
                 if (delta.getPath().equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS)) {
                     auxiliaryObjectClassDelta = (PropertyDelta<QName>) delta;
                 }
