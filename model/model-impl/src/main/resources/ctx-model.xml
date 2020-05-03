@@ -326,45 +326,11 @@
 
     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
 
-    <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
-        <constructor-arg>
-            <map>
-                <entry key="action" value="UsernameToken"/>
-                <entry key="passwordCallbackRef">
-                    <ref bean="passwordCallback"/>
-                </entry>
-            </map>
-        </constructor-arg>
-    </bean>
-
+    <!-- TODO remove as well, but ATM authorizations are not fixed in the overlay interceptor/validator -->
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
         <constructor-arg name="guiProfiledPrincipalManager" ref="guiProfiledPrincipalManager"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
         <constructor-arg name="securityHelper" ref="securityHelper"/>
         <constructor-arg name="taskManager" ref="taskManager"/>
     </bean>
-
-    <bean id="wsFaultListener" class="com.evolveum.midpoint.model.impl.security.WsFaultListener">
-        <constructor-arg name="securityHelper" ref="securityHelper"/>
-    </bean>
-
-    <bean id="springAuthenticationJanitor" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationJanitorInterceptor">
-    </bean>
-
-    <bean id="passwordCallback" class="com.evolveum.midpoint.model.impl.security.PasswordCallback">
-        <constructor-arg name="passwordAuthenticationEvaluatorImpl" ref="passwordAuthenticationEvaluator"/>
-    </bean>
-
-    <!--Example of authorization for WS-->
-    <!--
-        <bean id="authorizationInterceptor" class="org.apache.cxf.interceptor.security.SimpleAuthorizingInterceptor">
-            <property name="methodRolesMap">
-                <map>
-                    <entry key="getObject" value="ROLE_USER ROLE_ADMIN"/>
-                    <entry key="addObject" value="ROLE_ADMIN"/>
-                </map>
-            </property>
-        </bean>
-    -->
-
 </beans>
