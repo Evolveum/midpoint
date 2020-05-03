@@ -150,7 +150,7 @@ public class ModelCrudService {
         ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
         String oid;
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
 
             if (LOGGER.isTraceEnabled()) {
@@ -177,7 +177,7 @@ public class ModelCrudService {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
 
         return oid;
@@ -220,7 +220,7 @@ public class ModelCrudService {
         OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
         result.addParam(OperationResult.PARAM_OID, oid);
 
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
 
         try {
             ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
@@ -240,7 +240,7 @@ public class ModelCrudService {
             ModelImplUtils.recordFatalError(result, ex);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
     }
 
@@ -305,7 +305,7 @@ public class ModelCrudService {
         OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
         result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
 
         try {
 
@@ -323,7 +323,7 @@ public class ModelCrudService {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
     }
 }

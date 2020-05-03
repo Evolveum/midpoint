@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -166,8 +167,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_STOP_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
             }
 
             @Override
@@ -200,8 +201,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override

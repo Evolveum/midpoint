@@ -133,7 +133,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
-    private List<ObjectReferenceType> getReferencesList(CompiledObjectCollectionView collectionView) {
+    protected List<ObjectReferenceType> getReferencesList(CompiledObjectCollectionView collectionView) {
         if (!isArchetypedCollectionView(collectionView)) {
             return null;
         }

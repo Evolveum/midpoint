@@ -168,4 +168,10 @@ public abstract class AbstractThreadLocalCache {
     }
 
     protected abstract int getSize();
+
+    public static <T extends AbstractThreadLocalCache> void dumpContent(ConcurrentHashMap<Thread, T> cacheInstances) {
+        cacheInstances.forEach((thread, cache) -> cache.dumpContent(thread.getName()));
+    }
+
+    protected abstract void dumpContent(String threadName);
 }

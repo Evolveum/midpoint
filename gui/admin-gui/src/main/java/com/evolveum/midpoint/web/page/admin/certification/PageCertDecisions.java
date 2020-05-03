@@ -363,7 +363,7 @@ public class PageCertDecisions extends PageAdminCertification {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected AjaxIconButton createButton(int index, String componentId, IModel<CertWorkItemDto> model) {
+                    protected Component createButton(int index, String componentId, IModel<CertWorkItemDto> model) {
                         AjaxIconButton btn;
                         if (index < responses) {
                             btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),

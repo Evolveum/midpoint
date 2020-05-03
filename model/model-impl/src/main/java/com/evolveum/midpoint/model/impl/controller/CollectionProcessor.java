@@ -158,10 +158,10 @@ public class CollectionProcessor {
 
         WaterMarkType highWaterMark = policyThreshold.getHighWaterMark();
         if (highWaterMark != null) {
-            Integer warterMarkCount = highWaterMark.getCount();
-            if (warterMarkCount != null) {
-                if (stats.getObjectCount() > warterMarkCount) {
-                    LOGGER.trace("Rule NOT triggered on {} because high watermark count exceeded (watermark: {}, actual: {})", collection, warterMarkCount, stats.getObjectCount());
+            Integer waterMarkCount = highWaterMark.getCount();
+            if (waterMarkCount != null) {
+                if (stats.getObjectCount() > waterMarkCount) {
+                    LOGGER.trace("Rule NOT triggered on {} because high watermark count exceeded (watermark: {}, actual: {})", collection, waterMarkCount, stats.getObjectCount());
                     return false;
                 }
             }
@@ -178,16 +178,16 @@ public class CollectionProcessor {
             }
         }
 
-        WaterMarkType lowhWaterMark = policyThreshold.getLowWaterMark();
-        if (lowhWaterMark != null) {
-            Integer warterMarkCount = lowhWaterMark.getCount();
-            if (warterMarkCount != null) {
-                if (stats.getObjectCount() < warterMarkCount) {
-                    LOGGER.trace("Rule NOT triggered on {} because low watermark count not reached (watermark: {}, actual: {})", collection, warterMarkCount, stats.getObjectCount());
+        WaterMarkType lowWaterMark = policyThreshold.getLowWaterMark();
+        if (lowWaterMark != null) {
+            Integer waterMarkCount = lowWaterMark.getCount();
+            if (waterMarkCount != null) {
+                if (stats.getObjectCount() < waterMarkCount) {
+                    LOGGER.trace("Rule NOT triggered on {} because low watermark count not reached (watermark: {}, actual: {})", collection, waterMarkCount, stats.getObjectCount());
                     return false;
                 }
             }
-            Float waterMarkPercentage = lowhWaterMark.getPercentage();
+            Float waterMarkPercentage = lowWaterMark.getPercentage();
             if (waterMarkPercentage != null) {
                 Float percentage = stats.computePercentage();
                 if (percentage == null) {
@@ -243,10 +243,9 @@ public class CollectionProcessor {
 
         // TODO: support more cases
         if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-            RefFilter filter = null;
-            filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
-                .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
-                .buildFilter();
+            RefFilter filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
+                    .buildFilter();
             filter.setTargetTypeNullAsAny(true);
             filter.setRelationNullAsAny(true);
             existingView.setFilter(filter);

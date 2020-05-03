@@ -27,14 +27,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -314,7 +306,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
         long startTime = System.currentTimeMillis();
 
-        RepositoryCache.enter(taskManager.getCacheConfigurationManager());
+        RepositoryCache.enterLocalCaches(taskManager.getCacheConfigurationManager());
 
         try {
             if (!isNonScavengingWorker()) {     // todo configure this somehow
@@ -370,7 +362,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
             cont = processError(object, workerTask, e, result);
 
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
             workerTask.stopDynamicProfiling();
             workerTask.stopTracing();
 

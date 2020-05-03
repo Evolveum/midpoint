@@ -35,8 +35,8 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     private static final Logger LOG = LoggerFactory.getLogger(M7SynchronizationFlavours.class);
 
     @Test(groups={"M7"}, dependsOnGroups={"M6"})
-    public void test0701RunningImportFromResource() throws IOException {
-        hrTargetFile = new File(csvTargetDir, HR_FILE_SOURCE_NAME);
+    public void mod07test01RunningImportFromResource() throws IOException {
+        hrTargetFile = new File(getTestTargetDir(), HR_FILE_SOURCE_NAME);
         FileUtils.copyFile(HR_SOURCE_FILE, hrTargetFile);
 
         importObject(HR_NO_EXTENSION_RESOURCE_FILE,true);
@@ -79,16 +79,14 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
                                         .feedback()
                                             .isInfo();
 
-        Assert.assertEquals(basicPage.listTasks()
-                .table()
-                    .clickByName("Initial import from HR")
-                        .selectTabOperationStatistics()
-                            .getSuccessfullyProcessed(), 14);
+        Assert.assertEquals(showTask("Initial import from HR")
+                .selectTabOperationStatistics()
+                    .getSuccessfullyProcessed(), 14);
         Assert.assertEquals(basicPage.listUsers(ARCHETYPE_EMPLOYEE_PLURAL_LABEL).getCountOfObjects(), 15);
     }
 
-    @Test(dependsOnMethods = {"test0701RunningImportFromResource"}, groups={"M7"}, dependsOnGroups={"M6"})
-    public void test0702RunningAccountReconciliation() {
+    @Test(dependsOnMethods = {"mod07test01RunningImportFromResource"}, groups={"M7"}, dependsOnGroups={"M6"})
+    public void mod07test02RunningAccountReconciliation() {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         createReconTask("CSV-1 Reconciliation", CSV_1_RESOURCE_NAME);
         Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
@@ -109,14 +107,11 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
         Assert.assertTrue(containsProjection("X001212", CSV_3_RESOURCE_OID, "cn=John Smith,ou=ExAmPLE,dc=example,dc=com"));
     }
 
-    @Test(dependsOnMethods = {"test0702RunningAccountReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
-    public void test0703RunningAttributeReconciliation() throws IOException {
+    @Test(dependsOnMethods = {"mod07test02RunningAccountReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    public void mod07test03RunningAttributeReconciliation() throws IOException {
         FileUtils.copyFile(CSV_1_SOURCE_FILE_7_3, csv1TargetFile);
 
-        basicPage.listTasks()
-                .table()
-                    .clickByName("CSV-1 Reconciliation")
-                        .clickRunNow();
+        showTask("CSV-1 Reconciliation").clickRunNow();
 
         Assert.assertTrue(
                 showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
@@ -126,8 +121,8 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
 
     }
 
-    @Test(dependsOnMethods = {"test0703RunningAttributeReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
-    public void test0704RunningLiveSync() throws IOException {
+    @Test(dependsOnMethods = {"mod07test03RunningAttributeReconciliation"}, groups={"M7"}, dependsOnGroups={"M6"})
+    public void mod07test04RunningLiveSync() throws IOException {
         Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         TaskPage task = basicPage.newTask();
         task.setHandlerUriForNewTask("Live synchronization task");
@@ -233,16 +228,13 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     }
 
     private void deselectDryRun(String taskName) {
-        basicPage.listTasks()
-                .table()
-                    .clickByName(taskName)
-                        .selectTabBasic()
-                            .form()
-                                .selectOption("dryRun", "Undefined")
-                            .and()
-                        .and()
-                        .clickSaveAndRun()
-                            .feedback()
-                                .isInfo();
+        showTask(taskName).selectTabBasic()
+                .form()
+                    .selectOption("dryRun", "Undefined")
+                .and()
+            .and()
+        .clickSaveAndRun()
+            .feedback()
+                .isInfo();
     }
 }

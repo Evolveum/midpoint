@@ -171,7 +171,11 @@ public class ShadowCache {
             }
             throw e;
         }
-        shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
+        if (repositoryShadow.isImmutable()) {
+            repositoryShadow = shadowCaretaker.applyAttributesDefinitionToImmutable(ctx, repositoryShadow);
+        } else {
+            shadowCaretaker.applyAttributesDefinition(ctx, repositoryShadow);
+        }
 
         ResourceType resource = ctx.getResource();
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();

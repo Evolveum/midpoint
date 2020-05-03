@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -17,10 +19,9 @@ import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,17 +49,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
 public class ScriptExpressionFactory implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ScriptExpressionFactory.class.getName() + ".content");
 
-    public static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
+    private static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
-    private Map<String, ScriptEvaluator> evaluatorMap = new HashMap<>();
+    private final Map<String, ScriptEvaluator> evaluatorMap = new HashMap<>();
     private ObjectResolver objectResolver;
     private final PrismContext prismContext;
     private Collection<FunctionLibrary> functions;
-    private final Protector protector;
     private final RepositoryService repositoryService;          // might be null during low-level testing
 
-    private Map<String, FunctionLibrary> customFunctionLibraryCache;
+    @NotNull private final Map<String, FunctionLibrary> customFunctionLibraryCache = new ConcurrentHashMap<>();
+    private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     private CacheRegistry cacheRegistry;
 
@@ -73,9 +74,8 @@ public class ScriptExpressionFactory implements Cacheable {
         cacheRegistry.unregisterCacheableService(this);
     }
 
-    public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
+    public ScriptExpressionFactory(PrismContext prismContext, RepositoryService repositoryService) {
         this.prismContext = prismContext;
-        this.protector = protector;
         this.repositoryService = repositoryService;
     }
 
@@ -105,10 +105,6 @@ public class ScriptExpressionFactory implements Cacheable {
         return evaluatorMap;
     }
 
-    public CacheRegistry geCacheRegistry() {
-        return cacheRegistry;
-    }
-
     public void setCacheRegistry(CacheRegistry registry) {
         this.cacheRegistry = registry;
     }
@@ -116,10 +112,10 @@ public class ScriptExpressionFactory implements Cacheable {
     public ScriptExpression createScriptExpression(
             ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
             ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
-            String shortDesc, Task task, OperationResult result)
+            String shortDesc, OperationResult result)
             throws ExpressionSyntaxException, SecurityViolationException {
 
-        initializeCustomFunctionsLibraryCache(expressionFactory, result);
+        initializeCustomFunctionsLibraryCacheIfNeeded(expressionFactory, result);
         //cache cleanup method
 
         String language = getLanguage(expressionType);
@@ -167,39 +163,41 @@ public class ScriptExpressionFactory implements Cacheable {
         return scriptProfile;
     }
 
-    // if performance becomes an issue, replace 'synchronized' with something more elaborate
-    private synchronized void initializeCustomFunctionsLibraryCache(ExpressionFactory expressionFactory,
-            OperationResult result) throws ExpressionSyntaxException {
-        if (customFunctionLibraryCache != null) {
-            return;
+    private void initializeCustomFunctionsLibraryCacheIfNeeded(ExpressionFactory expressionFactory, OperationResult result)
+            throws ExpressionSyntaxException {
+        if (initialized.compareAndSet(false, true)) {
+            initializeCustomFunctionsLibraryCache(expressionFactory, result);
         }
-        customFunctionLibraryCache = new HashMap<>();
-        if (repositoryService == null) {
+    }
+
+    private void initializeCustomFunctionsLibraryCache(ExpressionFactory expressionFactory, OperationResult result)
+            throws ExpressionSyntaxException {
+        if (repositoryService != null) {
+            OperationResult subResult = result
+                    .createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
+            ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
+                // TODO: determine profile from function library archetype
+                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+                FunctionLibrary customLibrary = new FunctionLibrary();
+                customLibrary.setVariableName(object.getName().getOrig());
+                customLibrary.setGenericFunctions(
+                        new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile));
+                customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
+                customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
+                return true;
+            };
+            try {
+                repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
+                        SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), true, subResult);
+                subResult.recordSuccessIfUnknown();
+            } catch (SchemaException | RuntimeException e) {
+                subResult.recordFatalError("Failed to initialize custom functions", e);
+                throw new ExpressionSyntaxException(
+                        "An error occurred during custom libraries initialization. " + e.getMessage(), e);
+            }
+        } else {
             LOGGER.warn("No repository service set for ScriptExpressionFactory; custom functions will not be loaded. This"
                     + " can occur during low-level testing; never during standard system execution.");
-            return;
-        }
-        OperationResult subResult = result
-                .createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
-        ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
-            // TODO: determine profile from function library archetype
-            ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-            FunctionLibrary customLibrary = new FunctionLibrary();
-            customLibrary.setVariableName(object.getName().getOrig());
-            customLibrary.setGenericFunctions(
-                    new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile));
-            customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
-            customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
-            return true;
-        };
-        try {
-            repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
-                    SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), true, subResult);
-            subResult.recordSuccessIfUnknown();
-        } catch (SchemaException | RuntimeException e) {
-            subResult.recordFatalError("Failed to initialize custom functions", e);
-            throw new ExpressionSyntaxException(
-                    "An error occurred during custom libraries initialization. " + e.getMessage(), e);
         }
     }
 
@@ -229,7 +227,7 @@ public class ScriptExpressionFactory implements Cacheable {
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't try to select entries to be cleared based on OID
-            customFunctionLibraryCache = null;
+            customFunctionLibraryCache.clear();
         }
     }
 
@@ -238,7 +236,17 @@ public class ScriptExpressionFactory implements Cacheable {
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.singleton(new SingleCacheStateInformationType(prismContext)
                 .name(ScriptExpressionFactory.class.getName())
-                .size(customFunctionLibraryCache != null ? customFunctionLibraryCache.size() : 0));
+                .size(customFunctionLibraryCache.size()));
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            if (initialized.get()) {
+                customFunctionLibraryCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached function library: {}: {}", k, v));
+            } else {
+                LOGGER_CONTENT.info("Custom function library cache is not yet initialized");
+            }
+        }
     }
 }
-

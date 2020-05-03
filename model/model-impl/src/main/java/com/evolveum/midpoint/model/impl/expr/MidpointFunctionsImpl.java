@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -2015,5 +2017,51 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
             String attributeName) throws SchemaException {
         return getAttributeDefinition(resource, new QName(objectClassName), new QName(attributeName));
+    }
+
+    @Experimental
+    public <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        return MiscUtil.extractSingleton(findAssignees(type), () -> new IllegalStateException("More than one assignee found"));
+    }
+
+    @Experimental
+    public <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ObjectQuery query = prismContext.queryFor(type)
+                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
+                    .ref(getFocusObjectReference().asReferenceValue().clone())
+                .build();
+        return searchObjects(type, query, null);
+    }
+
+    @Experimental
+    @NotNull
+    private ObjectReferenceType getFocusObjectReference() {
+        ObjectType focusObject = getFocusObjectAny();
+        String oid = focusObject.getOid();
+        if (oid == null) {
+            throw new IllegalStateException("No OID in focus object");
+        }
+        return ObjectTypeUtil.createObjectRef(focusObject, prismContext);
+    }
+
+    @Experimental
+    @NotNull
+    private <T extends ObjectType> T getFocusObjectAny() {
+        LensContext<T> lensContext = (LensContext<T>) getModelContext();
+        if (lensContext == null) {
+            throw new IllegalStateException("No model context present. Are you calling this method within model operation?");
+        }
+        LensFocusContext<T> focusContext = lensContext.getFocusContext();
+        if (focusContext == null) {
+            throw new IllegalStateException("No focus context present");
+        }
+        PrismObject<T> object = focusContext.getObjectAny();
+        if (object == null) {
+            throw new IllegalStateException("No old, current, nor new object in focus context");
+        }
+        return object.asObjectable();
     }
 }

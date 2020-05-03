@@ -11,8 +11,8 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TriggerCreatorGlobalState implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(TriggerCreatorGlobalState.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(TriggerCreatorGlobalState.class.getName() + ".content");
 
     private AtomicLong lastExpirationCleanup = new AtomicLong(0L);
 
@@ -60,8 +61,8 @@ public class TriggerCreatorGlobalState implements Cacheable {
             // We are interested in object deletion events; just to take care of situations when an object is deleted and
             // a new object (of the same name) is created immediately.
             boolean cleanupSpecificEntries = context != null &&
-                    context.getDetails() instanceof RepositoryCache.RepositoryCacheInvalidationDetails &&
-                    ((RepositoryCache.RepositoryCacheInvalidationDetails) context.getDetails()).getObject() instanceof DeleteObjectResult;
+                    context.getDetails() instanceof RepositoryCacheInvalidationDetails &&
+                    ((RepositoryCacheInvalidationDetails) context.getDetails()).getObject() instanceof DeleteObjectResult;
 
             // We want to remove expired entries in regular intervals. Invalidation event arrival is quite good approximation.
             // However, there's EXPIRATION_INTERVAL present to avoid going through the entries at each invalidation event.
@@ -105,6 +106,13 @@ public class TriggerCreatorGlobalState implements Cacheable {
                         .name(TriggerCreatorGlobalState.class.getName())
                         .size(state.size())
         );
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            state.forEach((k, v) -> LOGGER_CONTENT.info("Cached trigger creation: {}: {}", k, v));
+        }
     }
 
     @PostConstruct

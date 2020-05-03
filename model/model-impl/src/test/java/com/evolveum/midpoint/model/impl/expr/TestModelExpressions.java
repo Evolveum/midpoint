@@ -136,7 +136,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, shortTestName, task, result);
+                expressionFactory, shortTestName, result);
         ExpressionVariables variables =
                 createVariables(ExpressionConstants.VAR_USER, chef, chef.getDefinition());
 
@@ -171,7 +171,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + testName + ".xml");
         PrismPropertyDefinition<Boolean> outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
-                MiscSchemaUtil.getExpressionProfile(), expressionFactory, testName, task, result);
+                MiscSchemaUtil.getExpressionProfile(), expressionFactory, testName, result);
 
         ExpressionVariables variables = createVariables(
                 ExpressionConstants.VAR_USER, chef, chef.getDefinition(),
@@ -292,7 +292,7 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
                         PROPERTY_NAME, DOMUtil.XSD_STRING);
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(
                 scriptType, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                expressionFactory, shortTestName, task, result);
+                expressionFactory, shortTestName, result);
         if (variables == null) {
             variables = new ExpressionVariables();
         }
