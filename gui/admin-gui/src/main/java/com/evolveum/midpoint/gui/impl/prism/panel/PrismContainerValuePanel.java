@@ -95,6 +95,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         if (!super.isVisibleValue()) {
             return false;
         }
+
+//        if (isShowOnTopLevel()) {
+//            return true;
+//        }
+
         CVW modelObject = getModelObject();
         if (modelObject == null) {
             return false;
@@ -109,21 +114,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             return false;
         }
 
-        if (isShowOnTopLevel()) {
-            return true;
-        }
-
-        if (!isShowOnTopLevel() && !((PrismContainerWrapper) parent).isExpanded()) { // && parent.isMultiValue()) {
-            return false;
-        }
         return ((PrismContainerWrapper) parent).isExpanded();
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-//        initLayout();
-//        setOutputMarkupId(true);
 
         add(AttributeModifier.append("class", () -> {
             String cssClasses = "";
@@ -282,8 +278,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             int visibleProperties = 0;
 
             for (ItemWrapper<?,?> item : nonContainers) {
-                ItemWrapperVisibilitySpecification<ItemWrapper<?,?>> specification = new ItemWrapperVisibilitySpecification<>(item);
-                if (specification.isVisible(item.findObjectStatus(), getVisibilityHandler())) {
+                if (item.isVisible(getModelObject(), getVisibilityHandler())) {
                     visibleProperties++;
                 }
 
@@ -299,37 +294,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (List<IW>) nonContainers;
     }
 
-//    private ItemVisibilityHandler getVisibilityHandler() {
-//        if (settings == null) {
-//            return null;
-//        }
-//
-//        return settings.getVisibilityHandler();
-//    }
-//
-//    private ItemEditabilityHandler getReadabilityHandler() {
-//        if (settings == null) {
-//            return null;
-//        }
-//
-//        return settings.getEditabilityHandler();
-//    }
-//
-//    private ItemMandatoryHandler getMandatoryHandler() {
-//        if (settings == null) {
-//            return null;
-//        }
-//        return settings.getMandatoryHandler();
-//    }
-//
-//    private boolean isShowOnTopLevel() {
-//        if (settings == null) {
-//            return false;
-//        }
-//
-//        return settings.isShowOnTopLevel();
-//    }
-
     private <IW extends ItemWrapper<?,?>> void populateNonContainer(ListItem<IW> item) {
         item.setOutputMarkupId(true);
         IW itemWrapper = item.getModelObject();
@@ -339,31 +303,20 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(getVisibilityHandler())
-                    .editabilityHandler(getEditabilityHandler())
-                    .mandatoryHandler(getMandatoryHandler())
-                    .showOnTopLevel(isShowOnTopLevel());
-            Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
+            Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), getSettings().copy());
             panel.setOutputMarkupId(true);
             panel.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
-//            panel.add(new VisibleEnableBehaviour() {
-//
-//                private static final long serialVersionUID = 1L;
-//
-//                //TODO decide if we need to set enable behavior here
-//                //see also ItemPanel.getEnableBehaviourOfValuePanel(), may be it's enough
-////                @Override
-////                public boolean isEnabled() {
-////                    return !item.getModelObject().isReadOnly();
-////                }
-//
-//                @Override
-//                public boolean isVisible() {
-//                    CVW parent = PrismContainerValuePanel.this.getModelObject();
-//                    return item.getModelObject().isVisible(parent, getVisibilityHandler());
-//                }
-//            });
+            panel.add(new VisibleEnableBehaviour() {
+                @Override
+                public boolean isVisible() {
+                    return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
+                }
+
+                @Override
+                public boolean isEnabled() {
+                    return !itemWrapper.isReadOnly();
+                }
+            });
             item.add(panel);
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
@@ -375,6 +328,17 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         try {
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), getSettings().copy());
             panel.setOutputMarkupId(true);
+            panel.add(new VisibleEnableBehaviour() {
+                @Override
+                public boolean isVisible() {
+                    return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
+                }
+
+                @Override
+                public boolean isEnabled() {
+                    return !itemWrapper.isReadOnly();
+                }
+            });
             container.add(panel);
         } catch (SchemaException e) {
             throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -554,53 +518,49 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-    private void initRemoveButton() {
-        AjaxLink<Void> removeContainerButton = new AjaxLink<Void>(ID_REMOVE_CONTAINER) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                try {
-                    removePerformed(PrismContainerValuePanel.this.getModelObject(), target);
-                } catch (SchemaException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        };
-
-        removeContainerButton.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled() {
-                if (getModelObject() != null) {
-                    if(getModelObject().getParent() != null) {
-                        return !getModelObject().getParent().isReadOnly();
-                    } else {
-                        return !getModelObject().isReadOnly();
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public boolean isVisible() {
-                if (getModelObject() instanceof PrismObjectValueWrapper) {
-                    return false;
-                }
-                return shouldBeButtonsShown();
-            }
-        });
-        add(removeContainerButton);
-
-    }
-
-    protected void removePerformed(CVW containerValueWrapper, AjaxRequestTarget target) throws SchemaException {
-
-    }
-
+//    private void initRemoveButton() {
+//        AjaxLink<Void> removeContainerButton = new AjaxLink<Void>(ID_REMOVE_CONTAINER) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                try {
+//                    removePerformed(PrismContainerValuePanel.this.getModelObject(), target);
+//                } catch (SchemaException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//
+//        };
+//
+//        removeContainerButton.add(new VisibleEnableBehaviour() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isEnabled() {
+//                if (getModelObject() != null) {
+//                    if(getModelObject().getParent() != null) {
+//                        return !getModelObject().getParent().isReadOnly();
+//                    } else {
+//                        return !getModelObject().isReadOnly();
+//                    }
+//                }
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean isVisible() {
+//                if (getModelObject() instanceof PrismObjectValueWrapper) {
+//                    return false;
+//                }
+//                return shouldBeButtonsShown();
+//            }
+//        });
+//        add(removeContainerButton);
+//
+//    }
+//
     private boolean shouldBeButtonsShown() {
         return getModelObject().isExpanded();
     }

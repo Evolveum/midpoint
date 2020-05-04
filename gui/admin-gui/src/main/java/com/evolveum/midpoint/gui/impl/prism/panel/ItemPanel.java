@@ -61,14 +61,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
     private static final Trace LOGGER = TraceManager.getTrace(ItemPanel.class);
 
     private static final String DOT_CLASS = ItemPanel.class.getName() + "";
-    private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
-    private static final String ID_HEADER = "header";
     private static final String ID_VALUES = "values";
-
-    private static final String ID_ADD_BUTTON = "addButton";
-    private static final String ID_REMOVE_BUTTON = "removeButton";
-    private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 
     private ItemPanelSettings itemPanelSettings;
 
@@ -99,6 +93,19 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
         ListView<VW> valuesPanel = createValuesPanel();
         add(valuesPanel);
 
+//        add(new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                return getModelObject() != null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return !getModelObject().isReadOnly();
+//            }
+//        });
+
     }
 
     protected boolean getHeaderVisibility() {
@@ -121,7 +128,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
 
 
                 Component panel = createValuePanel(item);
-//                createButtons(item);
+                panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
             }
 
         };
@@ -134,178 +141,23 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
         return"col-xs-2";
     }
 
-    @Override
-    public boolean isEnabled() {
-        return !getModelObject().isReadOnly();
-    }
-
-    @Override
-    public boolean isVisible() {
-        ItemWrapperVisibilitySpecification<?> specification = new ItemWrapperVisibilitySpecification<>(getModelObject());
-        return specification.isVisible(getModelObject().findObjectStatus(), getVisibilityHandler());
-
-    }
+//    @Override
+//    public boolean isEnabled() {
+//        return !getModelObject().isReadOnly();
+//    }
+//
+//    @Override
+//    public boolean isVisible() {
+//        return getModelObject() != null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
+//
+//    }
 
     // VALUE REGION
 
      protected abstract Component createValuePanel(ListItem<VW> item);
 
-//     protected void createButtons(ListItem<VW> item) {
-//         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
-//            buttonContainer.add(new AttributeModifier("class", getButtonsCssClass()));
-//
-//            item.add(buttonContainer);
-//            // buttons
-//            AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public void onClick(AjaxRequestTarget target) {
-//                    addValue(target);
-//                }
-//            };
-//            addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
-//            buttonContainer.add(addButton);
-//
-//            AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public void onClick(AjaxRequestTarget target) {
-//                    try {
-//                        removeValue(item.getModelObject(), target);
-//                    } catch (SchemaException e) {
-//                        LOGGER.error("Cannot remove value: {}", item.getModelObject());
-//                        getSession().error("Cannot remove value "+ item.getModelObject());
-//                        target.add(getPageBase().getFeedbackPanel());
-//                        target.add(ItemPanel.this);
-//                    }
-//                }
-//            };
-//            removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
-//            buttonContainer.add(removeButton);
-//
-//
-//            item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-//
-//            item.add(new VisibleBehaviour(() -> isVisibleValue(item.getModel())));
-//     }
 
-//    protected String getButtonsCssClass() {
-//            return"col-xs-2";
-//        }
-//
-//      protected IModel<String> createStyleClassModel(final IModel<VW> value) {
-//            return new IModel<String>() {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                public String getObject() {
-//                    if (getIndexOfValue(value.getObject()) > 0) {
-//                        return getItemCssClass();
-//                    }
-//
-//                    return null;
-//                }
-//            };
-//        }
-//
-//      private int getIndexOfValue(VW value) {
-//            IW property = (IW) value.getParent();
-//            List<VW> values = property.getValues();
-//            for (int i = 0; i < values.size(); i++) {
-//                if (values.get(i).equals(value)) {
-//                    return i;
-//                }
-//            }
-//
-//            return -1;
-//        }
-//
-//      protected String getItemCssClass() {
-//            return " col-sm-offset-0 col-md-offset-4 col-lg-offset-2 prism-value ";
-//        }
-//
-//     protected void addValue(AjaxRequestTarget target) {
-//            IW propertyWrapper = getModel().getObject();
-//            PrismPropertyValue<?> newValue = getPrismContext().itemFactory().createPropertyValue();
-//
-//         WebPrismUtil.createNewValueWrapper(propertyWrapper, createNewValue(propertyWrapper), getPageBase(), target);
-//
-//            target.add(ItemPanel.this);
-//        }
-//
-        protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
-//
-//        protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
-//            LOGGER.debug("Removing value of {}", valueToRemove);
-//            List<VW> values = getModelObject().getValues();
-//
-//            switch (valueToRemove.getStatus()) {
-//                case ADDED:
-//                    values.remove(valueToRemove);
-//                    getModelObject().getItem().remove(valueToRemove.getOldValue());
-//                    getModelObject().getItem().remove(valueToRemove.getNewValue());
-//                    break;
-//                case DELETED:
-//                    valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
-//                    getModelObject().getItem().add(valueToRemove.getNewValue());
-//                    break;
-//                case NOT_CHANGED:
-//                    getModelObject().getItem().remove(valueToRemove.getNewValue());
-//                    valueToRemove.setStatus(ValueStatus.DELETED);
-//                    break;
-//            }
-//
-//            int count = countUsableValues(values);
-//
-//            if (count == 0 && !hasEmptyPlaceholder(values)) {
-//                addValue(target);
-//            }
-//
-//            target.add(ItemPanel.this);
-//        }
-//
-//        private int countUsableValues(List<VW> values) {
-//            int count = 0;
-//            for (VW value : values) {
-//                if (ValueStatus.DELETED.equals(value.getStatus())) {
-//                    continue;
-//                }
-//                if (ValueStatus.ADDED.equals(value.getStatus())) {
-//                    continue;
-//                }
-//                count++;
-//            }
-//            return count;
-//        }
-//
-//        private boolean hasEmptyPlaceholder(List<VW> values) {
-//            for (VW value : values) {
-//                if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
-//                    return true;
-//                }
-//            }
-//
-//            return false;
-//        }
-//
-//        private boolean isAddButtonVisible() {
-//            return getModelObject().isMultiValue();
-//        }
-//
-//
-//
-//        protected boolean isRemoveButtonVisible() {
-//            return !getModelObject().isReadOnly();
-//
-//        }
-//
-//
-//        private boolean isVisibleValue(IModel<VW> model) {
-//            VW value = model.getObject();
-//            return !ValueStatus.DELETED.equals(value.getStatus());
-//        }
+    protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
         public ItemVisibilityHandler getVisibilityHandler() {
             if (itemPanelSettings == null) {

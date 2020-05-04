@@ -63,6 +63,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
             throws SchemaException {
         PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
+        containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
         containerValueWrapper.setShowEmpty(context.isShowEmpty());
 
         List<ItemWrapper<?, ?>> children = createChildren(parent, value, containerValueWrapper, context);
@@ -70,7 +71,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         containerValueWrapper.getItems().addAll((Collection) children);
         containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
         parent.setVirtual(context.getVirtualItemSpecification() != null);
-        containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
         return containerValueWrapper;
     }
 

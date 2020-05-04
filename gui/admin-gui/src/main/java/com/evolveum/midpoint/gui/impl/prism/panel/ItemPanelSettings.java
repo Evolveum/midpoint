@@ -65,7 +65,7 @@ public class ItemPanelSettings implements Serializable {
         return new ItemPanelSettingsBuilder()
                 .editabilityHandler(editabilityHandler)
                 .visibilityHandler(visibilityHandler)
-                .headerVisibility(headerVisible)
+//                .headerVisibility(headerVisible)
                 .mandatoryHandler(mandatoryHandler)
                 .build();
     }

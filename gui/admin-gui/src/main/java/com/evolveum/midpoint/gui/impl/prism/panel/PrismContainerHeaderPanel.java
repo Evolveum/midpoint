@@ -134,11 +134,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
         add(expandCollapseButton);
     }
 
-    private void onExpandClick(AjaxRequestTarget target) {
-
-        PrismContainerWrapper<C> wrapper = getModelObject();
-        wrapper.setExpanded(!wrapper.isExpanded());
-        target.add(getParent());
+    protected void onExpandClick(AjaxRequestTarget target) {
     }
 
 

@@ -139,4 +139,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
         return sb.toString();
     }
 
+    public boolean isVisible() {
+        return !ValueStatus.DELETED.equals(getStatus());
+    }
 }

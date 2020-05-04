@@ -94,16 +94,22 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 //        add(buttonContainer);
 
 //        // buttons
-//        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                addValue(target);
-//            }
-//        };
-//        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
-//        buttonContainer.add(addButton);
+        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                try {
+                    addValue(target);
+                } catch (SchemaException e) {
+                    LOGGER.error("Cannot add value for {}, {}", PrismValuePanel.this.getModelObject().getParent(), e.getMessage(), e);
+                    getSession().error(PrismValuePanel.this.getString("PrismValuePanel.addValue.failed", e.getMessage()));
+                    target.add(getFeedback());
+                }
+            }
+        };
+        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
+        buttonContainer.add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -123,10 +129,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
         buttonContainer.add(removeButton);
 
-
-//        buttonContainer.add(AttributeModifier.append("class", createStyleClassModel(getModel())));
-
-//        add(new VisibleBehaviour(() -> isVisibleValue(getModel())));
         addToHeader(buttonContainer);
         return buttonContainer;
     }
@@ -180,45 +182,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                     throw new RuntimeException(e);
                 }
 
-
-
-
-//            if (component instanceof Validatable) {
-//                Validatable inputPanel = (Validatable) component;
-//                // adding valid from/to date range validator, if necessary
-//
-//                inputPanel.getValidatableComponent().add(expressionValidator);
-//
-//                inputPanel.getValidatableComponent().add(createEventBehavior());
-//                feedback.setFilter(new ComponentFeedbackMessageFilter(inputPanel.getValidatableComponent()));
-//            } else {
-//                feedback.setFilter(new ComponentFeedbackMessageFilter(component));
-//            }
-
-//            if (component instanceof InputPanel) {
-//                InputPanel inputPanel = (InputPanel) component;
-//
-//                final List<FormComponent> formComponents = inputPanel.getFormComponents();
-//                for (FormComponent<T> formComponent : formComponents) {
-//                    IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
-//                    formComponent.setLabel(label);
-//                    formComponent.setRequired(getMandatoryHandler() == null ? modelObject.isMandatory() : getMandatoryHandler().isMandatory(modelObject));
-//
-//                    if (formComponent instanceof TextField) {
-//                        formComponent.add(new AttributeModifier("size", "42"));
-//                    }
-//                    formComponent.add(createEventBehavior());
-//                    formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
-//                            getEditabilityHandler().isEditable(getModelObject())));
-//                }
-//
-////            }
-//            if (component == null) {
-//                WebMarkupContainer cont = new WebMarkupContainer(ID_INPUT);
-//                cont.setOutputMarkupId(true);
-//                return cont;
-//            }
-            return valueContainer;
+                return valueContainer;
 
     }
 
@@ -253,7 +217,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             @Override
             public boolean isEnabled() {
                 if (getEditabilityHandler() != null) {
-                    getEditabilityHandler().isEditable(getModelObject().getParent());
+                    return getEditabilityHandler().isEditable(getModelObject().getParent());
                 }
                 return super.isEnabled();
             }
@@ -307,42 +271,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         };
     }
 
-    protected String getButtonsCssClass() {
-        return"col-xs-2";
-    }
-
     protected abstract <PC extends ItemPanelContext> PC createPanelCtx(IModel<IW> wrapper);
-
-//    protected IModel<String> createStyleClassModel(final IModel<VW> value) {
-//        return new IModel<String>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public String getObject() {
-//                if (getIndexOfValue(value.getObject()) > 0) {
-//                    return getItemCssClass();
-//                }
-//
-//                return null;
-//            }
-//        };
-//    }
-
-    private int getIndexOfValue(VW value) {
-        ItemWrapper<?, VW> property = value.getParent();
-        List<VW> values = property.getValues();
-        for (int i = 0; i < values.size(); i++) {
-            if (values.get(i).equals(value)) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    protected String getItemCssClass() {
-        return " col-sm-offset-0 col-md-offset-4 col-lg-offset-2 prism-value ";
-    }
 
     private <O extends ObjectType> O getObject() {
 
@@ -365,13 +294,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     //TODO move to the ItemPanel, exceptionhandling
     protected void addValue(AjaxRequestTarget target) throws SchemaException {
         getModelObject().getParent().add(createNewValue(getModelObject().getParent()), getPageBase());
-//        getModelObject().getParent().add(createNewValue(getModelObject().getParent()), getPageBase());
-//
-//        ItemWrapper<?,?> propertyWrapper = getModel().getObject().getParent();
-//
-//        WebPrismUtil.createNewValueWrapper(propertyWrapper, createNewValue(propertyWrapper), getPageBase(), target);
-//
-//        target.add(ItemPanel.this);
     }
 
     protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
@@ -381,56 +303,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         LOGGER.debug("Removing value of {}", valueToRemove);
 
         getModelObject().getParent().remove(valueToRemove, getPageBase());
-//        List<VW> values = getModelObject().getValues();
-//
-//        switch (valueToRemove.getStatus()) {
-//            case ADDED:
-//                values.remove(valueToRemove);
-//                getModelObject().getParent().remove(valueToRemove.getOldValue());
-//                getModelObject().getParent().remove(valueToRemove.getNewValue());
-//                break;
-//            case DELETED:
-//                valueToRemove.setStatus(ValueStatus.NOT_CHANGED);
-//                getModelObject().getItem().add(valueToRemove.getNewValue());
-//                break;
-//            case NOT_CHANGED:
-//                getModelObject().getItem().remove(valueToRemove.getNewValue());
-//                valueToRemove.setStatus(ValueStatus.DELETED);
-//                break;
-//        }
-
-//        int count = countUsableValues(values);
-//
-//        if (count == 0 && !hasEmptyPlaceholder(values)) {
-//            addValue(target);
-//        }
-
-//        target.add(ItemPanel.this);
     }
-
-//    private int countUsableValues(List<VW> values) {
-//        int count = 0;
-//        for (VW value : values) {
-//            if (ValueStatus.DELETED.equals(value.getStatus())) {
-//                continue;
-//            }
-//            if (ValueStatus.ADDED.equals(value.getStatus())) {
-//                continue;
-//            }
-//            count++;
-//        }
-//        return count;
-//    }
-//
-//    private boolean hasEmptyPlaceholder(List<VW> values) {
-//        for (VW value : values) {
-//            if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
 
     private boolean isAddButtonVisible() {
         return getModelObject().getParent().isMultiValue();

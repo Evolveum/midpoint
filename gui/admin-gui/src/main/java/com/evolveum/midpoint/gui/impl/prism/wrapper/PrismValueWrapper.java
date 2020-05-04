@@ -34,5 +34,7 @@ public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable
 
     <D extends ItemDelta<V,? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException;
 
+    boolean isVisible();
+
 //    <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 }

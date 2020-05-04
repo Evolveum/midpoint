@@ -132,7 +132,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
             return ItemVisibility.HIDDEN;
         }
 
-        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())){
+        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
             return ItemVisibility.HIDDEN;
         }
 

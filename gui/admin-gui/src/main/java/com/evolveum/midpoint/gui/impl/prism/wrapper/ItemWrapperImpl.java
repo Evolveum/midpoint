@@ -606,12 +606,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return getItemDefinition().getSchemaMigrations();
     }
 
-//    @Override
-//    public void accept(Visitor visitor) {
-//        getItemDefinition().accept(visitor);
-//    }
-//
-
     @Override
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
@@ -638,6 +632,72 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     public UserInterfaceElementVisibilityType getVisibleOverwrite() {
         return visibleOverwrite;
+    }
+
+    @Override
+    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
+
+//        PrismContainerValueWrapper<?> parentContainer = getParent();
+
+        if (!isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler)) {
+            return false;
+        }
+
+        if (!parent.isVirtual() && isShowInVirtualContainer()) {
+            return false;
+        }
+
+        ItemStatus objectStatus = findObjectStatus();
+
+        switch (objectStatus) {
+            case NOT_CHANGED:
+                return isVisibleForModify(parent.isShowEmpty());
+            case ADDED:
+                return isVisibleForAdd(parent.isShowEmpty());
+            case DELETED:
+                return false;
+        }
+
+        return false;
+    }
+
+
+    protected boolean isVisibleByVisibilityHandler(boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
+        if (!parentExpanded) {
+            return false;
+        }
+
+
+        if (visibilityHandler != null) {
+            ItemVisibility visible = visibilityHandler.isVisible(this);
+            if (visible != null) {
+                switch (visible) {
+                    case HIDDEN:
+                        return false;
+                    default:
+                        // automatic, go on ...
+                }
+            }
+        }
+
+        return true;
+
+    }
+
+    private boolean isVisibleForModify(boolean parentShowEmpty) {
+        if (parentShowEmpty) {
+            return true;
+        }
+
+        return isEmphasized() || !isEmpty();
+    }
+
+    private boolean isVisibleForAdd(boolean parentShowEmpty) {
+        if (parentShowEmpty) {
+            return true;
+        }
+
+        return isEmphasized() || !isEmpty();
     }
 
     @Override

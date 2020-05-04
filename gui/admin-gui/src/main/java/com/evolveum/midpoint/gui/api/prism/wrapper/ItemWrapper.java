@@ -39,7 +39,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
 
     void setVisibleOverwrite(UserInterfaceElementVisibilityType visible);
     UserInterfaceElementVisibilityType getVisibleOverwrite();
-//    boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler);
+    boolean isVisible(PrismContainerValueWrapper<?> parentContainer, ItemVisibilityHandler visibilityHandler);
 
     boolean checkRequired(PageBase pageBase);
 
@@ -83,6 +83,8 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     ItemStatus getStatus();
 
     boolean isEmpty();
+
+//    boolean isVisible(ItemStatus objectStatus, ItemVisibilityHandler visibilityHandler);
 
     void remove(VW valueWrapper, ModelServiceLocator locator) throws SchemaException;
 

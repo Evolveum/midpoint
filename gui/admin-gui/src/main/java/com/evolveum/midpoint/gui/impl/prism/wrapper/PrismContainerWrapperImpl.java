@@ -50,7 +50,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
         super(parent, item, status);
         //TODO move to factory
-        this.expanded = !item.isEmpty();
+//        this.expanded = !item.isEmpty();
     }
 
     @Override
@@ -352,22 +352,22 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         return getPath();
     }
 
-//    @Override
-//    public boolean isVisible(PrismContainerValueWrapper parent, ItemVisibilityHandler visibilityHandler) {
-//
-//        if (isVirtual() && getVisibleOverwrite() != null && UserInterfaceElementVisibilityType.HIDDEN == getVisibleOverwrite()) {
-//            return false;
-//        }
-//
-//        if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
-//            return (getParent() != null && getParent().isShowMetadata());
-//        }
-//
-//        // pretend that object is always expanded. it is becasue all other containers are children of it
-//        // and it can influence visibility behavior on different tabs.
-//        boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
-//        return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
-//    }
+    @Override
+    public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
+
+        if (isVirtual() && getVisibleOverwrite() != null && UserInterfaceElementVisibilityType.HIDDEN == getVisibleOverwrite()) {
+            return false;
+        }
+
+        if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+            return (getParent() != null && getParent().isShowMetadata());
+        }
+
+        // pretend that object is always expanded. it is becasue all other containers are children of it
+        // and it can influence visibility behavior on different tabs.
+        boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
+        return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
+    }
 
     @Override
     public void setVirtual(boolean virtual) {

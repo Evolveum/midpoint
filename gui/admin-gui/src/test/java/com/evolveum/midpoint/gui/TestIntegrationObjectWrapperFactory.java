@@ -463,7 +463,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismPropertyWrapper<String> fullnameWrapper = attributesContainerValueWrapper.findProperty(ItemPath.create(dummyResourceCtl.getAttributeFullnameQName()));
         assertEquals("Wrong attribute fullname readOnly", Boolean.FALSE, (Boolean) fullnameWrapper.isReadOnly()); // Is this OK?
         ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullnameWrapper);
-        assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectWrapper.getStatus(), null));
+        assertEquals("Wrong attribute fullname visible", Boolean.TRUE, (Boolean) fullnameWrapper.isVisible(attributesContainerValueWrapper, null));
         displayDumpable("fullname attribute definition", fullnameWrapper);
         assertEquals("Wrong attribute fullname definition.canRead", Boolean.TRUE, (Boolean) fullnameWrapper.canRead());
         assertEquals("Wrong attribute fullname definition.canAdd", Boolean.TRUE, (Boolean) fullnameWrapper.canAdd());
@@ -883,24 +883,21 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismPropertyWrapper<PolyString> nameWrapper = mainContainerValueWrapper.findProperty(UserType.F_NAME);
         assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean) nameWrapper.isReadOnly()); // Is this OK?
-        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> nameVisibility = new ItemWrapperVisibilitySpecification<>(nameWrapper);
-        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean) nameWrapper.canRead());
         assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean) nameWrapper.canAdd());
         assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean) nameWrapper.canModify());
 
         PrismPropertyWrapper<PolyString> givenNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_GIVEN_NAME);
         assertEquals("Wrong givenName readOnly", Boolean.TRUE, (Boolean) givenNameWrapper.isReadOnly()); // Is this OK?
-        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> givenNameVisibility = new ItemWrapperVisibilitySpecification<>(givenNameWrapper);
-        assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean) givenNameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong givenName visible", Boolean.TRUE, (Boolean) givenNameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong givenName definition.canRead", Boolean.TRUE, (Boolean) givenNameWrapper.canRead());
         assertEquals("Wrong givenName definition.canAdd", Boolean.FALSE, (Boolean) givenNameWrapper.canAdd());
         assertEquals("Wrong givenName definition.canModify", Boolean.FALSE, (Boolean) givenNameWrapper.canModify());
 
         PrismPropertyWrapper<PolyString> fullNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_FULL_NAME);
         assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean) fullNameWrapper.isReadOnly());
-        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullNameWrapper);
-        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean) fullNameWrapper.canRead());
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
@@ -908,7 +905,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismPropertyWrapper<String> additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
         assertEquals("Wrong additionalName readOnly", Boolean.TRUE, (Boolean) additionalNameWrapper.isReadOnly()); // Is this OK?
         ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> additionalNameVisibility = new ItemWrapperVisibilitySpecification<>(additionalNameWrapper);
-        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean) additionalNameVisibility.isVisible(objectStatus, null)); // not visible, because it is empty
+        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean) additionalNameWrapper.isVisible(mainContainerValueWrapper, null)); // not visible, because it is empty
         assertEquals("Wrong additionalName definition.canRead", Boolean.TRUE, (Boolean) additionalNameWrapper.canRead());
         assertEquals("Wrong additionalName definition.canAdd", Boolean.FALSE, (Boolean) additionalNameWrapper.canAdd());
         assertEquals("Wrong additionalName definition.canModify", Boolean.FALSE, (Boolean) additionalNameWrapper.canModify());
@@ -916,7 +913,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismPropertyWrapper<String> localityNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_LOCALITY);
         assertEquals("Wrong locality readOnly", Boolean.TRUE, (Boolean) localityNameWrapper.isReadOnly());
         ItemWrapperVisibilitySpecification<PrismPropertyWrapper<String>> localityNameVisibility = new ItemWrapperVisibilitySpecification<>(localityNameWrapper);
-        assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean) localityNameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong locality visible", Boolean.TRUE, (Boolean) localityNameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong locality definition.canRead", Boolean.TRUE, (Boolean) localityNameWrapper.canRead());
         assertEquals("Wrong locality definition.canAdd", Boolean.FALSE, (Boolean) localityNameWrapper.canAdd());
         assertEquals("Wrong locality definition.canModify", Boolean.FALSE, (Boolean) localityNameWrapper.canModify());
@@ -926,7 +923,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         // THEN
         additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
-        assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean) localityNameVisibility.isVisible(objectStatus, null)); // visible, because show empty
+        assertEquals("Wrong additionalName visible", Boolean.TRUE, (Boolean) additionalNameWrapper.isVisible(mainContainerValueWrapper, null)); // visible, because show empty
 
     }
 
@@ -960,8 +957,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<UserType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismPropertyWrapper nameWrapper = mainContainerValueWrapper.findProperty(UserType.F_NAME);
         assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean) nameWrapper.isReadOnly());
-        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> nameVisibility = new ItemWrapperVisibilitySpecification<>(nameWrapper);
-        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean) nameWrapper.isReadOnly());
+        assertEquals("Wrong name visible", Boolean.TRUE, (Boolean) nameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong name definition.canRead", Boolean.TRUE, (Boolean) nameWrapper.canRead());
         assertEquals("Wrong name definition.canAdd", Boolean.FALSE, (Boolean) nameWrapper.canAdd());
         assertEquals("Wrong name definition.canModify", Boolean.FALSE, (Boolean) nameWrapper.canModify());
@@ -979,8 +976,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismPropertyWrapper fullNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_FULL_NAME);
         assertEquals("Wrong fullName readOnly", Boolean.FALSE, (Boolean) fullNameWrapper.isReadOnly());
-        ItemWrapperVisibilitySpecification<PrismPropertyWrapper<PolyString>> fullNameVisibility = new ItemWrapperVisibilitySpecification<>(fullNameWrapper);
-        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameVisibility.isVisible(objectStatus, null));
+        assertEquals("Wrong fullName visible", Boolean.TRUE, (Boolean) fullNameWrapper.isVisible(mainContainerValueWrapper, null));
         assertEquals("Wrong fullName definition.canRead", Boolean.TRUE, (Boolean) fullNameWrapper.canRead());
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
@@ -1009,8 +1005,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             boolean visible) throws SchemaException {
         ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
         assertEquals("Wrong " + propName + " readOnly", Boolean.FALSE, (Boolean) itemWrapper.isReadOnly());
-        ItemWrapperVisibilitySpecification<?> itemWrapperVisibility = new ItemWrapperVisibilitySpecification<>(itemWrapper);
-        assertEquals("Wrong " + propName + " visible", visible, itemWrapperVisibility.isVisible(status, w -> ItemVisibility.AUTO));
+        assertEquals("Wrong " + propName + " visible", visible, itemWrapper.isVisible(containerWrapper, w -> ItemVisibility.AUTO));
         assertEquals("Wrong " + propName + " definition.canRead", Boolean.TRUE, (Boolean) itemWrapper.canRead());
         assertEquals("Wrong " + propName + " definition.canAdd", Boolean.TRUE, (Boolean) itemWrapper.canAdd());
         assertEquals("Wrong " + propName + " definition.canModify", Boolean.TRUE, (Boolean) itemWrapper.canModify());

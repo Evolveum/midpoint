@@ -704,7 +704,12 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         if (QNameUtil.match(MetadataType.COMPLEX_TYPE, wrapper.getTypeName())) {
             return ItemVisibility.AUTO;
         }
-        if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
+
+        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
+            return ItemVisibility.HIDDEN;
+        }
+
+        if (ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_TARGET_REF).equivalent(wrapper.getPath().namedSegmentsOnly())){
             return ItemVisibility.HIDDEN;
         }
 
@@ -746,11 +751,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             }
         }
 
-        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(wrapper.getPath())) {
+        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).equivalent(wrapper.getPath().namedSegmentsOnly())) {
             return ItemVisibility.HIDDEN;
         }
 
-        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).equivalent(wrapper.getPath())) {
+        if (ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).equivalent(wrapper.getPath().namedSegmentsOnly())) {
             return ItemVisibility.HIDDEN;
         }
 

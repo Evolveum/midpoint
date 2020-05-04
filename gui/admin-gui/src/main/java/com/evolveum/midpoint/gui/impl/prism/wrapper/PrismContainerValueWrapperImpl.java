@@ -226,7 +226,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
             collectExtensionItems(container, true, containers);
 
-            if (container instanceof PrismContainerWrapper) {
+            if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
                 containers.add((PrismContainerWrapper<T>) container);
             }
         }
@@ -412,11 +412,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         return this.selected = selected;
     }
 
-
-
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper#hasChanged()
-     */
     @Override
     public boolean hasChanged() {
         // TODO Auto-generated method stub
@@ -471,5 +466,23 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     @Override
     public boolean isVirtual() {
         return virtualItems != null;
+    }
+
+    @Override
+    public boolean isVisible() {
+        if (!super.isVisible()) {
+            return false;
+        }
+
+        ItemWrapper parent = getParent();
+        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
+            return false;
+        }
+
+        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && isShowMetadata()) {
+            return false;
+        }
+
+        return ((PrismContainerWrapper) parent).isExpanded() || isHeterogenous();
     }
 }

@@ -106,16 +106,6 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
         };
 
-//        ExpressionValidator<String> expressionValidator = new ExpressionValidator<String>(
-//                LambdaModel.of(getParentWrapper()::getFormComponentValidator), getPageBase()) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected Object getValueToValidate(IValidatable<String> validatable) {
-//                return item.getModelObject().getRealValue();
-//            }
-//        };
         panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
         getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
         return panel;

@@ -27,91 +27,93 @@ public class ItemWrapperVisibilitySpecification<IW extends ItemWrapper<?,?>> {
 
     //TODO visible for object always true
 
-    public <IW extends ItemWrapper<?,?>> boolean isVisible(ItemStatus objectStatus, ItemVisibilityHandler visibilityHandler) {
 
-        PrismContainerValueWrapper<?> parentContainer = itemWrapper.getParent();
+//    public boolean isVisible(PrismContainerWrapper containerWrapper, ItemVisibilityHandler visibilityHandler) {
+//
+//        if (containerWrapper == null) {
+//             return false;
+//        }
+//
+//        if (containerWrapper instanceof PrismObjectWrapper) {
+//            return true;
+//        }
+//
+//        if (containerWrapper.isVirtual() && containerWrapper.getVisibleOverwrite() != null
+//                && UserInterfaceElementVisibilityType.HIDDEN == containerWrapper.getVisibleOverwrite()) {
+//            return false;
+//        }
+//
+//        PrismContainerValueWrapper<?> parent = containerWrapper.getParent();
+//        if (containerWrapper.getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+//            return (parent != null && parent.isShowMetadata());
+//        }
+//
+//        // pretend that object is always expanded. it is becasue all other containers are children of it
+//        // and it can influence visibility behavior on different tabs.
+//        boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
+//        return isVisibleByVisibilityHandler(parentExpanded, containerWrapper, visibilityHandler);
+//    }
 
-        if (!isVisibleByVisibilityHandler(parentContainer.isExpanded(), itemWrapper, visibilityHandler)) {
-            return false;
-        }
-
-        if (!parentContainer.isVirtual() && itemWrapper.isShowInVirtualContainer()) {
-            return false;
-        }
-
-        switch (objectStatus) {
-            case NOT_CHANGED:
-                return isVisibleForModify(parentContainer.isShowEmpty(), itemWrapper);
-            case ADDED:
-                return isVisibleForAdd(parentContainer.isShowEmpty(), itemWrapper);
-            case DELETED:
-                return false;
-        }
-
-        return false;
-    }
-
-    public boolean isVisible(PrismContainerWrapper containerWrapper, ItemVisibilityHandler visibilityHandler) {
-
-        if (containerWrapper == null) {
-             return false;
-        }
-
-        if (containerWrapper instanceof PrismObjectWrapper) {
-            return true;
-        }
-
-        if (containerWrapper.isVirtual() && containerWrapper.getVisibleOverwrite() != null
-                && UserInterfaceElementVisibilityType.HIDDEN == containerWrapper.getVisibleOverwrite()) {
-            return false;
-        }
-
-        PrismContainerValueWrapper<?> parent = containerWrapper.getParent();
-        if (containerWrapper.getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
-            return (parent != null && parent.isShowMetadata());
-        }
-
-        // pretend that object is always expanded. it is becasue all other containers are children of it
-        // and it can influence visibility behavior on different tabs.
-        boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
-        return isVisibleByVisibilityHandler(parentExpanded, containerWrapper, visibilityHandler);
-    }
-
-    protected <IW extends ItemWrapper<?,?>> boolean isVisibleByVisibilityHandler(boolean parentExpanded, IW itemWrapper, ItemVisibilityHandler visibilityHandler) {
-        if (!parentExpanded) {
-            return false;
-        }
-
-
-        if (visibilityHandler != null) {
-            ItemVisibility visible = visibilityHandler.isVisible(itemWrapper);
-            if (visible != null) {
-                switch (visible) {
-                    case HIDDEN:
-                        return false;
-                    default:
-                        // automatic, go on ...
-                }
-            }
-        }
-
-        return true;
-
-    }
-
-    private <IW extends ItemWrapper<?,?>> boolean isVisibleForModify(boolean parentShowEmpty, IW itemWrapper) {
-        if (parentShowEmpty) {
-            return true;
-        }
-
-        return itemWrapper.isEmphasized() || !itemWrapper.isEmpty();
-    }
-
-    private <IW extends ItemWrapper<?,?>> boolean isVisibleForAdd(boolean parentShowEmpty, IW itemWrapper) {
-        if (parentShowEmpty) {
-            return true;
-        }
-
-        return itemWrapper.isEmphasized() || !itemWrapper.isEmpty();
-    }
+//    public <IW extends ItemWrapper<?,?>> boolean isVisible(ItemStatus objectStatus, ItemVisibilityHandler visibilityHandler) {
+//
+//        PrismContainerValueWrapper<?> parentContainer = itemWrapper.getParent();
+//
+//        if (!isVisibleByVisibilityHandler(parentContainer.isExpanded(), itemWrapper, visibilityHandler)) {
+//            return false;
+//        }
+//
+//        if (!parentContainer.isVirtual() && itemWrapper.isShowInVirtualContainer()) {
+//            return false;
+//        }
+//
+//        switch (objectStatus) {
+//            case NOT_CHANGED:
+//                return isVisibleForModify(parentContainer.isShowEmpty(), itemWrapper);
+//            case ADDED:
+//                return isVisibleForAdd(parentContainer.isShowEmpty(), itemWrapper);
+//            case DELETED:
+//                return false;
+//        }
+//
+//        return false;
+//    }
+//
+//
+//    protected <IW extends ItemWrapper<?,?>> boolean isVisibleByVisibilityHandler(boolean parentExpanded, IW itemWrapper, ItemVisibilityHandler visibilityHandler) {
+//        if (!parentExpanded) {
+//            return false;
+//        }
+//
+//
+//        if (visibilityHandler != null) {
+//            ItemVisibility visible = visibilityHandler.isVisible(itemWrapper);
+//            if (visible != null) {
+//                switch (visible) {
+//                    case HIDDEN:
+//                        return false;
+//                    default:
+//                        // automatic, go on ...
+//                }
+//            }
+//        }
+//
+//        return true;
+//
+//    }
+//
+//    private <IW extends ItemWrapper<?,?>> boolean isVisibleForModify(boolean parentShowEmpty, IW itemWrapper) {
+//        if (parentShowEmpty) {
+//            return true;
+//        }
+//
+//        return itemWrapper.isEmphasized() || !itemWrapper.isEmpty();
+//    }
+//
+//    private <IW extends ItemWrapper<?,?>> boolean isVisibleForAdd(boolean parentShowEmpty, IW itemWrapper) {
+//        if (parentShowEmpty) {
+//            return true;
+//        }
+//
+//        return itemWrapper.isEmphasized() || !itemWrapper.isEmpty();
+//    }
 }
