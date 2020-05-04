@@ -8,11 +8,12 @@
 package com.evolveum.midpoint.repo.cache.handlers;
 
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.log;
-import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.MISS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.WEAK_HIT;
 
 import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,8 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryGetObjectTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Execution of getObject operation.
  */
@@ -39,7 +38,7 @@ class GetObjectOpExecution<O extends ObjectType>
 
     GetObjectOpExecution(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result,
             RepositoryGetObjectTraceType trace, TracingLevelType tracingLevel,
-            PrismContext prismContext, CacheSetAccessInfo caches) {
+            PrismContext prismContext, CacheSetAccessInfo<O> caches) {
         super(type, options, result, caches, caches.localObject, caches.globalObject, trace, tracingLevel, prismContext, "getObject");
         this.oid = oid;
     }
@@ -78,7 +77,7 @@ class GetObjectOpExecution<O extends ObjectType>
 
     private void recordResult(PrismObject<O> objectToReturn) {
         if (objectToReturn != null) {
-            if (trace != null && isAtLeastNormal(tracingLevel)) {
+            if (trace != null && tracingAtLeastNormal) {
                 trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(objectToReturn.clone(), prismContext));
             }
             if (objectToReturn.getName() != null) {

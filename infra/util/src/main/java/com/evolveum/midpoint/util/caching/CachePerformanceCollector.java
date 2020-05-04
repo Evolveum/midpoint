@@ -10,6 +10,7 @@ package com.evolveum.midpoint.util.caching;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel;
 
 import java.util.ArrayList;
@@ -25,35 +26,50 @@ public class CachePerformanceCollector implements DebugDumpable {
 
     public static final CachePerformanceCollector INSTANCE = new CachePerformanceCollector();
 
+    @Experimental
+    private static final String ALL_CACHES_NAME = "all";
+
     private final Map<String, CacheData> performanceMap = new ConcurrentHashMap<>();
 
     private final ThreadLocal<Map<String, CacheData>> threadLocalPerformanceMap = new ThreadLocal<>();
 
     public static class CacheData implements ShortDumpable {
         public final AtomicInteger hits = new AtomicInteger(0);
-        public final AtomicInteger weakHits = new AtomicInteger(0);             // e.g. hit but with getVersion call
+        public final AtomicInteger weakHits = new AtomicInteger(0); // e.g. hit but with getVersion call
         public final AtomicInteger misses = new AtomicInteger(0);
         public final AtomicInteger passes = new AtomicInteger(0);
         public final AtomicInteger notAvailable = new AtomicInteger(0);
 
-        public AtomicInteger getHits() {
+        // The following two are counted only on global level. This will be probably fixed somehow.
+        @Experimental public final AtomicInteger overSizedQueries = new AtomicInteger(0);
+        @Experimental public final AtomicInteger skippedStaleData = new AtomicInteger(0);
+
+        private AtomicInteger getHits() {
             return hits;
         }
 
-        public AtomicInteger getWeakHits() {
+        private AtomicInteger getWeakHits() {
             return weakHits;
         }
 
-        public AtomicInteger getMisses() {
+        private AtomicInteger getMisses() {
             return misses;
         }
 
-        public AtomicInteger getPasses() {
+        private AtomicInteger getPasses() {
             return passes;
         }
 
-        public AtomicInteger getNotAvailable() {
+        private AtomicInteger getNotAvailable() {
             return notAvailable;
+        }
+
+        private AtomicInteger getOverSizedQueries() {
+            return overSizedQueries;
+        }
+
+        private AtomicInteger getSkippedStaleData() {
+            return skippedStaleData;
         }
 
         public void add(AbstractThreadLocalCache cache) {
@@ -74,14 +90,6 @@ public class CachePerformanceCollector implements DebugDumpable {
         }
     }
 
-    //    public void onCacheDestroy(AbstractThreadLocalCache cache) {
-//        getOrCreate(performanceMap, cache.getClass()).add(cache);
-//        Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
-//        if (localMap != null) {
-//            getOrCreate(localMap, cache.getClass()).add(cache);
-//        }
-//    }
-
     private void increment(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel, Function<CacheData, AtomicInteger> selector) {
         String key = createKey(cacheClass, type, statisticsLevel);
         if (key != null) {
@@ -96,12 +104,15 @@ public class CachePerformanceCollector implements DebugDumpable {
     private String createKey(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
         if (statisticsLevel == StatisticsLevel.SKIP) {
             return null;
-        } else if (statisticsLevel == null || statisticsLevel == StatisticsLevel.PER_CACHE) {
-            return cacheClass.getName();
-        } else if (statisticsLevel == StatisticsLevel.PER_OBJECT_TYPE) {
-            return cacheClass.getName() + "." + (type != null ? type.getSimpleName() : "null");
         } else {
-            throw new IllegalArgumentException("Unexpected statistics level: " + statisticsLevel);
+            String cacheName = cacheClass != null ? cacheClass.getName() : ALL_CACHES_NAME;
+            if (statisticsLevel == null || statisticsLevel == StatisticsLevel.PER_CACHE) {
+                return cacheName;
+            } else if (statisticsLevel == StatisticsLevel.PER_OBJECT_TYPE) {
+                return cacheName + "." + (type != null ? type.getSimpleName() : "null");
+            } else {
+                throw new IllegalArgumentException("Unexpected statistics level: " + statisticsLevel);
+            }
         }
     }
 
@@ -123,6 +134,16 @@ public class CachePerformanceCollector implements DebugDumpable {
 
     public void registerNotAvailable(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
         increment(cacheClass, type, statisticsLevel, CacheData::getNotAvailable);
+    }
+
+    @Experimental
+    public void registerSkippedStaleData(Class<?> type) {
+        increment(null, type, CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE, CacheData::getSkippedStaleData);
+    }
+
+    @Experimental
+    public void registerOverSizedQuery(Class<?> type) {
+        increment(null, type, CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE, CacheData::getOverSizedQueries);
     }
 
     private CacheData getOrCreate(Map<String, CacheData> performanceMap, String key) {
@@ -177,5 +198,10 @@ public class CachePerformanceCollector implements DebugDumpable {
      */
     public void stopThreadLocalPerformanceInformationCollection() {
         threadLocalPerformanceMap.remove();
+    }
+
+    @Experimental
+    public static boolean isExtra(String key) {
+        return key.startsWith(ALL_CACHES_NAME + ".");
     }
 }

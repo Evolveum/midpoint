@@ -8,21 +8,27 @@
 package com.evolveum.midpoint.repo.cache.handlers;
 
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * Information needed to access a specific cache.
+ * They relate to object of type T.
  */
-class CacheAccessInfo<C> {
+class CacheAccessInfo<C, T extends ObjectType> {
 
     /**
      * Configuration of the cache as such.
      */
-    final CacheConfiguration cacheConfig;
+    private final CacheConfiguration cacheConfig;
 
     /**
      * Configuration of the cache, specific to given object type.
      */
-    final CacheConfiguration.CacheObjectTypeConfiguration typeConfig;
+    private final CacheConfiguration.CacheObjectTypeConfiguration typeConfig;
 
     /**
      * Is the cache available?
@@ -55,7 +61,7 @@ class CacheAccessInfo<C> {
      */
     final C cache;
 
-    CacheAccessInfo(C cache, CacheConfiguration configuration, Class<?> type, boolean available) {
+    CacheAccessInfo(C cache, CacheConfiguration configuration, Class<T> type, boolean available) {
         this.available = available;
         this.cache = cache;
 
@@ -74,5 +80,32 @@ class CacheAccessInfo<C> {
             traceMiss = false;
             tracePass = false;
         }
+    }
+
+    private CacheAccessInfo() {
+        cacheConfig = null;
+        typeConfig = null;
+        available = false;
+        supports = false;
+        statisticsLevel = null;
+        traceMiss = false;
+        tracePass = false;
+        cache = null;
+    }
+
+    static <C1, T1 extends ObjectType> CacheAccessInfo<C1, T1> createNotAvailable() {
+        return new CacheAccessInfo<>();
+    }
+
+    boolean effectivelySupports() {
+        return available && supports;
+    }
+
+    /**
+     * Just to make static nullity checks happy.
+     */
+    @NotNull
+    C getCache() {
+        return Objects.requireNonNull(cache);
     }
 }

@@ -15,6 +15,7 @@
     </appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="PROFILING" level="TRACE" />
+    <logger name="com.evolveum.midpoint.repo.cache" level="TRACE" />
     <root level="INFO">
         <appender-ref ref="X" />
     </root>

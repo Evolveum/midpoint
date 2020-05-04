@@ -25,7 +25,7 @@ class GetVersionOpExecution<O extends ObjectType>
 
     GetVersionOpExecution(Class<O> type, String oid, OperationResult result,
             RepositoryGetVersionTraceType trace, TracingLevelType tracingLevel,
-            PrismContext prismContext, CacheSetAccessInfo caches) {
+            PrismContext prismContext, CacheSetAccessInfo<O> caches) {
         super(type, null, result, caches, caches.localVersion, caches.globalVersion, trace, tracingLevel, prismContext, "getVersion");
         this.oid = oid;
     }

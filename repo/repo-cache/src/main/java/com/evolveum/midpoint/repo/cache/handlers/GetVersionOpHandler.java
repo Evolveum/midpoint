@@ -102,7 +102,7 @@ public class GetVersionOpHandler extends CachedOpHandler {
             trace = null;
         }
 
-        CacheSetAccessInfo caches = cacheSetAccessInfoFactory.determine(type);
+        CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
         return new GetVersionOpExecution<>(type, oid, result, trace, null, prismContext, caches);
     }
 
