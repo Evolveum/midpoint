@@ -13,8 +13,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
@@ -580,7 +582,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), segment.source);
 
-        Construction<AH> construction = new Construction<>(constructionType, segment.source);
+        Construction<AH, EvaluatedConstructionImpl<AH>> construction = new Construction<>(constructionType, segment.source);
         // We have to clone here as the path is constantly changing during evaluation
         construction.setAssignmentPath(ctx.assignmentPath.clone());
         construction.setFocusOdo(focusOdo);

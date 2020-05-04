@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

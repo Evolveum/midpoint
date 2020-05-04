@@ -4,10 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -25,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedConstructionImpl<AH>> implements DebugDumpable, Serializable {
+public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedConstructible<AH>> implements DebugDumpable, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractConstruction.class);
 

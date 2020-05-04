@@ -15,6 +15,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
@@ -32,7 +35,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -511,8 +513,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             @Override
             public void after(ResourceShadowDiscriminator rsd, String desc,
                     DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>>> constructionMapTriple) {
-                PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-                        prismContext.deltaFactory().createPrismValueDeltaSetTriple(
+                DeltaSetTriple<EvaluatedConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
+                        prismContext.deltaFactory().createDeltaSetTriple(
                                 getConstructions(constructionMapTriple.getZeroMap().get(rsd), true),
                                 getConstructions(constructionMapTriple.getPlusMap().get(rsd), true),
                                 getConstructions(constructionMapTriple.getMinusMap().get(rsd), false));
@@ -521,9 +523,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     // This can be null in a exotic case if we delete already deleted account
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("Construction delta set triple for {}:\n{}", rsd,
-                                projectionConstructionDeltaSetTriple.debugDump(1));
+                                projectionEvaluatedConstructionDeltaSetTriple.debugDump(1));
                     }
-                    projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
+                    projectionContext.setConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
                     if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) || isForceRecon(
                             constructionMapTriple.getPlusMap().get(rsd)) || isForceRecon(
                             constructionMapTriple.getMinusMap().get(rsd))) {
@@ -660,8 +662,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    @NotNull
-    private Collection<PrismPropertyValue<Construction>> getConstructions(EvaluatedConstructionPack accountEvaluatedConstructionPack, boolean validOnly) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedConstructionImpl<AH>> getConstructions(EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
         if (accountEvaluatedConstructionPack == null) {
             return Collections.emptySet();
         }

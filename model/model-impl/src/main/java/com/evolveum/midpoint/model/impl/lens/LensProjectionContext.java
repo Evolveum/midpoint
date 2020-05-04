@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -173,7 +175,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Source: AssignmentProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> constructionDeltaSetTriple;
 
     /**
      * Triples for outbound mappings; similar to the above.
@@ -581,13 +583,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public <AH extends AssignmentHolderType> PrismValueDeltaSetTriple<PrismPropertyValue<Construction<AH>>> getConstructionDeltaSetTriple() {
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getConstructionDeltaSetTriple() {
         //noinspection unchecked
-        return (PrismValueDeltaSetTriple)constructionDeltaSetTriple;
+        return (DeltaSetTriple)constructionDeltaSetTriple;
     }
 
-    public void setConstructionDeltaSetTriple(PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
-        this.constructionDeltaSetTriple = constructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> void setConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
+        this.constructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
     }
 
     public Construction getOutboundConstruction() {

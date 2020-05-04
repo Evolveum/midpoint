@@ -5,20 +5,20 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,7 +39,7 @@ import java.util.Collection;
  * @author mederly
  * @author Radovan Semancik
  */
-public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstruction {
+public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstructible<AH>, EvaluatedConstruction {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedConstructionImpl.class);
 
@@ -57,6 +57,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         this.rsd = rsd;
     }
 
+    @Override
     public Construction<AH,?> getConstruction() {
         return construction;
     }

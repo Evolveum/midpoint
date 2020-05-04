@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.Collection;
 import java.util.Map;
@@ -12,9 +12,6 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -25,7 +22,6 @@ import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Collects evaluated constructions from evaluatedAssignmentTriple into a single-level triple.
@@ -33,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  * @author Radovan Semancik
  */
-public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructionImpl<AH>> {
+public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructible<AH>> {
 
     private DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple;
 

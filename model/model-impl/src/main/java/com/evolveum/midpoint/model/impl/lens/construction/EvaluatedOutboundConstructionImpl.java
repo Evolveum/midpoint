@@ -5,9 +5,8 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.construction;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +15,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 
@@ -26,18 +28,12 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author Radovan Semancik
  */
-public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedConstructionImpl {
+public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedConstructionImpl<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedOutboundConstructionImpl.class);
 
@@ -65,12 +61,6 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
         nextRecompute = evaluateAssociations(nextRecompute, task, result);
 
         return nextRecompute;
-    }
-
-
-    protected void initializeProjectionContext() {
-        projectionContext = construction.getLensContext().findProjectionContext(rsd);
-        // projection context may not exist yet (existence might not be yet decided)
     }
 
     private NextRecompute evaluateAttributes(Task task, OperationResult result)
@@ -159,10 +149,10 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName attributeQName,
-            D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
+    private <V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName attributeQName,
+            D targetDefinition, ObjectDeltaObject<AH> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
             String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
-            LensContext<F> context, LensProjectionContext projCtx, final Task task, OperationResult result)
+            LensContext<AH> context, LensProjectionContext projCtx, final Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (!mappingBuilder.isApplicableToChannel(context.getChannel())) {
             LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", attributeQName);

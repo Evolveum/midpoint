@@ -17,6 +17,8 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,7 +116,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        Construction<UserType,EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         displayDumpable("Evaluated construction", construction);
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
@@ -152,7 +154,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        Construction<UserType,EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
@@ -197,7 +199,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
-        Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        Construction<UserType,EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
         DeltaSetTriple<EvaluatedConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
@@ -261,7 +263,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
-        Construction<UserType> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        Construction<UserType,EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
         DeltaSetTriple<EvaluatedConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
@@ -781,7 +783,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        for (Construction<UserType> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
+        for (Construction<UserType,EvaluatedConstructionImpl<UserType>> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
             assertEquals("Wrong validity for " + construction, false, construction.isValid());
         }
 
@@ -841,8 +843,8 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     }
 
     protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName) {
-        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
-        for (Construction<UserType> construction : constructions) {
+        Collection<Construction<UserType,EvaluatedConstructionImpl<UserType>>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
+        for (Construction<UserType,EvaluatedConstructionImpl<UserType>> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach( evaluatedConstruction -> {
                 PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
                         evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
@@ -852,9 +854,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     }
 
     protected void assertConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet, String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
-        Collection<Construction<UserType>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
+        Collection<Construction<UserType,EvaluatedConstructionImpl<UserType>>> constructions = evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
-        for (Construction<UserType> construction : constructions) {
+        for (Construction<UserType,EvaluatedConstructionImpl<UserType>> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach( evaluatedConstruction -> {
                 PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
                         evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));

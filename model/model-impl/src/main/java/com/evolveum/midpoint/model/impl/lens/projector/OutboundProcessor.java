@@ -6,20 +6,13 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.construction.OutboundConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -27,20 +20,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -64,7 +51,7 @@ public class OutboundProcessor {
     @Autowired private Clock clock;
     @Autowired private ModelObjectResolver objectResolver;
 
-    <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
+    <AH extends AssignmentHolderType> void processOutbound(LensContext<AH> context, LensProjectionContext projCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
@@ -78,15 +65,9 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for {} starting", discr);
 
-        RefinedObjectClassDefinition rOcDef = projCtx.getStructuralObjectClassDefinition();
-        if (rOcDef == null) {
-            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
-            throw new IllegalStateException("Definition for " + discr + " not found in the context, but it should be there");
-        }
+        ObjectDeltaObject<AH> focusOdo = context.getFocusContext().getObjectDeltaObject();
 
-        ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
-
-        OutboundConstruction<F> outboundConstruction = new OutboundConstruction<>(rOcDef, projCtx);
+        OutboundConstruction<AH> outboundConstruction = new OutboundConstruction<AH>(projCtx);
         outboundConstruction.setFocusOdo(focusOdo);
         outboundConstruction.setLensContext(context);
         outboundConstruction.setObjectResolver(objectResolver);

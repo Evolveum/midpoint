@@ -6,11 +6,10 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import java.util.Collection;
-import java.util.Map;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author Radovan Semancik
@@ -42,7 +39,7 @@ public class ConstructionProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionProcessor.class);
 
-    public <AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructionImpl<AH>>
+    public <AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructible<AH>>
     DeltaMapTriple<K, EvaluatedConstructionPack<EC>> processConstructions(LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor,

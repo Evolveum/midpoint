@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +13,9 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -91,7 +94,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
-    void setOrderOneObject(ObjectType orderOneObject) {
+    public void setOrderOneObject(ObjectType orderOneObject) {
         this.orderOneObject = orderOneObject;
     }
 
@@ -151,7 +154,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         this.systemConfiguration = systemConfiguration;
     }
 
-    RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
         return refinedObjectClassDefinition;
     }
 
@@ -328,7 +331,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
             ResourceType resource = resolveResource(task, result);
             if (resource != null) {
-                evaluateKindIntentObjectClass(resource, task, result);
+                evaluateObjectClassDefinition(resource, task, result);
                 createEvaluatedConstructions(task, result);
                 evaluateConstructions(task, result);
                 result.recordSuccess();
@@ -348,7 +351,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return null;
     }
 
-    private void evaluateKindIntentObjectClass(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    private void evaluateObjectClassDefinition(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         if (getConstructionType().getResourceRef() != null) {
             String resourceOid = getConstructionType().getResourceRef().getOid();
             if (resourceOid != null && !resource.getOid().equals(resourceOid)) {

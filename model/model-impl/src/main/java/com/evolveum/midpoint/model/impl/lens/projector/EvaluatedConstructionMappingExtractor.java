@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
