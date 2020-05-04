@@ -23,19 +23,18 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,7 +75,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         this.focusListComponent = focusListComponent;
     }
 
-    public List<InlineMenuItem> createRowActions() {
+    public List<InlineMenuItem> createRowActions(Class<F> objectType) {
         List<InlineMenuItem> menu = new ArrayList<>();
         ButtonInlineMenuItem enableItem = new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
             private static final long serialVersionUID = 1L;
@@ -99,7 +98,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder(){
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+                return getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
             }
 
             @Override
@@ -139,7 +138,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder(){
-                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
                 builder.appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_BAN), IconCssStyle.BOTTOM_RIGHT_STYLE);
                 return builder;            }
 
@@ -205,6 +204,16 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
         });
         return menu;
+    }
+
+    private String getEnableActionDefaultIcon(Class<F> type){
+        String iconClass = "";
+        if (type.equals(RoleType.class)) {
+            iconClass = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+        } else if (type.equals(ServiceType.class)){
+            iconClass = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        }
+        return iconClass;
     }
 
     public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
