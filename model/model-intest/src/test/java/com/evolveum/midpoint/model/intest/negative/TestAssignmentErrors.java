@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.intest.negative;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThreadLocalCache;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -655,7 +655,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
         dummyAuditService.clear();
 
         return user;

@@ -30,13 +30,11 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.query.Query;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -67,7 +65,6 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -1298,15 +1295,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             testResult = provisioning.testResource(resourceOid, task);
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Error testing resource OID: {}: Object not found: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
             throw ex;
         } catch (SystemException ex) {
             LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
             throw ex;
         } catch (Exception ex) {
             LOGGER.error("Error testing resource OID: {}: {} ", resourceOid, ex.getMessage(), ex);
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             exitModelMethod();

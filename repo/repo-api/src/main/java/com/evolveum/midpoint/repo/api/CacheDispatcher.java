@@ -7,16 +7,18 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Dispatches events to cache listeners (currently CacheRegistry and ClusterCacheListener).
+ */
 public interface CacheDispatcher {
 
     void registerCacheListener(CacheListener cacheListener);
+
     void unregisterCacheListener(CacheListener cacheListener);
 
     /**

@@ -15,19 +15,19 @@ import java.util.Deque;
  */
 public class DiagnosticContextHolder {
 
-    private static ThreadLocal<Deque<DiagnosticContext>> diagStack = new ThreadLocal<>();
+    private static final ThreadLocal<Deque<DiagnosticContext>> DIAG_STACK_THREAD_LOCAL = new ThreadLocal<>();
 
     public static void push(DiagnosticContext ctx) {
-        Deque<DiagnosticContext> stack = diagStack.get();
+        Deque<DiagnosticContext> stack = DIAG_STACK_THREAD_LOCAL.get();
         if (stack == null) {
             stack = new ArrayDeque<>();
-            diagStack.set(stack);
+            DIAG_STACK_THREAD_LOCAL.set(stack);
         }
         stack.push(ctx);
     }
 
     public static DiagnosticContext pop() {
-        Deque<DiagnosticContext> stack = diagStack.get();
+        Deque<DiagnosticContext> stack = DIAG_STACK_THREAD_LOCAL.get();
         if (stack == null || stack.isEmpty()) {
             return null;
         }
@@ -35,7 +35,7 @@ public class DiagnosticContextHolder {
     }
 
     public static DiagnosticContext get() {
-        Deque<DiagnosticContext> stack = diagStack.get();
+        Deque<DiagnosticContext> stack = DIAG_STACK_THREAD_LOCAL.get();
         if (stack == null) {
             return null;
         }

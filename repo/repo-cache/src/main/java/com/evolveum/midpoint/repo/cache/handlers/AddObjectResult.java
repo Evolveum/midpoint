@@ -1,24 +1,27 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.handlers;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
+ * Result of the addObject operation. It is analogous to {@link com.evolveum.midpoint.repo.api.ModifyObjectResult}
+ * and {@link com.evolveum.midpoint.repo.api.DeleteObjectResult} but cannot be returned by addObject,
+ * because this operation returns String. This long-time convention cannot be changed easily, so we use
+ * this workaround.
  */
-class AddObjectResult<T extends ObjectType> {
+public class AddObjectResult<T extends ObjectType> {
 
     @NotNull private final PrismObject<T> object;
 
-    AddObjectResult(PrismObject<T> object) {
+    AddObjectResult(@NotNull PrismObject<T> object) {
         this.object = object;
     }
 

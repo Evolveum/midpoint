@@ -27,6 +27,13 @@ public class CacheConfiguration implements DebugDumpable {
     private Boolean tracePass;
     private StatisticsLevel statisticsLevel;
     private Boolean clusterwideInvalidation;
+
+    /**
+     * Safe remote invalidation means that when object of given type is changed, we invalidate
+     * all queries related to this type on remote nodes (because we do not know the details about
+     * the modification). If safeRemoteInvalidation is false, we leave queries untouched, unless
+     * exact match on OID is found.
+     */
     private Boolean safeRemoteInvalidation;
     private final Map<Class<?>, CacheObjectTypeConfiguration> objectTypes = new HashMap<>();
 
@@ -100,6 +107,7 @@ public class CacheConfiguration implements DebugDumpable {
             this.statisticsLevel = statisticsLevel;
         }
 
+        @SuppressWarnings("unused")
         public Boolean getClusterwideInvalidation() {
             return clusterwideInvalidation;
         }
@@ -108,6 +116,7 @@ public class CacheConfiguration implements DebugDumpable {
             this.clusterwideInvalidation = clusterwideInvalidation;
         }
 
+        @SuppressWarnings("unused")
         public Boolean getSafeRemoteInvalidation() {
             return safeRemoteInvalidation;
         }
@@ -186,6 +195,7 @@ public class CacheConfiguration implements DebugDumpable {
         this.statisticsLevel = statisticsLevel;
     }
 
+    @SuppressWarnings("unused")
     public Boolean getClusterwideInvalidation() {
         return clusterwideInvalidation;
     }
@@ -194,6 +204,7 @@ public class CacheConfiguration implements DebugDumpable {
         this.clusterwideInvalidation = clusterwideInvalidation;
     }
 
+    @SuppressWarnings("unused")
     public Boolean getSafeRemoteInvalidation() {
         return safeRemoteInvalidation;
     }

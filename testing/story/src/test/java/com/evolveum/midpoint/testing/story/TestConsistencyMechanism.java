@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.story;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThreadLocalCache;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 
 import java.io.File;
@@ -303,7 +303,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull("No my:shipState definition", shipStateDefinition);
         assertEquals("Wrong maxOccurs in my:shipState definition", 1, shipStateDefinition.getMaxOccurs());
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         OperationResult result = createOperationResult();
 
@@ -313,7 +313,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 RESOURCE_OPENDJ_OID, null, result);
         display("Imported OpenDJ resource (repository)", openDjResource);
         AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         String ldapConnectorOid = openDjResource.asObjectable().getConnectorRef().getOid();
         PrismObject<ConnectorType> ldapConnector = repositoryService.getObject(ConnectorType.class,
@@ -329,14 +329,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
         // GIVEN
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         // WHEN
         OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
 
         // THEN
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
 
@@ -348,7 +348,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 RESOURCE_OPENDJ_OID, null, opResult);
         resourceTypeOpenDjrepo = resourceOpenDjRepo.asObjectable();
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
         assertEquals(RESOURCE_OPENDJ_OID, resourceTypeOpenDjrepo.getOid());
         display("Initialized OpenDJ resource (respository)", resourceTypeOpenDjrepo);
         assertNotNull("Resource schema was not generated", resourceTypeOpenDjrepo.getSchema());
@@ -432,7 +432,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OpenDJController.assertAttribute(entry, "sn", "Sparrow");
         OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         // check full (model) shadow
         PrismObject<ShadowType> modelShadow = getShadowModel(ACCOUNT_JACKIE_OID);
@@ -472,7 +472,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         OpenDJController.assertAttribute(entry, "sn", "Deniels");
         OpenDJController.assertAttribute(entry, "cn", "Jack Deniels");
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         // check full (model) shadow
         PrismObject<ShadowType> modelShadow = getShadowModel(ACCOUNT_DENIELS_OID);
@@ -506,7 +506,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // GIVEN
         //adding user jakie. we already have user jack with the account identifier jackie.
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
         addObject(USER_JACKIE_FILE, task, parentResult);
         PrismObject<UserType> userJackieBefore = getUser(USER_JACKIE_OID);
         UserAsserter.forUser(userJackieBefore).assertLinks(0);
@@ -2775,7 +2775,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             ConfigurationException, PolicyViolationException, SecurityViolationException {
 
         checkRepoOpenDjResource();
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(fileName));
         UserType userType = user.asObjectable();
@@ -2795,7 +2795,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         modelService.executeChanges(deltas, null, task, result);
         // THEN
 
-        assertNoRepoCache();
+        assertNoRepoThreadLocalCache();
 
         return userType;
     }
