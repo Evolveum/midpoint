@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.registry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,12 @@ import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesStateInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+/**
+ * Registry of all local cacheable services.
+ *
+ * Note that this class resides in repo-cache module almost by accident and perhaps should
+ * be moved to a more appropriate place.
+ */
 @Component
 public class CacheRegistry implements CacheListener {
 
@@ -48,10 +54,6 @@ public class CacheRegistry implements CacheListener {
 
     public synchronized void unregisterCacheableService(Cacheable cacheableService) {
         cacheableServices.remove(cacheableService);
-    }
-
-    public List<Cacheable> getCacheableServices() {
-        return cacheableServices;
     }
 
     @Override

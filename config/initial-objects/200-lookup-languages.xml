@@ -65,6 +65,10 @@
         <label>Lietuviškai</label>
     </row>
     <row>
+        <key>nl</key>
+        <label>Nederlands</label>
+    </row>
+    <row>
         <key>pl</key>
         <label>Polski</label>
     </row>

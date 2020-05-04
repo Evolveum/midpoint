@@ -133,7 +133,7 @@ public class AssignmentCollector {
             Collection<AssignmentType> assignments, AssignmentOrigin origin, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 
         List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
-        RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
@@ -153,7 +153,7 @@ public class AssignmentCollector {
                 }
             }
         } finally {
-            RepositoryCache.exit();
+            RepositoryCache.exitLocalCaches();
         }
         return evaluatedAssignments;
     }

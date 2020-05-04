@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -47,14 +49,14 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
         add(buttons);
 
         for (int id = 0; id < numberOfButtons; id++) {
-            AjaxIconButton button = createButton(id, buttons.newChildId(), getModel());
+            Component button = createButton(id, buttons.newChildId(), getModel());
             if (button != null) {
                 buttons.add(button);
             }
         }
     }
 
-    protected AjaxIconButton createButton(int index, String componentId, IModel<T> model) {
+    protected Component createButton(int index, String componentId, IModel<T> model) {
         return null;
     }
 

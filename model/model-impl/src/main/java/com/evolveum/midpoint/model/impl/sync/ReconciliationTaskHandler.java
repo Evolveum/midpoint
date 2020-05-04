@@ -762,7 +762,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             long started = System.currentTimeMillis();
             task.recordIterativeOperationStart(shadow.asObjectable());
 
-            RepositoryCache.enter(cacheConfigurationManager);
+            RepositoryCache.enterLocalCaches(cacheConfigurationManager);
             OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
             try {
                 ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
@@ -777,7 +777,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                 opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
             } finally {
                 task.markObjectActionExecutedBoundary();
-                RepositoryCache.exit();
+                RepositoryCache.exitLocalCaches();
             }
 
             task.incrementProgressAndStoreStatsIfNeeded();

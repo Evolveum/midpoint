@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
@@ -246,8 +248,8 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_START_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
             @SuppressWarnings("unchecked")
@@ -274,8 +276,8 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_STOP_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
             }
 
             @SuppressWarnings({ "unchecked"})

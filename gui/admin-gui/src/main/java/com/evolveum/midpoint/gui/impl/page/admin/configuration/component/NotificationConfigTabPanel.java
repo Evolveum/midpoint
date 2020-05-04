@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -445,8 +447,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
 
             @Override
@@ -459,8 +461,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
 
             @Override

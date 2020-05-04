@@ -12,6 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
@@ -38,7 +40,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -782,9 +783,9 @@ public class IntegrationTestTools {
         }
     }
 
-    public static void assertNoRepoCache() {
-        if (RepositoryCache.exists()) {
-            AssertJUnit.fail("Cache exists! " + RepositoryCache.debugDump());
+    public static void assertNoRepoThreadLocalCache() {
+        if (LocalRepoCacheCollection.exists()) {
+            AssertJUnit.fail("Cache exists! " + LocalRepoCacheCollection.debugDump());
         }
     }
 

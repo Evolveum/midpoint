@@ -1289,7 +1289,7 @@ public class ResourceObjectConverter {
             metadata = connector.search(objectClassDef, query,
                     (shadow) -> {
                         // in order to utilize the cache right from the beginning...
-                        RepositoryCache.enter(cacheConfigurationManager);
+                        RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                         try {
 
                             int objectNumber = objectCounter.getAndIncrement();
@@ -1334,7 +1334,7 @@ public class ResourceObjectConverter {
                                     parentResult.summarize();
                                 }
                             } finally {
-                                RepositoryCache.exit();
+                                RepositoryCache.exitLocalCaches();
                                 if (requestedTracingHere && task instanceof RunningTask) {
                                     ((RunningTask) task).stopTracing();
                                 }

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.counters;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,17 +27,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalType;
 
 /**
- * @author katka
+ * An implementation of CounterManager. Keeps track of counters used e.g. to implement
+ * policy rules thresholds.
  *
+ * Note that this class resides in repo-cache module almost by accident and perhaps should
+ * be moved to a more appropriate place.
+ *
+ * @author katka
  */
 @Component
-public class CacheCounterManager implements CounterManager {
+public class CounterManagerImpl implements CounterManager {
 
     @Autowired private Clock clock;
 
-    private static final Trace LOGGER = TraceManager.getTrace(CacheCounterManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CounterManagerImpl.class);
 
-    private Map<CounterKey, CounterSpecification> countersMap = new ConcurrentHashMap<>();
+    private final Map<CounterKey, CounterSpecification> countersMap = new ConcurrentHashMap<>();
 
     @Override
     public synchronized void cleanupCounters(String taskOid) {

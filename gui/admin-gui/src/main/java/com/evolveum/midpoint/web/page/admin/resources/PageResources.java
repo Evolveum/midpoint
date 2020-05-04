@@ -11,17 +11,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -160,8 +157,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM);
             }
         });
 
@@ -187,8 +184,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
             }
         });
 
@@ -257,8 +254,8 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
         });
 

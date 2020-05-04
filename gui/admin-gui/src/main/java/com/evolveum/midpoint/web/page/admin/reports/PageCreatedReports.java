@@ -20,14 +20,14 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.PageEvaluateMapping;
 import com.evolveum.midpoint.web.page.admin.configuration.PageTraceView;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -357,8 +357,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return "fa fa-minus";
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-minus");
             }
         });
 
@@ -391,8 +391,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return "fa fa-download";
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-download");
             }
 
             @Override
@@ -425,8 +425,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return "fa fa-eye";
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder("fa fa-eye");
             }
 
             @Override

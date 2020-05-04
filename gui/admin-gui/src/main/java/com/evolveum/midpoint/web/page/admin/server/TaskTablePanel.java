@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -386,8 +388,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM);
             }
 
             @Override
@@ -423,8 +425,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_RESUME_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RESUME_MENU_ITEM);
             }
 
             @Override
@@ -461,8 +463,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_START_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
             @Override

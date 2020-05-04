@@ -20,7 +20,7 @@ import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.Cacheable;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;

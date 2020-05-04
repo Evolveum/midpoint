@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.repo.cache;
+package com.evolveum.midpoint.repo.cache.invalidation;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
+import com.evolveum.midpoint.repo.cache.handlers.AddObjectResult;
+import com.evolveum.midpoint.repo.cache.local.QueryKey;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,8 +36,15 @@ public abstract class ChangeDescription {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeDescription.class);
 
-    protected Class<? extends ObjectType> type;             // changed object type
-    protected String oid;                                   // changed object oid
+    /**
+     * Type of the changed object.
+     */
+    final protected Class<? extends ObjectType> type;
+
+    /**
+     * OID of the changed object.
+     */
+    final protected String oid;
 
     ChangeDescription(Class<? extends ObjectType> type, String oid) {
         this.type = type;
@@ -46,9 +55,9 @@ public abstract class ChangeDescription {
      * Describes an OBJECT ADD operation.
      */
     static class Add extends ChangeDescription {
-        private AddObjectResult<?> addInfo;
+        private final AddObjectResult<?> addInfo;
 
-        Add(Class<? extends ObjectType> type, String oid, AddObjectResult<?> addInfo) {
+        private Add(Class<? extends ObjectType> type, String oid, AddObjectResult<?> addInfo) {
             super(type, oid);
             this.addInfo = addInfo;
         }
@@ -68,9 +77,9 @@ public abstract class ChangeDescription {
      * Describes an OBJECT MODIFY operation.
      */
     static class Modify extends ChangeDescription {
-        private ModifyObjectResult<?> modifyInfo;
+        private final ModifyObjectResult<?> modifyInfo;
 
-        Modify(Class<? extends ObjectType> type, String oid, ModifyObjectResult<?> modifyInfo) {
+        private Modify(Class<? extends ObjectType> type, String oid, ModifyObjectResult<?> modifyInfo) {
             super(type, oid);
             this.modifyInfo = modifyInfo;
         }
@@ -101,7 +110,7 @@ public abstract class ChangeDescription {
      * Describes an OBJECT DELETE operation.
      */
     static class Delete extends ChangeDescription {
-        Delete(Class<? extends ObjectType> type, String oid) {
+        private Delete(Class<? extends ObjectType> type, String oid) {
             super(type, oid);
         }
 
@@ -120,10 +129,10 @@ public abstract class ChangeDescription {
         }
     }
 
-    static final class Any extends ChangeDescription {
+    static final class Unknown extends ChangeDescription {
         private final boolean safeInvalidation;
 
-        private Any(Class<? extends ObjectType> type, String oid, boolean safeInvalidation) {
+        private Unknown(Class<? extends ObjectType> type, String oid, boolean safeInvalidation) {
             super(type, oid);
             this.safeInvalidation = safeInvalidation;
         }
@@ -149,8 +158,8 @@ public abstract class ChangeDescription {
     public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, CacheInvalidationContext context, boolean safeInvalidation) {
         Object additionalInfo;
         if (context != null) {
-            additionalInfo = context.getDetails() instanceof RepositoryCache.RepositoryCacheInvalidationDetails ?
-                    ((RepositoryCache.RepositoryCacheInvalidationDetails) context.getDetails()).getObject() : null;
+            additionalInfo = context.getDetails() instanceof RepositoryCacheInvalidationDetails ?
+                    ((RepositoryCacheInvalidationDetails) context.getDetails()).getObject() : null;
         } else {
             additionalInfo = null;
         }
@@ -170,7 +179,7 @@ public abstract class ChangeDescription {
 
         boolean isTricky = LookupTableType.class.equals(type) || AccessCertificationCampaignType.class.equals(type);
         if (isTricky || additionalInfo == null) {
-            return new Any(type, oid, safeInvalidation);
+            return new Unknown(type, oid, safeInvalidation);
         } else if (additionalInfo instanceof AddObjectResult<?>) {
             return new Add(type, oid, (AddObjectResult<?>) additionalInfo);
         } else if (additionalInfo instanceof ModifyObjectResult<?>) {
@@ -182,7 +191,7 @@ public abstract class ChangeDescription {
         }
     }
 
-    private boolean queryTypeMatches(QueryKey queryKey) {
+    private boolean queryTypeMatches(QueryKey<?> queryKey) {
         return queryKey.getType().isAssignableFrom(type);
     }
 
@@ -190,7 +199,7 @@ public abstract class ChangeDescription {
      * Returns true if the given change may affect the result of a given query.
      * Better be conservative and say "true" even if we are not sure.
      */
-    boolean mayAffect(QueryKey queryKey, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
+    boolean mayAffect(QueryKey<?> queryKey, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
         if (!queryTypeMatches(queryKey)) {
             return false;
         }
@@ -237,5 +246,4 @@ public abstract class ChangeDescription {
         }
         return false;
     }
-
 }

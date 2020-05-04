@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -42,7 +43,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -850,8 +850,8 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_IMPORT_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_IMPORT_MENU_ITEM);
             }
         });
 
@@ -907,8 +907,8 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
             }
 
             @Override
