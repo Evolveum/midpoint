@@ -48,7 +48,10 @@ public class SearchOpHandler extends CachedOpHandler {
     private static final String OP_COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     private static final String OP_COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
 
-    static final int QUERY_RESULT_SIZE_LIMIT = 100000;
+    /**
+     * Queries resulting in more objects will not be cached "as such" - although individual objects/versions can be cached.
+     */
+    public static final int QUERY_RESULT_SIZE_LIMIT = 100;
 
     private static final String OP_ITERATE_OVER_QUERY_RESULT = RepositoryCache.class.getName() + ".iterateOverQueryResult";
 
@@ -74,7 +77,7 @@ public class SearchOpHandler extends CachedOpHandler {
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
             } else {
-                SearchResultList<PrismObject<T>> cachedResult = exec.local.cache.get(key);
+                SearchResultList<PrismObject<T>> cachedResult = exec.local.getCache().get(key);
                 if (cachedResult != null) {
                     exec.reportLocalHit();
                     return exec.prepareReturnValueWhenImmutable(cachedResult);
@@ -97,7 +100,7 @@ public class SearchOpHandler extends CachedOpHandler {
             SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
             if (cachedResult != null) {
                 exec.reportGlobalHit();
-                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, true, exec.caches);
+                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
                 return exec.prepareReturnValueWhenImmutable(cachedResult);
             } else {
                 exec.reportGlobalMiss();
@@ -112,40 +115,19 @@ public class SearchOpHandler extends CachedOpHandler {
         }
     }
 
-    private static class WatchingHandler<T extends ObjectType> implements ResultHandler<T> {
-
-        private final ResultHandler<T> innerHandler;
-        private final SearchResultList<PrismObject<T>> objectsHandled = new SearchResultList<>();
-        private boolean interrupted;
-
-        private WatchingHandler(ResultHandler<T> innerHandler) {
-            this.innerHandler = innerHandler;
-        }
-
-        @Override
-        public boolean handle(PrismObject<T> object, OperationResult result) {
-            objectsHandled.add(object);
-            boolean cont = innerHandler.handle(object, result);
-            if (!cont) {
-                interrupted = true;
-            }
-            return cont;
-        }
-    }
-
     public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
             ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
             boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 
         SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS_ITERATIVE);
-        WatchingHandler<T> watchingHandler = new WatchingHandler<>(handler);
+        ReportingResultHandler<T> reportingHandler = new ReportingResultHandler<>(handler, exec);
 
         try {
             // Checks related to both caches
             PassReason passReason = PassReason.determine(options, type);
             if (passReason != null) {
                 exec.reportLocalAndGlobalPass(passReason);
-                return searchObjectsIterativeInternal(type, query, watchingHandler, options, strictlySequential, exec.result);
+                return searchObjectsIterativeInternal(type, query, reportingHandler, options, strictlySequential, exec.result);
             }
             QueryKey<T> key = new QueryKey<>(type, query);
 
@@ -155,10 +137,10 @@ public class SearchOpHandler extends CachedOpHandler {
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
             } else {
-                SearchResultList<PrismObject<T>> cachedResult = exec.local.cache.get(key);
+                SearchResultList<PrismObject<T>> cachedResult = exec.local.getCache().get(key);
                 if (cachedResult != null) {
                     exec.reportLocalHit();
-                    return iterateOverImmutableQueryResult(exec, cachedResult, watchingHandler);
+                    return iterateOverImmutableQueryResult(exec, cachedResult, reportingHandler);
                 } else {
                     exec.reportLocalMiss();
                 }
@@ -167,29 +149,30 @@ public class SearchOpHandler extends CachedOpHandler {
             // Then try global cache
             if (!exec.global.available) {
                 exec.reportGlobalNotAvailable();
-                return executeAndCacheSearchIterative(exec, key, watchingHandler, strictlySequential);
+                return executeAndCacheSearchIterative(exec, key, reportingHandler, strictlySequential);
             } else if (!exec.global.supports) {
                 exec.reportGlobalPass();
-                return executeAndCacheSearchIterative(exec, key, watchingHandler, strictlySequential);
+                return executeAndCacheSearchIterative(exec, key, reportingHandler, strictlySequential);
             }
 
             SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
             if (cachedResult != null) {
                 exec.reportGlobalHit();
                 cachedResult.checkImmutable();
-                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, true, exec.caches);
-                iterateOverImmutableQueryResult(exec, cachedResult, watchingHandler);
+                // What if objects from the result are modified during iteration? Nothing wrong happens: As they are cached
+                // before the execution, the usual invalidation will take place.
+                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
+                iterateOverImmutableQueryResult(exec, cachedResult, reportingHandler);
                 return cachedResult.getMetadata();
             } else {
                 exec.reportGlobalMiss();
-                return executeAndCacheSearchIterative(exec, key, watchingHandler, strictlySequential);
+                return executeAndCacheSearchIterative(exec, key, reportingHandler, strictlySequential);
             }
         } catch (Throwable t) {
             exec.result.recordFatalError(t);
             throw t;
         } finally {
-            exec.recordResult(watchingHandler.objectsHandled);
-            exec.result.addReturn("interrupted", watchingHandler.interrupted);
+            reportingHandler.recordResult();
             exec.result.computeStatusIfUnknown();
         }
     }
@@ -216,7 +199,7 @@ public class SearchOpHandler extends CachedOpHandler {
         } else {
             trace = null;
         }
-        CacheSetAccessInfo caches = cacheSetAccessInfoFactory.determine(type);
+        CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
         return new SearchOpExecution<>(type, options, result, query, trace, level, prismContext, caches, opName);
     }
 
@@ -225,15 +208,7 @@ public class SearchOpHandler extends CachedOpHandler {
             throws SchemaException {
         try {
             SearchResultList<PrismObject<T>> objects = searchObjectsInternal(key.getType(), key.getQuery(), exec.options, exec.result);
-            if (exec.readOnly) {
-                SearchResultList<PrismObject<T>> immutableObjectList = objects.toDeeplyFrozenList();
-                cacheUpdater.storeImmutableSearchResultToAllLocal(key, immutableObjectList, true, exec.caches);
-                cacheUpdater.storeImmutableSearchResultToAllGlobal(key, immutableObjectList, true, exec.caches);
-                return immutableObjectList;
-            } else {
-                cacheUpdater.storeSearchResultToAll(key, objects, exec.caches);
-                return objects;
-            }
+            return cacheUpdater.storeSearchResultToAll(key, objects, exec.caches, exec.readOnly, exec.started);
         } catch (SchemaException ex) {
             globalQueryCache.remove(key);
             throw ex;
@@ -241,46 +216,36 @@ public class SearchOpHandler extends CachedOpHandler {
     }
 
     private <T extends ObjectType> SearchResultMetadata executeAndCacheSearchIterative(SearchOpExecution<T> exec, QueryKey<T> key,
-            WatchingHandler<T> watchingHandler, boolean strictlySequential) throws SchemaException {
+            ReportingResultHandler<T> recordingHandler, boolean strictlySequential) throws SchemaException {
         try {
-            CollectingHandler<T> collectingHandler = new CollectingHandler<>(watchingHandler);
-            SearchResultMetadata metadata = searchObjectsIterativeInternal(exec.type, exec.query, collectingHandler, exec.options,
-                    strictlySequential, exec.result);
-            SearchResultList<PrismObject<T>> list = collectingHandler.getObjects();
-            if (list != null) { // todo optimize cloning here
-                SearchResultList<PrismObject<T>> immutableList = list.toDeeplyFrozenList();
-                cacheUpdater.storeImmutableSearchResultToAllLocal(key, immutableList, !watchingHandler.interrupted, exec.caches);
-                cacheUpdater.storeImmutableSearchResultToAllGlobal(key, immutableList, !watchingHandler.interrupted, exec.caches);
+            boolean queryCacheable = exec.global.effectivelySupports() || exec.local.effectivelySupports();
+            CachingResultHandler<T> cachingHandler = new CachingResultHandler<>(recordingHandler, queryCacheable,
+                    exec.readOnly, exec.started, exec.type, cacheUpdater);
+
+            SearchResultMetadata metadata;
+            try {
+                if (queryCacheable) {
+                    invalidator.registerInvalidationEventsListener(cachingHandler);
+                }
+                metadata = searchObjectsIterativeInternal(exec.type, exec.query, cachingHandler, exec.options,
+                        strictlySequential, exec.result);
+            } finally {
+                if (queryCacheable) {
+                    invalidator.unregisterInvalidationEventsListener(cachingHandler);
+                }
+            }
+
+            SearchResultList<PrismObject<T>> searchResultList = cachingHandler.getCacheableSearchResult(metadata);
+            if (searchResultList != null &&
+                    invalidator.isSearchResultValid(key, searchResultList, cachingHandler.getInvalidationEvents())) {
+                SearchResultList<PrismObject<T>> immutableList = searchResultList.toDeeplyFrozenList();
+                cacheUpdater.storeImmutableSearchResultToQueryLocal(key, immutableList, exec.caches);
+                cacheUpdater.storeImmutableSearchResultToQueryGlobal(key, immutableList, exec.caches);
             }
             return metadata;
         } catch (SchemaException ex) {
             globalQueryCache.remove(key);
             throw ex;
-        }
-    }
-
-    private static final class CollectingHandler<T extends ObjectType> implements ResultHandler<T> {
-
-        private boolean overflown = false;
-        private final SearchResultList<PrismObject<T>> objects = new SearchResultList<>();
-        private final ResultHandler<T> originalHandler;
-
-        private CollectingHandler(ResultHandler<T> handler) {
-            originalHandler = handler;
-        }
-
-        @Override
-        public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-            if (objects.size() < QUERY_RESULT_SIZE_LIMIT) {
-                objects.add(object.clone()); // todo optimize on read only option
-            } else {
-                overflown = true;
-            }
-            return originalHandler.handle(object, parentResult);
-        }
-
-        private SearchResultList<PrismObject<T>> getObjects() {
-            return overflown ? null : objects;
         }
     }
 
@@ -352,8 +317,7 @@ public class SearchOpHandler extends CachedOpHandler {
                 Class<F> type = ownerObject.getCompileTimeClass();
                 if (type != null && PassReason.determine(options, type) == null) {
                     boolean readOnly = isReadOnly(findRootOptions(options));
-                    CacheSetAccessInfo caches = cacheSetAccessInfoFactory.determine(type);
-                    cacheUpdater.storeLoadedObjectToAll(ownerObject, caches, readOnly);
+                    cacheUpdater.storeLoadedObjectToAll(ownerObject, readOnly, 0);
                 }
             }
 

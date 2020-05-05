@@ -166,6 +166,16 @@ public abstract class ChangeDescription {
         return getFrom(type, oid, additionalInfo, safeInvalidation);
 
     }
+
+    public static ChangeDescription getFrom(InvalidationEvent event) {
+        if (event.type != null && !ObjectType.class.isAssignableFrom(event.type)) {
+            return null;
+        } else {
+            //noinspection unchecked
+            return getFrom((Class<? extends ObjectType>) event.type, event.oid, event.context, true);
+        }
+    }
+
     public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, Object additionalInfo,
             boolean safeInvalidation) {
 

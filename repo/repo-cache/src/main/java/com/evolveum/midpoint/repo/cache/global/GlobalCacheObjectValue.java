@@ -30,7 +30,7 @@ public class GlobalCacheObjectValue<T extends ObjectType> extends AbstractGlobal
         return object.getOid();
     }
 
-    Class<?> getObjectType() {
+    public Class<? extends ObjectType> getObjectType() {
         return object.getCompileTimeClass();
     }
 

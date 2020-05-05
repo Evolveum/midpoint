@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler.QUERY_RESULT_SIZE_LIMIT;
+
 /**
  *
  */
@@ -94,9 +96,12 @@ public class GlobalQueryCache extends AbstractGlobalCache {
         }
     }
 
-    public <T extends ObjectType> void put(QueryKey key, @NotNull SearchResultList<PrismObject<T>> cacheObject) {
+    public <T extends ObjectType> void put(QueryKey<T> key, @NotNull SearchResultList<PrismObject<T>> cacheObject) {
         if (cache != null) {
             cacheObject.checkImmutable();
+            if (cacheObject.size() > QUERY_RESULT_SIZE_LIMIT) {
+                throw new IllegalStateException("Trying to cache result list greater than " + QUERY_RESULT_SIZE_LIMIT + ": " + cacheObject.size());
+            }
             //noinspection unchecked
             cache.put(key, new GlobalCacheQueryValue(cacheObject));
         }

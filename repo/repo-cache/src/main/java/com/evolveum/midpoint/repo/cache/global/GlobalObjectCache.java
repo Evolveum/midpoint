@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.cache.global;
 
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
+ * Node-level cache for objects.
  */
 @Component
 public class GlobalObjectCache extends AbstractGlobalCache {
@@ -151,6 +152,29 @@ public class GlobalObjectCache extends AbstractGlobalCache {
                 LOGGER_CONTENT.info("Cached object: {}: {} (cached {} ms ago)", key, value, value.getAge());
                 return null;
             });
+        }
+    }
+
+    public Long getNextVersionCheckTime(@NotNull Class<? extends ObjectType> type) {
+        CacheConfiguration cacheConfiguration = getConfiguration();
+        CacheConfiguration.CacheObjectTypeConfiguration typeConfiguration = cacheConfiguration.getForObjectType(type);
+        if (typeConfiguration != null && typeConfiguration.supportsCaching()) {
+            return System.currentTimeMillis() + getTimeToCheckVersion(typeConfiguration, cacheConfiguration);
+        } else {
+            return null;
+        }
+    }
+
+    private long getTimeToCheckVersion(@NotNull CacheConfiguration.CacheObjectTypeConfiguration typeConfig,
+            @NotNull CacheConfiguration cacheConfig) {
+        if (typeConfig.getEffectiveTimeToVersionCheck() != null) {
+            return typeConfig.getEffectiveTimeToVersionCheck() * 1000L;
+        } else if (typeConfig.getEffectiveTimeToLive() != null) {
+            return typeConfig.getEffectiveTimeToLive() * 1000L;
+        } else if (cacheConfig.getTimeToLive() != null) {
+            return cacheConfig.getTimeToLive() * 1000L;
+        } else {
+            return GlobalObjectCache.DEFAULT_TIME_TO_LIVE * 1000L;
         }
     }
 }

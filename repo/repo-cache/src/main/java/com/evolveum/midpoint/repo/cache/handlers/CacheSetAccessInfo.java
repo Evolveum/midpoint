@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
@@ -17,25 +15,27 @@ import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * CacheAccessInfo for all six caches.
+ * CacheAccessInfo for all six caches. T is object type to which this information is related.
+ * It is here to avoid application of cache access information to wrong object types.
  */
-public class CacheSetAccessInfo {
+public class CacheSetAccessInfo<T extends ObjectType> {
 
-    @NotNull final CacheAccessInfo<LocalObjectCache> localObject;
-    @NotNull final CacheAccessInfo<LocalVersionCache> localVersion;
-    @NotNull final CacheAccessInfo<LocalQueryCache> localQuery;
-    @NotNull final CacheAccessInfo<GlobalObjectCache> globalObject;
-    @NotNull final CacheAccessInfo<GlobalVersionCache> globalVersion;
-    @NotNull final CacheAccessInfo<GlobalQueryCache> globalQuery;
+    @NotNull final CacheAccessInfo<LocalObjectCache, T> localObject;
+    @NotNull final CacheAccessInfo<LocalVersionCache, T> localVersion;
+    @NotNull final CacheAccessInfo<LocalQueryCache, T> localQuery;
+    @NotNull final CacheAccessInfo<GlobalObjectCache, T> globalObject;
+    @NotNull final CacheAccessInfo<GlobalVersionCache, T> globalVersion;
+    @NotNull final CacheAccessInfo<GlobalQueryCache, T> globalQuery;
 
-    public CacheSetAccessInfo(@NotNull CacheAccessInfo<LocalObjectCache> localObject,
-            @NotNull CacheAccessInfo<LocalVersionCache> localVersion,
-            @NotNull CacheAccessInfo<LocalQueryCache> localQuery,
-            @NotNull CacheAccessInfo<GlobalObjectCache> globalObject,
-            @NotNull CacheAccessInfo<GlobalVersionCache> globalVersion,
-            @NotNull CacheAccessInfo<GlobalQueryCache> globalQuery) {
+    public CacheSetAccessInfo(@NotNull CacheAccessInfo<LocalObjectCache, T> localObject,
+            @NotNull CacheAccessInfo<LocalVersionCache, T> localVersion,
+            @NotNull CacheAccessInfo<LocalQueryCache, T> localQuery,
+            @NotNull CacheAccessInfo<GlobalObjectCache, T> globalObject,
+            @NotNull CacheAccessInfo<GlobalVersionCache, T> globalVersion,
+            @NotNull CacheAccessInfo<GlobalQueryCache, T> globalQuery) {
         this.localObject = localObject;
         this.localVersion = localVersion;
         this.localQuery = localQuery;

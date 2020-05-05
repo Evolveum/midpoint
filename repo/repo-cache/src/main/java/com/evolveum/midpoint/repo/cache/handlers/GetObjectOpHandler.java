@@ -90,7 +90,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 PrismObject<T> cachedObject = cachedValue.getObject();
                 if (!cachedValue.shouldCheckVersion()) {
                     exec.reportGlobalHit();
-                    cacheUpdater.storeImmutableObjectToObjectAndVersionLocal(cachedObject, exec.caches);
+                    cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
                     return exec.prepareReturnValueWhenImmutable(cachedObject);
                 } else {
                     if (hasVersionChanged(type, oid, cachedValue, exec.result)) {
@@ -99,8 +99,9 @@ public class GetObjectOpHandler extends CachedOpHandler {
                         return exec.prepareReturnValueAsIs(object);
                     } else { // version matches, renew ttl
                         exec.reportGlobalWeakHit();
-                        cacheUpdater.updateTimeToVersionCheck(cachedValue, exec.global);
-                        cacheUpdater.storeImmutableObjectToObjectAndVersionLocal(cachedObject, exec.caches);
+                        cacheUpdater.storeImmutableObjectToAllLocal(cachedObject, exec.caches);
+                        long newTimeToVersionCheck = exec.global.getCache().getNextVersionCheckTime(exec.type);
+                        cachedValue.setCheckVersionTime(newTimeToVersionCheck);
                         return exec.prepareReturnValueWhenImmutable(cachedObject);
                     }
                 }
@@ -142,7 +143,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
             trace = null;
         }
 
-        CacheSetAccessInfo caches = cacheSetAccessInfoFactory.determine(type);
+        CacheSetAccessInfo<T> caches = cacheSetAccessInfoFactory.determine(type);
         return new GetObjectOpExecution<>(type, oid, options, result, trace, tracingLevel, prismContext, caches);
     }
 

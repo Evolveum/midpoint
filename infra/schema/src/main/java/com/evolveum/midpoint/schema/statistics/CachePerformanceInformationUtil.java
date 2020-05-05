@@ -16,18 +16,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.util.caching.CachePerformanceCollector.isExtra;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
  */
 public class CachePerformanceInformationUtil {
+
     public static CachesPerformanceInformationType toCachesPerformanceInformationType(
             @NotNull Map<String, CachePerformanceCollector.CacheData> performanceMap) {
         CachesPerformanceInformationType rv = new CachesPerformanceInformationType();
         performanceMap.forEach((cache, info) -> rv.getCache().add(toSingleCachePerformanceInformationType(cache, info)));
         return rv;
-
     }
 
     private static SingleCachePerformanceInformationType toSingleCachePerformanceInformationType(String cache,
@@ -92,5 +94,15 @@ public class CachePerformanceInformationUtil {
 
     public static String format(Map<String, CachePerformanceCollector.CacheData> performanceMap) {
         return performanceMap != null ? format(toCachesPerformanceInformationType(performanceMap)) : "";
+    }
+
+    public static String formatExtra(Map<String, CachePerformanceCollector.CacheData> performanceMap) {
+        StringBuilder sb = new StringBuilder();
+        performanceMap.entrySet().stream()
+                .filter(entry -> isExtra(entry.getKey()))
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> sb.append(String.format("%-30s oversized: %10d stale: %10d", entry.getKey()+":", entry.getValue().overSizedQueries.get(),
+                        entry.getValue().skippedStaleData.get())));
+        return sb.toString();
     }
 }
