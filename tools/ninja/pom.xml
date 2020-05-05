@@ -248,20 +248,11 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
-                            <skip>false</skip>
                             <layout>ZIP</layout>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- reference failsafe to run integration tests (surefire/units run by default) -->
-            <!-- TODO: both suite XMLs are empty, so no tests are run during build -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-            </plugin>
         </plugins>
     </build>
-
 </project>

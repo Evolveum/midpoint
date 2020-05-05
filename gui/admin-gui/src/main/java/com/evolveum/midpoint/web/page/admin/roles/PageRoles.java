@@ -73,7 +73,7 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
 
     @Override
     protected List<InlineMenuItem> createRowActions() {
-        return listInlineMenuHelper.createRowActions();
+        return listInlineMenuHelper.createRowActions(getType());
     }
 
     @Override
