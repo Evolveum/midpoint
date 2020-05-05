@@ -290,6 +290,11 @@ public class BasicPage {
         return new SystemPage().systemTab();
     }
 
+    public ObjectPolicyTab objectPolicy() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.objectPolicy");
+        return new SystemPage().objectPolicyTab();
+    }
+
     public NotificationsTab notifications() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.notifications");
         return new SystemPage().notificationsTab();
@@ -308,6 +313,11 @@ public class BasicPage {
     public AdminGuiTab adminGui() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.adminGui");
         return new SystemPage().adminGuiTab();
+    }
+
+    public DeploymentInformationTab deploymentInformation() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.deploymentInformation");
+        return new SystemPage().deploymentInformationTab();
     }
 
     public InfrastructureTab infrastructure() {

@@ -13,6 +13,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.Holder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -155,9 +157,17 @@ public class ShadowCaretaker {
         }
     }
 
+    public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+        PrismObject<ShadowType> mutableShadow = shadow.clone();
+        applyAttributesDefinition(ctx, mutableShadow);
+        return mutableShadow.createImmutableClone();
+    }
+
     public ProvisioningContext applyAttributesDefinition(ProvisioningContext ctx,
             PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
-                    ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         ProvisioningContext subctx = ctx.spawn(shadow);
         subctx.assertDefinition();
         RefinedObjectClassDefinition objectClassDefinition = subctx.getObjectClassDefinition();

@@ -10,6 +10,7 @@ import com.beust.jcommander.JCommander;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.ninja.impl.RestService;
@@ -24,6 +25,7 @@ import javax.xml.ws.Holder;
 /**
  * Created by Viliam Repan (lazyman).
  */
+@UnusedTestElement("throws NPE, see ctx.init")
 public class NinjaContextTest {
 
     @Test

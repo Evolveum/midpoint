@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -21,16 +23,18 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,9 +75,9 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         this.focusListComponent = focusListComponent;
     }
 
-    public List<InlineMenuItem> createRowActions() {
+    public List<InlineMenuItem> createRowActions(Class<F> objectType) {
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
+        ButtonInlineMenuItem enableItem = new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -93,8 +97,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
             }
 
             @Override
@@ -103,9 +107,11 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
-        });
+        };
+        enableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectDisabled);
+        menu.add(enableItem);
 
-        menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
+        ButtonInlineMenuItem disableItem = new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -130,7 +136,15 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
-        });
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
+                builder.appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_BAN), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                return builder;            }
+
+        };
+        disableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectEnabled);
+        menu.add(disableItem);
 
         menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile")) {
             private static final long serialVersionUID = 1L;
@@ -152,8 +166,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
             }
 
             @Override
@@ -190,6 +204,16 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
         });
         return menu;
+    }
+
+    private String getEnableActionDefaultIcon(Class<F> type){
+        String iconClass = "";
+        if (type.equals(RoleType.class)) {
+            iconClass = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+        } else if (type.equals(ServiceType.class)){
+            iconClass = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
+        }
+        return iconClass;
     }
 
     public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
@@ -320,6 +344,21 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         }
     }
 
+    public static boolean isObjectEnabled(IModel<?> rowModel, boolean isHeader) {
+        if (rowModel == null || isHeader) {
+            return true;
+        }
+        FocusType focusObject = ((IModel<SelectableBean<? extends FocusType>>) rowModel).getObject().getValue();
+        return focusObject != null && ActivationStatusType.ENABLED.equals(focusObject.getActivation().getEffectiveStatus());
+    }
+
+    public static boolean isObjectDisabled(IModel<?> rowModel, boolean isHeader) {
+        if (rowModel == null || isHeader) {
+            return true;
+        }
+        FocusType focusObject = ((IModel<SelectableBean<? extends FocusType>>) rowModel).getObject().getValue();
+        return focusObject != null && ActivationStatusType.DISABLED.equals(focusObject.getActivation().getEffectiveStatus());
+    }
     protected boolean isShowConfirmationDialog(ColumnMenuAction action){
         return false;
     }

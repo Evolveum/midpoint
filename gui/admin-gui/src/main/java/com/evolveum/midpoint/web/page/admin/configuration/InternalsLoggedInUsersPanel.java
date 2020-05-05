@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -127,8 +128,8 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_ICON_SIGN_OUT;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SIGN_OUT);
             }
 
             @Override

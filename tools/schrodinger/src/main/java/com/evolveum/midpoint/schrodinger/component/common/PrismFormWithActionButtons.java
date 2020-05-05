@@ -23,7 +23,7 @@ public class PrismFormWithActionButtons<T> extends PrismForm<T> {
 
     public T clickDone() {
 
-        $(Schrodinger.byDataResourceKey("div", "AssignmentPanel.doneButton"))
+        $(Schrodinger.byDataResourceKey("div", "MultivalueContainerListPanel.doneButton"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();
@@ -31,7 +31,7 @@ public class PrismFormWithActionButtons<T> extends PrismForm<T> {
 
     public T clickCancel() {
 
-        $(Schrodinger.byDataResourceKey("div", "AssignmentPanel.cancelButton"))
+        $(Schrodinger.byDataResourceKey("div", "MultivalueContainerListPanel.cancelButton"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this.getParent();

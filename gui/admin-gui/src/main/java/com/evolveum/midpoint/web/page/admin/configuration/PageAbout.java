@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 
+import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,6 +78,7 @@ import javax.xml.namespace.QName;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
                 label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description")})
 public class PageAbout extends PageAdminConfiguration {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);
 
@@ -116,6 +118,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_PROVISIONING_DETAIL_NAME = "provisioningDetailName";
     private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
+    private static final String ID_COPY_ENVIRONMENT_INFO = "copyEnvironmentInfo";
     private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
     private static final String ID_FACTORY_DEFAULT = "factoryDefault";
     private static final String ID_NODE_NAME = "nodeName";
@@ -134,6 +137,7 @@ public class PageAbout extends PageAdminConfiguration {
 
     public PageAbout() {
         repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected RepositoryDiag load() {
@@ -141,6 +145,7 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         provisioningDiagModel = new LoadableModel<ProvisioningDiag>(false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected ProvisioningDiag load() {
@@ -164,6 +169,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(build);
 
         ListView<SystemItem> listSystemItems = new ListView<SystemItem>(ID_LIST_SYSTEM_ITEMS, getItems()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<SystemItem> item) {
@@ -189,6 +195,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
             new PropertyModel<>(repoDiagModel, "additionalDetails")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
@@ -207,6 +214,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
             new PropertyModel<>(provisioningDiagModel, "additionalDetails")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
@@ -260,6 +268,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(nodeUrl);
 
         Label jvmProperties = new Label(ID_JVM_PROPERTIES, new LoadableModel<String>(false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
@@ -288,6 +297,7 @@ public class PageAbout extends PageAdminConfiguration {
     private void initButtons() {
         AjaxButton testRepository = new AjaxButton(ID_TEST_REPOSITORY,
                 createStringResource("PageAbout.button.testRepository")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -298,6 +308,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         AjaxButton testRepositoryCheckOrgClosure = new AjaxButton(ID_TEST_REPOSITORY_CHECK_ORG_CLOSURE,
                 createStringResource("PageAbout.button.testRepositoryCheckOrgClosure")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -308,6 +319,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         AjaxButton reindexRepositoryObjects = new AjaxButton(ID_REINDEX_REPOSITORY_OBJECTS,
                 createStringResource("PageAbout.button.reindexRepositoryObjects")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -318,6 +330,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
                 createStringResource("PageAbout.button.testProvisioning")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -328,6 +341,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         AjaxButton checkWorkflowProcesses = new AjaxButton(ID_CHECK_WORKFLOW_PROCESSES,
                 createStringResource("PageAbout.button.checkWorkflowProcesses")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -339,6 +353,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         AjaxButton clearCssJsCache = new AjaxButton(ID_CLEAR_CSS_JS_CACHE,
                 createStringResource("PageAbout.button.clearCssJsCache")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -347,8 +362,23 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(clearCssJsCache);
 
+        AjaxButton copyEnvironmentInfo = new AjaxButton(ID_COPY_ENVIRONMENT_INFO,
+                createStringResource("PageAbout.button.copyEnvironmentInfo")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                copyEnvironmentInfoPerformed(target);
+                success(createStringResource("PageAbout.button.copyEnvironmentMessage").getString());
+                target.add(getFeedbackPanel());
+            }
+        };
+        copyEnvironmentInfo.setOutputMarkupId(true);
+        add(copyEnvironmentInfo);
+
         AjaxButton factoryDefault = new AjaxButton(ID_FACTORY_DEFAULT,
                 createStringResource("PageAbout.button.factoryDefault")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -356,6 +386,33 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(factoryDefault);
+    }
+
+    private void copyEnvironmentInfoPerformed(AjaxRequestTarget target){
+        StringBuilder sb = new StringBuilder("var $tempInput = document.createElement('INPUT');\n");
+        sb.append("document.body.appendChild($tempInput);\n");
+        sb.append("$tempInput.setAttribute('value', '" + getEnvironmentInfo() + "');\n");
+        sb.append("$tempInput.select();\n");
+        sb.append("document.execCommand('copy');\n");
+        sb.append("document.body.removeChild($tempInput);");
+        target.appendJavaScript(sb.toString());
+    }
+
+    private String getEnvironmentInfo(){
+        String nodesCount = createStringResource("PageAbout.environmentInfo.nodesCount",
+                WebModelServiceUtils.countObjects(NodeType.class, null, PageAbout.this)).getString();
+        Runtime runtime = Runtime.getRuntime();
+        String processorsCount = createStringResource("PageAbout.environmentInfo.processorsCount", runtime.availableProcessors()).getString();
+        String totalMemory = createStringResource("PageAbout.environmentInfo.totalMemory", runtime.totalMemory()).getString();
+        String javaVersion = createStringResource("PageAbout.environmentInfo.javaVersion", System.getProperty("java.version")).getString();
+        String tomcatVersion = createStringResource("PageAbout.environmentInfo.tomcatVersion", ServerInfo.getServerInfo()).getString();
+        String mpVersion = createStringResource("PageAbout.environmentInfo.mpVersion",
+                createStringResource("midpoint.system.version").getString()).getString();
+        String dbInfo = createStringResource("PageAbout.environmentInfo.databaseInfo",
+                repoDiagModel.getObject().getDriverShortName() + " " + repoDiagModel.getObject().getDriverVersion()).getString();
+        String osInfo = createStringResource("PageAbout.environmentInfo.osInfo",
+                System.getProperty("os.name") + " " + System.getProperty("os.version")).getString();
+        return nodesCount + processorsCount + totalMemory + javaVersion + tomcatVersion + mpVersion + dbInfo + osInfo;
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -402,6 +459,7 @@ public class PageAbout extends PageAdminConfiguration {
 
     private IModel<List<SystemItem>> getItems() {
         return new LoadableModel<List<SystemItem>>(false) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected List<SystemItem> load() {

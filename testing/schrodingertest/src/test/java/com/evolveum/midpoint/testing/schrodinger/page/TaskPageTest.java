@@ -42,7 +42,9 @@ public class TaskPageTest extends AbstractSchrodingerTest {
                     .selectOption("objectType","User")
                     .and()
                 .and()
-             .clickSave();
+             .clickSave()
+                .feedback()
+                    .isSuccess();
 
         ListTasksPage tasksPage = basicPage.listTasks();
         PrismForm<AssignmentHolderBasicTab<TaskPage>> taskForm = tasksPage
