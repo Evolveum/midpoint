@@ -56,7 +56,7 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 
         try {
 
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO).showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(w -> ItemVisibility.AUTO);
             builder.headerVisibility(false);
 
             Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(),

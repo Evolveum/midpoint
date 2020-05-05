@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
@@ -141,8 +140,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(visibilityHandler)
                     .editabilityHandler(editabilityHandler)
-                    .mandatoryHandler(getItemMandatoryHandler())
-                    .showOnTopLevel(true);
+                    .mandatoryHandler(getItemMandatoryHandler());
             Panel panel = getPageBase().initItemPanel(ID_MAIN_PANEL, TaskType.COMPLEX_TYPE, getModel(), builder.build());
             add(panel);
         } catch (SchemaException e) {

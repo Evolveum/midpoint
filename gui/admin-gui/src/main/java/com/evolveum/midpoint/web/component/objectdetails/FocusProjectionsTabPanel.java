@@ -268,17 +268,19 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
             @Override
             protected void addBasicContainerValuePanel(String idPanel) {
-                add(new WebMarkupContainer(idPanel));
+                ShadowPanel shadowPanel = new ShadowPanel(idPanel, getParentModel(getModel()));
+                add(shadowPanel);
+//                add(new WebMarkupContainer(idPanel));
             }
 
-            @Override
-            protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
-                Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, FocusProjectionsTabPanel.this);
-
-                ShadowPanel shadowPanel = new ShadowPanel(ID_SHADOW_PANEL, getParentModel(getModel()));
-                specificContainers.add(shadowPanel);
-                return specificContainers;
-            }
+//            @Override
+//            protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
+//                Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, FocusProjectionsTabPanel.this);
+//
+//                ShadowPanel shadowPanel = new ShadowPanel(ID_SHADOW_PANEL, getParentModel(getModel()));
+//                specificContainers.add(shadowPanel);
+//                return specificContainers;
+//            }
         };
         return detailsPanel;
     }

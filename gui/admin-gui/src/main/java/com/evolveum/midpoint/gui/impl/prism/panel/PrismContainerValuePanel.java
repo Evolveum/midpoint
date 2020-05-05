@@ -129,9 +129,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
             if (getModelObject() != null && ValueStatus.DELETED == getModelObject().getStatus()) {
                 cssClasses = " removed-value-background";
             }
-            if (isShowOnTopLevel()) {
-                cssClasses = " top-level-prism-container";
-            }
             return cssClasses;
         }));
 

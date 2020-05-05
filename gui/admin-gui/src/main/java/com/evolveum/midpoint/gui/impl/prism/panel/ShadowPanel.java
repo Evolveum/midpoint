@@ -70,8 +70,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
             add(attributesPanel);
 
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()))
-                    .showOnTopLevel(true);
+                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
                     associationBuilder.build());
             associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
@@ -79,16 +78,14 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
 
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()))
-                    .showOnTopLevel(true);
+                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
                     activationBuilder.build());
             activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
             add(activationPanel);
 
             ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()))
-                    .showOnTopLevel(true);
+                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
                     passwordSettingsBuilder.build());
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));

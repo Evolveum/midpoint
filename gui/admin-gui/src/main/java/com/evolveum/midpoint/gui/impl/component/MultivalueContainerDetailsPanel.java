@@ -70,7 +70,6 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     protected Panel getBasicContainerValuePanel(String idPanel){
         ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
-                .showOnTopLevel(true)
                 .editabilityHandler(wrapper -> getBasicTabEditability(wrapper));
 
         if (getMandatoryHandler() != null) {

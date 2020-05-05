@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -33,41 +34,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 /**
  * @author skublik
  */
-public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<PrismContainerWrapper<C>> {
+public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends SingleContainerPanel<C> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerOfSystemConfigurationPanel.class);
 
     private static final String ID_CONTAINER = "container";
-    private QName typeName = null;
 
     public ContainerOfSystemConfigurationPanel(String id, IModel<PrismContainerWrapper<C>> model, QName typeName) {
-        super(id, model);
-        this.typeName = typeName;
-    }
-
-    @Override
-    protected void onInitialize() {
-            super.onInitialize();
-            initLayout();
-    }
-
-    protected void initLayout() {
-
-        try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(wrapper -> getVisibity(wrapper.getPath()))
-                    .showOnTopLevel(true);
-            Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());
-//            getModelObject().setShowOnTopLevel(true);
-            add(panel);
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
-            getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
-
-        }
-
+        super(id, model, typeName);
     }
 
     protected ItemVisibility getVisibity(ItemPath itemPath) {

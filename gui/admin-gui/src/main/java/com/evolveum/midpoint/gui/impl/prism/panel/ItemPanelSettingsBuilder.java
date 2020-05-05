@@ -33,11 +33,6 @@ public class ItemPanelSettingsBuilder {
         return this;
     }
 
-    public ItemPanelSettingsBuilder showOnTopLevel(boolean showOnTopLevel) {
-        settings.setShowOnTopLevel(showOnTopLevel);
-        return this;
-    }
-
     public ItemPanelSettingsBuilder headerVisibility(boolean headerVisibility) {
         settings.setHeaderVisible(headerVisibility);
         return this;

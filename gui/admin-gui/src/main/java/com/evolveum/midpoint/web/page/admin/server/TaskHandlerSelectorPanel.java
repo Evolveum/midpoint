@@ -43,8 +43,8 @@ public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<String>> item) {
         Component handlerPanel = super.createValuePanel(item);
-        if (handlerPanel.get("form:input") instanceof InputPanel) {
-            ((InputPanel) handlerPanel.get("form:input")).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+        if (handlerPanel.get("valueForm:valueContainer:input") instanceof InputPanel) {
+            ((InputPanel) handlerPanel.get("valueForm:valueContainer:input")).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {

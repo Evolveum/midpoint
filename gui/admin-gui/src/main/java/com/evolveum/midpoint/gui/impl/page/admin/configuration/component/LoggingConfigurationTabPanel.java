@@ -112,7 +112,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         try {
 //            getModelObject().setShowOnTopLevel(true);
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
-            builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath())).showOnTopLevel(true);
+            builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
             Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
             add(loggingPanel);
         } catch (SchemaException e) {
@@ -286,7 +286,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
         IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
         try {
-            Panel auditPanel = getPageBase().initItemPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, null);
+            Panel auditPanel = getPageBase().initItemPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, new ItemPanelSettingsBuilder().build());
             add(auditPanel);
         } catch (SchemaException e) {
             LOGGER.error("Cannot create panel for auditing: {}", e.getMessage(), e);

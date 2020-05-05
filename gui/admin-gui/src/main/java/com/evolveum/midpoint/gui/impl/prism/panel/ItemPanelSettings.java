@@ -16,10 +16,12 @@ public class ItemPanelSettings implements Serializable {
 
     private ItemVisibilityHandler visibilityHandler;
     private ItemEditabilityHandler editabilityHandler = wrapper -> true;
-    private boolean showOnTopLevel;
     private boolean headerVisible = true;
     private ItemMandatoryHandler mandatoryHandler;
 
+    ItemPanelSettings() {
+
+    }
 
     public ItemVisibilityHandler getVisibilityHandler() {
         return visibilityHandler;
@@ -35,14 +37,6 @@ public class ItemPanelSettings implements Serializable {
 
     public void setEditabilityHandler(ItemEditabilityHandler editabilityHandler) {
         this.editabilityHandler = editabilityHandler;
-    }
-
-    public boolean isShowOnTopLevel() {
-        return showOnTopLevel;
-    }
-
-    void setShowOnTopLevel(boolean showOnTopLevel) {
-        this.showOnTopLevel = showOnTopLevel;
     }
 
     public boolean isHeaderVisible() {

@@ -86,7 +86,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
         add(profilingEnabledNote);
 
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), builder.build());
             add(panel);
         } catch (SchemaException e) {
@@ -96,7 +96,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
         try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, builder.build());
             add(logger);
         } catch (SchemaException e) {

@@ -180,14 +180,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
             return itemPanelSettings.getMandatoryHandler();
         }
 
-        protected boolean isShowOnTopLevel() {
-             if (itemPanelSettings == null) {
-                 return false;
-            }
-             return itemPanelSettings.isShowOnTopLevel();
-        }
-
-
         protected boolean isHeaderVisible() {
              if (itemPanelSettings == null) {
                  return true;

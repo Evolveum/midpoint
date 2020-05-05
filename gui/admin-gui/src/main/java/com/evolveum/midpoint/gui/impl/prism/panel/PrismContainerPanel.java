@@ -49,17 +49,11 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
 
         add(AttributeModifier.append("class", () -> {
-            String cssClasses = "";
-
-            if (isShowOnTopLevel() || (getModelObject() != null && getModelObject().isVirtual()) || (!(getParent() instanceof PrismContainerValuePanel) && getParent()!=null
-                    && getParent().getParent() instanceof PrismContainerValuePanel)) {
-                cssClasses = "top-level-prism-container";
-            }
 
             if (getModelObject() != null && getModelObject().isMultiValue()) {
-                cssClasses = " multivalue-container";
+                return " multivalue-container";
             }
-            return cssClasses;
+            return "";
         }));
 
     }

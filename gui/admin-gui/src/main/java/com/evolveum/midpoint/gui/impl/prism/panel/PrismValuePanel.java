@@ -54,15 +54,12 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_VALUE_FORM = "valueForm";
     private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
-    private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
 
     private static final String ID_HEADER_CONTAINER = "header";
 
-
-//    private static final String ID_FORM = "form";
     private static final String ID_INPUT = "input";
 
     private ItemPanelSettings settings;
@@ -250,14 +247,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         }
 
         return settings.getVisibilityHandler();
-    }
-
-    protected boolean isShowOnTopLevel() {
-        if (settings == null) {
-            return false;
-        }
-
-        return settings.isShowOnTopLevel();
     }
 
     protected ExpressionValidator<T> createExpressionValidator() {
