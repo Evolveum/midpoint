@@ -7,25 +7,22 @@
 
 package com.evolveum.midpoint.repo.cache.global;
 
+import org.cache2k.expiry.Expiry;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.cache2k.expiry.Expiry;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Superclass for global caches handling objects, versions, and queries.
  */
 public abstract class AbstractGlobalCache {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractGlobalCache.class);
-
-    public static final int DEFAULT_TIME_TO_LIVE = 60; // see also default-caching-profile.xml in resources
+    static final int DEFAULT_TIME_TO_LIVE = 60; // see also default-caching-profile.xml in resources
 
     @Autowired protected CacheConfigurationManager configurationManager;
     @Autowired protected PrismContext prismContext;

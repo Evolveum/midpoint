@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.cache.invalidation;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -30,13 +31,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.*;
@@ -65,6 +65,10 @@ public class Invalidator {
     @Autowired CacheConfigurationManager cacheConfigurationManager;
     @Autowired Invalidator invalidator;
 
+    private static final int MAX_LISTENERS = 1000;
+
+    @NotNull private final Set<InvalidationEventListener> listeners = ConcurrentHashMap.newKeySet();
+
     // This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context)
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null) {
@@ -78,6 +82,10 @@ public class Invalidator {
                 //noinspection unchecked
                 clearQueryResultsGlobally((Class<? extends ObjectType>) type, oid, context);
             }
+        }
+        if (!listeners.isEmpty()) {
+            InvalidationEvent event = new InvalidationEvent(type, oid, context);
+            listeners.forEach(listener -> listener.onInvalidationEvent(event));
         }
     }
 
@@ -162,4 +170,31 @@ public class Invalidator {
         LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
     }
 
+    public void registerInvalidationEventsListener(InvalidationEventListener listener) {
+        if (listeners.size() >= MAX_LISTENERS) {
+            throw new IllegalStateException("Maximum number of invalidation events listeners was reached: " + MAX_LISTENERS);
+        }
+        boolean added = listeners.add(listener);
+        assert added;
+    }
+
+    public void unregisterInvalidationEventsListener(InvalidationEventListener listener) {
+        boolean removed = listeners.remove(listener);
+        assert removed;
+    }
+
+    /**
+     * Checks if the search result is still valid, even specified invalidation events came.
+     */
+    public <T extends ObjectType> boolean isSearchResultValid(QueryKey<T> key, SearchResultList<PrismObject<T>> list,
+            List<InvalidationEvent> invalidationEvents) {
+        for (InvalidationEvent event : invalidationEvents) {
+            ChangeDescription change = ChangeDescription.getFrom(event);
+            if (change != null && change.mayAffect(key, list, matchingRuleRegistry)) {
+                LOGGER.debug("Search result was invalidated by change: {}", change);
+                return false;
+            }
+        }
+        return true;
+    }
 }

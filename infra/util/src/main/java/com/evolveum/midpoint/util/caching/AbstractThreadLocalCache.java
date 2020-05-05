@@ -14,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author mederly
+ * Common supertype for various thread-local caches (parts of RepositoryCache but also others).
  */
 public abstract class AbstractThreadLocalCache {
 

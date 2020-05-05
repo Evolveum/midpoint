@@ -75,6 +75,9 @@ public class InternalsPerformancePanel extends BasePanel<Void> {
             sb.append("Cache performance information:\n")
                     .append(CachePerformanceInformationUtil.format(CachePerformanceInformationUtil.toCachesPerformanceInformationType(cache)))
                     .append("\n");
+            sb.append("Cache performance information (extra - experimental):\n")
+                    .append(CachePerformanceInformationUtil.formatExtra(cache))
+                    .append("\n");
         } else {
             sb.append("Cache performance information is currently not available."
                     + "Please set up cache monitoring in the system configuration.\n\n");
