@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.cache.global.AbstractGlobalCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -25,6 +24,7 @@ import java.util.Collection;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.log;
 import static com.evolveum.midpoint.schema.GetOperationOptions.isReadOnly;
 import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
+import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTraceType.MISS;
 
@@ -71,7 +71,13 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     /**
      * Tracing level (if any).
      */
+    @SuppressWarnings("WeakerAccess")
     @Nullable final TracingLevelType tracingLevel;
+
+    /**
+     * Often-used indicator: true if tracing is enabled and at least on NORMAL level.
+     */
+    final boolean tracingAtLeastNormal;
 
     /**
      * Operation name e.g. getObject.
@@ -81,26 +87,28 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
     /**
      * Access information for all the caches.
      */
-    @NotNull final CacheSetAccessInfo caches;
+    @NotNull final CacheSetAccessInfo<O> caches;
 
     /**
      * Access information for related local cache (object, version, query).
      */
-    @NotNull final CacheAccessInfo<LC> local;
+    @NotNull final CacheAccessInfo<LC, O> local;
 
     /**
      * Access information for related global cache (object, version, query).
      */
-    @NotNull final CacheAccessInfo<GC> global;
+    @NotNull final CacheAccessInfo<GC, O> global;
+
+    final long started = System.currentTimeMillis();
 
     @NotNull final PrismContext prismContext;
 
     CachedOpExecution(@NotNull Class<O> type,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult result,
-            @NotNull CacheSetAccessInfo caches,
-            @NotNull CacheAccessInfo<LC> local,
-            @NotNull CacheAccessInfo<GC> global,
+            @NotNull CacheSetAccessInfo<O> caches,
+            @NotNull CacheAccessInfo<LC, O> local,
+            @NotNull CacheAccessInfo<GC, O> global,
             @Nullable RT trace,
             @Nullable TracingLevelType tracingLevel,
             @NotNull PrismContext prismContext,
@@ -113,6 +121,7 @@ abstract class CachedOpExecution<RT extends RepositoryOperationTraceType, LC ext
         this.global = global;
         this.trace = trace;
         this.tracingLevel = tracingLevel;
+        this.tracingAtLeastNormal = isAtLeastNormal(tracingLevel);
         this.readOnly = isReadOnly(findRootOptions(options));
         this.prismContext = prismContext;
         this.opName = opName;

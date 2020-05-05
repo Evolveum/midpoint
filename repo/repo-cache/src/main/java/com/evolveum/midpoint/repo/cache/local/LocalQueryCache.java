@@ -7,19 +7,20 @@
 
 package com.evolveum.midpoint.repo.cache.local;
 
+import static com.evolveum.midpoint.repo.cache.handlers.SearchOpHandler.QUERY_RESULT_SIZE_LIMIT;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Thread-local cache for storing query results.
@@ -37,6 +38,9 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
 
     public void put(QueryKey key, @NotNull SearchResultList list) {
         list.checkImmutable();
+        if (list.size() > QUERY_RESULT_SIZE_LIMIT) {
+            throw new IllegalStateException("Trying to cache result list greater than " + QUERY_RESULT_SIZE_LIMIT + ": " + list.size());
+        }
         data.put(key, list);
     }
 
@@ -62,7 +66,7 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
     }
 
     @SuppressWarnings("SameParameterValue")
-    public static int getTotalCachedObjects(ConcurrentHashMap<Thread, LocalQueryCache> cacheInstances) {
+    static int getTotalCachedObjects(ConcurrentHashMap<Thread, LocalQueryCache> cacheInstances) {
         int rv = 0;
         for (LocalQueryCache cacheInstance : cacheInstances.values()) {
             rv += cacheInstance.getCachedObjects();

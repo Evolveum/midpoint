@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,26 +35,46 @@ public class CacheSetAccessInfoFactory {
     @Autowired GlobalQueryCache globalQueryCache;
     @Autowired CacheConfigurationManager cacheConfigurationManager;
 
-    <T extends ObjectType> CacheSetAccessInfo determine(Class<T> type) {
+    <T extends ObjectType> CacheSetAccessInfo<T> determine(Class<T> type) {
+        return determine(type, true);
+    }
 
-        CacheAccessInfo<GlobalObjectCache> globalObject = new CacheAccessInfo<>(globalObjectCache, globalObjectCache.getConfiguration(), type, globalObjectCache.isAvailable());
-        CacheAccessInfo<GlobalVersionCache> globalVersion = new CacheAccessInfo<>(globalVersionCache, globalVersionCache.getConfiguration(), type, globalVersionCache.isAvailable());
-        CacheAccessInfo<GlobalQueryCache> globalQuery = new CacheAccessInfo<>(globalQueryCache, globalQueryCache.getConfiguration(), type, globalQueryCache.isAvailable());
+    <T extends ObjectType> CacheSetAccessInfo<T> determineSkippingQuery(Class<T> type) {
+        return determine(type, false);
+    }
+
+    private <T extends ObjectType> CacheSetAccessInfo<T> determine(Class<T> type, boolean alsoQuery) {
+
+        CacheAccessInfo<GlobalObjectCache, T> globalObject = new CacheAccessInfo<>(globalObjectCache,
+                globalObjectCache.getConfiguration(), type, globalObjectCache.isAvailable());
+
+        CacheAccessInfo<GlobalVersionCache, T> globalVersion = new CacheAccessInfo<>(globalVersionCache,
+                globalVersionCache.getConfiguration(), type, globalVersionCache.isAvailable());
+
+        CacheAccessInfo<GlobalQueryCache, T> globalQuery =
+                alsoQuery ?
+                        new CacheAccessInfo<>(globalQueryCache, globalQueryCache.getConfiguration(), type, globalQueryCache.isAvailable())
+                        : CacheAccessInfo.createNotAvailable();
 
         LocalObjectCache localObjectCache = getLocalObjectCache();
         LocalVersionCache localVersionCache = getLocalVersionCache();
         LocalQueryCache localQueryCache = getLocalQueryCache();
 
-        CacheAccessInfo<LocalObjectCache> localObject = localObjectCache != null ?
+        CacheAccessInfo<LocalObjectCache, T> localObject = localObjectCache != null ?
                 new CacheAccessInfo<>(localObjectCache, localObjectCache.getConfiguration(), type, true) :
                 new CacheAccessInfo<>(null, cacheConfigurationManager.getConfiguration(LOCAL_REPO_OBJECT_CACHE), type, false);
-        CacheAccessInfo<LocalVersionCache> localVersion = localVersionCache != null ?
+        CacheAccessInfo<LocalVersionCache, T> localVersion = localVersionCache != null ?
                 new CacheAccessInfo<>(localVersionCache, localVersionCache.getConfiguration(), type, true) :
                 new CacheAccessInfo<>(null, cacheConfigurationManager.getConfiguration(LOCAL_REPO_VERSION_CACHE), type, false);
-        CacheAccessInfo<LocalQueryCache> localQuery = localQueryCache != null ?
-                new CacheAccessInfo<>(localQueryCache, localQueryCache.getConfiguration(), type, true) :
-                new CacheAccessInfo<>(null, cacheConfigurationManager.getConfiguration(LOCAL_REPO_QUERY_CACHE), type, false);
+        CacheAccessInfo<LocalQueryCache, T> localQuery;
+        if (alsoQuery) {
+            localQuery = localQueryCache != null ?
+                    new CacheAccessInfo<>(localQueryCache, localQueryCache.getConfiguration(), type, true) :
+                    new CacheAccessInfo<>(null, cacheConfigurationManager.getConfiguration(LOCAL_REPO_QUERY_CACHE), type, false);
+        } else {
+            localQuery = CacheAccessInfo.createNotAvailable();
+        }
 
-        return new CacheSetAccessInfo(localObject, localVersion, localQuery, globalObject, globalVersion, globalQuery);
+        return new CacheSetAccessInfo<>(localObject, localVersion, localQuery, globalObject, globalVersion, globalQuery);
     }
 }

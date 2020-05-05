@@ -9,9 +9,9 @@ package com.evolveum.midpoint.repo.cache.handlers;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
-
 import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -29,8 +29,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositorySearchObjectsTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Context of searchObjects/searchObjectsIteratively operation.
  *
@@ -40,40 +38,26 @@ class SearchOpExecution<O extends ObjectType>
         extends CachedOpExecution<RepositorySearchObjectsTraceType, LocalQueryCache, GlobalQueryCache, O> {
 
     final ObjectQuery query;
+    private final int maxFullObjectsToTrace;
+    private final int maxReferencesToTrace;
 
     SearchOpExecution(Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result,
             ObjectQuery query, RepositorySearchObjectsTraceType trace, TracingLevelType tracingLevel,
-            PrismContext prismContext, CacheSetAccessInfo caches, String opName) {
+            PrismContext prismContext, CacheSetAccessInfo<O> caches, String opName) {
         super(type, options, result, caches, caches.localQuery, caches.globalQuery, trace, tracingLevel, prismContext, opName);
         this.query = query;
-    }
 
-    void recordResult(SearchResultList<PrismObject<O>> objectsFound) {
-        result.addReturn("objectsFound", objectsFound.size());
-        if (trace != null) {
-            trace.setResultSize(objectsFound.size());
-            recordObjectsFound(objectsFound);
-        }
-    }
-
-    private void recordObjectsFound(SearchResultList<PrismObject<O>> objectsFound) {
-        if (isAtLeastNormal(tracingLevel)) {
-            CompiledTracingProfile tracingProfile = result.getTracingProfile();
-            int maxFullObjects = defaultIfNull(tracingProfile.getDefinition().getRecordObjectsFound(),
+        CompiledTracingProfile tracingProfile = result.getTracingProfile();
+        if (tracingProfile != null) {
+            maxFullObjectsToTrace = defaultIfNull(tracingProfile.getDefinition().getRecordObjectsFound(),
                     TraceUtil.DEFAULT_RECORD_OBJECTS_FOUND);
-            int maxReferences = defaultIfNull(tracingProfile.getDefinition().getRecordObjectReferencesFound(),
+            maxReferencesToTrace = defaultIfNull(tracingProfile.getDefinition().getRecordObjectReferencesFound(),
                     TraceUtil.DEFAULT_RECORD_OBJECT_REFERENCES_FOUND);
-            int objectsToVisit = Math.min(objectsFound.size(), maxFullObjects + maxReferences);
-            assert trace != null;
-            for (int i = 0; i < objectsToVisit; i++) {
-                PrismObject<O> object = objectsFound.get(i);
-                if (i < maxFullObjects) {
-                    trace.getObjectRef().add(ObjectTypeUtil.createObjectRefWithFullObject(object.clone(), prismContext));
-                } else {
-                    trace.getObjectRef().add(ObjectTypeUtil.createObjectRef(object, prismContext));
-                }
-            }
+        } else {
+            maxFullObjectsToTrace = 0;
+            maxReferencesToTrace = 0;
         }
+
     }
 
     @NotNull SearchResultList<PrismObject<O>> prepareReturnValueAsIs(SearchResultList<PrismObject<O>> list) {
@@ -81,13 +65,56 @@ class SearchOpExecution<O extends ObjectType>
         return list;
     }
 
-    @NotNull SearchResultList<PrismObject<O>> prepareReturnValueWhenImmutable(SearchResultList<PrismObject<O>> immutable) {
-        immutable.checkImmutable();
-        recordResult(immutable);
+    @NotNull SearchResultList<PrismObject<O>> prepareReturnValueWhenImmutable(SearchResultList<PrismObject<O>> immutableList) {
+        immutableList.checkImmutable();
+        recordResult(immutableList);
         if (readOnly) {
-            return immutable;
+            return immutableList;
         } else {
-            return immutable.deepClone();
+            return immutableList.deepClone();
+        }
+    }
+
+    private void recordResult(SearchResultList<PrismObject<O>> objectsFound) {
+        recordNumberOfObjectsFound(objectsFound.size());
+        if (trace != null) {
+            trace.setResultSize(objectsFound.size());
+            for (PrismObject<O> objectFound : objectsFound) {
+                boolean canContinue = recordObjectFound(objectFound);
+                if (!canContinue) {
+                    break;
+                }
+            }
+        }
+    }
+
+    void recordResult(int numberOfObjectsFound, boolean wasInterrupted) {
+        recordNumberOfObjectsFound(numberOfObjectsFound);
+        result.addReturn("interrupted", wasInterrupted);
+        // objects themselves were already recorded by RecordingResultHandler
+    }
+
+    private void recordNumberOfObjectsFound(int number) {
+        result.addReturn("objectsFound", number);
+    }
+
+    /**
+     * Puts the object found into RepositorySearchObjectsTraceType object.
+     * @return false if we are sure we don't want to be called again
+     */
+    boolean recordObjectFound(PrismObject<O> object) {
+        if (trace != null && tracingAtLeastNormal) {
+            if (trace.getObjectRef().size() < maxFullObjectsToTrace) {
+                trace.getObjectRef().add(ObjectTypeUtil.createObjectRefWithFullObject(object.clone(), prismContext));
+                return true;
+            } else if (trace.getObjectRef().size() < maxFullObjectsToTrace + maxReferencesToTrace) {
+                trace.getObjectRef().add(ObjectTypeUtil.createObjectRef(object, prismContext));
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
         }
     }
 
