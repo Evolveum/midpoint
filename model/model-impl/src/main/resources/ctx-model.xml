@@ -12,13 +12,11 @@
         xmlns:context="http://www.springframework.org/schema/context"
         xmlns:jaxrs="http://cxf.apache.org/jaxrs"
         xsi:schemaLocation="http://www.springframework.org/schema/beans
-     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-     http://www.springframework.org/schema/context
-     http://www.springframework.org/schema/context/spring-context-3.0.xsd
-
-
-     http://cxf.apache.org/jaxrs
-     http://cxf.apache.org/schemas/jaxrs.xsd"
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://cxf.apache.org/jaxrs
+            http://cxf.apache.org/schemas/jaxrs.xsd"
         default-lazy-init="false"
         default-autowire="byName">
 
@@ -41,9 +39,7 @@
             class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"/>
-        <property name="genericFunctions">
-            <ref bean="basicFunctionObject"/>
-        </property>
+        <property name="genericFunctions" ref="basicFunctionObject"/>
     </bean>
 
     <bean id="logFunctionObject"
@@ -54,9 +50,7 @@
     <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="log"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-3"/>
-        <property name="genericFunctions">
-            <ref bean="logFunctionObject"/>
-        </property>
+        <property name="genericFunctions" ref="logFunctionObject"/>
     </bean>
 
     <bean id="javascriptScriptEvaluator"
@@ -185,16 +179,10 @@
     </bean>
 
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
-        <constructor-arg>
-            <ref bean="securityContextManager"/>
-        </constructor-arg>
-        <constructor-arg>
-            <ref bean="prismContext"/>
-        </constructor-arg>
+        <constructor-arg ref="securityContextManager"/>
+        <constructor-arg ref="prismContext"/>
         <constructor-arg ref="localizationService"/>
-        <property name="defaultEvaluatorFactory">
-            <ref bean="asIsExpressionEvaluatorFactory"/>
-        </property>
+        <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
         <property name="cacheRegistry" ref="cacheRegistry"/>
     </bean>
@@ -211,9 +199,7 @@
             class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary">
         <property name="variableName" value="midpoint"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
-        <property name="genericFunctions">
-            <ref bean="midpointFunctionsImpl"/>
-        </property>
+        <property name="genericFunctions" ref="midpointFunctionsImpl"/>
     </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.impl.sync.ActionManagerImpl">
@@ -325,12 +311,4 @@
     </jaxrs:server>
 
     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
-
-    <!-- TODO remove as well, but ATM authorizations are not fixed in the overlay interceptor/validator -->
-    <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
-        <constructor-arg name="guiProfiledPrincipalManager" ref="guiProfiledPrincipalManager"/>
-        <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
-        <constructor-arg name="securityHelper" ref="securityHelper"/>
-        <constructor-arg name="taskManager" ref="taskManager"/>
-    </bean>
 </beans>
