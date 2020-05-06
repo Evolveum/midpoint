@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.ProfilingClassLoggerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;

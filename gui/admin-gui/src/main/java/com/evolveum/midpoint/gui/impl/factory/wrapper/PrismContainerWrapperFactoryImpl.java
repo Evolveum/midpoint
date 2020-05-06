@@ -12,9 +12,9 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  *
  */
 @Component
-public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFactoryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapperFactory<C>{
+public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends ItemWrapperFactoryImpl<PrismContainerWrapper<C>, PrismContainerValue<C>, PrismContainer<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapperFactory<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperFactoryImpl.class);
 

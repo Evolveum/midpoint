@@ -24,7 +24,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.PrismObject;

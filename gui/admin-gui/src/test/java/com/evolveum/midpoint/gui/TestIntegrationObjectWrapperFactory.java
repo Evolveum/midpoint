@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.gui.api.prism.*;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.ShadowWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;

@@ -12,6 +12,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;

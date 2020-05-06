@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
