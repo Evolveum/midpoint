@@ -1,16 +1,25 @@
+/*
+ * Copyright (c) 2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.axiom.lang.impl;
 
 import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
-public class AxiomSyntaxException extends Exception {
+import com.evolveum.axiom.api.AxiomIdentifier;
+import com.google.common.base.Strings;
+
+public class AxiomSyntaxException extends RuntimeException {
 
 
     private final String source;
     private final int line;
     private final int charPositionInLine;
- 
+
     public AxiomSyntaxException(@Nullable final String source, final int line,
             final int charPositionInLine, final String message) {
         this(source, line, charPositionInLine, message, null);
@@ -23,7 +32,7 @@ public class AxiomSyntaxException extends Exception {
         this.line = line;
         this.charPositionInLine = charPositionInLine;
     }
-    
+
     public final Optional<String> getSource() {
         return Optional.ofNullable(source);
     }
@@ -56,6 +65,13 @@ public class AxiomSyntaxException extends Exception {
     @Override
     public String toString() {
         return this.getClass().getName() + ": " + getFormattedMessage();
+    }
+
+    public static void check(boolean test, String source, int line, int posInLine, String format, Object... args) {
+        if(!test) {
+            throw new AxiomSyntaxException(source, line, posInLine, Strings.lenientFormat(format, args));
+        }
+
     }
 
 }

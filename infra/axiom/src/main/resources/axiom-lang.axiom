@@ -1,0 +1,48 @@
+model axiom-lang {
+
+    type AxiomModel {
+        property name { 
+            type AxiomIdentifier; 
+        }
+        
+        property type {
+            type AxiomTypeDefinition;
+        }
+        property object {
+            type AxiomObjectDefinition;
+        }
+    }
+
+    type AxiomTypeDefinition {
+        argument identifier;
+        property identifier {
+            type AxiomIdentifier;
+        }
+        property property {
+            type AxiomPropertyDefinition;
+        }
+        
+        container container {
+            type AxiomContainerDefinition;
+        }
+    }
+
+    type AxiomItemDefinition {
+        argument identifier;
+        property identifier {
+            type AxiomIdentifier;
+        }
+        property type {
+            type AxiomIdentifier;
+        }
+    }
+
+    type AxiomPropertyDefinition {
+        type AxiomItemDefinition;
+    }
+    
+    type AxiomContainerDefinition {
+        type AxiomItemDefinition;
+    }
+
+}
