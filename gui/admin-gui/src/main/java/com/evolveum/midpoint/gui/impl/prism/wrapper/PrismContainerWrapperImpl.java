@@ -283,7 +283,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     }
 
     @Override
-    public <D extends ItemDelta<?, ?>> Collection<D> getDelta() throws SchemaException {
+    public <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> getDelta() throws SchemaException {
 
         if (isOperational()) {
             return null;

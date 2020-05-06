@@ -11,6 +11,9 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -62,7 +65,7 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
     }
 
     @Override
-    public <D extends ItemDelta<?,?>> Collection<D> getDelta()
+    public <D extends ItemDelta<? extends PrismValue,? extends ItemDefinition>> Collection<D> getDelta()
             throws SchemaException {
         Collection<D> deltas = super.getDelta();
         if (!isChanged()) {
