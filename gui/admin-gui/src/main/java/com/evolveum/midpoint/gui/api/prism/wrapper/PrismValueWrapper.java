@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;

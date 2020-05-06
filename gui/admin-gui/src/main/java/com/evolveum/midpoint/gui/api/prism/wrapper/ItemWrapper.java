@@ -81,8 +81,6 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
 
     boolean isEmpty();
 
-//    boolean isVisible(ItemStatus objectStatus, ItemVisibilityHandler visibilityHandler);
-
     void remove(VW valueWrapper, ModelServiceLocator locator) throws SchemaException;
     void removeAll(ModelServiceLocator locator) throws SchemaException;
 
