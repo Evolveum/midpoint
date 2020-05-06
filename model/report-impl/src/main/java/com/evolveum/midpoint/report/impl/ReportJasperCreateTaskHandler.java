@@ -141,6 +141,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
         try {
             ReportType parentReport = objectResolver.resolve(task.getObjectRefOrClone(), ReportType.class, null, "resolving report", task, result);
+            JasperReportEngineConfigurationType jasperConfig = parentReport.getJasper();
 
             if (!reportService.isAuthorizedToRunReport(parentReport.asPrismObject(), task, parentResult)) {
                 LOGGER.error("Task {} is not authorized to run report {}", task, parentReport);
@@ -149,7 +150,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
             Map<String, Object> parameters = completeReport(parentReport, task, result);
 
-            JasperReport jasperReport = loadJasperReport(parentReport);
+            JasperReport jasperReport = loadJasperReport(jasperConfig);
             LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
 
             //noinspection unchecked
@@ -170,22 +171,14 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
                 }
             }
 
-            JasperReportEngineConfigurationType jasperConfig = parentReport.getJasper();
             String virtualizerS;
             Integer virtualizerKickOn;
             Integer maxPages;
             Integer timeout;
-            if (jasperConfig != null) {
-                virtualizerS = jasperConfig.getVirtualizer();
-                virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
-                maxPages = jasperConfig.getMaxPages();
-                timeout = jasperConfig.getTimeout();
-            } else {
-                virtualizerS = parentReport.getVirtualizer();
-                virtualizerKickOn = parentReport.getVirtualizerKickOn();
-                maxPages = parentReport.getMaxPages();
-                timeout = parentReport.getTimeout();
-            }
+            virtualizerS = jasperConfig.getVirtualizer();
+            virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
+            maxPages = jasperConfig.getMaxPages();
+            timeout = jasperConfig.getTimeout();
 
             if (maxPages != null && maxPages > 0) {
                 LOGGER.trace("Setting hard limit on number of report pages: " + maxPages);
@@ -270,26 +263,27 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         }
     }
 
-    private Map<String, Object> completeReport(ReportType parentReport, Task task, OperationResult result) throws SchemaException,
+    private Map<String, Object> completeReport(ReportType reportType, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException {
-        return completeReport(parentReport, null, null, task, result);
+        return completeReport(reportType, null, null, task, result);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName,
+    private Map<String, Object> completeReport(ReportType reportType, JasperReport subReport, String subReportName,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         Map<String, Object> params = new HashMap<>();
 
         if (subReport != null && StringUtils.isNotBlank(subReportName)) {
             params.put(subReportName, subReport);
         }
 
-        Map<String, Object> parameters = prepareReportParameters(parentReport, task, result);
+        Map<String, Object> parameters = prepareReportParameters(reportType, task, result);
         params.putAll(parameters);
 
-        Map<String, Object> subreportParameters = processSubreportParameters(parentReport, task, result);
+        Map<String, Object> subreportParameters = processSubreportParameters(jasperConfig, task, result);
         params.putAll(subreportParameters);
 
         if (LOGGER.isTraceEnabled()) {
@@ -299,14 +293,10 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     private Map<String, Object> prepareReportParameters(ReportType reportType, Task task, OperationResult parentResult) {
-        Map<String, Object> params = new HashMap<>();
         JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+        Map<String, Object> params = new HashMap<>();
          byte[] reportTemplateStyleBase64;
-         if (jasperConfig == null) {
-             reportTemplateStyleBase64 = reportType.getTemplateStyle();
-         } else {
-             reportTemplateStyleBase64 = jasperConfig.getTemplateStyle();
-         }
+         reportTemplateStyleBase64 = jasperConfig.getTemplateStyle();
         if (reportTemplateStyleBase64 != null) {
             byte[] reportTemplateStyle = ReportUtils.decodeIfNeeded(reportTemplateStyleBase64);
             try {
@@ -337,14 +327,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         return params;
     }
 
-    private Map<String, Object> processSubreportParameters(ReportType reportType, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+    private Map<String, Object> processSubreportParameters(JasperReportEngineConfigurationType jasperConfig, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         List<SubreportType> subreports;
-        if (jasperConfig == null) {
-            subreports = reportType.getSubreport();
-        } else {
             subreports = jasperConfig.getSubreport();
-        }
 
         Map<String, Object> subreportParameters = new HashMap<>();
         for (SubreportType subreport : subreports) {
@@ -360,36 +345,31 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
                 "resolve subreport", task, subResult);
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
 
         Map<String, Object> parameters = prepareReportParameters(reportType, task, subResult);
         Map<String, Object> reportParams = new HashMap<>(parameters);
 
-        JasperReport jasperReport = loadJasperReport(reportType);
+        JasperReport jasperReport = loadJasperReport(jasperConfig);
         reportParams.put(subreportType.getName(), jasperReport);
 
-        Map<String, Object> subReportParams = processSubreportParameters(reportType, task, subResult);
+        Map<String, Object> subReportParams = processSubreportParameters(jasperConfig, task, subResult);
         reportParams.putAll(subReportParams);
 
         return reportParams;
     }
 
-    private JasperReport loadJasperReport(ReportType reportType) throws SchemaException {
+    private JasperReport loadJasperReport(JasperReportEngineConfigurationType jasperConfig) throws SchemaException {
 
-        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         byte[] template;
         byte[] templateStyle;
-        if (jasperConfig == null) {
-            template = reportType.getTemplate();
-            templateStyle = reportType.getTemplateStyle();
-        } else {
-            template = jasperConfig.getTemplate();
-            templateStyle = jasperConfig.getTemplateStyle();
-        }
+        template = jasperConfig.getTemplate();
+        templateStyle = jasperConfig.getTemplateStyle();
         if (template == null) {
             throw new IllegalStateException("Could not create report. No jasper template defined.");
         }
 
-        LOGGER.trace("Loading Jasper report for {}", reportType);
+        LOGGER.trace("Loading Jasper report for {}", jasperConfig);
         try     {
                  JasperDesign jasperDesign = ReportTypeUtil.loadJasperDesign(template);
 //                 LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -412,12 +392,12 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
              JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
 
-             LOGGER.trace("Loaded Jasper report for {}: {}", reportType, jasperReport);
+             LOGGER.trace("Loaded Jasper report for {}: {}", jasperConfig, jasperReport);
 
              return jasperReport;
 
          } catch (JRException ex) {
-             LOGGER.error("Error loading Jasper report for {}: {}", reportType, ex.getMessage(), ex);
+             LOGGER.error("Error loading Jasper report for {}: {}", jasperConfig, ex.getMessage(), ex);
              throw new SchemaException(ex.getMessage(), ex.getCause());
          }
     }
@@ -444,8 +424,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException {
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         String destinationFileName = getDestinationFileName(reportType);
-        switch (getExport(reportType)) {
+        switch (getExport(jasperConfig)) {
             case PDF:
                 JasperExportManager.exportReportToPdfFile(jasperPrint, destinationFileName);
                 break;
@@ -465,7 +446,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             case DOCX:
             case XLSX:
             case PPTX:
-                Exporter exporter = createExporter(getExport(reportType), jasperPrint, destinationFileName);
+                Exporter exporter = createExporter(getExport(jasperConfig), jasperPrint, destinationFileName);
                 if (exporter != null) {
                     exporter.exportReport();
                 }
@@ -475,7 +456,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         return destinationFileName;
     }
 
-    private Exporter createExporter(ExportType type, JasperPrint jasperPrint, String destinationFileName) {
+    private Exporter createExporter(JasperExportType type, JasperPrint jasperPrint, String destinationFileName) {
         Exporter exporter;
         boolean writerOutput;
         switch (type) {
@@ -540,8 +521,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
         String fileNamePrefix = reportType.getName().getOrig() + " " + getDateTime();
         String fileName;
-        ExportType export = getExport(reportType);
-        if (export == ExportType.XML_EMBED) {
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+        JasperExportType export = getExport(jasperConfig);
+        if (export == JasperExportType.XML_EMBED) {
             fileName = fileNamePrefix + "_embed.xml";
         } else {
             fileName = fileNamePrefix + "." + export.value();
@@ -552,7 +534,8 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception {
 
         String fileName = FilenameUtils.getBaseName(filePath);
-        ExportType export = getExport(reportType);
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+        JasperExportType export = getExport(jasperConfig);
         String reportOutputName = fileName + " - " + export.value();
 
         ReportOutputType reportOutputType = new ReportOutputType();
@@ -631,8 +614,8 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         return TaskCategory.REPORT;
     }
 
-    protected ExportType getExport(ReportType report) {
-        return ReportUtils.getExport(report);
+    protected JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
+        return ReportUtils.getExport(jasperConfig);
     }
 
     @Override

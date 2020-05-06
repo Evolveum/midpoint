@@ -24,6 +24,8 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -31,6 +33,8 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportService;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -48,18 +52,9 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.AuditLocalizationConstants;
+import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -76,30 +71,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import j2html.TagCreator;
@@ -279,21 +250,21 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
             {
                 put(CONNECTOR_TYPE_COLUMN, "ConnectorType.connectorType");
                 put(CONNECTOR_VERSION_COLUMN, "ConnectorType.connectorVersion");
-                put(TIME_COLUMN, AuditLocalizationConstants.TIME_COLUMN_KEY);
-                put(INITIATOR_COLUMN, AuditLocalizationConstants.INITIATOR_COLUMN_KEY);
-                put(EVENT_STAGE_COLUMN, AuditLocalizationConstants.EVENT_STAGE_COLUMN_KEY);
-                put(EVENT_TYPE_COLUMN, AuditLocalizationConstants.EVENT_TYPE_COLUMN_KEY);
-                put(TARGET_COLUMN, AuditLocalizationConstants.TARGET_COLUMN_KEY);
-                put(DELTA_COLUMN, AuditLocalizationConstants.DELTA_COLUMN_KEY);
-                put(MESSAGE_COLUMN, AuditLocalizationConstants.MESSAGE_COLUMN_KEY);
-                put(TARGET_OWNER_COLUMN, AuditLocalizationConstants.TARGET_OWNER_COLUMN_KEY);
-                put(CHANNEL_COLUMN, AuditLocalizationConstants.CHANNEL_COLUMN_KEY);
-                put(OUTCOME_COLUMN, AuditLocalizationConstants.OUTCOME_COLUMN_KEY);
-                put(TASK_OID_COLUMN, AuditLocalizationConstants.TASK_OID_COLUMN_KEY);
-                put(NODE_IDENTIFIER_COLUMN, AuditLocalizationConstants.NODE_IDENTIFIER_COLUMN_KEY);
-                put(ATTORNEY_COLUMN, AuditLocalizationConstants.ATTORNEY_COLUMN_KEY);
-                put(RESULT_COLUMN, AuditLocalizationConstants.RESULT_COLUMN_KEY);
-                put(RESOURCE_OID_COLUMN, AuditLocalizationConstants.RESOURCE_OID_COLUMN_KEY);
+                put(TIME_COLUMN, AuditConstants.TIME_COLUMN_KEY);
+                put(INITIATOR_COLUMN, AuditConstants.INITIATOR_COLUMN_KEY);
+                put(EVENT_STAGE_COLUMN, AuditConstants.EVENT_STAGE_COLUMN_KEY);
+                put(EVENT_TYPE_COLUMN, AuditConstants.EVENT_TYPE_COLUMN_KEY);
+                put(TARGET_COLUMN, AuditConstants.TARGET_COLUMN_KEY);
+                put(DELTA_COLUMN, AuditConstants.DELTA_COLUMN_KEY);
+                put(MESSAGE_COLUMN, AuditConstants.MESSAGE_COLUMN_KEY);
+                put(TARGET_OWNER_COLUMN, AuditConstants.TARGET_OWNER_COLUMN_KEY);
+                put(CHANNEL_COLUMN, AuditConstants.CHANNEL_COLUMN_KEY);
+                put(OUTCOME_COLUMN, AuditConstants.OUTCOME_COLUMN_KEY);
+                put(TASK_OID_COLUMN, AuditConstants.TASK_OID_COLUMN_KEY);
+                put(NODE_IDENTIFIER_COLUMN, AuditConstants.NODE_IDENTIFIER_COLUMN_KEY);
+                put(ATTORNEY_COLUMN, AuditConstants.ATTORNEY_COLUMN_KEY);
+                put(RESULT_COLUMN, AuditConstants.RESULT_COLUMN_KEY);
+                put(RESOURCE_OID_COLUMN, AuditConstants.RESOURCE_OID_COLUMN_KEY);
             }
         };
     }
@@ -325,7 +296,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                 throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
             }
             if (parentReport.getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
-                parentReport.setExport(ExportType.HTML);
+                parentReport.getJasper().setExport(JasperExportType.HTML);
                 return super.run(task, partition);
 
             } else if (parentReport.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
@@ -445,7 +416,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                             task, result);
                     display = widget.getPresentation().getView().getDisplay();
                 } else {
-                    table = createTable(values, def, type, task, result);
+                    table = createTable(DefaultColumnUtils.getDefaultColumns(type), values, def, type, task, result);
                 }
                 return createTableBox(table, widgetData.getLabel(), values.size(),
                         convertMillisToString(startMillis), display);
@@ -647,8 +618,9 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
         return object.getName().getOrig();
     }
 
-    private String getRealValueAsString(String nameOfColumn, PrismObject<ObjectType> object, ItemPath itemPath,
+    private String getRealValueAsString(GuiObjectColumnType column, PrismObject<ObjectType> object, ItemPath itemPath,
             ExpressionType expression, Task task, OperationResult result) {
+        String nameOfColumn = column.getName();
         Iterator<?> iterator = itemPath.getSegments().iterator();
         Item valueObject = object;
 
@@ -677,15 +649,29 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
                 throw new IllegalArgumentException("Found object is PrismContainer, but ItemPath is empty");
             }
             if (valueObject instanceof PrismReference) {
-                Referencable ref = ((PrismReference) valueObject).getRealValue();
-                if (!iterator.hasNext()) {
-                    if(expression == null) {
-                        return getObjectNameFromRef(ref);
+                if (((PrismReference) valueObject).isSingleValue()) {
+                    Referencable ref = ((PrismReference) valueObject).getRealValue();
+
+                    if (!iterator.hasNext()) {
+                        if (expression == null) {
+                            return getObjectNameFromRef(ref);
+                        }
+                        return evaluateExpression(expression, valueObject, task, result);
                     }
-                    return evaluateExpression(expression, valueObject, task, result);
+
+                    valueObject = getObjectFromReference(ref);
+                } else {
+                    if (!iterator.hasNext()) {
+                        if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
+                            return String.valueOf(((PrismReference) valueObject).getValues().size());
+                        } else {
+                            throw new IllegalArgumentException("Found object is multivalue, but ItemPath is empty");
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Found object is multivalue, but ItemPath isn't empty");
+                    }
                 }
 
-                valueObject = getObjectFromReference(ref);
             }
             if (valueObject == null) {
                 if(nameOfColumn.equals(ACCOUNTS_COLUMN)) {
@@ -864,7 +850,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
-            ItemPath path = ItemPath.create(column.getPath());
+            ItemPath path = column.getPath().getItemPath();
             if(path == null) {
                 LinkedHashMap<String, ItemPath> columnForType = getColumnsForType(type);
                 if (columnForType == null) {
@@ -907,7 +893,7 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
                 }
                 ExpressionType expression = column.getExpression();
                 tr.with(TagCreator
-                        .th(TagCreator.div(getRealValueAsString(column.getName(), value, path, expression, task, result)).withStyle("white-space: pre-wrap")));
+                        .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result)).withStyle("white-space: pre-wrap")));
             });
             tBody.with(tr);
         });
@@ -927,8 +913,10 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
         values.forEach(value -> {
             ContainerTag tr = TagCreator.tr();
             columns.keySet().forEach(column -> {
+                GuiObjectColumnType columnType = new GuiObjectColumnType();
+                columnType.setName(column);
                 tr.with(TagCreator
-                        .th(TagCreator.div(getRealValueAsString(column, value, columns.get(column), null, task, result)).withStyle("white-space: pre-wrap")));
+                        .th(TagCreator.div(getRealValueAsString(columnType, value, columns.get(column), null, task, result)).withStyle("white-space: pre-wrap")));
             });
             tBody.with(tr);
         });
@@ -1060,8 +1048,8 @@ private String evaluateExpression(ExpressionType expression, Object valueObject,
     }
 
     @Override
-    protected ExportType getExport(ReportType report) {
-        return ExportType.HTML;
+    protected JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
+        return JasperExportType.HTML;
     }
 
     private String getMessage(Enum e) {

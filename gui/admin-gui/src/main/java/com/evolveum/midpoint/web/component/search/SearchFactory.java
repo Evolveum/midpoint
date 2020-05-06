@@ -99,7 +99,7 @@ public class SearchFactory {
                 ItemPath.create(NodeType.F_NODE_IDENTIFIER)
         ));
         SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
-                ItemPath.create(ReportType.F_PARENT)
+                ItemPath.create(ReportType.F_NAME)
         ));
         SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
 //                ItemPath.create(ShadowType.F_OBJECT_CLASS),

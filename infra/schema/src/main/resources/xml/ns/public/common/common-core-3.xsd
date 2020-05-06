@@ -16920,6 +16920,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                          <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
                           <xsd:annotation>
                               <xsd:documentation>
@@ -22629,7 +22636,7 @@
 
     <!-- Report Types -->
 
-    <xsd:simpleType name="ExportType">
+    <xsd:simpleType name="JasperExportType">
         <xsd:annotation>
             <xsd:documentation>
                 Report export type.
@@ -22836,168 +22843,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <!-- Following elements are jasper-specific.
-                         Those elements are all DEPRECATED. Use the elements in the
-                         "jasper" container instead. -->
-                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Indicates whether this report is a parent report or subreport.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to subreport.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Report template. This is definition of base query, report structure and so on.
-                                This item is specific to JasperRepors. But it may be reused for other report types.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Report style template. This defines colors and similar look and feel properties.
-                                This item is specific to JasperRepors. But it may be reused for other report types.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Report page orientation (portrait/landscape).
-                                This item is specific to JasperRepors. But it may be reused for other report types.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="export" type="tns:ExportType" minOccurs="0">
-                    <xsd:annotation>
-                            <xsd:documentation>
-                                Report output file format.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Columns user definition. Name, type, report field, column name.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="virtualizer" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Optional name of Jasper virtualizer class.
-                                </p>
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:operational/>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="virtualizerKickOn" type="xsd:int" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Number of pages after Jasper virtualizer kicks on.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="maxPages" type="xsd:int" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Number of pages after Jasper cancels report execution.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="timeout" type="xsd:int" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Timeout in [ms] after Jasper cancels report execution.
-                                This item is specific to JasperRepors.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <!-- End of jasper-specific elements. -->
-
                     <xsd:element name="jasper" type="tns:JasperReportEngineConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23016,6 +22861,33 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="export" type="tns:ExportType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Report output file format.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies a view of an object collection that is be reported.
+                                    We can specify more views for different object types.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23076,9 +22948,63 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- TODO: view-based report engine -->
+            <xsd:enumeration value="objectCollection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object collection reports. The reports will be based on a object collection.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Supertype of report export types.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
+                </xsd:element>
+                <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CsvExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                CSV export type for Report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="HtmlExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                HTML export type for Report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
 
     <xsd:complexType name="ReportConfigurationType">
         <xsd:annotation>
@@ -23159,7 +23085,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="export" type="tns:ExportType" minOccurs="0">
+            <xsd:element name="export" type="tns:JasperExportType" minOccurs="0">
 <xsd:annotation>
                     <xsd:documentation>
                         Report output file format.
@@ -23330,7 +23256,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportType"/>
+                    <xsd:element name="exportType" type="tns:JasperExportType"/>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -24212,9 +24138,60 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
+                   <xsd:element name="displayValue" type="tns:DisplayValueType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               <p>
+                                   Specifies the kind of view of value.
+                               </p>
+                               <p>
+                                   Column expressions are EXPERIMENTAL. They work only under a very
+                                   specific circumstances.
+                               </p>
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>GuiObjectColumnType.displayValue</a:displayName>
+                               <a:experimental>true</a:experimental>
+                               <a:since>4.2</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
                    <!-- TODO later: sorting -->
                </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="DisplayValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the kind of view of value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="number">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value will be displayed as number of values.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NUMBER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="value">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Value will be displayed as string.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
        <xsd:complexType name="GuiActionType">
         <xsd:annotation>

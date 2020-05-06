@@ -228,11 +228,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              JasperDesign jasperDesign = null;
 
             byte[] reportTemplateBase64;
-             if (jasperConfig == null) {
-                 reportTemplateBase64 = reportType.getTemplate();
-             } else {
-                 reportTemplateBase64 = jasperConfig.getTemplate();
-             }
+            reportTemplateBase64 = jasperConfig.getTemplate();
 
              if (reportTemplateBase64 == null){
                  String message = "Report template must not be null";

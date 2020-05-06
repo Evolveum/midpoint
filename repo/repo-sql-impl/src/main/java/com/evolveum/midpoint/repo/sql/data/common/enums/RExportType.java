@@ -8,48 +8,48 @@ package com.evolveum.midpoint.repo.sql.data.common.enums;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperExportType;
 
+@JaxbType(type = JasperExportType.class)
+public enum RExportType implements SchemaEnum<JasperExportType> {
 
-@JaxbType(type = ExportType.class)
-public enum RExportType implements SchemaEnum<ExportType> {
+         PDF(JasperExportType.PDF),
 
-         PDF(ExportType.PDF),
+         CSV(JasperExportType.CSV),
 
-         CSV(ExportType.CSV),
+         XML(JasperExportType.XML),
 
-         XML(ExportType.XML),
+         XML_EMBED(JasperExportType.XML_EMBED),
 
-         XML_EMBED(ExportType.XML_EMBED),
+         HTML(JasperExportType.HTML),
 
-         HTML(ExportType.HTML),
+         RTF(JasperExportType.RTF),
 
-         RTF(ExportType.RTF),
+         XLS(JasperExportType.XLS),
 
-         XLS(ExportType.XLS),
+         ODT(JasperExportType.ODT),
 
-         ODT(ExportType.ODT),
+         ODS(JasperExportType.ODS),
 
-         ODS(ExportType.ODS),
+         DOCX(JasperExportType.DOCX),
 
-         DOCX(ExportType.DOCX),
+         XLSX(JasperExportType.XLSX),
 
-         XLSX(ExportType.XLSX),
+         PPTX(JasperExportType.PPTX),
 
-         PPTX(ExportType.PPTX),
+         XHTML(JasperExportType.XHTML),
 
-         XHTML(ExportType.XHTML),
+         JXL(JasperExportType.JXL);
 
-         JXL(ExportType.JXL);
+        private JasperExportType type;
 
-        private ExportType type;
-
-        RExportType(ExportType type) {
+        RExportType(JasperExportType type) {
             this.type = type;
         }
 
 
     @Override
-    public ExportType getSchemaValue() {
+    public JasperExportType getSchemaValue() {
         return type;
     }
 

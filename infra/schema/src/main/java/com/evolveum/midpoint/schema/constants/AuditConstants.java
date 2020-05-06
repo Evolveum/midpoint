@@ -11,7 +11,23 @@ package com.evolveum.midpoint.schema.constants;
  *
  * @author skublik
  */
-public class AuditLocalizationConstants {
+public class AuditConstants {
+
+    public static final String TIME_COLUMN = "time";
+    public static final String INITIATOR_COLUMN = "initiator";
+    public static final String EVENT_STAGE_COLUMN = "eventStage";
+    public static final String EVENT_TYPE_COLUMN = "eventType";
+    public static final String TARGET_COLUMN = "target";
+    public static final String DELTA_COLUMN = "delta";
+    public static final String MESSAGE_COLUMN = "message";
+    public static final String TARGET_OWNER_COLUMN = "targetOwner";
+    public static final String CHANNEL_COLUMN = "channel";
+    public static final String OUTCOME_COLUMN = "outcome";
+    public static final String TASK_OID_COLUMN = "taskOid";
+    public static final String NODE_IDENTIFIER_COLUMN = "nodeIdentifier";
+    public static final String ATTORNEY_COLUMN = "attorney";
+    public static final String RESULT_COLUMN = "result";
+    public static final String RESOURCE_OID_COLUMN = "resourceOid";
 
     public static final String TIME_COLUMN_KEY = "AuditLocalizationConstants.time";
     public static final String INITIATOR_COLUMN_KEY = "AuditLocalizationConstants.initiator";

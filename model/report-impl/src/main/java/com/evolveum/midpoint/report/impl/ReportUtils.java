@@ -180,16 +180,12 @@ public class ReportUtils {
         return formatDate.format(createDate);
     }
 
-    public static ExportType getExport(ReportType report) {
-        JasperReportEngineConfigurationType jasperConfig = report.getJasper();
-        if (jasperConfig == null) {
-            return report.getExport();
-        } else {
-            return jasperConfig.getExport();
-        }
+    public static JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
+        return jasperConfig.getExport();
     }
 
     public static String getReportOutputFilePath(ReportType reportType) {
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         File exportDir = getExportDir();
         if (!exportDir.exists() || !exportDir.isDirectory()) {
             if (!exportDir.mkdir()) {
@@ -199,7 +195,7 @@ public class ReportUtils {
 
         String output = new File(exportDir, reportType.getName().getOrig() + " " + getDateTime()).getPath();
 
-        switch (reportType.getExport()) {
+        switch (jasperConfig.getExport()) {
             case PDF:
                 output = output + ".pdf";
                 break;

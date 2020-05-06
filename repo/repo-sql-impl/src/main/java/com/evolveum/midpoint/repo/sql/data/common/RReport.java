@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -127,13 +128,13 @@ public class RReport extends RObject<ReportType> {
     // dynamically called
     public static void copyFromJAXB(ReportType jaxb, RReport repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-
+        JasperReportEngineConfigurationType jasperConfig = jaxb.getJasper();
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOrientation(RUtil.getRepoEnumValue(jaxb.getOrientation(), ROrientationType.class));
-        repo.setExport(RUtil.getRepoEnumValue(jaxb.getExport(), RExportType.class));
-        repo.setParent(jaxb.isParent());
-        repo.setUseHibernateSession(jaxb.isUseHibernateSession());
+        repo.setOrientation(RUtil.getRepoEnumValue(jasperConfig.getOrientation(), ROrientationType.class));
+        repo.setExport(RUtil.getRepoEnumValue(jasperConfig.getExport(), RExportType.class));
+        repo.setParent(jasperConfig.isParent());
+        repo.setUseHibernateSession(jasperConfig.isUseHibernateSession());
     }
 }
