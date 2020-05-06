@@ -411,7 +411,7 @@ public class PageAbout extends PageAdminConfiguration {
         String dbInfo = createStringResource("PageAbout.environmentInfo.databaseInfo",
                 repoDiagModel.getObject().getDriverShortName() + " " + repoDiagModel.getObject().getDriverVersion()).getString();
         String osInfo = createStringResource("PageAbout.environmentInfo.osInfo",
-                System.getProperty("os.name") + System.getProperty("os.version")).getString();
+                System.getProperty("os.name") + " " + System.getProperty("os.version")).getString();
         return nodesCount + processorsCount + totalMemory + javaVersion + tomcatVersion + mpVersion + dbInfo + osInfo;
     }
 
