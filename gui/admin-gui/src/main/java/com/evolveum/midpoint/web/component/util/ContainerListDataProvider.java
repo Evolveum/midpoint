@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.PrismContainerWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;

@@ -7,22 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 
 /**
  * @author skublik

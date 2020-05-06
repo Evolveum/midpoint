@@ -7,21 +7,23 @@
 
 package com.evolveum.midpoint.prism.impl;
 
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.Hacks;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.impl.marshaller.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.impl.xnode.*;
+import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
-import javax.xml.soap.Detail;
 
 /**
  * TEMPORARY
@@ -32,23 +34,6 @@ public class HacksImpl implements Hacks, XNodeMutator {
 
     HacksImpl(@NotNull PrismContextImpl prismContext) {
         this.prismContext = prismContext;
-    }
-
-    /**
-     * TODO rewrite this method using Prism API
-     */
-    @Override
-    public void serializeFaultMessage(Detail detail, Object faultInfo, QName faultMessageElementName, Trace logger) {
-        try {
-            XNodeImpl faultMessageXnode = prismContext.getBeanMarshaller().marshall(faultInfo);
-            RootXNodeImpl xroot = new RootXNodeImpl(faultMessageElementName, faultMessageXnode);
-            xroot.setExplicitTypeDeclaration(true);
-            QName faultType = prismContext.getSchemaRegistry().determineTypeForClass(faultInfo.getClass());
-            xroot.setTypeQName(faultType);
-            prismContext.getParserDom().serializeUnderElement(xroot, faultMessageElementName, detail);
-        } catch (SchemaException e) {
-            logger.error("Error serializing fault message (SOAP fault detail): {}", e.getMessage(), e);
-        }
     }
 
     @Override

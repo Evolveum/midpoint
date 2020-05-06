@@ -17,7 +17,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;

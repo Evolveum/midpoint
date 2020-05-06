@@ -23,7 +23,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 
-import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

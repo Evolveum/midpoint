@@ -9,9 +9,8 @@ package com.evolveum.midpoint.web.model;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 

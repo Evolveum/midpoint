@@ -9,8 +9,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;

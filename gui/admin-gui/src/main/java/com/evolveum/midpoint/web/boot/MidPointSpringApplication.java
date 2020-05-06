@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web.boot;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;

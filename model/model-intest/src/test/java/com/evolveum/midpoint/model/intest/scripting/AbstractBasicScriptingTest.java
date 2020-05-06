@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
@@ -49,7 +48,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.impl.ModelWebService;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
@@ -1412,12 +1411,12 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         }
     }
 
-    void dumpOutput(ExecutionContext output, OperationResult result) throws JAXBException, SchemaException {
+    void dumpOutput(ExecutionContext output, OperationResult result) throws SchemaException {
         displayDumpable("output", output.getFinalOutput());
         displayValue("stdout", output.getConsoleOutput());
         display(result);
         if (output.getFinalOutput() != null) {
-            PipelineDataType bean = ModelWebService.prepareXmlData(output.getFinalOutput().getData(), null);
+            PipelineDataType bean = PipelineData.prepareXmlData(output.getFinalOutput().getData(), null);
             displayValue("output in XML", prismContext.xmlSerializer().root(new QName("output")).serializeRealValue(bean));
         }
     }

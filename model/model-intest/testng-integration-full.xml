@@ -126,7 +126,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenResources"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
-            <class name="com.evolveum.midpoint.model.intest.negative.TestModelWebServiceNegative"/>
         </classes>
     </test>
     <test name="Manual" preserve-order="true" parallel="false" verbose="10">

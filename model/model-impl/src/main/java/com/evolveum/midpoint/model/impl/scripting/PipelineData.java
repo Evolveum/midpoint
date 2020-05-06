@@ -21,6 +21,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -196,5 +199,30 @@ public class PipelineData implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         return DebugUtil.debugDump(data, indent);
+    }
+
+    public static PipelineDataType prepareXmlData(
+            List<PipelineItem> output, ScriptingExpressionEvaluationOptionsType options) {
+        boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
+        PipelineDataType rv = new PipelineDataType();
+        if (output != null) {
+            for (PipelineItem item : output) {
+                PipelineItemType itemType = new PipelineItemType();
+                PrismValue value = item.getValue();
+                if (value instanceof PrismReferenceValue) {
+                    // This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
+                    ObjectReferenceType ort = new ObjectReferenceType();
+                    ort.setupReferenceValue((PrismReferenceValue) value);
+                    itemType.setValue(ort);
+                } else {
+                    itemType.setValue(value.getRealValue());
+                }
+                if (!hideResults) {
+                    itemType.setResult(item.getResult().createOperationResultType());
+                }
+                rv.getItem().add(itemType);
+            }
+        }
+        return rv;
     }
 }

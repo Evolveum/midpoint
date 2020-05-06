@@ -201,7 +201,6 @@
         <javax.xml.soap.version>1.4.0</javax.xml.soap.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
         <asm.version>7.0</asm.version>
-        <jaxws-api.version>2.3.1</jaxws-api.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
@@ -218,11 +217,6 @@
                 <groupId>javax.xml.soap</groupId>
                 <artifactId>javax.xml.soap-api</artifactId>
                 <version>${javax.xml.soap.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.ws</groupId>
-                <artifactId>jaxws-api</artifactId>
-                <version>${jaxws-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
@@ -1764,6 +1758,7 @@
                                 <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.apache.tomcat.embed:tomcat-embed-core</ignoredUsedUndeclaredDependency>
                             </ignoredUsedUndeclaredDependencies>
                         </configuration>
                     </execution>
@@ -1778,7 +1773,9 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle.version}</version>
                 <configuration>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <configLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle.xml</configLocation>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <suppressionsLocation>${maven.multiModuleProjectDirectory}/config/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
                     <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
@@ -2029,6 +2026,7 @@
                 <!-- TODO: unify with other checkstyle setup in pluginManagement? -->
                 <version>${checkstyle.version}</version>
                 <configuration>
+                    <!--suppress MavenModelInspection: provided by mvn(w)/IDE/Jenkins -->
                     <configLocation>${maven.multiModuleProjectDirectory}/build-system/checkstyle-configs/checkstyle.xml</configLocation>
                     <!-- TODO: what about suppressions? without them and with failsOnError true it must fail, or not? -->
                     <encoding>UTF-8</encoding>

@@ -17,8 +17,8 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.util.logging.Trace;

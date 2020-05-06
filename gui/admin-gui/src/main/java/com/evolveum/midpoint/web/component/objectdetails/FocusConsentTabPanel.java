@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.assignment.GdprAssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;

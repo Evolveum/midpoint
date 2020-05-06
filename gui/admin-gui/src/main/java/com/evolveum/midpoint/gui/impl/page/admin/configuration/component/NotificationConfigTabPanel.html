@@ -8,26 +8,30 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
     <wicket:panel>
-        <div style="margin-right: 0px; margin-left: 0px">
-            <div class="row prism-property">
-                <div class="top-level-prism-container">
-                    <div class="container-fluid">
-                        <div class="prism-header" style="height: 29px;">
-                            <div wicket:id="mailConfigurationHeader"/>
-                        </div>
-                        <div class="prism-properties">
-                            <div class="row prism-property" wicket:id="defaultFrom"/>
-                            <div class="row prism-property" wicket:id="redirectToFile"/>
-                            <div class="row prism-property" wicket:id="logToFile"/>
-                            <div class="row prism-property" wicket:id="debug"/>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row prism-property">
+                    <div class="top-level-prism-container">
+                        <div class="container-fluid">
                             <div class="prism-header" style="height: 29px;">
-                                <div wicket:id="mailServerConfigurationHeader"/>
+                                <div wicket:id="mailConfigurationHeader"/>
                             </div>
-                            <div wicket:id="mailServersTable"/>
+                            <div class="prism-properties">
+                                <div class="row prism-property stripe" wicket:id="defaultFrom"/>
+                                <div class="row prism-property" wicket:id="redirectToFile"/>
+                                <div class="row prism-property stripe" wicket:id="logToFile"/>
+                                <div class="row prism-property" wicket:id="debug"/>
+                                <div class="prism-header" style="height: 29px;">
+                                    <div wicket:id="mailServerConfigurationHeader"/>
+                                </div>
+                                <div wicket:id="mailServersTable"/>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+
         </div>
 
         <div style="margin-right: 0px; margin-left: 0px">

@@ -10,10 +10,10 @@ package com.evolveum.midpoint.web;
 import java.util.Locale;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
