@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -17,7 +18,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -76,8 +77,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public String getButtonIconCssClass() {
-                        return GuiStyleConstants.CLASS_NAVIGATE_ARROW;
+                    public CompositedIconBuilder getIconCompositedBuilder() {
+                        return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_NAVIGATE_ARROW);
                     }
 
                     @Override

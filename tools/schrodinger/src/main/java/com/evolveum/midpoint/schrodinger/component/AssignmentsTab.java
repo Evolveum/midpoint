@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -17,6 +18,10 @@ import com.evolveum.midpoint.schrodinger.component.common.table.AbstractTableWit
 import com.evolveum.midpoint.schrodinger.component.table.DirectIndirectAssignmentTable;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -133,5 +138,19 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
     protected void selectType(String resourceKey) {
         $(Schrodinger.byDataId("div", resourceKey)).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+    }
+
+    public boolean containsAssignmentsWithRelation(String relation, String... expectedAssignments) {
+        String relationString = relation.equals("Default") ? "" : ("Relation: " + relation);
+        ElementsCollection labels = getParentElement()
+                .$$(Schrodinger.byAncestorFollowingSiblingDescendantOrSelfElementEnclosedValue("span", "data-s-id", "label",
+                        "data-s-id", "5", relationString));
+        List<String> indirectAssignments = new ArrayList<String>();
+        for (SelenideElement label : labels) {
+            if (!label.getText().isEmpty()) {
+                indirectAssignments.add(label.getText());
+            }
+        }
+        return indirectAssignments.containsAll(Arrays.asList(expectedAssignments));
     }
 }

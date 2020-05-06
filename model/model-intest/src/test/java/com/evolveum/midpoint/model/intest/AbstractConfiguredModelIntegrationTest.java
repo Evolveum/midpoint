@@ -9,22 +9,17 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -36,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.AssertJUnit;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -44,15 +38,12 @@ import java.util.Date;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
+public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIntegrationTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final int NUMBER_OF_GLOBAL_POLICY_RULES = 7;
-
-    public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
     protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR + "/user-template.xml";
     protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";
@@ -178,9 +169,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     protected static final String RESOURCE_DUMMY_FAKE_FILENAME = COMMON_DIR + "/resource-dummy-fake.xml";
     protected static final String RESOURCE_DUMMY_FAKE_OID = "10000000-0000-0000-0000-00000000000f";
-
-    public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR, "role-pirate.xml");
     protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
@@ -546,45 +534,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";
     protected static final String NOTIFIER_ACCOUNT_ACTIVATION_NAME = "accountActivationNotifier";
 
-    protected PrismObject<UserType> userAdministrator;
-
     public AbstractConfiguredModelIntegrationTest() {
         super();
     }
 
-    @Override
-    public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
-        logger.trace("initSystem");
-
-        // We want logging config from logback-test.xml and not from system config object (unless suppressed)
-        InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
-        super.initSystem(initTask, initResult);
-
-        modelService.postInit(initResult);
-        ManualConnectorInstance.setRandomDelayRange(0);
-
-        // System Configuration
-        PrismObject<SystemConfigurationType> configuration;
-        try {
-            File systemConfigurationFile = getSystemConfigurationFile();
-            if (systemConfigurationFile != null) {
-                configuration = repoAddObjectFromFile(systemConfigurationFile, initResult);
-            } else {
-                configuration = addSystemConfigurationObject(initResult);
-            }
-        } catch (ObjectAlreadyExistsException e) {
-            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-                    "looks like the previous test haven't cleaned it up", e);
-        }
-        if (configuration != null) {
-            relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
-        }
-
-        // Users
-        userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-        login(userAdministrator);
-    }
+    // initSystem is the same as in the superclass
 
     protected int getNumberOfUsers() {
         return 1; // Administrator
@@ -596,12 +550,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
-    }
-
-    // to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
-    protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
-            EncryptionException {
-        return null;
     }
 
     protected PrismObject<UserType> getDefaultActor() {

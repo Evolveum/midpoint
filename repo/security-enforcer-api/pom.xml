@@ -50,10 +50,5 @@
             <artifactId>task-api</artifactId>
             <version>4.2-SNAPSHOT</version>
         </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-        </dependency>
     </dependencies>
 </project>

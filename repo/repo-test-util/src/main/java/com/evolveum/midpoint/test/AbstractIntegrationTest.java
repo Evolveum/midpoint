@@ -964,8 +964,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 }
 
                 @Override
-                public boolean isSupported(QName xsdType) {
-                    return nameMatchingRule.isSupported(xsdType);
+                public boolean supports(QName xsdType) {
+                    return nameMatchingRule.supports(xsdType);
                 }
 
                 @Override

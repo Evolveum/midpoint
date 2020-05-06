@@ -84,7 +84,7 @@ public class PageServices extends PageAdminObjectList<ServiceType> {
 
     @Override
     protected List<InlineMenuItem> createRowActions() {
-        return listInlineMenuHelper.createRowActions();
+        return listInlineMenuHelper.createRowActions(getType());
     }
 
     @Override

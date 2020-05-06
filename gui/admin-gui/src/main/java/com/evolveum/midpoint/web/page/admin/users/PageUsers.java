@@ -13,9 +13,13 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -26,8 +30,11 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
+import com.evolveum.midpoint.web.page.admin.server.TaskTablePanel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -175,7 +182,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
     @Override
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
+        ButtonInlineMenuItem enableItem = new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -195,8 +202,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             }
 
             @Override
-            public String getButtonIconCssClass(){
-                return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
             }
 
             @Override
@@ -204,10 +211,11 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 String actionName = createStringResource("pageUsers.message.enableAction").getString();
                 return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
+        };
+        enableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectDisabled);
+        menu.add(enableItem);
 
-        });
-
-        menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable")) {
+        ButtonInlineMenuItem disableItem = new ButtonInlineMenuItem(createStringResource("pageUsers.menu.disable")) {
                      private static final long serialVersionUID = 1L;
 
             @Override
@@ -228,12 +236,20 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             }
 
             @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
+                builder.appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_BAN), IconCssStyle.BOTTOM_RIGHT_STYLE);
+                return builder;
+            }
+
+            @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageUsers.message.disableAction").getString();
                 return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
-
-        });
+        };
+        disableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectEnabled);
+        menu.add(disableItem);
 
         menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.reconcile")) {
             private static final long serialVersionUID = 1L;
@@ -256,8 +272,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             }
 
             @Override
-            public String getButtonIconCssClass() {
-                return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
             }
 
             @Override

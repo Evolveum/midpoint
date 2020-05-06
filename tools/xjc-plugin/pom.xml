@@ -40,8 +40,12 @@
             <version>4.2-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
+            <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-xjc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>codemodel</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>

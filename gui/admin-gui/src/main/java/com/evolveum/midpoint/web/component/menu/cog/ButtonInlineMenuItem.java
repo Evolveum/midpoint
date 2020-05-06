@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.menu.cog;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -21,5 +25,12 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         super(labelModel, isSubmit);
     }
 
-    public abstract String getButtonIconCssClass();
+    public abstract CompositedIconBuilder getIconCompositedBuilder();
+
+    protected CompositedIconBuilder getDefaultCompositedIconBuilder(String basicIcon){
+        CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(basicIcon, IconCssStyle.IN_ROW_STYLE);
+        return builder;
+    }
+
 }

@@ -26489,6 +26489,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="secondarySize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Current "secondary size" of the cache, if applicable. This can mean e.g. number of cached objects
+                        for query caches.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="component" type="tns:ComponentSizeInformationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -26530,6 +26538,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Component size.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="secondarySize" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Component secondary size (if applicable).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.testing.schrodinger.scenarios.ScenariosCommons;
 
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -62,7 +61,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
     }
 
     @Test(groups={"M8"}, dependsOnGroups={"M7"})
-    public void test0801ExtendingMidPointXMLSchema() {
+    public void mod08test01ExtendingMidPointXMLSchema() {
         PrismForm<AssignmentHolderBasicTab<UserPage>> form = basicPage.newUser()
                 .selectTabBasic()
                     .form();
@@ -71,6 +70,8 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         form.findProperty("ouPath");
         form.findProperty("isManager");
         form.findProperty("empStatus");
+
+//        showTask("HR Synchronization").clickSuspend();
 
         importObject(HR_RESOURCE_FILE_8_1,true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);

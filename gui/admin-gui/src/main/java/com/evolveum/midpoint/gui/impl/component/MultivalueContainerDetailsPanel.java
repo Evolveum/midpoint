@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -16,11 +17,9 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 /**
@@ -69,7 +68,6 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     protected Panel getBasicContainerValuePanel(String idPanel){
         ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
-                .showOnTopLevel(true)
                 .editabilityHandler(wrapper -> getBasicTabEditability(wrapper));
 
         if (getMandatoryHandler() != null) {
@@ -81,11 +79,11 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
         return containerValue;
     }
 
-    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper) { //, ItemPath parentPath) {
+    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) { //, ItemPath parentPath) {
         return ItemVisibility.AUTO;
     }
 
-    protected boolean getBasicTabEditability(ItemWrapper<?,?,?,?> itemWrapper) {
+    protected boolean getBasicTabEditability(ItemWrapper<?,?> itemWrapper) {
         return true;
     }
 

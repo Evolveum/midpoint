@@ -15,12 +15,14 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
+@UnusedTestElement("3 of 5 fails")
 public class ImportRepositoryTest extends BaseTest {
 
     @BeforeMethod

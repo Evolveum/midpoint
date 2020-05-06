@@ -306,7 +306,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
-                    RepositoryCache.enter(cacheConfigurationManager);
+                    RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
                     PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
 
@@ -328,7 +328,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         fail("Unexpected thread result status " + localResult.getStatus());
                     }
 
-                    RepositoryCache.exit();
+                    RepositoryCache.exitLocalCaches();
 
                 }, CONCURRENT_TEST_THREAD_COUNT, CONCURRENT_TEST_MAX_START_DELAY_FAST);
 
@@ -363,7 +363,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
-                    RepositoryCache.enter(cacheConfigurationManager);
+                    RepositoryCache.enterLocalCaches(cacheConfigurationManager);
 
                     try {
                         display("Thread " + Thread.currentThread().getName() + " START");
@@ -383,7 +383,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         // this is expected ... sometimes
                         logger.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
                     } finally {
-                        RepositoryCache.exit();
+                        RepositoryCache.exitLocalCaches();
                     }
 
                 }, CONCURRENT_TEST_THREAD_COUNT, CONCURRENT_TEST_MAX_START_DELAY_FAST);
@@ -435,7 +435,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         // this is expected ... sometimes
                         logger.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
                     } finally {
-                        RepositoryCache.exit();
+                        RepositoryCache.exitLocalCaches();
                     }
 
                 }, CONCURRENT_TEST_THREAD_COUNT, null);
@@ -506,7 +506,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
-                    RepositoryCache.enter(cacheConfigurationManager);
+                    RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
                     PrismObject<ShadowType> shadowBefore = repositoryService.getObject(
                             ShadowType.class, accountElizabethOid, null, localResult);
@@ -530,7 +530,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         fail("Unexpected thread result status " + localResult.getStatus());
                     }
 
-                    RepositoryCache.exit();
+                    RepositoryCache.exitLocalCaches();
 
                 }, CONCURRENT_TEST_THREAD_COUNT, null);
 
@@ -565,7 +565,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                     Task localTask = createTask(testName + "-thread-" + i);
                     OperationResult localResult = localTask.getResult();
 
-                    RepositoryCache.enter(cacheConfigurationManager);
+                    RepositoryCache.enterLocalCaches(cacheConfigurationManager);
                     // Playing with cache, trying to make a worst case
                     PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
 
@@ -588,7 +588,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                         // this is expected ... sometimes
                         logger.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
                     } finally {
-                        RepositoryCache.exit();
+                        RepositoryCache.exitLocalCaches();
                     }
 
                 }, CONCURRENT_TEST_THREAD_COUNT, null);

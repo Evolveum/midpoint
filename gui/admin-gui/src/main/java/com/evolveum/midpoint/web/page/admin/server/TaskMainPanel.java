@@ -10,6 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,13 +27,12 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -126,8 +131,14 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> ItemVisibility.AUTO;
-                return createContainerPanel(panelId, ScheduleType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), visibilityHandler, getTaskEditabilityHandler());
+                return new SingleContainerPanel<ScheduleType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_SCHEDULE), ScheduleType.COMPLEX_TYPE) {
+
+                    @Override
+                    protected ItemEditabilityHandler getEditabilityHandler() {
+                        return TaskMainPanel.this.getTaskEditabilityHandler();
+                    }
+                };
+
             }
         });
     }
@@ -148,9 +159,18 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                ItemVisibilityHandler visibilityHandler = wrapper -> getWorkManagementVisibility(wrapper.getPath());
-                return createContainerPanel(panelId, TaskType.COMPLEX_TYPE,
-                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), visibilityHandler, getTaskEditabilityHandler());
+                return new SingleContainerPanel<TaskWorkManagementType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), TaskWorkManagementType.COMPLEX_TYPE) {
+
+                    @Override
+                    protected ItemVisibility getVisibity(ItemPath itemPath) {
+                        return getWorkManagementVisibility(itemPath);
+                    }
+
+                    @Override
+                    protected ItemEditabilityHandler getEditabilityHandler() {
+                        return getTaskEditabilityHandler();
+                    }
+                };
             }
         });
     }
@@ -389,22 +409,6 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         saveButton.setOutputMarkupId(true);
         saveButton.setOutputMarkupPlaceholderTag(true);
         getMainForm().add(saveButton);
-    }
-
-
-    private <C extends Containerable> Panel createContainerPanel(String id, QName typeName, IModel<? extends PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
-        try {
-            ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(visibilityHandler)
-                    .editabilityHandler(editabilityHandler)
-                    .showOnTopLevel(true);
-            return getDetailsPage().initItemPanel(id, typeName, model, builder.build());
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
-            getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
-        }
-
-        return null;
     }
 
     private ItemEditabilityHandler getTaskEditabilityHandler(){

@@ -13,11 +13,6 @@ package com.evolveum.midpoint.web.component.prism;
 public enum ItemVisibility {
 
     /**
-     * Element always visible.
-     */
-    VISIBLE,
-
-    /**
      * Visibility determined automatically (e.g. based on "show empty" button).
      */
     AUTO,

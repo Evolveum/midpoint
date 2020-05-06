@@ -31,4 +31,8 @@ public class TestResource<T extends ObjectType> {
     public String getNameOrig() {
         return object.getName().getOrig();
     }
+
+    public T getObjectable() {
+        return object.asObjectable();
+    }
 }

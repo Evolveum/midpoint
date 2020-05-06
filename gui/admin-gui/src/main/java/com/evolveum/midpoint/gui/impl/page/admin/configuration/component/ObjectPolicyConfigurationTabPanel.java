@@ -14,8 +14,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ItemMandatoryHandler;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -29,15 +29,15 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -66,7 +66,6 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 
     public ObjectPolicyConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
-//        getModel().getObject().getValues().clear();
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
         return detailsPanel;
     }
 
-    private boolean getMandatoryOverrideFor(ItemWrapper<?, ?, ?, ?> itemWrapper) {
+    private boolean getMandatoryOverrideFor(ItemWrapper<?, ?> itemWrapper) {
         ItemPath conflictResolutionPath = ItemPath.create(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION,
                 ObjectPolicyConfigurationType.F_CONFLICT_RESOLUTION, ConflictResolutionType.F_ACTION);
         if (conflictResolutionPath.equivalent(itemWrapper.getPath().namedSegmentsOnly())) {

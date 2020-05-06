@@ -41,7 +41,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -97,6 +97,7 @@ public class ConnectorManager implements Cacheable {
     }
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ConnectorManager.class.getName() + ".content");
 
     private static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
     private static final String CONNECTOR_TYPE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorTypeCache";
@@ -690,5 +691,13 @@ public class ConnectorManager implements Cacheable {
                         .name(CONNECTOR_TYPE_CACHE_NAME)
                         .size(connectorBeanCache.size())
         );
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            connectorInstanceCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached connector instance: {}: {}", k, v));
+            connectorBeanCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached connector bean: {}: {}", k, v));
+        }
     }
 }

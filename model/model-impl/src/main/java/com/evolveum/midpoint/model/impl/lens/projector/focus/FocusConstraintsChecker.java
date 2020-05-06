@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -231,6 +230,8 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
     public static class Cache extends AbstractThreadLocalCache {
 
+        private static final Trace LOGGER_CONTENT = TraceManager.getTrace(Cache.class.getName() + ".content");
+
         private final Set<String> conflictFreeNames = ConcurrentHashMap.newKeySet();
 
         static boolean isOk(PolyStringType name, CacheConfigurationManager cacheConfigurationManager) {
@@ -294,6 +295,13 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
         @Override
         protected int getSize() {
             return conflictFreeNames.size();
+        }
+
+        @Override
+        protected void dumpContent(String threadName) {
+            if (LOGGER_CONTENT.isInfoEnabled()) {
+                conflictFreeNames.forEach(name -> LOGGER_CONTENT.info("Cached conflict-free name [{}]: {}", threadName, name));
+            }
         }
 
         private static void log(String message, boolean info, Object... params) {

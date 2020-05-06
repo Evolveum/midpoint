@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
@@ -36,10 +37,10 @@ public class TaskHandlerSelectorPanel extends PrismPropertyPanel<String> {
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<String>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
-        Component handlerPanel = super.createValuePanel(item, factory, visibilityHandler, editabilityHandler);
-        if (handlerPanel.get("form:input") instanceof InputPanel) {
-            ((InputPanel) handlerPanel.get("form:input")).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<String>> item) {
+        Component handlerPanel = super.createValuePanel(item);
+        if (handlerPanel.get("valueForm:valueContainer:input") instanceof InputPanel) {
+            ((InputPanel) handlerPanel.get("valueForm:valueContainer:input")).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {

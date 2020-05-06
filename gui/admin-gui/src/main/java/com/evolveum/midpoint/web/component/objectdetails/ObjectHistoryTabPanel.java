@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -20,7 +21,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -95,7 +96,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected AjaxIconButton createButton(int index, String componentId, IModel<AuditEventRecordType> model) {
+                            protected Component createButton(int index, String componentId, IModel<AuditEventRecordType> model) {
                                 AjaxIconButton btn = null;
                                 switch (index) {
                                     case 0:

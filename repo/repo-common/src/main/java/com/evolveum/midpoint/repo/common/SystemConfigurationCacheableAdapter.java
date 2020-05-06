@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -27,7 +27,8 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * @author mederly
+ * Adapter from SystemConfigurationChangeDispatcher to Cacheable. Distributes events about system configuration
+ * invalidation changes.
  */
 @Component
 public class SystemConfigurationCacheableAdapter implements Cacheable {
@@ -65,5 +66,10 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
     @Override
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public void dumpContent() {
+        // nothing to do here
     }
 }

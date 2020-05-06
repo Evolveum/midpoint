@@ -94,7 +94,6 @@
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
         <constructor-arg name="prismContext" ref="prismContext"/>
-        <constructor-arg name="protector" ref="protector"/>
         <constructor-arg name="repositoryService" ref="repositoryService"/>
         <property name="functions">
             <list>

@@ -41,6 +41,7 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class.getName() + ".content");
 
     // Making client's life easier - if it stores the cache in ThreadLocal variable and needs any other cache-related
     // information (e.g. custom invalidator), it does not need to create another ThreadLocal for that.
@@ -92,5 +93,12 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
     @Override
     protected int getSize() {
         return queries.size();
+    }
+
+    @Override
+    protected void dumpContent(String threadName) {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            queries.forEach((qk, qr) -> LOGGER.info("Cached search expression evaluation [{}] {}: {}", threadName, qk, qr));
+        }
     }
 }

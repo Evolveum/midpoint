@@ -119,6 +119,15 @@ public class Table<T> extends Component<T> {
         return $(byPartialLinkText(value)).is(Condition.visible);
     }
 
+    public boolean containsLinksTextPartially(String... values) {
+        for (String value : values) {
+            if (!containsLinkTextPartially(value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public boolean buttonToolBarExists() {
         return $(Schrodinger.byDataId("buttonToolbar")).exists();
     }

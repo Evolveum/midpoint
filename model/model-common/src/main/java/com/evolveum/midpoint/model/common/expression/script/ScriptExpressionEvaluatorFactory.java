@@ -82,7 +82,8 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
         }
         ScriptExpressionEvaluatorType scriptType = (ScriptExpressionEvaluatorType) evaluatorElementObject;
 
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, expressionProfile, factory, contextDescription, task, result);
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
+                expressionProfile, factory, contextDescription, result);
 
         return new ScriptExpressionEvaluator<V,D>(ELEMENT_NAME, scriptType, outputDefinition, protector, prismContext, scriptExpression, securityContextManager, localizationService);
 

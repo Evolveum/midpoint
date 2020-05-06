@@ -36,4 +36,9 @@ public class OrgRootTab extends Component<OrgTreePage> {
         SelenideElement memberPanel = getParentElement().$(Schrodinger.byDataId("div", "memberPanel"));
         return new MemberPanel<>(this, memberPanel);
     }
+
+    public ManagerPanel<OrgRootTab> getManagerPanel() {
+        SelenideElement memberPanel = getParentElement().$(Schrodinger.byDataId("div", "managerContainer"));
+        return new ManagerPanel<>(this, memberPanel);
+    }
 }

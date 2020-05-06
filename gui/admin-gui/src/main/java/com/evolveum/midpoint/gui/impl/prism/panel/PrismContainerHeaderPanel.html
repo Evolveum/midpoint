@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="row">
+        <div class="pull-left">
+            <button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                    class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
+       </div>
+        <div wicket:id="labelContainer" style="float: left;">
+            <a class="prism-title" style="cursor: pointer;" wicket:id="label"/>
+
+            <span wicket:id="required" style="color: #f00; font-weight: bold;"
+                wicket:message="title:prismPropertyPanel.required">*</span>
+<!--             <span wicket:id="hasOutbound" style="color: #8080ff; font-weight: bold;" -->
+<!--                   wicket:message="title:prismPropertyPanel.hasOutbound"><i class="fa fa-sign-out"></i></span> -->
+<!--             <span wicket:id="hasPendingModification" style="color: #f0f; font-weight: bold;" -->
+<!--                   wicket:message="title:prismPropertyPanel.hasPendingModification">*</span> -->
+<!--             <i class="helpTextIcon" wicket:id="help"/> -->
+            <i class="helpTextIcon" wicket:id="help"/>
+            <i class="helpTextIcon" wicket:id="deprecated"/>
+            <i class="helpTextIcon" wicket:id="experimental"/>
+        </div>
+
+        <div class="box-tools">
+            <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-box-tool" trigger="hover">
+                <i class="fa fa-plus-circle"></i>
+            </button>
+            <button wicket:id="remove" wicket:message="title:ItemHeaderPanel.removeAll" class="btn btn-box-tool" trigger="hover">
+                <i class="fa fa-minus-circle"></i>
+            </button>
+        </div>
+    </div>
+</wicket:panel>
+</html>

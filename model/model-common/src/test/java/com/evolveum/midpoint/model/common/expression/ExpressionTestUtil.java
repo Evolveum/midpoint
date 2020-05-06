@@ -90,7 +90,7 @@ public class ExpressionTestUtil {
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
 

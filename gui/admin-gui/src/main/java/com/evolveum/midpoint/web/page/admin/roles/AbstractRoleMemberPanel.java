@@ -81,7 +81,6 @@ import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -442,8 +441,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 }
 
                 @Override
-                public String getButtonIconCssClass() {
-                    return GuiStyleConstants.CLASS_UNASSIGN;
+                public CompositedIconBuilder getIconCompositedBuilder() {
+                    return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_UNASSIGN);
                 }
             });
         }
@@ -533,8 +532,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 //                    }
 
                     @Override
-                    public String getButtonIconCssClass() {
-                        return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+                    public CompositedIconBuilder getIconCompositedBuilder() {
+                        return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
                     }
 
                 });

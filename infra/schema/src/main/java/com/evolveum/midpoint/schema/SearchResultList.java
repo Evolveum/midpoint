@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.Freezable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -17,10 +21,28 @@ import java.util.*;
  * @author semancik
  *
  */
-public class SearchResultList<T> implements List<T>, Cloneable, Serializable, ShortDumpable {
+public class SearchResultList<T> extends AbstractFreezable implements List<T>, Cloneable, Serializable, ShortDumpable {
 
     private List<T> list = null;
     private SearchResultMetadata metadata = null;
+
+    @Override
+    protected void performFreeze() {
+        if (isMutable()) {
+            if (list != null) {
+                list = Collections.unmodifiableList(list);
+            } else {
+                list = Collections.emptyList();
+            }
+            for (T item : list) {
+                if (item instanceof Freezable) {
+                    ((Freezable) item).freeze();
+                }
+            }
+        } else {
+            // no-op to avoid multiple wrapping of the list
+        }
+    }
 
     public SearchResultList() { }
 
@@ -203,10 +225,44 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable, Sh
         }
     }
 
+    /**
+     * Just to emphasize the semantics.
+     * (Is this a good idea? Because then someone could think that clone() is a shallow clone!)
+     */
+    @Experimental
+    public SearchResultList<T> deepClone() {
+        return clone();
+    }
+
+    /**
+     * Just to indicate that clone() is a deep one :)
+     */
+    @Experimental
+    public SearchResultList<T> shallowClone() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns deep frozen list - either this or a clone.
+     */
+    @Experimental
+    public SearchResultList<T> toDeeplyFrozenList() {
+        if (isImmutable()) {
+            return this;
+        } else {
+            SearchResultList<T> clone = deepClone();
+            clone.freeze();
+            return clone;
+        }
+    }
+
+    /**
+     * This is actually a deep clone.
+     */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public SearchResultList<T> clone() {
         SearchResultList<T> clone = new SearchResultList<>();
-        clone.metadata = this.metadata;        // considered read-only object
+        clone.metadata = this.metadata; // considered read-only object
         if (this.list != null) {
             clone.list = new ArrayList<>(this.list.size());
             for (T item : this.list) {

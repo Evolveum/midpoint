@@ -85,7 +85,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
-        scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
+        scriptExpressionfactory = new ScriptExpressionFactory(prismContext, null);
         scriptExpressionfactory.setObjectResolver(resolver);
         scriptExpressionfactory.setFunctions(functions);
         localizationService = LocalizationTestUtil.getLocalizationService();
