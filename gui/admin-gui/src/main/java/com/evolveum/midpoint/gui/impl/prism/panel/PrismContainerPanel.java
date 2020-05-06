@@ -73,6 +73,11 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
                 wrapper.setExpanded(!wrapper.isExpanded());
                 target.add(PrismContainerPanel.this);
             }
+
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(PrismContainerPanel.this);
+            }
         };
     }
 
@@ -86,7 +91,13 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
-        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<>("value", item.getModel(), getSettings().copy());
+        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getSettings().copy()) {
+
+            @Override
+            protected void removeValue(PrismContainerValueWrapper<C> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+                PrismContainerPanel.this.removeValue(valueToRemove, target);
+            }
+        };
         item.add(panel);
         return panel;
     }

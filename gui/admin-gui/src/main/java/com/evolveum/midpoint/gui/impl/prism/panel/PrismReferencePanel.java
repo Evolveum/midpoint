@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperVisibilitySpecifi
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
@@ -52,8 +53,6 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
     private static final Trace LOGGER = TraceManager.getTrace(PrismReferencePanel.class);
 
     private static final String ID_HEADER = "header";
-    private static final String ID_VALUE = "value";
-    private static final String ID_FEEDBACK = "feedback";
 
     public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -61,105 +60,25 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 
     @Override
     protected Panel createHeaderPanel() {
-        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel());
+        return new PrismReferenceHeaderPanel<R>(ID_HEADER, getModel()) {
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(PrismReferencePanel.this);
+            }
+        };
     }
 
     @Override
     protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item) {
-        PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<>("value", item.getModel(), getSettings());
+        PrismReferenceValuePanel<R> valuePanel = new PrismReferenceValuePanel<R>("value", item.getModel(), getSettings()) {
+
+            @Override
+            protected void removeValue(PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+                PrismReferencePanel.this.removeValue(valueToRemove, target);
+            }
+        };
         item.add(valuePanel);
         return valuePanel;
-//        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-//        feedback.setOutputMarkupId(true);
-//        item.add(feedback);
-//
-//        if (componentFactory != null) {
-//            PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
-//            panelCtx.setComponentId(ID_VALUE);
-//            panelCtx.setParentComponent(this);
-//            panelCtx.setRealValueModel((IModel)item.getModel());
-//
-//            Panel panel = componentFactory.createPanel(panelCtx);
-//            item.add(panel);
-//            return panel;
-//        } else {
-//            ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
-//
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                protected ObjectFilter createCustomFilter() {
-//                    return PrismReferencePanel.this.getModelObject().getFilter();
-//                }
-//
-//                @Override
-//                protected boolean isEditButtonEnabled() {
-////                    if (getModel() == null) {
-////                        return true;
-////                    }
-////
-////                    //TODO only is association
-////                    return getModelObject() == null;
-//                    if (item.getModel() == null || item.getModelObject() == null) {
-//                        return true;
-//                    }
-//                    return item.getModelObject().isEditEnabled();
-//
-//                }
-//
-//                @Override
-//                protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
-//                    super.choosePerformed(target, object);
-//                    getBaseFormComponent().validate();
-//                    target.add(getPageBase().getFeedbackPanel());
-//                    target.add(feedback);
-//                }
-//
-//                @Override
-//                public List<QName> getSupportedTypes() {
-//                    List<QName> targetTypeList = PrismReferencePanel.this.getModelObject().getTargetTypes();
-//                    if (targetTypeList == null || WebComponentUtil.isAllNulls(targetTypeList)) {
-//                        return Arrays.asList(ObjectType.COMPLEX_TYPE);
-//                    }
-//                    return targetTypeList;
-//                }
-//
-//                @Override
-//                protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
-//                    if (AbstractRoleType.COMPLEX_TYPE.equals(PrismReferencePanel.this.getModelObject().getTargetTypeName())) {
-//                        return (Class<O>) RoleType.class;
-//                    } else {
-//                        return super.getDefaultType(supportedTypes);
-//                    }
-//                }
-//
-//            };
-//
-//            ExpressionValidator<String> expressionValidator = new ExpressionValidator<String>(
-//                    LambdaModel.of(getModel().getObject()::getFormComponentValidator), getPageBase()) {
-//
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                protected Object getValueToValidate(IValidatable<String> validatable) {
-//                    return item.getModelObject().getRealValue();
-//                }
-//            };
-//            panel.getBaseFormComponent().add(expressionValidator);
-//            feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
-//            item.add(panel);
-//
-//            return panel;
-//        }
-    }
-
-    protected void addValue(AjaxRequestTarget target) {
-        PrismReferenceWrapper<R> referenceWrapper = getModel().getObject();
-         PrismReferenceValue newValue = getPrismContext().itemFactory().createReferenceValue();
-
-        WebPrismUtil.createNewValueWrapper(referenceWrapper, newValue, getPageBase(), target);
-
-        target.add(PrismReferencePanel.this);
     }
 
     @Override

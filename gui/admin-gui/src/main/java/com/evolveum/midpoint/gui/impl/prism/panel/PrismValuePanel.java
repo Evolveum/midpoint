@@ -38,6 +38,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.event.IEventSource;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -52,7 +53,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     private static final String ID_VALUE_FORM = "valueForm";
-    private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
     private static final String ID_FEEDBACK = "feedback";
@@ -87,26 +87,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private WebMarkupContainer createHeaderPanel() {
 
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
-//        buttonContainer.add(new AttributeModifier("class", getButtonsCssClass()));
-//        add(buttonContainer);
-
-//        // buttons
-        AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                try {
-                    addValue(target);
-                } catch (SchemaException e) {
-                    LOGGER.error("Cannot add value for {}, {}", PrismValuePanel.this.getModelObject().getParent(), e.getMessage(), e);
-                    getSession().error(PrismValuePanel.this.getString("PrismValuePanel.addValue.failed", e.getMessage()));
-                    target.add(getFeedback());
-                }
-            }
-        };
-        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
-        buttonContainer.add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -119,7 +99,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                     LOGGER.error("Cannot remove value: {}", getModelObject());
                     getSession().error("Cannot remove value "+ getModelObject());
                     target.add(getPageBase().getFeedbackPanel());
-                    target.add(PrismValuePanel.this);
                 }
             }
         };
@@ -137,49 +116,48 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private WebMarkupContainer createValuePanel(Form form) {
 
         GuiComponentFactory factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
-            WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-            valueContainer.setOutputMarkupId(true);
-            form.add(valueContainer);
-            // feedback
-            FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-            feedback.setOutputMarkupId(true);
-            valueContainer.add(feedback);
+        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+        valueContainer.setOutputMarkupId(true);
+        form.add(valueContainer);
 
-            IW modelObject = getModelObject().getParent();
+        // feedback
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 
-            LOGGER.trace("create input component for: {}", modelObject.debugDump());
-
-
+        feedback.setOutputMarkupId(true);
 
         if (factory == null) {
-            valueContainer.add(createDefaultPanel(ID_INPUT));
+            Component defaultPanel = createDefaultPanel(ID_INPUT);
+            valueContainer.add(defaultPanel);
+            feedback.setFilter(new ComponentFeedbackMessageFilter(defaultPanel));
+            valueContainer.add(feedback);
             return valueContainer;
         }
 
-
-
-                ItemPanelContext<T, ItemWrapper<?,?>> panelCtx = createPanelCtx(new PropertyModel<>(getModel(), "parent"));
+        ItemPanelContext<T, ItemWrapper<?, ?>> panelCtx = createPanelCtx(new PropertyModel<>(getModel(), "parent"));
         panelCtx.setComponentId(ID_INPUT);
-                panelCtx.setForm(getForm());
-                panelCtx.setRealValueModel(getModel());
-                panelCtx.setParentComponent(this);
-                panelCtx.setAjaxEventBehavior(createEventBehavior());
-                panelCtx.setMandatoryHandler(getMandatoryHandler());
-                panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
-                panelCtx.setExpressionValidator(createExpressionValidator());
-                panelCtx.setFeedback(feedback);
+        panelCtx.setForm(getForm());
+        panelCtx.setRealValueModel(getModel());
+        panelCtx.setParentComponent(this);
+        panelCtx.setAjaxEventBehavior(createEventBehavior());
+        panelCtx.setMandatoryHandler(getMandatoryHandler());
+        panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
+        panelCtx.setExpressionValidator(createExpressionValidator());
+        panelCtx.setFeedback(feedback);
 
-                try {
-                    Panel component = factory.createPanel(panelCtx);
-                    valueContainer.add(component);
-                    factory.configure(panelCtx, component);
-                } catch (Throwable e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
-                    getSession().error("Cannot create panel");
-                    throw new RuntimeException(e);
-                }
+        Panel component;
+        try {
+            component = factory.createPanel(panelCtx);
+            valueContainer.add(component);
+            factory.configure(panelCtx, component);
+            valueContainer.add(feedback);
 
-                return valueContainer;
+        } catch (Throwable e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+            getSession().error("Cannot create panel");
+            throw new RuntimeException(e);
+        }
+
+        return valueContainer;
 
     }
 
@@ -206,10 +184,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private VisibleEnableBehaviour createVisibleEnableBehavior() {
         return new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isVisible() {
-                return isVisibleValue();
-            }
+//            @Override
+//            public boolean isVisible() {
+//                return isVisibleValue();
+//            }
 
             @Override
             public boolean isEnabled() {
@@ -280,24 +258,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected abstract Component createDefaultPanel(String id);
 
-    //TODO move to the ItemPanel, exceptionhandling
-    protected void addValue(AjaxRequestTarget target) throws SchemaException {
-        getModelObject().getParent().add(createNewValue(getModelObject().getParent()), getPageBase());
-    }
-
     protected abstract <PV extends PrismValue> PV createNewValue(IW itemWrapper);
 
     //TODO move to the ItemPanel, exception handling
-    protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
-        LOGGER.debug("Removing value of {}", valueToRemove);
-
-        getModelObject().getParent().remove(valueToRemove, getPageBase());
-    }
-
-    private boolean isAddButtonVisible() {
-        return getModelObject().getParent().isMultiValue();
-    }
-
+    protected abstract void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException;
 
 
     protected boolean isRemoveButtonVisible() {
@@ -306,10 +270,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
 
-    protected boolean isVisibleValue() {
-        VW value = getModelObject();
-        return !ValueStatus.DELETED.equals(value.getStatus());
-    }
+//    protected boolean isVisibleValue() {
+//        VW value = getModelObject();
+//        return !ValueStatus.DELETED.equals(value.getStatus());
+//    }
 
     private Form<VW> getForm() {
         return (Form) get(ID_VALUE_FORM);

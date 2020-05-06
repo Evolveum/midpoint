@@ -89,33 +89,31 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismContainerWrapper<C>> wrapper) {
         return (PC) new PrismContainerPanelContext<C>(wrapper);
     }
-
-    @Override
-    protected boolean isVisibleValue() {
-        if (!super.isVisibleValue()) {
-            return false;
-        }
-
-//        if (isShowOnTopLevel()) {
-//            return true;
-//        }
-
-        CVW modelObject = getModelObject();
-        if (modelObject == null) {
-            return false;
-        }
-
-        ItemWrapper parent = modelObject.getParent();
-        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
-            return false;
-        }
-
-        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && (modelObject.isShowMetadata())) {
-            return false;
-        }
-
-        return ((PrismContainerWrapper) parent).isExpanded();
-    }
+//
+//    @Override
+//    protected boolean isVisibleValue() {
+////        if (!super.isVisibleValue()) {
+////            return false;
+////        }
+////
+////        CVW modelObject = getModelObject();
+////        if (modelObject == null) {
+////            return false;
+////        }
+////
+////        ItemWrapper parent = modelObject.getParent();
+////        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
+////            return false;
+////        }
+////
+////        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && (modelObject.isShowMetadata())) {
+////            return false;
+////        }
+////
+////        return ((PrismContainerWrapper) parent).isExpanded();
+//
+//
+//    }
 
     @Override
     protected void onInitialize() {
@@ -515,49 +513,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     }
 
-//    private void initRemoveButton() {
-//        AjaxLink<Void> removeContainerButton = new AjaxLink<Void>(ID_REMOVE_CONTAINER) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                try {
-//                    removePerformed(PrismContainerValuePanel.this.getModelObject(), target);
-//                } catch (SchemaException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//        };
-//
-//        removeContainerButton.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isEnabled() {
-//                if (getModelObject() != null) {
-//                    if(getModelObject().getParent() != null) {
-//                        return !getModelObject().getParent().isReadOnly();
-//                    } else {
-//                        return !getModelObject().isReadOnly();
-//                    }
-//                }
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean isVisible() {
-//                if (getModelObject() instanceof PrismObjectValueWrapper) {
-//                    return false;
-//                }
-//                return shouldBeButtonsShown();
-//            }
-//        });
-//        add(removeContainerButton);
-//
-//    }
-//
     private boolean shouldBeButtonsShown() {
         return getModelObject().isExpanded();
     }
@@ -599,5 +554,15 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         };
         expandCollapseButton.setOutputMarkupId(true);
         return expandCollapseButton;
+    }
+
+    @Override
+    protected void removeValue(CVW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+        throw new UnsupportedOperationException("Must be implemented in calling panel");
+    }
+
+    @Override
+    protected boolean isRemoveButtonVisible() {
+        return super.isRemoveButtonVisible() && getModelObject().isExpanded();
     }
 }

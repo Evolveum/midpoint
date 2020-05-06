@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -27,14 +28,22 @@ public class PrismContainerColumnHeaderPanel<C extends Containerable> extends It
     public PrismContainerColumnHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
         super(id, model);
     }
-    @Override
-    protected void initButtons() {
-    }
+
 
     @Override
     protected Component createTitle(IModel<String> label) {
         Label labelComponent = new Label(ID_LABEL, label) ;
         labelComponent.setOutputMarkupId(true);
         return labelComponent;
+    }
+
+    @Override
+    protected void refreshPanel(AjaxRequestTarget target) {
+
+    }
+
+    @Override
+    protected PrismContainerValue<C> createNewValue(PrismContainerWrapper<C> parent) {
+        return null;
     }
 }

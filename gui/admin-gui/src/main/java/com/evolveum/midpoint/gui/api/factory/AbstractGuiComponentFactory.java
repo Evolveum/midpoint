@@ -34,7 +34,7 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
     @Override
     public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
         Panel panel = getPanel(panelCtx);
-        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
+//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
         return panel;
     }
 

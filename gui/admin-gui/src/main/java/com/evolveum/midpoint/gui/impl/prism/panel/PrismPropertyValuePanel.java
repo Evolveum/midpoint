@@ -16,7 +16,10 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import com.evolveum.midpoint.prism.PrismValue;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -47,5 +50,10 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismPropertyWrapper<T> itemWrapper) {
         return (PV) getPrismContext().itemFactory().createPropertyValue();
+    }
+
+    @Override
+    protected void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+        throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
 }

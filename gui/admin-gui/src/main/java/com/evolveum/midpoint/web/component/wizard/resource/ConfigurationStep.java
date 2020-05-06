@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -165,13 +166,12 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private List<ITab> createConfigurationTabs() {
-        final com.evolveum.midpoint.web.component.form.Form form = getForm();
         List<ITab> tabs = new ArrayList<>();
         PrismContainerWrapper<ConnectorConfigurationType> configuration = configurationModel.getObject();
         if (configuration == null) {
             return new ArrayList<>();
         }
-        PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue = null;
+        PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue;
         try {
             configurationValue = configuration.getValue();
         } catch (SchemaException e) {
@@ -186,13 +186,7 @@ public class ConfigurationStep extends WizardStep {
 
                 @Override
                 public WebMarkupContainer getPanel(String panelId) {
-                    try {
-                        return getPageBase().initItemPanel(panelId, wrapper.getTypeName(), Model.of(wrapper), null);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Cannot create panel for {}, reason: {}", wrapper.getTypeName(), e.getMessage(), e);
-                        getSession().error("Cannot create panel for " + wrapper.getTypeName() + ", reason: " + e.getMessage());
-                        return null;
-                    }
+                    return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
                 }
             });
         }

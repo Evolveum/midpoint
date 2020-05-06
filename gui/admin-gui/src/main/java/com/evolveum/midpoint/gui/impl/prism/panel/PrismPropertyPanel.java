@@ -67,13 +67,24 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
     @Override
     protected Panel createHeaderPanel() {
-        return new PrismPropertyHeaderPanel<>(ID_HEADER, getModel());
+        return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
+            @Override
+            protected void refreshPanel(AjaxRequestTarget target) {
+                target.add(PrismPropertyPanel.this);
+            }
+        };
     }
 
 
     @Override
     protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item) {
-        PrismPropertyValuePanel panel = new PrismPropertyValuePanel("value", item.getModel(), getSettings());
+        PrismPropertyValuePanel<T> panel = new PrismPropertyValuePanel<T>("value", item.getModel(), getSettings()) {
+
+            @Override
+            protected void removeValue(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+                PrismPropertyPanel.this.removeValue(valueToRemove, target);
+            }
+        };
         item.add(panel);
         return panel;
     }

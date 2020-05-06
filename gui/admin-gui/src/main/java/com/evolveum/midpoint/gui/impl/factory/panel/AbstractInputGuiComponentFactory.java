@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -87,11 +88,14 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             }
             formComponent.add(panelCtx.getAjaxEventBehavior());
             formComponent.add(panelCtx.getVisibleEnableBehavior());
+
 //            formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
 //                    getEditabilityHandler().isEditable(getModelObject())));
         }
 
         panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
+
     }
 
     @Override

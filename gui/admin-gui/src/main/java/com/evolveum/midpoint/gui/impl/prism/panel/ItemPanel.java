@@ -93,19 +93,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
         ListView<VW> valuesPanel = createValuesPanel();
         add(valuesPanel);
 
-//        add(new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return getModelObject() != null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return !getModelObject().isReadOnly();
-//            }
-//        });
-
     }
 
     protected boolean getHeaderVisibility() {
@@ -136,21 +123,12 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
         return values;
     }
 
+    protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+        LOGGER.debug("Removing value of {}", valueToRemove);
 
-    protected String getButtonsCssClass() {
-        return"col-xs-2";
+        getModelObject().remove(valueToRemove, getPageBase());
+        target.add(ItemPanel.this);
     }
-
-//    @Override
-//    public boolean isEnabled() {
-//        return !getModelObject().isReadOnly();
-//    }
-//
-//    @Override
-//    public boolean isVisible() {
-//        return getModelObject() != null && getModelObject().isVisible(getModelObject().getParent(), getVisibilityHandler());
-//
-//    }
 
     // VALUE REGION
 
@@ -171,13 +149,6 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
                 return null;
             }
             return itemPanelSettings.getEditabilityHandler();
-        }
-
-        public ItemMandatoryHandler getMandatoryHandler() {
-            if (itemPanelSettings == null) {
-                return null;
-            }
-            return itemPanelSettings.getMandatoryHandler();
         }
 
         protected boolean isHeaderVisible() {

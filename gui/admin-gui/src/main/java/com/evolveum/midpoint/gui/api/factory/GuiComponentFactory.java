@@ -24,7 +24,7 @@ public interface GuiComponentFactory<T extends ItemPanelContext>{
     Integer getOrder();
 
     default void configure(T panelCtx, Component component) {
-        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
     }
 
 //    Panel build(PanelContext panelContext);

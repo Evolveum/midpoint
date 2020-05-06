@@ -702,6 +702,28 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     @Override
     public void remove(VW valueWrapper, ModelServiceLocator locator) throws SchemaException {
+        removeValue(valueWrapper);
+        int count = countUsableValues(values);
+
+        if (count == 0 && !hasEmptyPlaceholder(values)) {
+            add(createNewEmptyValue(locator), locator);
+        }
+    }
+
+
+
+    @Override
+    public void removeAll(ModelServiceLocator locator) throws SchemaException {
+        for (VW value : new ArrayList<>(values)) {
+            removeValue(value);
+        }
+
+        if (!hasEmptyPlaceholder(values)) {
+            add(createNewEmptyValue(locator), locator);
+        }
+    }
+
+    private void removeValue(VW valueWrapper) {
         switch(valueWrapper.getStatus()) {
             case ADDED:
                 values.remove(valueWrapper);
@@ -712,12 +734,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                 getItem().remove(valueWrapper.getNewValue());
                 valueWrapper.setStatus(ValueStatus.DELETED);
                 break;
-        }
-
-        int count = countUsableValues(values);
-
-        if (count == 0 && !hasEmptyPlaceholder(values)) {
-            add(createNewEmptyValue(locator), locator);
         }
     }
 

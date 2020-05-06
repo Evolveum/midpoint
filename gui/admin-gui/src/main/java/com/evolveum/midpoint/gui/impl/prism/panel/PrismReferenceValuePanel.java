@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -107,12 +108,17 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
         };
 
         panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
-        getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
+//        getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getBaseFormComponent()));
         return panel;
     }
 
 
     private PrismReferenceWrapper<R> getParentWrapper() {
         return getModelObject().getParent();
+    }
+
+    @Override
+    protected void removeValue(PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target) throws SchemaException {
+        throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
 }
