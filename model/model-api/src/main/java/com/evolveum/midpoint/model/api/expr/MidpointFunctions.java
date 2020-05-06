@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -1210,4 +1211,10 @@ public interface MidpointFunctions {
     @NotNull
     <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
             String attributeName) throws SchemaException;
+
+    /**
+     * Goes directly to repository service.
+     */
+    @Experimental
+    void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 }

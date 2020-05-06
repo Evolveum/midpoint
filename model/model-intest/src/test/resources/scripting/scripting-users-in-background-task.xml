@@ -28,25 +28,21 @@
                         </q:filter>
                     </s:query>
                 </s:search>
-                <s:action>
-                    <s:type>execute-script</s:type>
-                    <s:parameter>
-                        <s:name>script</s:name>
-                        <c:value xsi:type="c:ScriptExpressionEvaluatorType">
-                            <c:code>
-                                import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                <s:execute>
+                    <s:script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
-                                log.info('Modifying user {}', input)
-                                def deltas = midpoint.deltaFor(UserType.class)
-                                    .item(UserType.F_DESCRIPTION)
-                                    .replace(userDescription)
-                                    .asObjectDeltas(input.oid)
-                                log.info('Change:\n{}', deltas.iterator().next().debugDump())
-                                midpoint.executeChanges(deltas, null)
-                            </c:code>
-                        </c:value>
-                    </s:parameter>
-                </s:action>
+                            log.info('Modifying user {}', input)
+                            def deltas = midpoint.deltaFor(UserType.class)
+                            .item(UserType.F_DESCRIPTION)
+                            .replace(userDescription)
+                            .asObjectDeltas(input.oid)
+                            log.info('Change:\n{}', deltas.iterator().next().debugDump())
+                            midpoint.executeChanges(deltas, null)
+                        </code>
+                    </s:script>
+                </s:execute>
             </s:pipeline>
             <s:variables>
                 <s:variable>

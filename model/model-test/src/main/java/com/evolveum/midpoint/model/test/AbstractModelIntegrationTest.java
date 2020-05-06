@@ -3878,9 +3878,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         taskManager.addTask(prismContext.parseObject(file), new OperationResult("addTask"));
     }
 
-    protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = prismContext.parseObject(file);
-        addObject(object);
+        return addObject(object);
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -5978,14 +5978,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertResource(resource, message);
     }
 
-    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) {
-        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
+    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
+        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
         initializeAsserter(asserter);
         return asserter;
     }
 
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertResource(oid, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertResource(oid, "before")
                 .display();
     }
 

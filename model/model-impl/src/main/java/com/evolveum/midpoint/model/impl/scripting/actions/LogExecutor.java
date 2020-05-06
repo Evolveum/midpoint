@@ -12,16 +12,19 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.LogActionExpressionType;
 
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Executes "log" scripting action.
  */
 @Component
 public class LogExecutor extends BaseActionExecutor {
@@ -29,39 +32,43 @@ public class LogExecutor extends BaseActionExecutor {
     private static final Trace LOGGER = TraceManager.getTrace(LogExecutor.class);
 
     public static final String NAME = "log";
-    public static final String PARAM_LEVEL = "level";
-    public static final String PARAM_MESSAGE = "message";
-    public static final String LEVEL_INFO = "info";
-    public static final String LEVEL_DEBUG = "debug";
-    public static final String LEVEL_TRACE = "trace";
+    private static final String PARAM_LEVEL = "level";
+    private static final String PARAM_MESSAGE = "message";
+    private static final String LEVEL_INFO = "info";
+    private static final String LEVEL_DEBUG = "debug";
+    private static final String LEVEL_TRACE = "trace";
+
+    private static final String DEFAULT_MESSAGE = "Current data: ";
+    private static final String DEFAULT_LEVEL = LEVEL_INFO;
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, LogActionExpressionType.class,this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        String levelAsString = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_LEVEL, input, context, LEVEL_INFO, NAME, parentResult);
-        String message = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_MESSAGE, input, context, "Current data: ", NAME, parentResult);
-        message += "{}";
+        String message = expressionHelper.getActionArgument(String.class, expression,
+                LogActionExpressionType.F_MESSAGE, PARAM_MESSAGE, input, context, DEFAULT_MESSAGE, NAME, globalResult) + "{}";
+        String level = expressionHelper.getActionArgument(String.class, expression,
+                LogActionExpressionType.F_LEVEL, PARAM_LEVEL, input, context, DEFAULT_LEVEL, NAME, globalResult);
 
-        if (LEVEL_INFO.equals(levelAsString)) {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(message, DebugUtil.debugDump(input));
-            }
-        } else if (LEVEL_DEBUG.equals(levelAsString)) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(message, DebugUtil.debugDump(input));
-            }
-        } else if (LEVEL_TRACE.equals(levelAsString)) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(message, DebugUtil.debugDump(input));
-            }
+        if (LEVEL_INFO.equalsIgnoreCase(level)) {
+            LOGGER.info(message, DebugUtil.debugDumpLazily(input));
+        } else if (LEVEL_DEBUG.equalsIgnoreCase(level)) {
+            LOGGER.debug(message, DebugUtil.debugDumpLazily(input));
+        } else if (LEVEL_TRACE.equalsIgnoreCase(level)) {
+            LOGGER.trace(message, DebugUtil.debugDumpLazily(input));
         } else {
-            LOGGER.warn("Invalid logging level specified for 'log' scripting action: " + levelAsString);
+            LOGGER.warn("Invalid logging level specified for 'log' scripting action: " + level);
         }
         return input;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

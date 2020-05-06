@@ -247,7 +247,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
         // Connector operation cannot create result for itself, so we need to create result for it
         OperationResult connIdSchemaResult = parentResult.createSubresult(ConnectorFacade.class.getName() + ".schema");
         connIdSchemaResult.addContext("connector", connIdConnectorFacade.getClass());
-        org.identityconnectors.framework.common.objects.Schema connIdSchema = null;
+        org.identityconnectors.framework.common.objects.Schema connIdSchema;
         try {
 
             LOGGER.debug("Fetching schema from {}", connectorHumanReadableName);

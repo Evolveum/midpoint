@@ -15,7 +15,5 @@
             <value>jack</value>
         </equal>
     </s:searchFilter>
-    <s:action>
-        <s:type>enable</s:type>
-    </s:action>
+    <s:enable/>
 </s:search>

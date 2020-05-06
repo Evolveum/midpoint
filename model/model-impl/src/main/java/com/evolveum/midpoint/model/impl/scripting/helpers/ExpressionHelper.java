@@ -14,8 +14,11 @@ import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
@@ -29,17 +32,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author mederly
+ *
  */
 @Component
 public class ExpressionHelper {
 
-    @Autowired
-    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-
-    //    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
-    //        return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
-    //    }
+    @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     public ActionParameterValueType getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required,
             boolean requiredNonNull, String context) throws ScriptExecutionException {
@@ -64,18 +62,18 @@ public class ExpressionHelper {
     }
 
     public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, PipelineData input, ExecutionContext context,
-            String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
+            String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         ActionParameterValueType parameterValue = getArgument(arguments, argumentName, false, false, contextName);
         if (parameterValue != null) {
             if (parameterValue.getScriptingExpression() != null) {
                 PipelineData data = scriptingExpressionEvaluator.evaluateExpression(parameterValue.getScriptingExpression(), input, context, parentResult);
                 if (data != null) {
-                    return data.getDataAsSingleString();
+                    return data.getSingleValue(String.class);
                 }
             } else if (parameterValue.getValue() != null) {
-                PipelineData data = scriptingExpressionEvaluator.evaluateConstantStringExpression((RawType) parameterValue.getValue(), context, parentResult);
+                PipelineData data = scriptingExpressionEvaluator.evaluateConstantStringExpression((RawType) parameterValue.getValue(), context);
                 if (data != null) {
-                    return data.getDataAsSingleString();
+                    return data.getSingleValue(String.class);
                 }
             } else {
                 throw new IllegalStateException("No expression nor value specified");
@@ -84,8 +82,31 @@ public class ExpressionHelper {
         return defaultValue;
     }
 
+    public <T> T getActionArgument(Class<T> clazz, ActionExpressionType action, ItemName staticName, String dynamicName, PipelineData input, ExecutionContext context,
+            T defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        List<ActionParameterValueType> arguments = action.getParameter();
+        ActionParameterValueType dynamicValue = getArgument(arguments, dynamicName, false, false, contextName);
+        if (dynamicValue != null) {
+            if (dynamicValue.getScriptingExpression() != null) {
+                PipelineData data = scriptingExpressionEvaluator.evaluateExpression(dynamicValue.getScriptingExpression(), input, context, parentResult);
+                if (data != null) {
+                    return data.getSingleValue(clazz);
+                }
+            } else if (dynamicValue.getValue() != null) {
+                return ScriptingDataUtil.getRealValue(dynamicValue.getValue(), clazz);
+            } else {
+                throw new IllegalStateException("No expression nor value specified in parameter '" + dynamicName + "'");
+            }
+        }
+        T staticValue = ScriptingBeansUtil.getBeanPropertyValue(action, staticName.getLocalPart(), clazz);
+        if (staticValue != null) {
+            return staticValue;
+        }
+        return defaultValue;
+    }
+
     public Boolean getArgumentAsBoolean(List<ActionParameterValueType> arguments, String argumentName, PipelineData input, ExecutionContext context,
-            Boolean defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
+            Boolean defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         String stringValue = getArgumentAsString(arguments, argumentName, input, context, null, contextName, parentResult);
         if (stringValue == null) {
             return defaultValue;
@@ -99,19 +120,19 @@ public class ExpressionHelper {
     }
 
     public PipelineData evaluateParameter(ActionParameterValueType parameter, @Nullable Class<?> expectedClass, PipelineData input, ExecutionContext context, OperationResult result)
-            throws ScriptExecutionException {
+            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(parameter, "parameter");
         if (parameter.getScriptingExpression() != null) {
             return scriptingExpressionEvaluator.evaluateExpression(parameter.getScriptingExpression(), input, context, result);
         } else if (parameter.getValue() != null) {
-            return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), expectedClass, context, "evaluating parameter " + parameter.getName(), result);
+            return scriptingExpressionEvaluator.evaluateConstantExpression((RawType) parameter.getValue(), expectedClass, context, "evaluating parameter " + parameter.getName());
         } else {
             throw new IllegalStateException("No expression nor value specified");
         }
     }
 
     public <T> T getSingleArgumentValue(List<ActionParameterValueType> arguments, String parameterName, boolean required,
-            boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
+            boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ActionParameterValueType paramValue = getArgument(arguments, parameterName, required, requiredNonNull, context);
         if (paramValue == null) {
             return null;
@@ -134,22 +155,22 @@ public class ExpressionHelper {
 
     @NotNull
     public <T> Collection<T> getArgumentValues(List<ActionParameterValueType> arguments, String parameterName, boolean required,
-            boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
+            boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz,
+            OperationResult result) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         List<T> rv = new ArrayList<>();
         for (ActionParameterValueType paramValue : arguments) {
             if (parameterName.equals(paramValue.getName())) {
                 if (paramValue.getScriptingExpression() != null || paramValue.getValue() != null) {
-                    if (paramValue != null) {
-                        PipelineData paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
-                        for (PipelineItem item : paramData.getData()) {
-                            PrismValue prismValue = item.getValue();
-                            if (!(prismValue instanceof PrismPropertyValue)) {
-                                throw new ScriptExecutionException(
-                                        "A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue
-                                        .getClass().getName() + " instead.");
-                            } else {
-                                rv.add(JavaTypeConverter.convert(clazz, prismValue.getRealValue()));
-                            }
+                    PipelineData paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
+                    for (PipelineItem item : paramData.getData()) {
+                        PrismValue prismValue = item.getValue();
+                        if (!(prismValue instanceof PrismPropertyValue)) {
+                            throw new ScriptExecutionException(
+                                    "A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue
+                                    .getClass().getName() + " instead.");
+                        } else {
+                            rv.add(JavaTypeConverter.convert(clazz, prismValue.getRealValue()));
                         }
                     }
                 } else {
@@ -161,7 +182,7 @@ public class ExpressionHelper {
                 }
             }
         }
-        if (required) {
+        if (required && rv.isEmpty()) {
             throw new ScriptExecutionException("Required parameter " + parameterName + " not present in invocation of \"" + context + "\"");
         } else {
             return rv;

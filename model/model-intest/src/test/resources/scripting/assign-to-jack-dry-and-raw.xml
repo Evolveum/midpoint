@@ -5,11 +5,8 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:UserType</s:type>
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -17,21 +14,12 @@
             <value>jack</value>
         </equal>
     </s:searchFilter>
-    <s:action>
-        <s:type>assign</s:type>
-        <s:parameter>
-            <s:name>role</s:name>
-            <c:value xsi:type="xsd:string">12345678-d34d-b33f-f00d-55555555cccc</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>dryRun</s:name>
-            <c:value>true</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>options</s:name>
-            <c:value xsi:type="c:ModelExecuteOptionsType">
-                <c:raw>true</c:raw>
-            </c:value>
-        </s:parameter>
-    </s:action>
+    <s:assign>
+        <s:targetRef oid="12345678-d34d-b33f-f00d-55555555cccc" type="RoleType" />
+        <!-- the following options are conflicting -->
+        <s:dryRun>true</s:dryRun>
+        <s:executeOptions>
+            <c:raw>true</c:raw>
+        </s:executeOptions>
+    </s:assign>
 </s:search>

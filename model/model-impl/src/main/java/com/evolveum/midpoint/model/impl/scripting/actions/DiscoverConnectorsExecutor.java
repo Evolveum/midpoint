@@ -15,10 +15,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -40,7 +37,10 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
- * @author mederly
+ * Executes "discover-connectors" action.
+ *
+ * There is no static (typed) definition of this action yet.
+ * Also, this code is not refactored yet.
  */
 @Component
 public class DiscoverConnectorsExecutor extends BaseActionExecutor {
@@ -52,11 +52,13 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
         boolean rebind = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, globalResult);
 
@@ -64,7 +66,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+            OperationResult result = operationsHelper.createActionResult(item, this);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -96,7 +98,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
+            operationsHelper.trimAndCloneResult(result, globalResult);
         }
         return output;      // TODO configurable output (either connector hosts or discovered connectors)
     }
@@ -170,5 +172,10 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 rebindMap.put(foundConnectorType.getOid(), connectorType.getOid());
             }
         }
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

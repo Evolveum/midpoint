@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:type>UserType</s:type>
+    <s:searchFilter>
+        <q:equal>
+            <q:path>name</q:path>
+            <q:value>willTurner</q:value>
+        </q:equal>
+    </s:searchFilter>
+    <s:unassign>
+        <s:filter>
+            <q:or>
+                <q:ref>
+                    <q:path>targetRef</q:path>
+                    <q:value oid="12345678-d34d-b33f-f00d-555555556666" relation="manager"/>
+                </q:ref>
+                <q:ref>
+                    <q:path>targetRef</q:path>
+                    <q:value oid="12345678-d34d-b33f-f00d-555555556666" relation="owner"/>
+                </q:ref>
+            </q:or>
+        </s:filter>
+    </s:unassign>
+</s:search>

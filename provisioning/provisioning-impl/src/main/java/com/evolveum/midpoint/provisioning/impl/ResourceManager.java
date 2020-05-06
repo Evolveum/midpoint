@@ -121,8 +121,8 @@ public class ResourceManager {
             return cachedResource;
         } else {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Fetching resource {} and storing to cache (previously cached version {})",
-                        oid, resourceCache.getVersion(oid));
+                LOGGER.debug("Fetching resource {} and storing to cache (previously cached version {}) (options={})",
+                        oid, resourceCache.getVersion(oid), options);
             }
             // We must obviously NOT fetch resource from repo as read-only. We are going to modify it.
             PrismObject<ResourceType> repositoryObject = readResourceFromRepository(oid, parentResult);
@@ -153,13 +153,14 @@ public class ResourceManager {
         logResourceAfterCompletion(completedResource);
         if (!isComplete(completedResource)) {
             // No not cache non-complete resources (e.g. those retrieved with noFetch)
-            LOGGER.trace("Not putting {} into cache because it's not complete", repositoryObject);
+            LOGGER.debug("Not putting {} into cache because it's not complete", repositoryObject);
         } else {
             OperationResult completeResourceResult = parentResult.findSubresult(OP_COMPLETE_RESOURCE);
             if (!completeResourceResult.isSuccess()) {
-                LOGGER.trace("Not putting {} into cache because the completeResource operation status is {}",
+                LOGGER.debug("Not putting {} into cache because the completeResource operation status is {}",
                         ObjectTypeUtil.toShortString(repositoryObject), completeResourceResult.getStatus());
             } else {
+                LOGGER.debug("Putting {} into cache", repositoryObject);
                 // Cache only resources that are completely OK
                 resourceCache.put(completedResource);
             }
@@ -786,6 +787,7 @@ public class ResourceManager {
             String statusChangeReason = operationDesc + " failed while updating resource schema: " + e.getMessage();
             modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.BROKEN, statusChangeReason, task, parentResult, true);
             parentResult.recordFatalError("Couldn't update resource schema: " + e.getMessage(), e);
+            //noinspection UnnecessaryReturnStatement
             return;
         }
 
@@ -1105,31 +1107,6 @@ public class ResourceManager {
         }
     }
 
-    // TODO should this one be used?
-    private void checkSchema(PrismSchema schema) throws SchemaException {
-        // This is resource schema, it should contain only
-        // ResourceObjectDefinitions
-        for (Definition def : schema.getDefinitions()) {
-            if (def instanceof ComplexTypeDefinition) {
-                // This is OK
-            } else if (def instanceof ResourceAttributeContainerDefinition) {
-                checkResourceObjectDefinition((ResourceAttributeContainerDefinition) def);
-            } else {
-                throw new SchemaException("Unexpected definition in resource schema: " + def);
-            }
-        }
-    }
-
-    private void checkResourceObjectDefinition(ResourceAttributeContainerDefinition rod)
-            throws SchemaException {
-        for (ItemDefinition def : rod.getDefinitions()) {
-            if (!(def instanceof ResourceAttributeDefinition)) {
-                throw new SchemaException("Unexpected definition in resource schema object " + rod + ": "
-                        + def);
-            }
-        }
-    }
-
     public void applyDefinition(ObjectDelta<ResourceType> delta, ResourceType resourceWhenNoOid, GetOperationOptions options, Task task, OperationResult objectResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         if (delta.isAdd()) {
@@ -1275,6 +1252,7 @@ public class ResourceManager {
         applyConnectorSchemasToResource(resource, task, parentResult);
     }
 
+    @SuppressWarnings("unused")
     public void applyDefinition(ObjectQuery query, OperationResult result) {
         // TODO: not implemented yet
     }
@@ -1330,14 +1308,15 @@ public class ResourceManager {
     }
 
     // Used by the tests. Does not change anything.
+    @SuppressWarnings("SameParameterValue")
     <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(PrismObject<ResourceType> resource,
             Class<T> operationCapabilityClass) throws SchemaException {
         ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
         return connectorSpec != null ? connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec) : null;
     }
 
-    public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
-                                                                                RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
+    <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
+            RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
         if (resource == null) {
             return null;
         }
@@ -1352,7 +1331,6 @@ public class ResourceManager {
         if (connectorCapabilities == null) {
             connectorCapabilities = resource.getCapabilities();
         }
-
 
         CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
         LOGGER.trace("Returning final capabilities:\n{} ", finalCapabilities);
@@ -1405,6 +1383,7 @@ public class ResourceManager {
         return configured != null && !configured.getAny().isEmpty();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass) throws SchemaException {
         if (capabilityMap == null) {
             return selectConnectorSpec(resource, capabilityClass);
@@ -1428,9 +1407,6 @@ public class ResourceManager {
 
     private <T extends CapabilityType> boolean supportsCapability(ConnectorInstanceSpecificationType additionalConnectorType, Class<T> capabilityClass) {
         T cap = CapabilityUtil.getEffectiveCapability(additionalConnectorType.getCapabilities(), capabilityClass);
-        if (cap == null) {
-            return false;
-        }
         return CapabilityUtil.isCapabilityEnabled(cap);
     }
 
@@ -1447,9 +1423,6 @@ public class ResourceManager {
 
         }
         T cap = CapabilityUtil.getCapability(nativeCapabilities, capabilityClass);
-        if (cap == null) {
-            return false;
-        }
         return CapabilityUtil.isCapabilityEnabled(cap);
     }
 

@@ -11,18 +11,16 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AddActionExpressionType;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -30,56 +28,54 @@ import java.util.Collection;
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ *
  */
 @Component
-public class AddExecutor extends BaseActionExecutor {
+public class AddExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
     private static final String NAME = "add";
 
-    @Autowired private OperationsHelper operationsHelper;
-
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, AddActionExpressionType.class, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
-        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
+        ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
+        boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
 
-        for (PipelineItem item : input.getData()) {
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-            context.checkTaskStop();
-            PrismValue value = item.getValue();
-            if (value instanceof PrismObjectValue) {
-                @SuppressWarnings({ "unchecked", "raw" })
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-                ObjectType objectType = prismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, objectType);
-                Throwable exception = null;
-                try {
-                    Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = operationsHelper.applyDelta(createAddDelta(objectType), executionOptions, dryRun, context, result);
-                    String newObjectOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, prismObject);
-                    prismObject.setOid(newObjectOid);
-                    operationsHelper.recordEnd(context, objectType, started, null);
-                } catch (Throwable ex) {
-                    operationsHelper.recordEnd(context, objectType, started, ex);
-                    exception = processActionException(ex, NAME, value, context);
-                }
-                context.println((exception != null ? "Attempted to add " : "Added ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
-            }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
-        }
+        iterateOverObjects(input, context, globalResult,
+                (object, item, result) ->
+                        add(object, dryRun, options, context, result),
+                (object, exception) ->
+                        context.println("Failed to add " + object + drySuffix(dryRun) + exceptionSuffix(exception))
+        );
+
         return input;
     }
 
-    private ObjectDelta<? extends ObjectType> createAddDelta(ObjectType objectType) {
-        return DeltaFactory.Object.createAddDelta(objectType.asPrismObject());
+    private void add(PrismObject<? extends ObjectType> object, boolean dryRun, ModelExecuteOptions options, ExecutionContext context,
+            OperationResult result) throws ScriptExecutionException {
+        ObjectDelta<? extends ObjectType> addDelta = DeltaFactory.Object.createAddDelta(object);
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas =
+                operationsHelper.applyDelta(addDelta, options, dryRun, context, result);
+        if (executedDeltas != null) {
+            String newObjectOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, object);
+            object.setOid(newObjectOid);
+        }
+        context.println("Added " + object + drySuffix(dryRun));
+    }
+
+    @Override
+    Class<ObjectType> getObjectType() {
+        return ObjectType.class;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }
