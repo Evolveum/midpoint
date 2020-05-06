@@ -31,9 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 @Component
 public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
 
-
-    @Autowired private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
@@ -42,7 +39,7 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
     @PostConstruct
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -53,7 +50,7 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
     protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
                                   WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
 
-        ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
+        ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
 
         context.setCreateOperational(true);
         ItemWrapper<?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);

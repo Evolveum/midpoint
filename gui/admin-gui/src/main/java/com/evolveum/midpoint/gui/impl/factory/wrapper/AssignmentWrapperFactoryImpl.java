@@ -24,8 +24,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 @Component
 public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<AssignmentType> {
 
-    @Autowired private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof PrismContainerDefinition && def.isMultiValue();
@@ -33,7 +31,7 @@ public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryIm
 
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

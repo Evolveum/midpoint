@@ -61,7 +61,6 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent,
             PrismContainer<ClassLoggerConfigurationType> childContainer, ItemStatus status, WrapperContext ctx) {
         PrismContainer<ClassLoggerConfigurationType> clone = childContainer.clone();
-//        clone.setElementName(PROFILING_LOGGER_PATH);
         registry.registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
         return new ProfilingClassLoggerContainerWrapperImpl<>(parent, clone, status);
     }

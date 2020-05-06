@@ -634,8 +634,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
 
-//        PrismContainerValueWrapper<?> parentContainer = getParent();
-
         if (!isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler)) {
             return false;
         }

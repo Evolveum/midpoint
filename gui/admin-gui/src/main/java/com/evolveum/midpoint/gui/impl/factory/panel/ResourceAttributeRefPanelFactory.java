@@ -57,8 +57,6 @@ public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentF
 
         };
 
-//        autoCompleteTextPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-
         return autoCompleteTextPanel;
     }
 

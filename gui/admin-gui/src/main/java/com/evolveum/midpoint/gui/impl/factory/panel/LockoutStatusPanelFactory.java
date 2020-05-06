@@ -23,8 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 @Component
 public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LockoutStatusType>> {
 
-    private static final long serialVersionUID = 1L;
-
     @Autowired GuiComponentRegistry registry;
 
     @PostConstruct

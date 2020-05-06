@@ -125,34 +125,4 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
         return customQName;
     }
 
-    //    @Override
-//    public boolean hasChanged() {
-//        for (ValueWrapperOld valueWrapper : getValues()) {
-//            ExpressionType expression = (ExpressionType) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
-//            ExpressionType oldExpressionValue = (ExpressionType)((PrismPropertyValue)valueWrapper.getOldValue()).getValue();
-//            try {
-//                switch (valueWrapper.getStatus()) {
-//                    case DELETED:
-//                        return true;
-//                    case ADDED:
-//                    case NOT_CHANGED:
-//                        if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
-//                            return false;
-//                        } else if (!ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
-//                            return true;
-//                        } else if (ExpressionUtil.areAllExpressionValuesEmpty(oldExpressionValue, prismContext) && !ExpressionUtil.areAllExpressionValuesEmpty(expression, prismContext)) {
-//                            return true;
-//                        } else if (valueWrapper.hasValueChanged()) {
-//                            return true;
-//                        }
-//                }
-//            } catch (SchemaException e) {
-//                LoggingUtils.logException(LOGGER, "Cannot check changes of the expression value" + expression, e);
-//                return false;
-//            }
-//        }
-
-//        return false;
-//    }
-
 }

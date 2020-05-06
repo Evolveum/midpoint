@@ -40,7 +40,6 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
     private ClassLoggerWrapperFactoryImpl classLoggerFactory;
     @Autowired
     private ProfilingClassLoggerWrapperFactoryImpl profilingClassLoggerFactory;
-    @Autowired private GuiComponentRegistry registry;
 
     @Override
     public boolean match(ItemDefinition<?> def) {
@@ -51,7 +50,7 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
     @PostConstruct
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -97,7 +96,7 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
     @Override
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
-        registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
+        getRegistry().registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 

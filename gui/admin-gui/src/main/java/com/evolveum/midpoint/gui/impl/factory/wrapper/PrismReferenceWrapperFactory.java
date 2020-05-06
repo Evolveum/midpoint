@@ -77,17 +77,6 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
         return refValue;
     }
 
-//    @Override
-//    protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
-//        //TODO compare full path instead of def.getName(). The issue is, that another complex type can have targetRef or target specified and then
-//        // it won't be created either in that case.
-//        if (AssignmentType.F_TARGET.equivalent(def.getName()) || AssignmentType.F_TARGET_REF.equivalent(def.getName())) {
-//            return false;
-//        }
-//
-//        return true;
-//    }
-
     @Override
     protected void setupWrapper(PrismReferenceWrapper<R> wrapper) {
         // TODO Auto-generated method stub

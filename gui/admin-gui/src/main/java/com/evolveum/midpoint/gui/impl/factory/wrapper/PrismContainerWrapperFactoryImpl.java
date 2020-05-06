@@ -40,8 +40,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperFactoryImpl.class);
 
-    @Autowired private GuiComponentRegistryImpl registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return  def instanceof PrismContainerDefinition;
@@ -50,7 +48,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     @PostConstruct
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -96,7 +94,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
-        ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
+        ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
         if (factory == null) {
             LOGGER.error("Cannot find factory for {}", def);
             throw new SchemaException("Cannot find factory for " + def);
@@ -123,7 +121,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     @Override
     protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
-        registry.registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
+        getRegistry().registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 

@@ -21,9 +21,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApprovalSchemaWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ApprovalSchemaType> {
 
-    @Autowired
-    private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return ApprovalSchemaType.COMPLEX_TYPE .equals(def.getTypeName());
@@ -31,7 +28,7 @@ public class ApprovalSchemaWrapperFactoryImpl extends PrismContainerWrapperFacto
 
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

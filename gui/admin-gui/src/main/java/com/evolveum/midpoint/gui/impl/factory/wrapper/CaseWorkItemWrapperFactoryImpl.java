@@ -28,9 +28,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<CaseWorkItemType> {
 
-    @Autowired
-    private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return CaseWorkItemType.COMPLEX_TYPE.equals(def.getTypeName());
@@ -38,7 +35,7 @@ public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactory
 
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

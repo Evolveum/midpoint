@@ -100,7 +100,6 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
         };
 
         panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
-//        getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getBaseFormComponent()));
         return panel;
     }
 

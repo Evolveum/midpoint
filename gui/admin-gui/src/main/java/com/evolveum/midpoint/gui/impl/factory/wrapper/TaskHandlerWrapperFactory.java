@@ -62,7 +62,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                     .createLookupTableRetrieveOptions(schemaHelper);
 
             try {
-                PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+                PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
                 propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
             } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
                     | ConfigurationException | ExpressionEvaluationException e) {
@@ -86,10 +86,10 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                 Collection<String> handlers;
                 if (assignmentTypes.isEmpty()) {
                     // TODO all handlers
-                    handlers = taskManager.getAllHandlerUris(true);
+                    handlers = getTaskManager().getAllHandlerUris(true);
                 } else if (assignmentTypes.size() == 1) {
                     AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
-                    handlers = taskManager.getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
+                    handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
                 } else {
                     throw new UnsupportedOperationException("More than 1 archetype, this is not supported");
                 }

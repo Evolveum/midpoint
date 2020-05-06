@@ -85,31 +85,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     protected <PC extends ItemPanelContext> PC createPanelCtx(IModel<PrismContainerWrapper<C>> wrapper) {
         return (PC) new PrismContainerPanelContext<C>(wrapper);
     }
-//
-//    @Override
-//    protected boolean isVisibleValue() {
-////        if (!super.isVisibleValue()) {
-////            return false;
-////        }
-////
-////        CVW modelObject = getModelObject();
-////        if (modelObject == null) {
-////            return false;
-////        }
-////
-////        ItemWrapper parent = modelObject.getParent();
-////        if (!PrismContainerWrapper.class.isAssignableFrom(parent.getClass())) {
-////            return false;
-////        }
-////
-////        if (MetadataType.COMPLEX_TYPE.equals(parent.getTypeName()) && (modelObject.isShowMetadata())) {
-////            return false;
-////        }
-////
-////        return ((PrismContainerWrapper) parent).isExpanded();
-//
-//
-//    }
 
     @Override
     protected void onInitialize() {
@@ -366,7 +341,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         header.add(createMetadataButton());
         header.add(createSortButton());
         header.add(createAddMoreButton());
-//        initRemoveButton();
     }
 
     private void onExpandClick(AjaxRequestTarget target) {

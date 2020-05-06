@@ -30,11 +30,9 @@ import javax.annotation.PostConstruct;
 @Component
 public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>> {
 
-    private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(LinkedReferencePanelFactory.class);
 
-    @Autowired
-    GuiComponentRegistry registry;
+    @Autowired private GuiComponentRegistry registry;
 
     @PostConstruct
     public void register() {
@@ -53,7 +51,7 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
         if (match){
             try {
                 PrismReferenceValueWrapperImpl valueWrapper = (PrismReferenceValueWrapperImpl)
-                        ((PrismReferenceWrapperImpl) wrapper).getValue();
+                        wrapper.getValue();
                 valueWrapper.setLink(true);
             } catch (SchemaException e){
                 LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper: {}", e.getLocalizedMessage());

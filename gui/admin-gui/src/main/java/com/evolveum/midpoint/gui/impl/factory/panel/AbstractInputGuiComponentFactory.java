@@ -38,35 +38,6 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
     @Override
     public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
         InputPanel panel = getPanel(panelCtx);
-//        panel.append(panelCtx.getAjaxEventBehavior());
-//        panel.append(panelCtx.getVisibleEnableBehavior());
-//        PrismPropertyWrapper<T> propertyWrapper = panelCtx.unwrapWrapperModel();
-//        IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
-//        panel.setComponentLabel(label);
-//        panel.required(panelCtx.isMandatory());
-//
-
-//        final List<FormComponent> formComponents = panel.getFormComponents();
-//        for (FormComponent<T> formComponent : formComponents) {
-//            PrismPropertyWrapper<T> propertyWrapper = panelCtx.unwrapWrapperModel();
-//            IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
-//            formComponent.setLabel(label);
-//            formComponent.setRequired(panelCtx.isMandatory());
-//
-//            if (formComponent instanceof TextField) {
-//                formComponent.add(new AttributeModifier("size", "42"));
-//            }
-//            formComponent.add(panelCtx.getAjaxEventBehavior());
-//            formComponent.add(panelCtx.getVisibleEnableBehavior());
-////            formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
-////                    getEditabilityHandler().isEditable(getModelObject())));
-//        }
-
-//        panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
-
-//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
-
-
         return panel;
     }
 
@@ -88,9 +59,6 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             }
             formComponent.add(panelCtx.getAjaxEventBehavior());
             formComponent.add(panelCtx.getVisibleEnableBehavior());
-
-//            formComponent.add(new EnableBehaviour(() -> getEditabilityHandler() == null ||
-//                    getEditabilityHandler().isEditable(getModelObject())));
         }
 
         panel.getValidatableComponent().add(panelCtx.getExpressionValidator());

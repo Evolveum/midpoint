@@ -24,12 +24,6 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 
     private static final String ID_HEADER = "header";
 
-    private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_VALUE_CONTAINER = "valueContainer";
-
-    private static final String ID_FORM = "form";
-    private static final String ID_INPUT = "input";
-
 
     /**
      * @param id

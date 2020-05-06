@@ -28,9 +28,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CaseEventWrapperFactoryImpl<CET extends CaseEventType> extends PrismContainerWrapperFactoryImpl<CET> {
 
-    @Autowired
-    private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return CaseEventType.COMPLEX_TYPE.equals(def.getTypeName()) || WorkItemEventType.COMPLEX_TYPE.equals(def.getTypeName()) ||
@@ -39,7 +36,7 @@ public class CaseEventWrapperFactoryImpl<CET extends CaseEventType> extends Pris
 
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

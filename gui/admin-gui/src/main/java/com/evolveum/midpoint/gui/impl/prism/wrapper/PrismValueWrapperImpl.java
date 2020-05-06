@@ -87,7 +87,6 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
                 break;
         }
 
-//        parent.applyDelta((ItemDelta) delta);
     }
 
 

@@ -22,13 +22,9 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 @Component
 public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<SearchFilterType> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private transient GuiComponentRegistry registry;
-
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

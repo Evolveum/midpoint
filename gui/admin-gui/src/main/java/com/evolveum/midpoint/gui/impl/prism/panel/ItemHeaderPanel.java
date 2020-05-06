@@ -67,22 +67,15 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     private void initLayout() {
 
         setOutputMarkupId(true);
-
-//        add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
         initButtons();
         initHeaderLabel();
 
     }
 
-//    protected WebMarkupContainer initExpandCollapseButton(String contentAreaId){
-//        return new WebMarkupContainer(contentAreaId);
-//    }
-
     protected void initHeaderLabel(){
 
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.setOutputMarkupId(true);
-//        labelContainer.add(new AttributeModifier("class", getLabelCssClass()));
         add(labelContainer);
 
         createTitle(labelContainer);
@@ -90,7 +83,6 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         createExperimentalTooltip(labelContainer);
         createDeprecated(labelContainer);
         createRequeired(labelContainer);
-//        createOutbound(labelContainer);
 
         //TODO: pending operations
     }
@@ -167,8 +159,6 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         return () -> getModelObject() != null && getModelObject().isDeprecated() ? "text-decoration: line-through;" : "text-decoration: none;";
     }
 
-
-    ///OLD
     protected void initButtons() {
         AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;

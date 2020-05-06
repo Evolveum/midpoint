@@ -47,8 +47,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
     public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
         super(parent, item, status);
-        //TODO move to factory
-//        this.expanded = !item.isEmpty();
     }
 
     @Override
@@ -182,12 +180,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     public PrismContainerDefinition<C> getItemDefinition() {
         return super.getItemDefinition();
     }
-
-
-//    @Override
-//    public boolean isEmpty() {
-//        return getItem().isEmpty();
-//    }
 
     @Override
     public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {

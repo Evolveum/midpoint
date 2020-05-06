@@ -49,11 +49,7 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
             }
 
         }
-
-
-
         return containers;
-
     }
 
 

@@ -43,7 +43,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
             if (delta == null || delta.isEmpty()) {
                 continue;
             }
-            // objectDelta.addModification(delta);
             deltas.addAll(delta);
         }
 
@@ -51,7 +50,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
             case ADDED:
                 objectDelta.setChangeType(ChangeType.ADD);
                 PrismObject<O> clone = (PrismObject<O>) getOldItem().clone();
-                // cleanupEmptyContainers(clone);
                 for (ItemDelta d : deltas) {
                     d.applyTo(clone);
                 }
@@ -104,7 +102,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
             if (delta == null || delta.isEmpty()) {
                 continue;
             }
-            // objectDelta.addModification(delta);
             deltas.addAll(delta);
         }
 
@@ -136,11 +133,6 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
     public void accept(Visitor<Definition> visitor) {
         // TODO
     }
-
-//    @Override
-//    public boolean isVisible(PrismContainerValueWrapper parent, ItemVisibilityHandler visibilityHandler) {
-//        return true;
-//    }
 
     @Override
     public boolean isExpanded() {

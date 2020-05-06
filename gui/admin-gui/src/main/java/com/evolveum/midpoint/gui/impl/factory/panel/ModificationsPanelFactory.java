@@ -30,13 +30,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ModificationsPanelFactory extends AbstractGuiComponentFactory<ObjectDeltaType> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Autowired private GuiComponentRegistry registry;
-
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

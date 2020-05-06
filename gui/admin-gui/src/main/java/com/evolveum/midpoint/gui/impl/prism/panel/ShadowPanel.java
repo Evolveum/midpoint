@@ -37,14 +37,10 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowPanel.class);
 
-    protected static final String ID_SHADOWS_CONTAINER = "shadowContainer";
-
-
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ASSOCIATIONS = "associations";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
-    private static final String ID_ERROR = "error";
 
 
     public ShadowPanel(String id, IModel<ShadowWrapper> model) {
@@ -93,8 +89,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
             LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
-//            ErrorPanel errorPanel = new ErrorPanel(ID_ERROR, createStringResource("Error creatinf shadow panels"));
-//            specificContainers.add(errorPanel);
+
         }
     }
 

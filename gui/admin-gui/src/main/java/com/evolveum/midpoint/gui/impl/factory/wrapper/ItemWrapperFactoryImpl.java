@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelService;
 
+import com.evolveum.midpoint.task.api.TaskManager;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,6 +51,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     @Autowired private PrismContext prismContext;
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private ModelService modelService;
+    @Autowired private TaskManager taskManager;
 
     @Override
     public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
@@ -265,5 +268,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         return modelService;
     }
 
-
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
 }

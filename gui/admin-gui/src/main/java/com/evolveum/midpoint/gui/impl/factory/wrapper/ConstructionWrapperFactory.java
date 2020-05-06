@@ -31,8 +31,6 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionWrapperFactory.class);
 
-    @Autowired private ModelService model;
-
     @Override
     public int getOrder() {
         return super.getOrder() - 10;
@@ -59,9 +57,9 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
 
         ObjectReferenceType resourceRef = constructionType.getResourceRef();
 
-        PrismObject<ResourceType> resource = null;
+        PrismObject<ResourceType> resource;
         try {
-            resource = model.getObject(ResourceType.class, resourceRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), context.getTask(), context.getResult());
+            resource = getModelService().getObject(ResourceType.class, resourceRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), context.getTask(), context.getResult());
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Problem occurred during resolving resource, reason: {}", e.getMessage(), e);
             context.getResult().recordFatalError("A problem occurred during resolving resource, reason: " + e.getMessage(), e);

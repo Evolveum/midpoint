@@ -53,12 +53,6 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     }
 
-//    @Override
-//    public boolean isVisible() {
-//        ItemWrapperVisibilitySpecification<PrismContainerWrapper<C>> specification = new ItemWrapperVisibilitySpecification<>(getModelObject());
-//        return specification.isVisible(getModelObject(), getVisibilityHandler());
-//    }
-
     @Override
     protected Panel createHeaderPanel() {
         return new PrismContainerHeaderPanel(ID_HEADER, getModel()) {
@@ -96,13 +90,6 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
         item.add(panel);
         return panel;
     }
-
-
-//    @Override
-//    public boolean isEnabled() {
-//        return true;
-//    }
-
 
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {

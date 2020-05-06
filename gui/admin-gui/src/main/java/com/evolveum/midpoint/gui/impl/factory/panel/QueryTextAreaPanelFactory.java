@@ -29,7 +29,7 @@ public class QueryTextAreaPanelFactory extends AbstractInputGuiComponentFactory<
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        return QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+        return QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
     //FIXME shoud be textAreapanel with custom model

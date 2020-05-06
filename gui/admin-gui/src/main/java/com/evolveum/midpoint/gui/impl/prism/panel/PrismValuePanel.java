@@ -260,12 +260,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-
-//    protected boolean isVisibleValue() {
-//        VW value = getModelObject();
-//        return !ValueStatus.DELETED.equals(value.getStatus());
-//    }
-
     private Form<VW> getForm() {
         return (Form) get(ID_VALUE_FORM);
     }

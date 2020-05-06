@@ -43,9 +43,7 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
 
-    @Autowired protected ModelService modelService;
     @Autowired protected SchemaHelper schemaHelper;
-    @Autowired protected TaskManager taskManager;
 
     private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
@@ -87,7 +85,7 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
                     .createLookupTableRetrieveOptions(schemaHelper);
 
             try {
-                PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+                PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
                 propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
                 result.computeStatusIfUnknown();
             } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException

@@ -30,7 +30,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractInputG
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName()); // || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName());
     }
 
     @Override
