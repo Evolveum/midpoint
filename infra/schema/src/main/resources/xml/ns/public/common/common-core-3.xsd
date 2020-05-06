@@ -22865,6 +22865,17 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="objectCollection" type="tns:ObjectCollectionReportEngineConfigurationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration for object collection-based reports. Only applicable if reportEngine=objectCollection.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="export" type="tns:ExportType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23239,6 +23250,31 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: other elements to configure the report -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectCollectionReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of object collection-based reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="objectCollectionRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Referrence to object collection definition that should be used as a basis for the report.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectCollectionType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
