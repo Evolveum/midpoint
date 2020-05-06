@@ -128,7 +128,6 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
@@ -164,7 +163,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
-    @Autowired protected ModelPortType modelWeb;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
