@@ -52,22 +52,27 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
             <exclusions>
-                <!-- Replaced by tomcat-annotations-api -->
-                <exclusion>
-                    <groupId>javax.annotation</groupId>
-                    <artifactId>javax.annotation-api</artifactId>
-                </exclusion>
+                <!-- in favor of Jakarta version -->
+                <!--<exclusion>-->
+                <!--    <groupId>javax.annotation</groupId>-->
+                <!--    <artifactId>javax.annotation-api</artifactId>-->
+                <!--</exclusion>-->
             </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tomcat</groupId>
+                    <artifactId>tomcat-annotations-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-        <!-- Equivalent of: javax.annotation:javax.annotation-api -->
         <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-annotations-api</artifactId>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
             <scope>provided</scope>
         </dependency>
 

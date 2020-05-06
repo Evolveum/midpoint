@@ -27,10 +27,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.WebApplicationContext;
 
-/**
- * @author semancik
- *
- */
 public class MockWebApplicationContext implements WebApplicationContext {
 
     private ApplicationContext appContext;
@@ -122,6 +118,16 @@ public class MockWebApplicationContext implements WebApplicationContext {
 
     public String[] getBeanNamesForType(ResolvableType arg0) {
         return appContext.getBeanNamesForType(arg0);
+    }
+
+    @Override
+    public String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
+        return appContext.getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+    }
+
+    @Override
+    public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
+        return appContext.getType(name, allowFactoryBeanInit);
     }
 
     public <T> Map<String, T> getBeansOfType(Class<T> arg0, boolean arg1, boolean arg2)

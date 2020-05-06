@@ -64,7 +64,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.1.13.RELEASE</version>
+        <version>2.2.6.RELEASE</version>
     </parent>
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -165,9 +165,6 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <!-- TODO: Check the names of properties in Spring Boot parent and let's try to use the same names. -->
-        <spring.version>5.1.9.RELEASE</spring.version>
-        <spring.security.version>5.1.6.RELEASE</spring.security.version>
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
@@ -656,6 +653,10 @@
                         <groupId>org.glassfish.jaxb</groupId>
                         <artifactId>jaxb-xjc</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -691,16 +692,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-jaxws</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-databinding-aegis</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-local</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
@@ -722,6 +713,11 @@
                              Therefore explicitly use the custom version. -->
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpcore</artifactId>
+                    </exclusion>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -765,6 +761,10 @@
                         <groupId>jakarta.ws.rs</groupId>
                         <artifactId>jakarta.ws.rs-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -780,12 +780,22 @@
                         <groupId>javax.xml.soap</groupId>
                         <artifactId>javax.xml.soap-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-providers</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.xjc-utils</groupId>
@@ -953,7 +963,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
-                <version>${spring.version}</version>
+                <version>${spring-framework.version}</version>
                 <exclusions>
                     <!-- replaced with jcl-over-slf4j -->
                     <exclusion>
@@ -1336,6 +1346,19 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- TODO this should go away with WSDLs -->
+            <dependency>
+                <groupId>javax.xml.ws</groupId>
+                <artifactId>jaxws-api</artifactId>
+                <version>${javax-jaxws.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>mail</artifactId>
@@ -1694,6 +1717,8 @@
                                         <exclude>com.sun.xml.bind:*</exclude>
                                         <!-- in favor of jakarta.activation:jakarta.activation-api -->
                                         <exclude>javax.activation:javax.activation-api</exclude>
+                                        <!-- in favor of jakarta.annotation:jakarta.annotation-api -->
+                                        <exclude>javax.annotation:javax.annotation-api</exclude>
                                         <!-- package with multiple XML APIs, conflicts assured
                                         (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
                                         <!--<exclude>xml-apis:xml-apis</exclude>-->
