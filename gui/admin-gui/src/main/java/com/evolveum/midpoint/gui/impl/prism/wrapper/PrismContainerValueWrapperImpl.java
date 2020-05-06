@@ -12,13 +12,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -336,7 +334,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
 
     /* (non-Javadoc)
-     * @see com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper#findContainer(com.evolveum.midpoint.prism.path.ItemPath)
+     * @see com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper#findContainer(com.evolveum.midpoint.prism.path.ItemPath)
      */
     @Override
     public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.panel.ProfilingClassLoggerPanel;

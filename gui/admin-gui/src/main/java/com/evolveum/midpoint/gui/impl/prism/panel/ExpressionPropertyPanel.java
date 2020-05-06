@@ -8,14 +8,12 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import java.util.Collections;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ExpressionTypeSelectPopup;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ExpressionValueTypes;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ExpressionWrapper;
 
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
@@ -24,7 +22,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;

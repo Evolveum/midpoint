@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributeDefinitionPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;

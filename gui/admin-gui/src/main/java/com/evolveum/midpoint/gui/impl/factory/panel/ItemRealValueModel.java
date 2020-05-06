@@ -10,7 +10,7 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
 public class ItemRealValueModel<T> extends PropertyModel<T>{
 

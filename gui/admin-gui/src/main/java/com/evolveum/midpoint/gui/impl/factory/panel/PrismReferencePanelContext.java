@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.*;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 /**

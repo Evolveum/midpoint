@@ -17,13 +17,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismContainerPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.panel.component.ListContainersPopup;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperVisibilitySpecification;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
 import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

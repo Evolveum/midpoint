@@ -12,6 +12,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;

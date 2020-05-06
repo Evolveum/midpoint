@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 
 import org.jetbrains.annotations.NotNull;

@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;

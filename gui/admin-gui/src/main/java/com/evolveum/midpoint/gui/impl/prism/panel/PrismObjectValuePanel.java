@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
