@@ -11,8 +11,11 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.reflect.FieldUtils;

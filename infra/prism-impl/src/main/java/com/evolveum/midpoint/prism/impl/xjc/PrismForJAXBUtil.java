@@ -396,4 +396,7 @@ public final class PrismForJAXBUtil {
         }
     }
 
+    public static SearchFilterType getFilter(PrismReferenceValue referenceValue) {
+        return referenceValue.getFilter();
+    }
 }

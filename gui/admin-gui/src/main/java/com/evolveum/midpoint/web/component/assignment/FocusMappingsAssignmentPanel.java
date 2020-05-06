@@ -11,8 +11,8 @@ import java.util.List;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -51,7 +51,7 @@ public class FocusMappingsAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?, ?, ?> wrapper) {
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
         if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
             return ItemVisibility.HIDDEN;
         }

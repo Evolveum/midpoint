@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.gui.api.component.password;
 
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -19,7 +20,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar
  */
-public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringType>{
+public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_PASSWORD_PANEL= "passwordPanel";
@@ -29,8 +30,7 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item, GuiComponentFactory factory,
-            ItemVisibilityHandler visibilityHandler, ItemEditabilityHandler editabilityHandler) {
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
 
         PasswordPanel passwordPanel = new PasswordPanel(ID_PASSWORD_PANEL, new ItemRealValueModel<>(item.getModel()),
                     getModelObject() != null && getModelObject().isReadOnly(),
@@ -52,11 +52,6 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
 
 
 
-    }
-
-    @Override
-    protected void createButtons(ListItem<PrismPropertyValueWrapper<ProtectedStringType>> item) {
-        //nothing to do
     }
 
 }

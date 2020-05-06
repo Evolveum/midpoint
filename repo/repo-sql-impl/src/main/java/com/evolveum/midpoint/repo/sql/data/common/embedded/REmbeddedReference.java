@@ -126,9 +126,6 @@ public class REmbeddedReference implements ObjectReference {
             RelationRegistry relationRegistry) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-        if (jaxb.getFilter() == null) {
-            Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
-        }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
         repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());

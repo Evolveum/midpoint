@@ -9,9 +9,8 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.prism.ItemPanel;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

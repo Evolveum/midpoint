@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="col-md-12">
+        <div class="top-level-prism-container">
+            <div wicket:id="attributes"/>
+        </div>
+        <wicket:enclosure child="associations">
+        <div class="top-level-prism-container">
+            <div wicket:id="associations"/>
+        </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="activation">
+        <div class="top-level-prism-container">
+            <div wicket:id="activation"/>
+        </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="password">
+        <div class="top-level-prism-container">
+            <div wicket:id="password"/>
+        </div>
+        </wicket:enclosure>
+    </div>
+</wicket:panel>
+</html>
