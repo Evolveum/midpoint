@@ -111,20 +111,20 @@ public class ResourceCache implements Cacheable {
         PrismObject<ResourceType> resourceToReturn;
         PrismObject<ResourceType> cachedResource = cache.get(oid);
         if (cachedResource == null) {
-            LOGGER.debug("MISS(not cached) for {}", oid);
+            LOGGER.debug("MISS(not cached) for {} (get)", oid);
             resourceToReturn = null;
         } else if (!compareVersion(requestedVersion, cachedResource.getVersion())) {
-            LOGGER.debug("MISS(wrong version) for {}", oid);
+            LOGGER.debug("MISS(wrong version) for {} (req={}, actual={})", oid, requestedVersion, cachedResource.getVersion());
             LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache",
                     cachedResource.getVersion(), requestedVersion);
             cache.remove(oid);
             resourceToReturn = null;
         } else if (readOnly) {
             cachedResource.checkImmutable();
-            LOGGER.trace("HIT(read only) for {}", cachedResource);
+            LOGGER.trace("HIT(read only) for {} (v{})", cachedResource, cachedResource.getVersion());
             resourceToReturn = cachedResource;
         } else {
-            LOGGER.debug("HIT(returning clone) for {}", cachedResource);
+            LOGGER.debug("HIT(returning clone) for {} (v{})", cachedResource, cachedResource.getVersion());
             resourceToReturn = cachedResource.clone();
         }
 
@@ -151,7 +151,7 @@ public class ResourceCache implements Cacheable {
             String version = repositoryService.getVersion(ResourceType.class, oid, parentResult);
             return get(oid, version, readonly);
         } else {
-            LOGGER.debug("MISS(not cached) for {}", oid);
+            LOGGER.debug("MISS(not cached) for {} (getIfLatest)", oid);
             CachePerformanceCollector.INSTANCE.registerMiss(ResourceCache.class, ResourceType.class, PER_CACHE);
             InternalMonitor.getResourceCacheStats().recordMiss();
             return null;

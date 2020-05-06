@@ -121,7 +121,7 @@ public class ChangeProcessingCoordinator {
     }
 
     private class WorkerHandler implements LightweightTaskHandler {
-        private OperationResult workerSpecificResult;
+        private final OperationResult workerSpecificResult;
 
         private WorkerHandler(OperationResult workerSpecificResult) {
             this.workerSpecificResult = workerSpecificResult;

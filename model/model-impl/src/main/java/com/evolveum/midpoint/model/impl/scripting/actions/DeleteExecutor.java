@@ -11,17 +11,16 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.DeleteActionExpressionType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -29,59 +28,51 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Executes the "delete" action.
  */
 @Component
-public class DeleteExecutor extends BaseActionExecutor {
-
-    private static final Trace LOGGER = TraceManager.getTrace(DeleteExecutor.class);
+public class DeleteExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
     private static final String NAME = "delete";
 
-    @Autowired
-    private OperationsHelper operationsHelper;
-
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, DeleteActionExpressionType.class, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
-        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
+        boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
+        ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
 
-        for (PipelineItem item : input.getData()) {
-            PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-            context.checkTaskStop();
-            if (value instanceof PrismObjectValue) {
-                @SuppressWarnings({"unchecked", "raw"})
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-                ObjectType objectType = prismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, objectType);
-                Throwable exception = null;
-                try {
-                    operationsHelper.applyDelta(createDeleteDelta(objectType), executionOptions, dryRun, context, result);
-                    operationsHelper.recordEnd(context, objectType, started, null);
-                } catch (Throwable ex) {
-                    operationsHelper.recordEnd(context, objectType, started, ex);
-                    exception = processActionException(ex, NAME, value, context);
-                }
-                context.println((exception != null ? "Attempted to delete " : "Deleted ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
-            }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
-        }
+        iterateOverObjects(input, context, globalResult,
+                (object, item, result) ->
+                        delete(object.asObjectable(), dryRun, options, context, result),
+                (object, exception) ->
+                        context.println("Failed to delete " + object + drySuffix(dryRun) + exceptionSuffix(exception))
+        );
+
         return input;
     }
 
-    private ObjectDelta<? extends ObjectType> createDeleteDelta(ObjectType objectType) {
-        return prismContext.deltaFactory().object().createDeleteDelta(objectType.getClass(), objectType.getOid()
-        );
+    private void delete(ObjectType object, boolean dryRun, ModelExecuteOptions options, ExecutionContext context,
+            OperationResult result) throws ScriptExecutionException {
+        ObjectDelta<? extends ObjectType> deleteDelta = prismContext.deltaFactory().object()
+                .createDeleteDelta(object.getClass(), object.getOid());
+        operationsHelper.applyDelta(deleteDelta, options, dryRun, context, result);
+        context.println("Deleted " + object + optionsSuffix(options, dryRun));
     }
 
+    @Override
+    Class<ObjectType> getObjectType() {
+        return ObjectType.class;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
+    }
 }

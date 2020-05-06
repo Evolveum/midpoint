@@ -11,22 +11,17 @@
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       oid="e6ad137e-23f6-444d-9478-c10a0b255b68"
       version="1">
-    <name>Approval and execution of: Assigning role "abc" to user "def" (old)</name>
+    <name>Task to keep suspended</name>
     <taskIdentifier>2222222222222-0-1</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"
               relation="org:default"
               type="c:UserType"><!-- administrator --></ownerRef>
     <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
     <executionStatus>suspended</executionStatus>
-    <category>Workflow</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
-    <otherHandlersUriStack/>
     <resultStatus>partial_error</resultStatus>
-    <lastRunStartTimestamp>2018-01-02T12:24:33.635+02:00</lastRunStartTimestamp>
-    <lastRunFinishTimestamp>2018-01-02T12:25:46.587+02:00</lastRunFinishTimestamp>
+    <lastRunStartTimestamp>2018-04-11T12:24:33.635+02:00</lastRunStartTimestamp>
+    <lastRunFinishTimestamp>2018-04-11T12:25:46.587+02:00</lastRunFinishTimestamp>
     <recurrence>single</recurrence>
     <binding>tight</binding>
-    <modelOperationContext>
-        <state>primary</state>
-    </modelOperationContext>
 </task>

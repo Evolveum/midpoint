@@ -7,76 +7,71 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import javax.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.TestResourceActionExpressionType;
 
 /**
- * @author mederly
+ * Executes "test-resource" action.
  */
 @Component
-public class TestResourceExecutor extends BaseActionExecutor {
-
-    private static final Trace LOGGER = TraceManager.getTrace(TestResourceExecutor.class);
+public class TestResourceExecutor extends AbstractObjectBasedActionExecutor<ResourceType> {
 
     private static final String NAME = "test-resource";
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, TestResourceActionExpressionType.class, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException {
 
         PipelineData output = PipelineData.createEmpty();
 
-        for (PipelineItem item: input.getData()) {
-            PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-            context.checkTaskStop();
-            if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
-                PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
-                ResourceType resourceType = resourceTypePrismObject.asObjectable();
-                long started = operationsHelper.recordStart(context, resourceType);
-                Throwable exception = null;
-                OperationResult testResult;
-                try {
-                    testResult = modelService.testResource(resourceTypePrismObject.getOid(), context.getTask());
-                    operationsHelper.recordEnd(context, resourceType, started, null);
-                } catch (ObjectNotFoundException|RuntimeException e) {
-                    operationsHelper.recordEnd(context, resourceType, started, e);
-                    exception = processActionException(e, NAME, value, context);
-                    testResult = new OperationResult(TestResourceExecutor.class.getName() + ".testResource");
-                    testResult.recordFatalError(e);
-                }
-                result.addSubresult(testResult);
-                context.println("Tested " + resourceTypePrismObject + ": " + testResult.getStatus() + exceptionSuffix(exception));
-                try {
-                    PrismObjectValue<ResourceType> resourceValue = operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result).getValue();
-                    output.add(new PipelineItem(resourceValue, item.getResult()));
-                } catch (ExpressionEvaluationException e) {
-                    throw new ScriptExecutionException("Error getting resource "+resourceTypePrismObject.getOid()+": "+e.getMessage(), e);
-                }
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
-            }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
-        }
+        iterateOverObjects(input, context, globalResult,
+                (object, item, result) ->
+                        test(object, output, item, context, result),
+                (object, exception) ->
+                        context.println("Failed to test " + object + exceptionSuffix(exception))
+        );
+
         return output;
+    }
+
+    private void test(PrismObject<? extends ResourceType> object, PipelineData output, PipelineItem item, ExecutionContext context,
+            OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, ScriptExecutionException {
+        String oid = object.getOid();
+        OperationResult testResult = modelService.testResource(oid, context.getTask());
+        context.println("Tested " + object + ": " + testResult.getStatus());
+        result.addSubresult(testResult);
+
+        PrismObjectValue<ResourceType> resourceAfter = operationsHelper.getObject(ResourceType.class, oid,
+                false, context, result).getValue();
+        output.add(new PipelineItem(resourceAfter, item.getResult()));
+    }
+
+    @Override
+    Class<ResourceType> getObjectType() {
+        return ResourceType.class;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

@@ -7,8 +7,8 @@
   -->
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:UserType</s:type>
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -16,43 +16,27 @@
             <value>jack</value>
         </equal>
     </s:searchFilter>
-    <s:action>
-        <s:type>notify</s:type>
-        <s:parameter>
-            <s:name>subtype</s:name>
-            <c:value>type2</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>operation</s:name>
-            <c:value>delete</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>status</s:name>
-            <c:value>failure</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>forWholeInput</s:name>
-            <c:value>true</c:value>
-        </s:parameter>
-        <s:parameter>
-            <s:name>handler</s:name>
-            <c:value xsi:type="c:EventHandlerType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-                <generalNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <subjectExpression>
-                        <value>Ad hoc notification 2</value>
-                    </subjectExpression>
-                    <bodyExpression>
-                        <script>
-                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                            <code>$event.object.size()</code>
-                        </script>
-                    </bodyExpression>
-                    <transport>dummy:Custom</transport>
-                </generalNotifier>
-            </c:value>
-        </s:parameter>
-    </s:action>
+    <s:notify>
+        <s:subtype>type2</s:subtype>
+        <s:status>failure</s:status>
+        <s:operation>delete</s:operation>
+        <s:forWholeInput>true</s:forWholeInput>
+        <s:handler>
+            <generalNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <subjectExpression>
+                    <value>Ad hoc notification 2</value>
+                </subjectExpression>
+                <bodyExpression>
+                    <script>
+                        <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <code>$event.object.size()</code>
+                    </script>
+                </bodyExpression>
+                <transport>dummy:Custom</transport>
+            </generalNotifier>
+        </s:handler>
+    </s:notify>
 </s:search>
