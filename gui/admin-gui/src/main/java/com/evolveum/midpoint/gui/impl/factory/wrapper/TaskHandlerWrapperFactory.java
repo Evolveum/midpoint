@@ -44,46 +44,25 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
     private static final String OPERATION_DETERMINE_LOOKUP_TABLE = "determineLookupTable";
 
     @Override
-    protected PrismPropertyWrapper<String> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<String> item,
-            ItemStatus status, WrapperContext ctx) {
-
+    protected LookupTableType getPredefinedValues(PrismProperty<String> item, WrapperContext ctx) {
         PrismObject<?> prismObject = getParent(ctx);
         if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
-            return super.createWrapper(parent, item, status, ctx);
+            return super.getPredefinedValues(item, ctx);
         }
 
-        PrismPropertyWrapper<String> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-        PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
-        if (valueEnumerationRef != null) {
-            Task task = ctx.getTask();
-            OperationResult result = ctx.getResult().createSubresult(OPERATION_DETERMINE_LOOKUP_TABLE);
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                    .createLookupTableRetrieveOptions(schemaHelper);
-
-            try {
-                PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
-                propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
-            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
-                    | ConfigurationException | ExpressionEvaluationException e) {
-                LOGGER.error("Cannot load lookup table for {} ", item);
-                //TODO throw???
-            }
-
-            return propertyWrapper;
+        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
+        if (parentLookup != null) {
+            return parentLookup;
         }
 
-        if (parent != null && parent.getParent() != null) {
+        TaskType task = (TaskType) prismObject.asObjectable();
+           Collection<AssignmentType> assignmentTypes = task.getAssignment()
+                .stream()
+                .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType))
+                .collect(Collectors.toList());
 
-            TaskType task = (TaskType) prismObject.asObjectable();
-
-            if (ItemStatus.ADDED == status) {
-                Collection<AssignmentType> assignmentTypes = task.getAssignment()
-                        .stream()
-                        .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType))
-                        .collect(Collectors.toList());
-
-                Collection<String> handlers;
-                if (assignmentTypes.isEmpty()) {
+           Collection<String> handlers;
+           if (assignmentTypes.isEmpty()) {
                     // TODO all handlers
                     handlers = getTaskManager().getAllHandlerUris(true);
                 } else if (assignmentTypes.size() == 1) {
@@ -106,11 +85,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                     lookupTableType.getRow().add(row);
                 });
 
-                propertyWrapper.setPredefinedValues(lookupTableType);
-
-            }
-        }
-        return propertyWrapper;
+                return lookupTableType;
     }
 
     private PrismObject<?> getParent(WrapperContext ctx) {
