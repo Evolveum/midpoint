@@ -775,7 +775,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             skinCssString = info.getSkin();
         }
 
-        String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
+        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
         response.render(CssHeaderItem.forReference(
                 new CssResourceReference(
                         PageBase.class, skinCssPath)

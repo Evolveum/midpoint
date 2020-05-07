@@ -106,8 +106,8 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.webjars.bower</groupId>
-            <artifactId>adminlte</artifactId>
+            <groupId>org.webjars</groupId>
+            <artifactId>AdminLTE</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
