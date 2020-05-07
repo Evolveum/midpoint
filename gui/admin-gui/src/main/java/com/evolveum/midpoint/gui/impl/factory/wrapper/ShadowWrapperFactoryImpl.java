@@ -26,9 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ShadowWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<ShadowType> {
 
-    @Autowired private GuiComponentRegistry registry;
-    @Autowired private ModelService modelService;
-
     @Override
     public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {
         return new ShadowWrapperImpl(object, status);

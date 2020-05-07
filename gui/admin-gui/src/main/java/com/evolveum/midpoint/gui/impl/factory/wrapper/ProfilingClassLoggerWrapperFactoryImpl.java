@@ -34,8 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 @Component
 public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ClassLoggerConfigurationType> {
 
-    @Autowired private GuiComponentRegistry registry;
-
     public static final QName PROFILING_LOGGER_PATH = new QName("profilingClassLogger");
 
     public static final String LOGGER_PROFILING = "PROFILING";
@@ -61,7 +59,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent,
             PrismContainer<ClassLoggerConfigurationType> childContainer, ItemStatus status, WrapperContext ctx) {
         PrismContainer<ClassLoggerConfigurationType> clone = childContainer.clone();
-        registry.registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
+        getRegistry().registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
         return new ProfilingClassLoggerContainerWrapperImpl<>(parent, clone, status);
     }
 

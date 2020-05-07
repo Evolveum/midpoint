@@ -12,6 +12,9 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +36,7 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
+        return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName()) || QNameUtil.match(TriggerType.COMPLEX_TYPE, def.getTypeName());
     }
 
     @PostConstruct
@@ -62,5 +65,10 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
     @Override
     protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
         return true;
+    }
+
+    @Override
+    protected boolean shouldCreateEmptyValue(PrismContainer<MetadataType> item, WrapperContext context) {
+        return false;
     }
 }

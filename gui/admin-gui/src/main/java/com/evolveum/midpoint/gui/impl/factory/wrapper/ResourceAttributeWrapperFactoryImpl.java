@@ -34,8 +34,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 @Component
 public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<ResourceAttributeWrapper<T>, PrismPropertyValue<T>, ResourceAttribute<T>, PrismPropertyValueWrapper<T>> {
 
-    @Autowired private GuiComponentRegistry registry;
-
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof ResourceAttributeDefinition;
@@ -56,7 +54,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
     @PostConstruct
     @Override
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override
@@ -74,7 +72,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
     @Override
     protected ResourceAttributeWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent,
             ResourceAttribute<T> childContainer, ItemStatus status, WrapperContext ctx) {
-        registry.registerWrapperPanel(new QName("ResourceAttributeDefinition"), ResourceAttributeDefinitionPanel.class);
+        getRegistry().registerWrapperPanel(new QName("ResourceAttributeDefinition"), ResourceAttributeDefinitionPanel.class);
         ResourceAttributeWrapper<T> propertyWrapper = new ResourceAttributeWrapperImpl<>(parent, childContainer, status);
         return propertyWrapper;
     }

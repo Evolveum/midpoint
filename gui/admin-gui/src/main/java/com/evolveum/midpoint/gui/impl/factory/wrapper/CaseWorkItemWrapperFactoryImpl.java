@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * Created by honchar
  */
 @Component
-public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<CaseWorkItemType> {
+public class CaseWorkItemWrapperFactoryImpl extends NoEmptyValueContainerWrapperFactoryImpl<CaseWorkItemType> {
 
     @Override
     public boolean match(ItemDefinition<?> def) {
@@ -40,19 +40,9 @@ public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactory
 
     @Override
     public int getOrder() {
-        return 1000;
+        return super.getOrder() - 10;
     }
 
-    @Override
-    protected PrismContainerValue<CaseWorkItemType> createNewValue(PrismContainer<CaseWorkItemType> item) {
-        throw new UnsupportedOperationException("New case work item value should not be created while creating wrappers.");
-    }
-
-
-    @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<CaseWorkItemType> item, WrapperContext context) {
-        return false;
-    }
 
     @Override
     protected PrismContainerWrapper<CaseWorkItemType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<CaseWorkItemType> item,
@@ -61,13 +51,5 @@ public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactory
         CaseWorkItemTypeWrapper containerWrapper = new CaseWorkItemTypeWrapper(parent, item, status);
         return containerWrapper;
     }
-
-    @Override
-    public PrismContainerValueWrapper<CaseWorkItemType> createValueWrapper(PrismContainerWrapper<CaseWorkItemType> parent,
-                                                                         PrismContainerValue<CaseWorkItemType> value, ValueStatus status, WrapperContext context) throws SchemaException {
-        context.setCreateIfEmpty(false);
-        return super.createValueWrapper(parent, value, status, context);
-    }
-
 
 }
