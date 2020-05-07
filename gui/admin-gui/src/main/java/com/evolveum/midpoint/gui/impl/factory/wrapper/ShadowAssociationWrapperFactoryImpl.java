@@ -189,7 +189,6 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
             return null;
 
         }
-        getRegistry().registerWrapperPanel(associationTransformed.getDefinition().getTypeName(), PrismContainerPanel.class);
         ShadowAssociationWrapperImpl associationWrapper = new ShadowAssociationWrapperImpl(parent, associationTransformed, status);
 
         associationWrapper.setResource(resource.asObjectable());

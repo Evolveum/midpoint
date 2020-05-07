@@ -64,7 +64,7 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
     protected PrismReferenceWrapper<R> createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
             ItemStatus status, WrapperContext ctx) {
         PrismReferenceWrapperImpl<R> wrapper = new PrismReferenceWrapperImpl<>(parent, item, status);
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismReferencePanel.class);
+
         return wrapper;
     }
 
@@ -75,6 +75,11 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 
         PrismReferenceValueWrapperImpl<R> refValue = new PrismReferenceValueWrapperImpl<>(parent, value, status);
         return refValue;
+    }
+
+    @Override
+    public void registerWrapperPanel(PrismReferenceWrapper<R> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismReferencePanel.class);
     }
 
     @Override

@@ -74,10 +74,16 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
     @Override
     protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
             ItemStatus status, WrapperContext wrapperContext) {
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
         PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
+        propertyWrapper.setPredefinedValues(getPredefinedValues(item, wrapperContext));
+        return propertyWrapper;
+    }
+
+    protected LookupTableType getPredefinedValues(PrismProperty<T> item, WrapperContext wrapperContext) {
         PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
-        if (valueEnumerationRef != null) {
+        if (valueEnumerationRef == null) {
+            return null;
+        }
             //TODO: task and result from context
             Task task = wrapperContext.getTask();
             OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
@@ -86,16 +92,17 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 
             try {
                 PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
-                propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
                 result.computeStatusIfUnknown();
+                return lookupTable.asObjectable();
             } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
                     | ConfigurationException | ExpressionEvaluationException e) {
                 LOGGER.error("Cannot load lookup table for {} ", item);
                 result.recordFatalError("Cannot load lookupTable for " + item + ", Reason: " + e.getMessage(), e);
                 //TODO throw???
             }
-        }
-        return propertyWrapper;
+
+            return null;
+
     }
 
     @Override
@@ -103,6 +110,11 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
             ValueStatus status, WrapperContext context) throws SchemaException {
         PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
         return valueWrapper;
+    }
+
+    @Override
+    public void registerWrapperPanel(PrismPropertyWrapper<T> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismPropertyPanel.class);
     }
 
     @Override

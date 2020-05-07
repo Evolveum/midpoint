@@ -54,7 +54,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
     private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
-    @Autowired private GuiComponentRegistry registry;
     @Autowired protected ModelInteractionService modelInteractionService;
 
     public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
@@ -82,7 +81,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
         objectWrapper.getValues().add(valueWrapper);
 
-        registry.registerWrapperPanel(object.getDefinition().getTypeName(), PrismContainerPanel.class);
         return objectWrapper;
 
     }
@@ -110,7 +108,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         wrapper.getValues().clear();
         wrapper.getValues().add(valueWrapper);
 
-        registry.registerWrapperPanel(wrapper.getObject().getDefinition().getTypeName(), PrismContainerPanel.class);
+        registerWrapperPanel(wrapper);
     }
 
     @Override
@@ -192,7 +190,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     @Override
     @PostConstruct
     public void register() {
-        registry.addToRegistry(this);
+        getRegistry().addToRegistry(this);
     }
 
     @Override

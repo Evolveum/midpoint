@@ -32,10 +32,10 @@ public class ShadowAttributesWrapperFactoryImpl<C extends Containerable> extends
         return Integer.MAX_VALUE - 100;
     }
 
+
     @Override
-    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
-            PrismContainer<C> childContainer, ItemStatus status, WrapperContext ctx) {
+    public void registerWrapperPanel(PrismContainerWrapper<C> wrapper) {
         getRegistry().registerWrapperPanel(ShadowAttributesType.COMPLEX_TYPE, PrismContainerPanel.class);
-        return new PrismContainerWrapperImpl<>(parent, childContainer, status);
+
     }
 }

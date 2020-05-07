@@ -52,7 +52,6 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
             return super.createWrapper(parent, item, status, ctx);
         }
 
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
         PrismPropertyWrapper<String> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
         PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
         if (valueEnumerationRef != null) {

@@ -76,7 +76,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             childItem = (I) parent.getNewValue().findOrCreateItem(name);
         }
 
-        return createCompleteWrapper(parent, childItem, status, context);
+        IW wrapper = createCompleteWrapper(parent, childItem, status, context);
+        registerWrapperPanel(wrapper);
+        return wrapper;
     }
 
     private ItemStatus getStatus(I childItem) {
@@ -88,6 +90,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     }
 
+    public abstract void registerWrapperPanel(IW wrapper);
 
     public IW createWrapper(Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         return createCompleteWrapper(null, (I) childItem, status, context);

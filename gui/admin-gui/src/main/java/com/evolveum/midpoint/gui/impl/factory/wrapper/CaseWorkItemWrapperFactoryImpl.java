@@ -43,13 +43,8 @@ public class CaseWorkItemWrapperFactoryImpl extends NoEmptyValueContainerWrapper
         return super.getOrder() - 10;
     }
 
-
     @Override
-    protected PrismContainerWrapper<CaseWorkItemType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<CaseWorkItemType> item,
-                                                                 ItemStatus status, WrapperContext ctx) {
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), WorkItemDetailsPanel.class);
-        CaseWorkItemTypeWrapper containerWrapper = new CaseWorkItemTypeWrapper(parent, item, status);
-        return containerWrapper;
+    public void registerWrapperPanel(PrismContainerWrapper<CaseWorkItemType> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), WorkItemDetailsPanel.class);
     }
-
 }
