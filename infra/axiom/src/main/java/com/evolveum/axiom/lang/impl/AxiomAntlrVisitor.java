@@ -28,9 +28,11 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private final AxiomIdentifierResolver statements;
     private final AxiomStatementStreamListener delegate;
     private final Optional<Set<AxiomIdentifier>> limit;
+    private final String sourceName;
 
-    public AxiomAntlrVisitor(AxiomIdentifierResolver statements, AxiomStatementStreamListener delegate,
+    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomStatementStreamListener delegate,
             Set<AxiomIdentifier> limit) {
+        this.sourceName = name;
         this.statements = statements;
         this.delegate = delegate;
         this.limit = Optional.ofNullable(limit);
@@ -51,6 +53,7 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         AxiomIdentifier identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
             delegate.startStatement(identifier,
+                    sourceName,
                     sourceLine(ctx.identifier()),
                     sourcePosition(ctx.identifier()));
             T ret = super.visitStatement(ctx);
@@ -70,9 +73,9 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     @Override
     public T visitArgument(ArgumentContext ctx) {
         if (ctx.identifier() != null) {
-            delegate.argument(convert(ctx.identifier()),sourceLine(ctx),sourcePosition(ctx));
+            delegate.argument(convert(ctx.identifier()), sourceName, sourceLine(ctx),sourcePosition(ctx));
         } else {
-            delegate.argument(convert(ctx.string()),sourceLine(ctx),sourcePosition(ctx));
+            delegate.argument(convert(ctx.string()), sourceName, sourceLine(ctx),sourcePosition(ctx));
         }
         return defaultResult();
     }

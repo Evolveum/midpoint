@@ -33,6 +33,7 @@ public class AxiomBuiltIn {
         VERSION("version", Type.STRING, true),
         TYPE_REFERENCE("type", Type.IDENTIFIER, true),
         TYPE_DEFINITION("type", Type.TYPE_DEFINITION, false),
+        SUPERTYPE_REFERENCE("extends", Type.IDENTIFIER, false),
         OBJECT_DEFINITION("object", Type.OBJECT_DEFINITION, false),
         PROPERTY_DEFINITION("property", Type.ITEM_DEFINITION, false),
         CONTAINER_DEFINITION("container", Type.ITEM_DEFINITION, false),
@@ -93,6 +94,8 @@ public class AxiomBuiltIn {
                 Item.OBJECT_DEFINITION
                 )),
         TYPE_DEFINITION("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
+                Item.ARGUMENT,
+                Item.SUPERTYPE_REFERENCE,
                 Item.PROPERTY_DEFINITION,
                 Item.CONTAINER_DEFINITION,
                 Item.OBJECT_REFERENCE_DEFINITION

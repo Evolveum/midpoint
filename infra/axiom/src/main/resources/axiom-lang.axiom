@@ -12,6 +12,13 @@ model axiom-lang {
             type AxiomObjectDefinition;
         }
     }
+    
+    type AxiomBaseDefinition {
+        argument identifier;
+        property identifier {
+            type AxiomIdentifier;
+        }
+    }
 
     type AxiomTypeDefinition {
         argument identifier;
@@ -38,11 +45,11 @@ model axiom-lang {
     }
 
     type AxiomPropertyDefinition {
-        type AxiomItemDefinition;
+        extends AxiomItemDefinition;
     }
     
     type AxiomContainerDefinition {
-        type AxiomItemDefinition;
+        extends AxiomItemDefinition;
     }
 
 }

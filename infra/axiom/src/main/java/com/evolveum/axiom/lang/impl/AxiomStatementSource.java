@@ -27,9 +27,14 @@ import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
 public class AxiomStatementSource implements AxiomModelInfo {
 
     private final StatementContext root;
+    private String sourceName;
 
     public static AxiomStatementSource from(InputStream stream) throws IOException, AxiomSyntaxException {
         return from(null, CharStreams.fromStream(stream));
+    }
+
+    public static AxiomStatementSource from(String sourceName, InputStream stream) throws IOException, AxiomSyntaxException {
+        return from(sourceName, CharStreams.fromStream(stream));
     }
 
     public static AxiomStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
@@ -43,10 +48,11 @@ public class AxiomStatementSource implements AxiomModelInfo {
         parser.addErrorListener(errorListener);
         StatementContext statement = parser.statement();
         errorListener.validate();
-        return new AxiomStatementSource(statement);
+        return new AxiomStatementSource(sourceName, statement);
     }
 
-    private AxiomStatementSource(StatementContext statement) {
+    private AxiomStatementSource(String sourceName, StatementContext statement) {
+        this.sourceName = sourceName;
         this.root = statement;
     }
 
@@ -73,7 +79,7 @@ public class AxiomStatementSource implements AxiomModelInfo {
 
     private void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener,
             Optional<Set<AxiomIdentifier>> emitOnly) {
-        AxiomAntlrVisitor<?> visitor = new AxiomAntlrVisitor<>(resolver, listener, emitOnly.orElse(null));
+        AxiomAntlrVisitor<?> visitor = new AxiomAntlrVisitor<>(sourceName, resolver, listener, emitOnly.orElse(null));
         visitor.visit(root);
     }
 }

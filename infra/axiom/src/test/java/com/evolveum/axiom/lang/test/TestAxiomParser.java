@@ -12,6 +12,7 @@ import static org.testng.Assert.assertNotNull;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.testng.annotations.Test;
 
@@ -28,8 +29,16 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 public class TestAxiomParser extends AbstractUnitTest {
 
-    private static String COMMON_DIR_PATH = "src/test/resources/";
-    private static String NAME = "base-example.axiom";
+    private static final String COMMON_DIR_PATH = "src/test/resources/";
+    private static final String NAME = "base-example.axiom";
+    private static final String AXIOM_LANG = "/axiom-lang.axiom";
+
+
+    @Test
+    public void axiomLanguageDefTest() throws IOException, AxiomSyntaxException {
+        AxiomStatement<?> root = parseInputStream(AXIOM_LANG,AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG));
+        assertNotNull(root);
+    }
 
 
     @Test
@@ -42,8 +51,13 @@ public class TestAxiomParser extends AbstractUnitTest {
 
     }
 
+
     private AxiomStatement<?> parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        AxiomStatementSource statementSource = AxiomStatementSource.from(new FileInputStream(COMMON_DIR_PATH + name));
+        return parseInputStream(name, new FileInputStream(COMMON_DIR_PATH + name));
+    }
+
+    private AxiomStatement<?> parseInputStream(String name, InputStream stream) throws AxiomSyntaxException, FileNotFoundException, IOException {
+        AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
         assertNotNull(statementSource);
         //assertEquals(statementSource.getModelName(), NAME);
 

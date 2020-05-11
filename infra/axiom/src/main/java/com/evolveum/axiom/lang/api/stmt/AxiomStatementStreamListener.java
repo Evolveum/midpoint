@@ -12,11 +12,7 @@ import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 public interface AxiomStatementStreamListener {
 
     void endStatement();
-
-
-    void startStatement(AxiomIdentifier identifier, int sourceLine, int sourcePosition) throws AxiomSyntaxException;
-    void argument(String convert, int sourceLine, int sourcePosition);
-
-
-    void argument(AxiomIdentifier convert, int sourceLine, int sourcePosition);
+    void startStatement(AxiomIdentifier identifier,  String sourceName,  int line, int posInLine) throws AxiomSyntaxException;
+    void argument(String argument ,  String sourceName,  int line, int posInLine);
+    void argument(AxiomIdentifier argument, String sourceName, int sourceLine, int sourcePosition);
 }

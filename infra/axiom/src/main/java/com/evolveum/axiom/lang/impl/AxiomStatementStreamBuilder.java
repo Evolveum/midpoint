@@ -43,19 +43,19 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
     }
 
     @Override
-    public void argument(AxiomIdentifier identifier, int line, int posInLine) {
-        argument0(identifier, line, posInLine);
+    public void argument(AxiomIdentifier identifier, String source, int line, int posInLine) {
+        argument0(identifier, source, line, posInLine);
     }
 
     @Override
-    public void argument(String identifier, int line, int posInLine) {
-        argument0(identifier, line, posInLine);
+    public void argument(String identifier, String source, int line, int posInLine) {
+        argument0(identifier, source, line, posInLine);
     }
 
-    private void argument0(Object value, int line, int posInLine) {
+    private void argument0(Object value, String source, int line, int posInLine) {
         Optional<AxiomItemDefinition> argDef = current().argumentDef();
         if(argDef.isPresent()) {
-            startStatement(argDef.get().identifier(), line, posInLine);
+            startStatement(argDef.get().identifier(), source, line, posInLine);
             current().setValue(value);
 
             endStatement();
@@ -65,9 +65,9 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
     }
 
     @Override
-    public void startStatement(AxiomIdentifier statement, int line, int posInLine) throws AxiomSyntaxException {
+    public void startStatement(AxiomIdentifier statement, String sourceName,  int line, int posInLine) throws AxiomSyntaxException {
         Optional<AxiomItemDefinition> childDef = current().childDef(statement);
-        AxiomSyntaxException.check(childDef.isPresent(), "", line, posInLine, "Statement %s not allowed in %s", statement, current().identifier());
+        AxiomSyntaxException.check(childDef.isPresent(), sourceName, line, posInLine, "Statement %s not allowed in %s", statement, current().identifier());
 
         queue.offerFirst(createBuilder(childDef.get()));
     }
