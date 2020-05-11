@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
+
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +69,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaHelper schemaHelper;
 
-    private List<AuditService> services = new Vector<>();
+    private final List<AuditService> services = new Vector<>();
 
     @Override
     public void audit(AuditEventRecord record, Task task) {
@@ -252,5 +254,10 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             }
         }
         return false;
+    }
+
+    @Override
+    public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
+        services.forEach(service -> service.applyAuditConfiguration(configuration));
     }
 }

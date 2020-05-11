@@ -8,9 +8,14 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.sql.ResultSet;
 import javax.persistence.*;
+
+import com.evolveum.midpoint.prism.SerializationOptions;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
@@ -261,7 +266,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public static RObjectDeltaOperation toRepo(RAuditEventRecord record, ObjectDeltaOperation operation,
-            PrismContext prismContext) throws DtoTranslationException {
+            PrismContext prismContext, SystemConfigurationAuditType auditConfiguration) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
         auditDelta.setRecord(record);
 
@@ -269,7 +274,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
 
-                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
+                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
                 byte[] data = RUtil.getByteArrayFromXml(xmlDelta, true);
                 auditDelta.setDelta(data);
 
@@ -294,7 +301,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
     }
 
     public static SingleSqlQuery toRepo(Long recordId, ObjectDeltaOperation operation,
-            PrismContext prismContext) throws DtoTranslationException {
+            PrismContext prismContext, SystemConfigurationAuditType auditConfiguration) throws DtoTranslationException {
 
         InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
         queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
@@ -304,7 +311,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
 
-                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
+                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
                 deltaData = RUtil.getByteArrayFromXml(xmlDelta, true);
                 queryBuilder.addParameter(DELTA_COLUMN_NAME, deltaData);
                 queryBuilder.addParameter(DELTA_OID_COLUMN_NAME, delta.getOid());
@@ -323,7 +332,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 } else {
                     queryBuilder.addParameter(STATUS_COLUMN_NAME, RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
                     try {
-                        String full = prismContext.xmlSerializer().serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                        String full = prismContext.xmlSerializer()
+                                .options(SerializationOptions.createEscapeInvalidCharacters())
+                                .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
                         fullResultData = RUtil.getByteArrayFromXml(full, true);
                         queryBuilder.addParameter(FULL_RESULT_COLUMN_NAME, fullResultData);
                     } catch (Exception ex) {
