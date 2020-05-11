@@ -79,9 +79,17 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
 
 function resizeToMaxHeight(editorId, minHeight) {
     //38 + 1 + 21 is menu outer height
-    var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
-        - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true)
-        - $('header.main-header').outerHeight(true);
+    var newHeight = $(document).innerHeight()
+        - $('footer.main-footer').outerHeight(true) - $('header.main-header').outerHeight(true);
+
+    var boxHeader = $('div.box-header').outerHeight(true);
+    var buttonsBar = $('div.main-button-bar').outerHeight(true);
+    if (buttonsBar){
+        newHeight = newHeight - buttonsBar;
+    }
+    if (boxHeader){
+        newHeight = newHeight - boxHeader;
+    }
     if (newHeight < minHeight) {
         newHeight = minHeight;
     }
