@@ -106,7 +106,7 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.webjars</groupId>
+            <groupId>com.evolveum.webjars</groupId>
             <artifactId>AdminLTE</artifactId>
             <scope>runtime</scope>
         </dependency>
