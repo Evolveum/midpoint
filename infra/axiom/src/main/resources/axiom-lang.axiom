@@ -48,32 +48,38 @@ model axiom-lang {
             type AxiomIdentifier;
         }
         documentation """
-            Global definition of a type in axiom module.
+            Definition of a type in axiom module. Optionally provides also related
+            item definition.
         """;
 
         item object {
             type boolean;
             documentation 'Object marker';
         }
+
         item container {
             type boolean;
             documentation 'Container marker';
         }
+
         item objectReference {
             type boolean;
             documentation 'ObjectReference marker';
         }
+
         item itemName {
             type AxiomIdentifier;
             documentation """
                 Name of the corresponding item (object, container, reference, property).
-                It is used for global PrismObject/PrismContainer/PrismReference/PrismProperty definitions.
+                It is used when global item definition (PrismObjectDefinition, PrismContainerDefinition,
+                PrismReferenceDefinition, PrismPropertyDefinition) is created.
             """;
         }
+
         item item {
             type AxiomItemDefinition;
             documentation """
-                Individual items (properties, references, containers) in given type.
+                Individual items (properties, references, containers) in this type.
             """;
             maxOccurs unbounded;
         }
@@ -85,7 +91,9 @@ model axiom-lang {
             type AxiomIdentifier;
         }
         documentation """
-            Local definition of a prism item (property, reference, container) in given container/object.
+            Definition of a prism item (property, reference, container, object) by referencing
+            existing type. The item defined can be a global one or (more often) an item embedded
+            in a structured type.
         """;
         item type {
             type AxiomIdentifier;
