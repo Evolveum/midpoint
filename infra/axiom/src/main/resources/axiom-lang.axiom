@@ -1,55 +1,123 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+
 model axiom-lang {
 
     type AxiomModel {
-        property name { 
-            type AxiomIdentifier; 
+        item name {
+            type AxiomIdentifier;
         }
-        
-        property type {
+
+        item type {
             type AxiomTypeDefinition;
         }
-        property object {
+
+        item object {
             type AxiomObjectDefinition;
         }
+
+        item container {
+            type AxiomContainerDefinition;
+        }
+
+        item objectReference {
+            type AxiomObjectReferenceDefinition;
+        }
+
+        item property {
+            type AxiomPropertyDefinition;
+        }
+
+        item item {
+            type AxiomItemDefinition;
+        }
     }
-    
+
     type AxiomBaseDefinition {
         argument identifier;
-        property identifier {
+        item identifier {
             type AxiomIdentifier;
         }
     }
 
     type AxiomTypeDefinition {
         argument identifier;
-        property identifier {
+        item identifier {
             type AxiomIdentifier;
         }
-        property property {
-            type AxiomPropertyDefinition;
+        documentation """
+            Global definition of a type in axiom module.
+        """;
+
+        item object {
+            type boolean;
+            documentation 'Object marker';
         }
-        
-        container container {
-            type AxiomContainerDefinition;
+        item container {
+            type boolean;
+            documentation 'Container marker';
+        }
+        item objectReference {
+            type boolean;
+            documentation 'ObjectReference marker';
+        }
+        item itemName {
+            type AxiomIdentifier;
+            documentation """
+                Name of the corresponding item (object, container, reference, property).
+                It is used for global PrismObject/PrismContainer/PrismReference/PrismProperty definitions.
+            """;
+        }
+        item item {
+            type AxiomItemDefinition;
+            documentation """
+                Individual items (properties, references, containers) in given type.
+            """;
+            maxOccurs unbounded;
         }
     }
 
     type AxiomItemDefinition {
         argument identifier;
-        property identifier {
+        item identifier {
             type AxiomIdentifier;
         }
-        property type {
+        documentation """
+            Local definition of a prism item (property, reference, container) in given container/object.
+        """;
+        item type {
             type AxiomIdentifier;
         }
     }
 
-    type AxiomPropertyDefinition {
-        extends AxiomItemDefinition;
+    type AxiomObjectDefinition {
+        extends AxiomTypeDefinition;
+        documentation """
+            Global definition of a prism object. A shortcut for "type" with object marker.
+        """;
     }
-    
+
     type AxiomContainerDefinition {
-        extends AxiomItemDefinition;
+        extends AxiomTypeDefinition;
+        documentation """
+            Global definition of a prism container. A shortcut for "type" with container marker.
+        """;
+    }
+
+    type AxiomObjectReferenceDefinition {
+        extends AxiomTypeDefinition;
+        documentation """
+            Global definition of a prism object reference. A shortcut for "type" with objectReference marker.
+        """;
+    }
+
+    type AxiomPropertyDefinition {
+        extends AxiomTypeDefinition;
+        documentation """
+            Global definition of a prism property. A shortcut for "type" with no container/object/objectReference marker.
+        """;
     }
 
 }

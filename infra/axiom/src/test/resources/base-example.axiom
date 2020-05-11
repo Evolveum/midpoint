@@ -1,47 +1,68 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+
 model model-header {
 
     documentation """
         This is showcase of baseline Axiom model header.
-        
+
         Standard model header should contain:
           - description (optional)
           - namespace (required)
           - version (required)
-          - prefix (optional
+          - prefix (optional)
         """;
 
     namespace "https://ns.evolveum.com/example/axiom/model-header";
     version "0.0.1";
-    
+
     type Example {
         documentation """
             Example complex type. This type does not have supertype.
             Type may contain items.
-        
         """;
-        
-        property name {
+
+        item name {
             type string;
         }
-        
-        container nested {
+
+        item nested {
             type AxiomTypeDefinition;
         }
     }
-    
+
     object User {
         itemName user;
-        container address { // shorthand syntax 'container address type Address';
+        item address { // shorthand syntax 'container address type Address';
           type Address;
           identifier type; // All values should have unique value.
           maxOccurs unbounded;
         }
-        property name {
+        item name {
           type PolyString;
         }
-        objectReference link {
-          targetType Shadow;
+        item link {
+          type ObjectReference;
+          // targetType Shadow; TODO reconsider this
           maxOccurs unbounded;
         }
+    }
+
+    // Alternative representation of a prism object definition
+    // (doesn't interfere with item <name> { type ... } in structured types)
+    object {
+        name User2;
+        itemName user2;
+        // ...
+    }
+
+    // Yet another alternative representation of a prism object definition.
+    // To be decided.
+    type User3 {
+        object;
+        itemName user3;
+        // ...
     }
 }

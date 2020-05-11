@@ -34,15 +34,20 @@ public class AxiomBuiltIn {
         TYPE_REFERENCE("type", Type.IDENTIFIER, true),
         TYPE_DEFINITION("type", Type.TYPE_DEFINITION, false),
         SUPERTYPE_REFERENCE("extends", Type.IDENTIFIER, false),
+        ITEM_DEFINITION("item", Type.ITEM_DEFINITION, false),
         OBJECT_DEFINITION("object", Type.OBJECT_DEFINITION, false),
-        PROPERTY_DEFINITION("property", Type.ITEM_DEFINITION, false),
-        CONTAINER_DEFINITION("container", Type.ITEM_DEFINITION, false),
+        CONTAINER_DEFINITION("container", Type.CONTAINER_DEFINITION, false),
         OBJECT_REFERENCE_DEFINITION("objectReference", Type.OBJECT_REFERENCE_DEFINITION, false),
+        PROPERTY_DEFINITION("property", Type.PROPERTY_DEFINITION, false),
         MODEL_DEFINITION("model", Type.MODEL, false),
+        NAME("name", Type.IDENTIFIER, false),
         ITEM_NAME("itemName", Type.IDENTIFIER, false),
         MIN_OCCURS("minOccurs", Type.STRING, false),
         MAX_OCCURS("maxOccurs", Type.STRING, false),
-        TARGET_TYPE("targetType", Type.IDENTIFIER, true)
+        TARGET_TYPE("targetType", Type.IDENTIFIER, true),
+        OBJECT_MARKER("object", Type.IDENTIFIER, false),
+        CONTAINER_MARKER("container", Type.IDENTIFIER, false),
+        OBJECT_REFERENCE_MARKER("objectReference", Type.IDENTIFIER, false)
         ;
         private AxiomIdentifier identifier;
         private AxiomTypeDefinition type;
@@ -91,25 +96,36 @@ public class AxiomBuiltIn {
                 Item.NAMESPACE,
                 Item.VERSION,
                 Item.TYPE_DEFINITION,
-                Item.OBJECT_DEFINITION
+                Item.OBJECT_DEFINITION,
+                Item.CONTAINER_DEFINITION,
+                Item.OBJECT_REFERENCE_DEFINITION,
+                Item.PROPERTY_DEFINITION,
+                Item.ITEM_DEFINITION
                 )),
         TYPE_DEFINITION("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                 Item.ARGUMENT,
+                Item.NAME, // Optional - when not specifying type name via argument
+                Item.ITEM_NAME, // Optional - when specifying item along with type type
                 Item.SUPERTYPE_REFERENCE,
-                Item.PROPERTY_DEFINITION,
-                Item.CONTAINER_DEFINITION,
-                Item.OBJECT_REFERENCE_DEFINITION
+                Item.OBJECT_MARKER,
+                Item.CONTAINER_MARKER,
+                Item.OBJECT_REFERENCE_MARKER,
+                Item.ITEM_DEFINITION
                 )),
+        // This one is used in structured types (not on global level).
         ITEM_DEFINITION("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
                 Item.TYPE_REFERENCE,
                 Item.MIN_OCCURS,
                 Item.MAX_OCCURS
                 )),
+        // The following ones define prism items at global level.
         OBJECT_DEFINITION("AxiomObjectDefinition", TYPE_DEFINITION, () -> itemDefs(
-                Item.ITEM_NAME
                 )),
-        OBJECT_REFERENCE_DEFINITION("AxiomObjectReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
-                Item.TARGET_TYPE
+        CONTAINER_DEFINITION("AxiomContainerDefinition", TYPE_DEFINITION, () -> itemDefs(
+                )),
+        OBJECT_REFERENCE_DEFINITION("AxiomObjectReferenceDefinition", TYPE_DEFINITION, () -> itemDefs(
+                )),
+        PROPERTY_DEFINITION("AxiomPropertyDefinition", TYPE_DEFINITION, () -> itemDefs(
                 ))
         ;
 
