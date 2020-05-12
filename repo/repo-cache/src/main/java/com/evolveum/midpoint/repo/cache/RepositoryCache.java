@@ -102,7 +102,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
             SystemConfigurationType.class,
             FunctionLibraryType.class);
 
-    private static final int QUERY_RESULT_SIZE_LIMIT = 100000;
+    private static final int QUERY_RESULT_SIZE_LIMIT = 100;
 
     private static final Random RND = new Random();
 
