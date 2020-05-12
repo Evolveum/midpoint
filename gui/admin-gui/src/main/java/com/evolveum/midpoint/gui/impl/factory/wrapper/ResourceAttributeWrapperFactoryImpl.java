@@ -9,16 +9,14 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributeDefinitionPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributeDefinitionPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -46,9 +44,8 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
 
     @Override
     public PrismPropertyValueWrapper<T> createValueWrapper(ResourceAttributeWrapper<T> parent,
-            PrismPropertyValue<T> value, ValueStatus status, WrapperContext context) throws SchemaException {
-        PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
-        return valueWrapper;
+            PrismPropertyValue<T> value, ValueStatus status, WrapperContext context) {
+        return new PrismPropertyValueWrapper<>(parent, value, status);
     }
 
     @PostConstruct
@@ -70,10 +67,9 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
     }
 
     @Override
-    protected ResourceAttributeWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent,
+    protected ResourceAttributeWrapper<T> createWrapperInternal(PrismContainerValueWrapper<?> parent,
             ResourceAttribute<T> childContainer, ItemStatus status, WrapperContext ctx) {
-        ResourceAttributeWrapper<T> propertyWrapper = new ResourceAttributeWrapperImpl<>(parent, childContainer, status);
-        return propertyWrapper;
+        return new ResourceAttributeWrapperImpl<>(parent, childContainer, status);
     }
 
     @Override

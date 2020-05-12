@@ -44,12 +44,12 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
     }
 
     @Override
-    protected PrismPropertyWrapper<ExpressionType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
+    protected PrismPropertyWrapper<ExpressionType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
                                                                  ItemStatus status, WrapperContext ctx) {
 
         ExpressionWrapper expressionWrapper = new ExpressionWrapper(parent, item, status);
         if (!expressionWrapper.isConstructionExpression() && !expressionWrapper.isAttributeExpression() && !expressionWrapper.isAssociationExpression()) {
-            return super.createWrapper(parent, item, status, ctx);
+            return super.createWrapperInternal(parent, item, status, ctx);
         }
 
         return expressionWrapper;

@@ -10,17 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ProfilingClassLoggerPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.panel.ProfilingClassLoggerPanel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -43,6 +41,8 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
         return false;
     }
 
+
+
     @Override
     protected boolean canCreateValueWrapper(PrismContainerValue<ClassLoggerConfigurationType> value) {
         if(value == null || value.getRealValue() == null) {
@@ -56,7 +56,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     }
 
     @Override
-    protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent,
+    protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapperInternal(PrismContainerValueWrapper<?> parent,
             PrismContainer<ClassLoggerConfigurationType> childContainer, ItemStatus status, WrapperContext ctx) {
         PrismContainer<ClassLoggerConfigurationType> clone = childContainer.clone();
         return new ProfilingClassLoggerContainerWrapperImpl<>(parent, clone, status);
@@ -96,9 +96,12 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
             PrismContainerValue<ClassLoggerConfigurationType> objectValue, ValueStatus status, WrapperContext context) {
 
         ClassLoggerConfigurationType logger = objectValue.getRealValue();
-        logger.setPackage(LOGGER_PROFILING);
+        if (logger != null) {
+            logger.setPackage(LOGGER_PROFILING);
+        }
 
         return new ProfilingClassLoggerContainerValueWrapperImpl(objectWrapper, objectValue, status);
     }
+
 
 }

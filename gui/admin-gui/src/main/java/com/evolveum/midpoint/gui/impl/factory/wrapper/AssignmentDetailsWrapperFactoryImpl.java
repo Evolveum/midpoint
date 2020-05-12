@@ -33,10 +33,7 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 
     @Override
     protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
-        if (!isEmptyValue){
-            return true;
-        }
-        return false;
+        return !isEmptyValue;
     }
 
     @Override

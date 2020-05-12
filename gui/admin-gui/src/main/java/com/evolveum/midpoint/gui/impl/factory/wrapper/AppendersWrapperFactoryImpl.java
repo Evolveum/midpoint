@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -38,10 +38,24 @@ public class AppendersWrapperFactoryImpl<C extends Containerable> extends PrismC
     @Override
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
             PrismContainerValue<C> value) {
-        if(value != null && value.getComplexTypeDefinition() != null
-                && value.getComplexTypeDefinition().getDefinitions() != null) {
-            return value.getComplexTypeDefinition().getDefinitions();
+        List<? extends ItemDefinition> defs = getComplexTypeDefinitions(value);
+        if (defs != null) {
+            return defs;
         }
+
         return parent.getDefinitions();
+    }
+
+    private List<? extends ItemDefinition> getComplexTypeDefinitions(PrismContainerValue<C> value) {
+        if (value == null) {
+            return null;
+        }
+
+        ComplexTypeDefinition ctd = value.getComplexTypeDefinition();
+        if (ctd == null) {
+            return null;
+        }
+
+        return ctd.getDefinitions();
     }
 }

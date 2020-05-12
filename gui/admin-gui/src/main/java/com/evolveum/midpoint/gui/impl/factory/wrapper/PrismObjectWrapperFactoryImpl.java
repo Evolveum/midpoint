@@ -11,26 +11,18 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectWrapperImpl;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,7 +31,10 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 /**
  * @author katka
@@ -48,8 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismContainerWrapperFactoryImpl<O> implements PrismObjectWrapperFactory<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
-
-    private static final String DOT_CLASS = PrismObjectWrapperFactoryImpl.class.getName() + ".";
 
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
     private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
@@ -74,7 +67,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
         if (context.getReadOnly() != null) {
-            objectWrapper.setReadOnly(context.getReadOnly().booleanValue());
+            objectWrapper.setReadOnly(context.getReadOnly());
         }
         context.setShowEmpty(ItemStatus.ADDED == status);
         objectWrapper.setExpanded(true);
@@ -114,11 +107,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
     @Override
     public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status, WrapperContext context) {
-        return new PrismObjectValueWrapperImpl<O>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
+        return new PrismObjectValueWrapperImpl<>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
     }
 
     public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status) {
-        return new PrismObjectWrapperImpl<O>(object, status);
+        return new PrismObjectWrapperImpl<>(object, status);
     }
 
     @Override
@@ -139,7 +132,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             mCtd.setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
             mCtd.setRuntimeSchema(true);
 
-            MutablePrismContainerDefinition def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
+            MutablePrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
             def.setMaxOccurs(1);
             def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
             def.setDynamic(true);
@@ -152,12 +145,16 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
             WrapperContext ctx = context.clone();
             ctx.setVirtualItemSpecification(virtualContainer.getItem());
-            ItemWrapper iw = factory.createWrapper(objectValueWrapper, def, ctx);
-            iw.setVisibleOverwrite(virtualContainer.getVisibility());
 
+            PrismContainer<?> virtualPrismContainer = def.instantiate();
+            ItemStatus virtualContainerStatus = context.getObjectStatus() != null ? context.getObjectStatus() : ItemStatus.NOT_CHANGED;
+
+
+            ItemWrapper<?,?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
             if (iw == null) {
                 continue;
             }
+            iw.setVisibleOverwrite(virtualContainer.getVisibility());
             ((List) objectValueWrapper.getItems()).add(iw);
 
         }

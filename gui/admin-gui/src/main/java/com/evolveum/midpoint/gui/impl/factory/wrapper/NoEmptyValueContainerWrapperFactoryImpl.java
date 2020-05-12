@@ -6,17 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author katka
@@ -31,9 +26,6 @@ public class NoEmptyValueContainerWrapperFactoryImpl<C extends Containerable> ex
                 || AbstractWorkItemOutputType.COMPLEX_TYPE.equals(def.getTypeName())
                 || ApprovalSchemaType.COMPLEX_TYPE .equals(def.getTypeName());
     }
-    //CaseEventType.COMPLEX_TYPE.equals(def.getTypeName()) || WorkItemEventType.COMPLEX_TYPE.equals(def.getTypeName()) ||
-    //                WorkItemCompletionEventType.COMPLEX_TYPE.equals(def.getTypeName()) || WorkItemDelegationEventType.COMPLEX_TYPE.equals(def.getTypeName());
-
 
     @Override
     public void register() {

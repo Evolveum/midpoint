@@ -60,31 +60,20 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 
 
     @Override
-    public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
-            throws SchemaException {
-        PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
-        containerValueWrapper.setExpanded(!value.isEmpty());
-
-
-        List<ItemWrapper<?,?>> wrappers = new ArrayList<>();
-        for (ItemDefinition<?> def : parent.getDefinitions()) {
-            if (QNameUtil.match(def.getTypeName(), ClassLoggerConfigurationType.COMPLEX_TYPE)) {
-                wrappers.add(createClassLoggingWrapper(containerValueWrapper, def, context));
-                wrappers.add(createProfilingWrapper(containerValueWrapper, def, context));
+    public void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context, List<ItemWrapper<?, ?>> wrappers) throws SchemaException {
+        if (QNameUtil.match(def.getTypeName(), ClassLoggerConfigurationType.COMPLEX_TYPE)) {
+                wrappers.add(createClassLoggingWrapper(def, containerValueWrapper, context));
+                wrappers.add(createProfilingWrapper(def, containerValueWrapper, context));
             } else {
                 super.addItemWrapper(def, containerValueWrapper, context, wrappers);
             }
-        }
-
-        containerValueWrapper.getItems().addAll((Collection) wrappers);
-        return containerValueWrapper;
     }
 
-    private ItemWrapper<?, ?> createProfilingWrapper(PrismContainerValueWrapper parent, ItemDefinition def, WrapperContext context) throws SchemaException {
+    private ItemWrapper<?, ?> createProfilingWrapper(ItemDefinition def, PrismContainerValueWrapper<?> parent, WrapperContext context) throws SchemaException {
         return profilingClassLoggerFactory.createWrapper(parent, def, context);
     }
 
-    private ItemWrapper<?, ?> createClassLoggingWrapper(PrismContainerValueWrapper parent, ItemDefinition def, WrapperContext context) throws SchemaException {
+    private ItemWrapper<?, ?> createClassLoggingWrapper(ItemDefinition def, PrismContainerValueWrapper parent, WrapperContext context) throws SchemaException {
         return classLoggerFactory.createWrapper(parent, def, context);
     }
 
@@ -94,14 +83,14 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
     }
 
     @Override
-    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
+    protected PrismContainerWrapper<C> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
     @Override
     public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
-        return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
+        return new PrismContainerValueWrapperImpl<>(objectWrapper, objectValue, status);
     }
 
 

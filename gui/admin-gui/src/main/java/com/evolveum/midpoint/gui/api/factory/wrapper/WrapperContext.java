@@ -16,6 +16,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -144,6 +146,7 @@ public class WrapperContext {
         return virtualItemSpecification;
     }
 
+    @NotNull
     public PrismObject<?> getObject() {
         return object;
     }

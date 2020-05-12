@@ -8,18 +8,12 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;

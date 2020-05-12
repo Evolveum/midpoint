@@ -8,22 +8,12 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.prism.*;
-
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -59,7 +49,7 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
 
         PrismContainerValue<?> parentValue = ((PrismContainer<?>) parentParent).getParent();
 
-        if(!(parentValue.getRealValue() instanceof LoggingConfigurationType)) {
+        if(parentValue == null || isNotLoggingConfiguration(parentValue)) {
             throw new IllegalArgumentException("LoggingConfigurationType not found in parent for Appender");
         }
 
@@ -77,5 +67,9 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
         }
         return lookupTable;
 
+    }
+
+    private boolean isNotLoggingConfiguration(PrismContainerValue<?> parentValue) {
+        return !(parentValue.getRealValue() instanceof LoggingConfigurationType);
     }
 }

@@ -72,7 +72,7 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
     }
 
     @Override
-    protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
+    protected PrismPropertyWrapper<T> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
             ItemStatus status, WrapperContext wrapperContext) {
         PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
         propertyWrapper.setPredefinedValues(getPredefinedValues(item, wrapperContext));
@@ -84,7 +84,6 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
         if (valueEnumerationRef == null) {
             return null;
         }
-            //TODO: task and result from context
             Task task = wrapperContext.getTask();
             OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
             Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils

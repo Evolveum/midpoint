@@ -6,33 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * @author katka
  *
  */
 @Component
-public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
+public class OperationalContainerWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
 
     @Override
     public boolean match(ItemDefinition<?> def) {
@@ -48,18 +39,6 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
     @Override
     public int getOrder() {
         return 10;
-    }
-
-    protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-                                  WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
-
-        ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
-
-        context.setCreateOperational(true);
-        ItemWrapper<?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-        wrapper.setReadOnly(true);
-        wrappers.add(wrapper);
-        context.setCreateOperational(false);
     }
 
     @Override
