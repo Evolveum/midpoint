@@ -1,5 +1,9 @@
 package com.evolveum.midpoint.rest.impl;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,10 +14,6 @@ import org.springframework.web.servlet.mvc.condition.MediaTypeExpression;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 /**
  * Support for simple index page with REST API endpoints (HTML and JSON).
  */
@@ -21,16 +21,18 @@ import java.util.stream.Stream;
 @RequestMapping("/rest2")
 public class RestApiIndex {
 
-    private final RequestMappingHandlerMapping handlerMapping;
     private final List<OperationInfo> uiRestInfo;
 
     public RestApiIndex(RequestMappingHandlerMapping handlerMapping) {
-        this.handlerMapping = handlerMapping;
-        uiRestInfo = operationInfoStream()
-                .filter(info -> info.handler.getBeanType()
-                        // TODO getPackageName on Java 11
-                        .getPackage().getName().startsWith("com.evolveum.midpoint.rest."))
+        uiRestInfo = operationInfoStream(handlerMapping)
+                .filter(info -> info.handler.getBeanType().getName()
+                        .startsWith("com.evolveum.midpoint.rest."))
                 .collect(Collectors.toList());
+    }
+
+    private Stream<OperationInfo> operationInfoStream(RequestMappingHandlerMapping handlerMapping) {
+        return handlerMapping.getHandlerMethods().entrySet().stream()
+                .map(entry -> new OperationInfo(entry.getKey(), entry.getValue()));
     }
 
     @GetMapping()
@@ -41,7 +43,7 @@ public class RestApiIndex {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(value = "/x", produces = "text/html")
+    @GetMapping(produces = "text/html")
     public String indexHtml() {
         StringBuilder html = new StringBuilder("<!DOCTYPE html><html>"
                 + "<head><meta charset='UTF-8'><title>REST-ish API</title>"
@@ -61,11 +63,6 @@ public class RestApiIndex {
         }
         return html.append("</ul></body>")
                 .toString();
-    }
-
-    private Stream<OperationInfo> operationInfoStream() {
-        return handlerMapping.getHandlerMethods().entrySet().stream()
-                .map(entry -> new OperationInfo(entry.getKey(), entry.getValue()));
     }
 
     private static class OperationInfo {

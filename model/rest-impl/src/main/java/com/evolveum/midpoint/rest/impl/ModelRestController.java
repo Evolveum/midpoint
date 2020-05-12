@@ -6,7 +6,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @RestController
-@RequestMapping("/rest2")
+@RequestMapping(value = "/rest2") //, produces = "*/*", consumes = "*/*")
 public class ModelRestController {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
@@ -37,13 +36,7 @@ public class ModelRestController {
     @Autowired private ModelCrudService model;
     @Autowired private SecurityHelper securityHelper;
 
-    @GetMapping(
-            value = "/self",
-            produces = {
-                    MediaType.APPLICATION_XML_VALUE,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    RestServiceUtil.APPLICATION_YAML
-            })
+    @GetMapping("/self")
     public ResponseEntity<?> getSelf(HttpServletRequest request) {
         //@Context MessageContext mc){ TODO: do we need it in init request in new era?
         LOGGER.debug("model rest service for get operation start");
