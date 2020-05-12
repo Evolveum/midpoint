@@ -1,13 +1,26 @@
 model axiom-lang {
 
+    root model {
+        documentation """
+            Axiom Model
+            """;
+        type AxiomModel;
+    }
+
     type AxiomModel {
-        property name { 
-            type AxiomIdentifier; 
+        extends AxiomBaseDefinition;
+        
+        property root {
+            type AxiomItemDefinition;
         }
         
         property type {
+            documentation """
+                Type Declaration
+            """;
             type AxiomTypeDefinition;
         }
+        
         property object {
             type AxiomObjectDefinition;
         }
@@ -18,10 +31,21 @@ model axiom-lang {
         property identifier {
             type AxiomIdentifier;
         }
+        property documentation {
+            type string;
+        }
     }
 
     type AxiomTypeDefinition {
-        argument identifier;
+        extends AxiomBaseDefinition;
+
+        property argument {
+            type AxiomIdentifier;
+        }
+        property extends {  // Should be reference
+            type AxiomIdentifier; // Should be AxiomTypeIdentifier in future
+        }
+        
         property identifier {
             type AxiomIdentifier;
         }
@@ -35,10 +59,7 @@ model axiom-lang {
     }
 
     type AxiomItemDefinition {
-        argument identifier;
-        property identifier {
-            type AxiomIdentifier;
-        }
+        extends AxiomBaseDefinition;
         property type {
             type AxiomIdentifier;
         }
@@ -50,6 +71,18 @@ model axiom-lang {
     
     type AxiomContainerDefinition {
         extends AxiomItemDefinition;
+    }
+    
+    type AxiomObjectDefinition {
+        extends AxiomTypeDefinition;
+    }
+    
+    type AxiomIdentifier {
+    
+    }
+
+    type string {
+    
     }
 
 }

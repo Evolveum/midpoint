@@ -14,31 +14,21 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
-import com.evolveum.axiom.lang.impl.AbstractAxiomStatement.Context;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 
 public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener {
 
 
-    private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root","root");
+    private final ModelReactorContext context;
+    private final Deque<StatementTreeBuilder> queue = new LinkedList<>();
 
-    private final AxiomStatementFactoryContext factories;
-    private final Deque<AbstractAxiomStatement.Context> queue = new LinkedList<>();
-    private final AbstractAxiomStatement.Context<?> result;
-
-    public AxiomStatementStreamBuilder(AxiomItemDefinition item, AxiomStatementFactoryContext factories) {
-        this.factories = factories;
-        result = createBuilder(fakeRootItem(item));
-        queue.offerFirst(result);
+    public AxiomStatementStreamBuilder(ModelReactorContext context, StatementTreeBuilder root) {
+        this.context = context;
+        queue.add(root);
     }
 
-    public static AxiomStatementStreamBuilder create(AxiomItemDefinition item, AxiomStatementFactoryContext factories) {
-        return new AxiomStatementStreamBuilder(item, factories);
-    }
-
-    protected Context current() {
+    protected StatementTreeBuilder current() {
         return queue.peek();
     }
 
@@ -53,46 +43,25 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
     }
 
     private void argument0(Object value, String source, int line, int posInLine) {
-        Optional<AxiomItemDefinition> argDef = current().argumentDef();
-        if(argDef.isPresent()) {
-            startStatement(argDef.get().identifier(), source, line, posInLine);
             current().setValue(value);
 
-            endStatement();
-        } else {
-            current().setValue(value);
-        }
     }
 
     @Override
     public void startStatement(AxiomIdentifier statement, String sourceName,  int line, int posInLine) throws AxiomSyntaxException {
         Optional<AxiomItemDefinition> childDef = current().childDef(statement);
         AxiomSyntaxException.check(childDef.isPresent(), sourceName, line, posInLine, "Statement %s not allowed in %s", statement, current().identifier());
-
         queue.offerFirst(createBuilder(childDef.get()));
     }
 
-    private Context<?> createBuilder(AxiomItemDefinition item) {
-        return AbstractAxiomStatement.builder(item, factories.factoryFor(item.type()));
-    }
-
-    private static AxiomItemDefinition fakeRootItem(AxiomItemDefinition item) {
-        return new DefaultItemDefinition(ROOT, fakeType(item));
-    }
-
-    private static AxiomTypeDefinition fakeType(AxiomItemDefinition item) {
-        return new DefaultTypeDefinition(ROOT, ImmutableMap.of(item.identifier(), item));
+    private StatementTreeBuilder createBuilder(AxiomItemDefinition item) {
+        return current().createChildNode(item.identifier());
     }
 
     @Override
     public void endStatement() {
-        Context<?> current = queue.poll();
-        Context<?> parent = queue.peek();
-        parent.add(current.build());
+        StatementTreeBuilder current = queue.poll();
+        context.endStatement(current);
     }
 
-    public AxiomStatement<?> result() {
-        AxiomStatement<?> resultHolder = result.build();
-        return Iterables.getOnlyElement(resultHolder.children());
-    }
 }

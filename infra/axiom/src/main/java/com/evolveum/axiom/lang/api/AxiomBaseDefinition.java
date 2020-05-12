@@ -8,8 +8,9 @@ package com.evolveum.axiom.lang.api;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 
-public interface AxiomBaseDefinition {
+public interface AxiomBaseDefinition extends Identifiable<AxiomIdentifier> {
 
+    @Override
     AxiomIdentifier identifier();
     String documentation();
 }

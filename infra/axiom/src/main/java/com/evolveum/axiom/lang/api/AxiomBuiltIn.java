@@ -31,10 +31,12 @@ public class AxiomBuiltIn {
         DOCUMENTATION("documentation", Type.STRING, true),
         NAMESPACE("namespace", Type.STRING, true),
         VERSION("version", Type.STRING, true),
-        TYPE_REFERENCE("type", Type.IDENTIFIER, true),
+        TYPE_REFERENCE("type", Type.TYPE_REFERENCE, true),
         TYPE_DEFINITION("type", Type.TYPE_DEFINITION, false),
         SUPERTYPE_REFERENCE("extends", Type.IDENTIFIER, false),
+        ROOT_DEFINITION("root", Type.ITEM_DEFINITION, false),
         OBJECT_DEFINITION("object", Type.OBJECT_DEFINITION, false),
+        REFERENCE_DEFINITION("reference", Type.ITEM_DEFINITION, false),
         PROPERTY_DEFINITION("property", Type.ITEM_DEFINITION, false),
         CONTAINER_DEFINITION("container", Type.ITEM_DEFINITION, false),
         OBJECT_REFERENCE_DEFINITION("objectReference", Type.OBJECT_REFERENCE_DEFINITION, false),
@@ -81,7 +83,7 @@ public class AxiomBuiltIn {
         UUID("uuid"),
         STRING("string"),
         IDENTIFIER("AxiomIdentifier"),
-
+        TYPE_REFERENCE("AxiomTypeReference"),
         BASE_DEFINITION("AxiomBaseDefinition", null, () -> Item.IDENTIFIER, () -> itemDefs(
                 Item.IDENTIFIER,
                 Item.DOCUMENTATION
@@ -91,7 +93,8 @@ public class AxiomBuiltIn {
                 Item.NAMESPACE,
                 Item.VERSION,
                 Item.TYPE_DEFINITION,
-                Item.OBJECT_DEFINITION
+                Item.OBJECT_DEFINITION,
+                Item.ROOT_DEFINITION
                 )),
         TYPE_DEFINITION("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                 Item.ARGUMENT,
@@ -104,6 +107,9 @@ public class AxiomBuiltIn {
                 Item.TYPE_REFERENCE,
                 Item.MIN_OCCURS,
                 Item.MAX_OCCURS
+                )),
+        REFERENCE_DEFINITION("AxiomReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
+
                 )),
         OBJECT_DEFINITION("AxiomObjectDefinition", TYPE_DEFINITION, () -> itemDefs(
                 Item.ITEM_NAME

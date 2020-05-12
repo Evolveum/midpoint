@@ -8,9 +8,12 @@ package com.evolveum.axiom.lang.api.stmt;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 
 public interface AxiomStatement<V> {
 
@@ -19,9 +22,15 @@ public interface AxiomStatement<V> {
 
     Collection<AxiomStatement<?>> children();
 
-
-
     Collection<AxiomStatement<?>> children(AxiomIdentifier name);
+
+    default <T> Collection<T> children(AxiomIdentifier name, Class<T> type) {
+        return children(name).stream().filter(type::isInstance).map(type::cast).collect(Collectors.toList());
+    }
+
+    default <T> Optional<T> first(AxiomIdentifier axiomIdentifier, Class<T> class1) {
+        return children(axiomIdentifier).stream().filter(class1::isInstance).findFirst().map(class1::cast);
+    }
 
     default Optional<AxiomStatement<?>> first(AxiomItemDefinition item) {
         return first(item.identifier());
