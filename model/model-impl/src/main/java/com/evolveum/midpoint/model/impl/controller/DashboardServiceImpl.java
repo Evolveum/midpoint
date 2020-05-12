@@ -10,6 +10,9 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -371,7 +374,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(ObjectCollectionType collection, boolean usingFilter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public List<PrismObject<ObjectType>> searchObjectFromCollection(ObjectCollectionType collection, boolean usingFilter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
                 .getCompileTimeClassForObjectType(collection.getType());
         SearchFilterType searchFilter = collection.getFilter();
@@ -385,7 +388,7 @@ public class DashboardServiceImpl implements DashboardService {
             }
         }
         List<PrismObject<ObjectType>> values;
-        values = modelService.searchObjects(type, query, null, task, task.getResult());
+        values = modelService.searchObjects(type, query, options, task, task.getResult());
         return values;
     }
 

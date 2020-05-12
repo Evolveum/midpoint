@@ -132,9 +132,11 @@ public class RReport extends RObject<ReportType> {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOrientation(RUtil.getRepoEnumValue(jasperConfig.getOrientation(), ROrientationType.class));
-        repo.setExport(RUtil.getRepoEnumValue(jasperConfig.getExport(), RExportType.class));
-        repo.setParent(jasperConfig.isParent());
-        repo.setUseHibernateSession(jasperConfig.isUseHibernateSession());
+        if (jasperConfig != null) {
+            repo.setOrientation(RUtil.getRepoEnumValue(jasperConfig.getOrientation(), ROrientationType.class));
+            repo.setExport(RUtil.getRepoEnumValue(jasperConfig.getExport(), RExportType.class));
+            repo.setParent(jasperConfig.isParent());
+            repo.setUseHibernateSession(jasperConfig.isUseHibernateSession());
+        }
     }
 }

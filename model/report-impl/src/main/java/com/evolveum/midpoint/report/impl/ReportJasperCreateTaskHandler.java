@@ -545,7 +545,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
         reportOutputType.setName(new PolyStringType(reportOutputName));
         reportOutputType.setDescription(reportType.getDescription() + " - " + export.value());
-        reportOutputType.setExportType(export);
+//        reportOutputType.setExportType(export);
 
 
         SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, prismContext

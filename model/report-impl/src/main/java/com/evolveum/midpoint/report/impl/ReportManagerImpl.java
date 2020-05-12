@@ -137,10 +137,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             throw new SecurityViolationException("Not authorized");
         }
 
-        if(isDashboarReport(object)) {
-            task.setHandlerUri(ReportHTMLCreateTaskHandler.REPORT_HTML_CREATE_TASK_URI);
-        } else {
+        if(isJasperReport(object)) {
             task.setHandlerUri(ReportJasperCreateTaskHandler.REPORT_CREATE_TASK_URI);
+        } else {
+            task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
         }
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
@@ -160,9 +160,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
 
 
-    private boolean isDashboarReport(PrismObject<ReportType> object) {
+    private boolean isJasperReport(PrismObject<ReportType> object) {
         if(object.getRealValue() != null && object.getRealValue().getReportEngine() != null
-                && object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+                && object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
             return true;
         }
         return false;
@@ -175,7 +175,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      *
      * @param context
      * @param task
-     * @param result
+     * @param parentResult
      * @return
      * @throws UnsupportedEncodingException
      */

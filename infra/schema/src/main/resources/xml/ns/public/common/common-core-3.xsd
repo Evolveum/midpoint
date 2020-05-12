@@ -4528,6 +4528,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
+                                <a:displayName>FocusType.linkRef</a:displayName>
                                 <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -16990,8 +16991,25 @@
                     </xsd:element>
                     <!-- Note: collection references such as domanin or baseCollection may point to collection or archetype. Maybe even to org or role. -->
 
-                    <!-- TODO(maybe): default view specification, e.g. default set of columns, search, etc. -->
-
+                    <xsd:element name="defaultView" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies a default view of an object collection.
+                                </p>
+                                <p>
+                                    This part of collection definition is EXPERIMENTAL. It works only for some case,
+                                    some parts are hardcoded, untested or do not even work at all.
+                                    Use at your own risk. But it is perhaps best not to use this at all
+                                    until the code stabilizes.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stats" type="tns:CollectionStatsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -22876,25 +22894,11 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="export" type="tns:ExportType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="export" type="tns:ExportConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
                                     Report output file format.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Specifies a view of an object collection that is be reported.
-                                    We can specify more views for different object types.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -22972,7 +22976,52 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="ExportType">
+    <xsd:complexType name="ExportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Export configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="type" type="tns:ExportType" minOccurs="0"/>
+            <xsd:choice>
+                <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
+                </xsd:element>
+                <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report export type.
+                csv, html.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="csv">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CSV"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="html">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AbstractExportType">
         <xsd:annotation>
             <xsd:documentation>
                 Supertype of report export types.
@@ -22981,14 +23030,6 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:choice>
-                <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
-                </xsd:element>
-                <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
-                </xsd:element>
-            </xsd:choice>
-        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="CsvExportType">
@@ -23000,10 +23041,14 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractExportType">
+                <xsd:sequence>
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="HtmlExportType">
@@ -23015,6 +23060,9 @@
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractExportType"/>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ReportConfigurationType">
@@ -23253,6 +23301,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies a view of an object collection that is be reported.
+                            We can specify more views for different object types.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: other elements to configure the report -->
         </xsd:sequence>
     </xsd:complexType>
@@ -23264,7 +23325,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
-                <a:since>4.0</a:since>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23276,6 +23337,15 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectCollectionType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies a view of an object collection that is be reported.
+                        </p>
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: other elements to configure the report -->
@@ -23292,7 +23362,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:JasperExportType"/>
+                    <xsd:element name="exportType" type="tns:ExportConfigurationType"/>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>

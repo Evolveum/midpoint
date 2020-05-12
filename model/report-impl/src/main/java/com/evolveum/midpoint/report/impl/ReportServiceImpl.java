@@ -10,6 +10,12 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -71,6 +77,20 @@ public class ReportServiceImpl implements ReportService {
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private ArchetypeManager archetypeManager;
+
+    @Autowired private Clock clock;
+//    @Autowired private TaskManager taskManager;
+//    @Autowired private AuditService auditService;
+    @Autowired private ReportService reportService;
+    @Autowired private ModelService modelService;
+    @Autowired private ModelInteractionService modelInteractionService;
+//    @Autowired private PrismContext prismContext;
+//    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+    @Autowired private DashboardService dashboardService;
+    @Autowired private LocalizationService localizationService;
+//    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
+//    @Autowired private SchemaHelper schemaHelper;
 
     @Override
     public ObjectQuery parseQuery(PrismObject<ReportType> report, String query, VariablesMap parameters, Task task, OperationResult result) throws SchemaException,
@@ -437,5 +457,49 @@ public class ReportServiceImpl implements ReportService {
     public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
+    }
+
+    public Clock getClock() {
+        return clock;
+    }
+
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
+
+    public AuditService getAuditService() {
+        return auditService;
+    }
+
+    public ModelService getModelService() {
+        return modelService;
+    }
+
+    public ModelInteractionService getModelInteractionService() {
+        return modelInteractionService;
+    }
+
+    public ObjectResolver getObjectResolver() {
+        return objectResolver;
+    }
+
+    public DashboardService getDashboardService() {
+        return dashboardService;
+    }
+
+    public LocalizationService getLocalizationService() {
+        return localizationService;
+    }
+
+    public ExpressionFactory getExpressionFactory() {
+        return expressionFactory;
+    }
+
+    public CommandLineScriptExecutor getCommandLineScriptExecutor() {
+        return commandLineScriptExecutor;
+    }
+
+    public SchemaHelper getSchemaHelper() {
+        return schemaHelper;
     }
 }
