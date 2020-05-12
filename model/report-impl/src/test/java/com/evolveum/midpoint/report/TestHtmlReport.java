@@ -15,7 +15,7 @@ import java.io.File;
  * @author skublik
  */
 
-public class HtmlReport extends BasicNewReportTest {
+public class TestHtmlReport extends BasicNewReportTest {
 
     public static final File REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPOSTS_DIR, "report-dashboard-with-default-column.xml");
     public static final File REPORT_DASHBOARD_WITH_VIEW_FILE = new File(TEST_REPOSTS_DIR, "report-dashboard-with-view.xml");

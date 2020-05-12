@@ -14,6 +14,7 @@
              <class name="com.evolveum.midpoint.report.TestReportSafe"/>
              <class name="com.evolveum.midpoint.report.TestReportWebService"/>
              <class name="com.evolveum.midpoint.report.TestReportWebServiceSafe"/>
+             <class name="com.evolveum.midpoint.report.TestHtmlReport"/>
         </classes>
     </test>
 </suite>
