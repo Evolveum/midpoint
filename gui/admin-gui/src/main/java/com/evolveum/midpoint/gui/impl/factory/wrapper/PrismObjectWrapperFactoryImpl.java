@@ -47,8 +47,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
     private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
-    @Autowired protected ModelInteractionService modelInteractionService;
-
     public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
 
         try {
@@ -62,7 +60,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(object);
 
-        Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(object, context.getTask(), context.getResult());
+        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(object, context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
@@ -91,7 +89,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(wrapper.getObject());
 
-        Collection<VirtualContainersSpecificationType> virtualContainers = modelInteractionService.determineVirtualContainers(wrapper.getObject(), context.getTask(), context.getResult());
+        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(wrapper.getObject(), context.getTask(), context.getResult());
         context.setVirtualContainers(virtualContainers);
         context.setShowEmpty(ItemStatus.ADDED == wrapper.getStatus());
         wrapper.setExpanded(true);
@@ -137,7 +135,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
             def.setDynamic(true);
 
-            ItemWrapperFactory factory = getRegistry().findWrapperFactory(def);
+            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
             if (factory == null) {
                 LOGGER.warn("Cannot find factory for {}. Skipping wrapper creation.", def);
                 continue;
@@ -171,10 +169,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         OperationResult result = context.getResult();
 
         try {
-            PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
+            PrismObjectDefinition<O> objectDef = getModelInteractionService().getEditObjectDefinition(object, phase, task, result);
             object.applyDefinition(objectDef, true);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
                 | CommunicationException | SecurityViolationException e) {
+            LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
             throw e;
         }
 

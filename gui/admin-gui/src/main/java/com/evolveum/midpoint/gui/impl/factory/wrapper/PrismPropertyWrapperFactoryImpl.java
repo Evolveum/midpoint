@@ -9,26 +9,23 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.Collection;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -84,6 +81,7 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
         if (valueEnumerationRef == null) {
             return null;
         }
+            //TODO: task and result from context
             Task task = wrapperContext.getTask();
             OperationResult result = wrapperContext.getResult().createSubresult(OPERATION_LOAD_LOOKUP_TABLE);
             Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
@@ -106,9 +104,8 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 
     @Override
     public PrismPropertyValueWrapper<T> createValueWrapper(PrismPropertyWrapper<T> parent, PrismPropertyValue<T> value,
-            ValueStatus status, WrapperContext context) throws SchemaException {
-        PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
-        return valueWrapper;
+            ValueStatus status, WrapperContext context) {
+        return new PrismPropertyValueWrapper<>(parent, value, status);
     }
 
     @Override

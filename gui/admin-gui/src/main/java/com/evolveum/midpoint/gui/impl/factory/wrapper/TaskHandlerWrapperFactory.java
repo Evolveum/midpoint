@@ -47,7 +47,6 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
 
            Collection<String> handlers;
            if (assignmentTypes.isEmpty()) {
-                    // TODO all handlers
                     handlers = getTaskManager().getAllHandlerUris(true);
                 } else if (assignmentTypes.size() == 1) {
                     AssignmentType archetypeAssignment = assignmentTypes.iterator().next();

@@ -202,7 +202,7 @@ public class ShadowAssociationWrapperFactoryImpl extends PrismContainerWrapperFa
     }
 
     @Override
-    protected <ID extends ItemDefinition<PrismContainer<ShadowAssociationType>>> List<PrismContainerValueWrapper<ShadowAssociationType>> createValuesWrapper(PrismContainerWrapper<ShadowAssociationType> itemWrapper, PrismContainer<ShadowAssociationType> item, WrapperContext context) throws SchemaException {
+    protected List<PrismContainerValueWrapper<ShadowAssociationType>> createValuesWrapper(PrismContainerWrapper<ShadowAssociationType> itemWrapper, PrismContainer<ShadowAssociationType> item, WrapperContext context) throws SchemaException {
         if (!(itemWrapper instanceof ShadowAssociationWrapperImpl)) {
             return super.createValuesWrapper(itemWrapper, item, context);
         }

@@ -43,7 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author katka
  *
  */
-public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
+public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
 
@@ -53,6 +53,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     @Autowired private ModelService modelService;
     @Autowired private TaskManager taskManager;
 
+    @SuppressWarnings("unchecked")
     @Override
     public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
         ItemName name = def.getItemName();
@@ -69,11 +70,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             childItem = (I) parent.getNewValue().findOrCreateItem(name);
         }
 
-        IW wrapper = createWrapper(parent, childItem, status, context);
-        return wrapper;
+        return createWrapper(parent, childItem, status, context);
     }
 
-    private <I extends Item> ItemStatus getStatus(I childItem) {
+    private ItemStatus getStatus(I childItem) {
         if (childItem == null) {
             return ItemStatus.ADDED;
         }
@@ -84,9 +84,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     public abstract void registerWrapperPanel(IW wrapper);
 
+    @SuppressWarnings("unchecked")
     public IW createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         ItemDefinition def = childItem.getDefinition();
-        if (skipCreateWrapper(def, status, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues()))) {
+        if (skipCreateWrapper(def, status, context, CollectionUtils.isEmpty(childItem.getValues()))) {
             LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
             if (parent != null && parent.getNewValue() != null) {
                 parent.getNewValue().remove(childItem);
@@ -164,11 +165,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 
     protected abstract void setupWrapper(IW wrapper);
 
-    protected <ID extends ItemDefinition<I>> List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
+    protected List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
         List<VW> pvWrappers = new ArrayList<>();
 
+        List<PV> values = item.getValues();
         //TODO : prismContainer.isEmpty() interates and check is all prismcontainervalues are empty.. isn't it confusing?
-        if (item.isEmpty() && item.getValues().isEmpty()) {
+        if (item.isEmpty() && values.isEmpty()) {
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
                 VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
@@ -177,7 +179,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
             return pvWrappers;
         }
 
-        for (PV pcv : (List<PV>)item.getValues()) {
+        for (PV pcv : values) {
             if(canCreateValueWrapper(pcv)){
                 VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
                 pvWrappers.add(valueWrapper);
@@ -193,7 +195,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         Boolean readOnly = context.getReadOnly();
         if (readOnly != null) {
             LOGGER.trace("Setting {} as readonly because context said so.", itemWrapper);
-            return readOnly.booleanValue();
+            return readOnly;
         }
 
         ItemStatus objectStatus = context.getObjectStatus();

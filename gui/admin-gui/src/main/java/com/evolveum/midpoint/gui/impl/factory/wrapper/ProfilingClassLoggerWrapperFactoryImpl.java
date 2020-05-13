@@ -69,26 +69,15 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     }
 
     @Override
-    protected <ID extends ItemDefinition<PrismContainer<ClassLoggerConfigurationType>>> List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> createValuesWrapper(
-            PrismContainerWrapper<ClassLoggerConfigurationType> itemWrapper, PrismContainer<ClassLoggerConfigurationType> item, WrapperContext context)
-            throws SchemaException {
-        List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> pvWrappers = new ArrayList<>();
+    protected boolean shouldCreateEmptyValue(PrismContainer<ClassLoggerConfigurationType> item, WrapperContext context) {
+        return true;
+    }
 
-        for (PrismContainerValue<ClassLoggerConfigurationType> pcv : item.getValues()) {
-            if(canCreateValueWrapper(pcv)) {
-                PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-                pvWrappers.add(valueWrapper);
-            }
-        }
-
-        if (pvWrappers.isEmpty()) {
-            PrismContainerValue<ClassLoggerConfigurationType> prismValue = createNewValue(item);
-            PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
-            valueWrapper.getRealValue().setPackage(LOGGER_PROFILING);
-            pvWrappers.add(valueWrapper);
-        }
-
-        return pvWrappers;
+    @Override
+    protected PrismContainerValue<ClassLoggerConfigurationType> createNewValue(PrismContainer<ClassLoggerConfigurationType> item) {
+        PrismContainerValue<ClassLoggerConfigurationType> profilingLogger = super.createNewValue(item);
+        profilingLogger.asContainerable().setPackage(LOGGER_PROFILING);
+        return profilingLogger;
     }
 
     @Override
