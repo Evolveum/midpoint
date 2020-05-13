@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
@@ -13,7 +12,6 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.google.common.collect.ImmutableSet;
 
-import static com.evolveum.axiom.lang.api.AxiomBuiltIn.*;
 
 public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
 
@@ -36,27 +34,27 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         }
     },
 
-    ADD_TYPE_TO_ITEM(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
+    EXPAND_TYPE_REFERENCE(all(), types(Type.TYPE_REFERENCE)) {
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             AxiomIdentifier type = rule.requireValue();
-            Requirement<Supplier<AxiomStatement<?>>> typeDef = rule.requireGlobalItem(Item.TYPE_DEFINITION, type);
+            Requirement<AxiomStatement<?>> typeDef = rule.requireGlobalItem(Item.TYPE_DEFINITION, type);
             rule.apply(ctx -> {
-                ctx.parent().builder().add(Item.TYPE_DEFINITION, typeDef.get());
+                ctx.replace(typeDef);
             });
             rule.errorMessage(() ->  rule.error("type '%s' was not found.", type));
         }
-    },
-
+    };
+/*
     ADD_SUPERTYPE(items(), types(Type.TYPE_DEFINITION)) {
 
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             Optional<AxiomIdentifier> superType = rule.optionalChildValue(Item.SUPERTYPE_REFERENCE, AxiomIdentifier.class);
             if(superType.isPresent()) {
-                Requirement<Supplier<AxiomStatement<?>>> req = rule.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
+                Requirement<AxiomStatement<?>> req = rule.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
                 rule.apply((ctx) -> {
-                    ctx.builder().add(Item.SUPERTYPE_REFERENCE, req.get());
+                    //ctx.builder().add(Item.SUPERTYPE_REFERENCE, req.get());
                 });
                 rule.errorMessage(() -> {
                     if(!req.isSatisfied()) {
@@ -66,7 +64,7 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
                 });
             }
         }
-    };
+    };*/
 
     private final Set<AxiomIdentifier> items;
     private final Set<AxiomIdentifier> types;

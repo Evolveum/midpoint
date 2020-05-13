@@ -9,6 +9,8 @@ public interface AxiomSchemaContext {
 
     Collection<AxiomItemDefinition> roots();
 
+    Optional<AxiomItemDefinition> getRoot(AxiomIdentifier type);
+
     Optional<AxiomTypeDefinition> getType(AxiomIdentifier type);
 
     Collection<AxiomTypeDefinition> types();

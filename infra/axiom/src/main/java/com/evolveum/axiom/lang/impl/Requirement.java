@@ -2,13 +2,22 @@ package com.evolveum.axiom.lang.impl;
 
 import java.util.function.Supplier;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.google.common.base.Preconditions;
 
 
-public abstract class Requirement<T> {
+public interface Requirement<T> {
 
-    abstract boolean isSatisfied();
-    abstract public T get();
+    static final Requirement UNSATISFIED = new Unsatified<>();
+
+    boolean isSatisfied();
+    public T get();
+
+    public static <T> Requirement<T> unsatisfied() {
+        return UNSATISFIED;
+    }
 
     public static <T> Requirement<T> immediate(T value) {
         return new Immediate<>(value);
@@ -18,12 +27,12 @@ public abstract class Requirement<T> {
         return new Suppliable<>(supplier);
     }
 
-    private static final class Immediate<V> extends Requirement<V> {
+    public static final class Immediate<V> implements Requirement<V> {
 
         private final V value;
 
         @Override
-        boolean isSatisfied() {
+        public boolean isSatisfied() {
             return true;
         }
 
@@ -39,12 +48,12 @@ public abstract class Requirement<T> {
 
     }
 
-    private static final class Suppliable<V> extends Requirement<V> {
+    public static final class Suppliable<V> implements Requirement<V> {
 
         private final Supplier<V> value;
 
         @Override
-        boolean isSatisfied() {
+        public boolean isSatisfied() {
             return value.get() != null;
         }
 
@@ -58,6 +67,65 @@ public abstract class Requirement<T> {
             return value.get();
         }
 
+    }
+
+    public static final class Unsatified<V> implements Requirement<V> {
+
+        @Override
+        public boolean isSatisfied() {
+            return false;
+        }
+
+        @Override
+        public V get() {
+            throw new IllegalStateException("Requirement not satisfied");
+        }
+    }
+
+    public abstract class Delegated<T> implements Requirement<T> {
+
+        abstract Requirement<T> delegate();
+
+        @Override
+        public boolean isSatisfied() {
+            return delegate().isSatisfied();
+        }
+
+        @Override
+        public T get() {
+            Preconditions.checkState(isSatisfied(), "Requirement was not satisfied");
+            return delegate().get();
+        }
+    }
+
+    public final class RetriableDelegate<T> extends Delegated<T> {
+
+        Object maybeDelegate;
+
+        public RetriableDelegate(Supplier<Requirement<T>> lookup) {
+            maybeDelegate = lookup;
+        }
+
+        @Override
+        Requirement<T> delegate() {
+            if(maybeDelegate instanceof Requirement<?>) {
+                return (Requirement) maybeDelegate;
+            }
+            if(maybeDelegate instanceof Supplier<?>) {
+                Requirement<?> result = ((Supplier<Requirement<?>>) maybeDelegate).get();
+                if(result != null) {
+                    maybeDelegate = result;
+                    return (Requirement) result;
+                }
+
+            }
+            return unsatisfied();
+        }
+
+    }
+
+    static <T> Requirement<T> retriableDelegate(Supplier<Requirement<T>> lookup) {
+        return new RetriableDelegate(lookup);
     }
 
 

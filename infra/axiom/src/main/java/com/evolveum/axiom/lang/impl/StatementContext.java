@@ -14,17 +14,14 @@ public interface StatementContext<V> {
 
     AxiomItemDefinition definition();
 
-    AxiomStatementBuilder<V> builder();
-
     void registerAsGlobalItem(AxiomIdentifier typeName) throws AxiomSemanticException;
 
     <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value);
 
     Optional<V> optionalValue();
 
-    void replace(Supplier<AxiomStatement<?>> supplier);
+    void replace(Requirement<AxiomStatement<?>> statement);
 
     StatementContext<?> parent();
-
 
 }

@@ -33,7 +33,7 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition VERSION = new Item("version", Type.STRING, true);
         public static final AxiomItemDefinition TYPE_REFERENCE = new Item("type", Type.TYPE_REFERENCE, true);
         public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
-        public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.IDENTIFIER, false);
+        public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.TYPE_REFERENCE, false);
         public static final AxiomItemDefinition ROOT_DEFINITION = new Item("root", Type.ITEM_DEFINITION, false);
         public static final AxiomItemDefinition OBJECT_DEFINITION = new Item("object", Type.OBJECT_DEFINITION, false);
         public static final AxiomItemDefinition REFERENCE_DEFINITION = new Item("reference", Type.ITEM_DEFINITION, false);

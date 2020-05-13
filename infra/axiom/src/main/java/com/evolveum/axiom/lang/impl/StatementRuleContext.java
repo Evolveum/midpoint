@@ -17,7 +17,7 @@ public interface StatementRuleContext<V> {
 
     V requireValue() throws AxiomSemanticException;
 
-    Requirement<Supplier<AxiomStatement<?>>> requireGlobalItem(AxiomItemDefinition typeDefinition, AxiomIdentifier axiomIdentifier);
+    Requirement<AxiomStatement<?>> requireGlobalItem(AxiomItemDefinition typeDefinition, AxiomIdentifier axiomIdentifier);
 
     StatementRuleContext<V> apply(StatementRuleContext.Action<V> action);
 

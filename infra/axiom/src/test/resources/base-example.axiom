@@ -13,6 +13,11 @@ model model-header {
     namespace "https://ns.evolveum.com/example/axiom/model-header";
     version "0.0.1";
     
+    type string;
+    type PolyString;
+    type Address;
+    type Link;
+    
     type Example {
         documentation """
             Example complex type. This type does not have supertype.
@@ -20,27 +25,23 @@ model model-header {
         
         """;
         
-        property name {
+        item name {
             type string;
-        }
-        
-        container nested {
-            type AxiomTypeDefinition;
         }
     }
     
     object User {
         itemName user;
-        container address { // shorthand syntax 'container address type Address';
+        item address { // shorthand syntax 'container address type Address';
           type Address;
           identifier type; // All values should have unique value.
           maxOccurs unbounded;
         }
-        property name {
+        item name {
           type PolyString;
         }
-        objectReference link {
-          targetType Shadow;
+        item link {
+          type Link;
           maxOccurs unbounded;
         }
     }

@@ -24,6 +24,12 @@ model axiom-lang {
         item object {
             type AxiomObjectDefinition;
         }
+        item namespace {
+            type string;
+        }
+        item version {
+            type string;
+        }
     }
 
     type AxiomBaseDefinition {
@@ -61,6 +67,9 @@ model axiom-lang {
 
     type AxiomObjectDefinition {
         extends AxiomTypeDefinition;
+        item itemName {
+            type AxiomIdentifier; // This should be probably at dif
+        }
     }
     
     type AxiomIdentifier {
@@ -73,8 +82,13 @@ model axiom-lang {
     type AxiomItemDefinition {
         extends AxiomBaseDefinition;
         item type {
-            //type AxiomTypeReference;
-            type AxiomIdentifier;
+            type AxiomTypeReference;
+        }
+        item minOccurs {
+            type string;
+        }
+        item maxOccurs {
+            type string;
         }
     }
 

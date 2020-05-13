@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.testng.annotations.Test;
 
@@ -23,6 +24,7 @@ import org.testng.annotations.Test;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
@@ -44,41 +46,29 @@ public class TestAxiomParser extends AbstractUnitTest {
     private static final String NAME = "base-example.axiom";
     private static final String AXIOM_LANG = "/axiom-lang.axiom";
 
-
-    @Test
-    public void axiomLanguageDefTest() throws IOException, AxiomSyntaxException {
-        List<AxiomStatement<?>> roots = parseInputStream(AXIOM_LANG,AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG));
-        assertNotNull(roots);
-    }
-
-
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
 
-        ModelReactorContext bootstrapContext =createReactor(Item.MODEL_DEFINITION);
+        ModelReactorContext bootstrapContext = ModelReactorContext.boostrapReactor();
         InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG);
-        bootstrapContext.addStatementFactory(Type.TYPE_DEFINITION.name(), AxiomTypeDefinitionImpl.FACTORY);
-        bootstrapContext.addStatementFactory(Type.ITEM_DEFINITION.name(), AxiomItemDefinitionImpl.FACTORY);
-
         AxiomStatementSource statementSource = AxiomStatementSource.from(AXIOM_LANG, stream);
         bootstrapContext.loadModelFromSource(statementSource);
-        List<AxiomStatement<?>> roots = bootstrapContext.process();
-        assertNotNull(roots);
-        AxiomStatement<?> model = roots.get(0);
-        Collection<AxiomStatement<?>> typeDefs = model.children(Item.TYPE_DEFINITION.name());
-        for (AxiomStatement<?> typeDef : typeDefs) {
-            assertInstanceOf(AxiomTypeDefinition.class, typeDef);
-        }
-        AxiomItemDefinition modelDef = model.first(Item.ROOT_DEFINITION.name(), AxiomItemDefinition.class).get();
+        AxiomSchemaContext modelContext = bootstrapContext.computeSchemaContext();
+        assertTypedefBasetype(modelContext.getType(Type.TYPE_DEFINITION.name()));
+
+        AxiomItemDefinition modelDef = modelContext.getRoot(Item.MODEL_DEFINITION.name()).get();
         assertEquals(modelDef.name(), Item.MODEL_DEFINITION.name());
 
-        ModelReactorContext folowupContext = createReactor(modelDef);
+        ModelReactorContext folowupContext = ModelReactorContext.reactor(modelContext);
         folowupContext.loadModelFromSource(statementSource);
-        List<AxiomStatement<?>> folowupRoots = bootstrapContext.process();
-        assertNotNull(roots);
-        AxiomStatement<?> root = roots.get(0);
-        AxiomTypeDefinition typeDef = root.children(Item.TYPE_DEFINITION.name()).stream()
-                .filter(t -> Type.TYPE_DEFINITION.name().equals(t.firstValue(Item.NAME.name(), AxiomIdentifier.class).get())).findFirst().map(AxiomTypeDefinition.class::cast).get();
+        AxiomSchemaContext selfparsedContext = bootstrapContext.computeSchemaContext();
+        assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
+
+    }
+
+
+    private void assertTypedefBasetype(Optional<AxiomTypeDefinition> optional) {
+        AxiomTypeDefinition typeDef = optional.get();
         assertNotNull(typeDef);
         assertEquals(typeDef.superType().get().name(), Type.BASE_DEFINITION.name());
     }
@@ -92,37 +82,25 @@ public class TestAxiomParser extends AbstractUnitTest {
 
     @Test
     public void moduleHeaderTest() throws IOException, AxiomSyntaxException {
-        List<AxiomStatement<?>> roots = parseFile(NAME);
-        AxiomStatement<?> root = roots.get(0);
-        assertNotNull(root);
-        assertEquals(root.keyword(), Item.MODEL_DEFINITION.name());
-        assertNotNull(root.first(Item.DOCUMENTATION).get().value());
-        assertEquals(root.first(Item.TYPE_DEFINITION).get().first(Item.IDENTIFIER).get().value(), AxiomIdentifier.axiom("Example"));
-
+        AxiomSchemaContext context = parseFile(NAME);
+        assertNotNull(context.getType(AxiomIdentifier.axiom("Example")).get());
     }
 
 
-    private List<AxiomStatement<?>> parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
+    private AxiomSchemaContext parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
         return parseInputStream(name, new FileInputStream(COMMON_DIR_PATH + name));
     }
 
-    private List<AxiomStatement<?>> parseInputStream(String name, InputStream stream) throws AxiomSyntaxException, FileNotFoundException, IOException {
+    private AxiomSchemaContext parseInputStream(String name, InputStream stream) throws AxiomSyntaxException, FileNotFoundException, IOException {
         return parseInputStream(name, stream, AxiomBuiltIn.Item.MODEL_DEFINITION);
     }
 
-    private List<AxiomStatement<?>> parseInputStream(String name, InputStream stream, AxiomItemDefinition rootItemDefinition) throws AxiomSyntaxException, FileNotFoundException, IOException {
-
-        ModelReactorContext reactorContext =createReactor(rootItemDefinition);
+    private AxiomSchemaContext parseInputStream(String name, InputStream stream, AxiomItemDefinition rootItemDefinition) throws AxiomSyntaxException, FileNotFoundException, IOException {
+        ModelReactorContext reactorContext =ModelReactorContext.defaultReactor();
         AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
         reactorContext.loadModelFromSource(statementSource);
-        List<AxiomStatement<?>> roots = reactorContext.process();
-        return roots;
+        return reactorContext.computeSchemaContext();
     }
 
-    private ModelReactorContext createReactor(AxiomItemDefinition rootItemDefinition) {
-        ModelReactorContext reactorContext = new ModelReactorContext();
-        reactorContext.addRules(BasicStatementRule.values());
-        reactorContext.addRootItemDef(rootItemDefinition);
-        return reactorContext;
-    }
+
 }

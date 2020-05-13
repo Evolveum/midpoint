@@ -1,6 +1,9 @@
 package com.evolveum.axiom.lang.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -8,18 +11,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import javax.management.RuntimeErrorException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
-import com.evolveum.axiom.lang.impl.StatementContextImpl.RuleContextImpl;
+import com.google.common.collect.ImmutableMap;
 
 public class ModelReactorContext implements AxiomIdentifierResolver {
 
@@ -27,29 +34,76 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
     private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root","root");
 
 
+    private static final String AXIOM_LANG_RESOURCE = "/axiom-lang.axiom";
+
+
+    private static final Lazy<AxiomStatementSource> BASE_LANGUAGE_SOURCE = Lazy.from(() -> {
+        InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG_RESOURCE);
+        try {
+            return AxiomStatementSource.from(AXIOM_LANG_RESOURCE, stream);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    });
+
+
+    public static final Lazy<AxiomSchemaContext> BASE_LANGUAGE = Lazy.from(() -> {
+        ModelReactorContext reactor = boostrapReactor();
+        reactor.loadModelFromSource(BASE_LANGUAGE_SOURCE.get());
+        return reactor.computeSchemaContext();
+    });
+
+
+
+    public static final ModelReactorContext reactor(AxiomSchemaContext context) {
+        ModelReactorContext reactorContext = new ModelReactorContext(context);
+        defaults(reactorContext);
+        return reactorContext;
+    }
+
+
+    public static final ModelReactorContext boostrapReactor() {
+        ModelReactorContext reactorContext = new ModelReactorContext(AxiomSchemaContextImpl.boostrapContext());
+        defaults(reactorContext);
+        return reactorContext;
+    }
+
+    public static final ModelReactorContext defaultReactor() {
+        return reactor(BASE_LANGUAGE.get());
+    }
+
+    private static void defaults(ModelReactorContext reactorContext) {
+        reactorContext.addRules(BasicStatementRule.values());
+        reactorContext.addStatementFactory(Type.TYPE_DEFINITION.name(), AxiomTypeDefinitionImpl.FACTORY);
+        reactorContext.addStatementFactory(Type.ITEM_DEFINITION.name(), AxiomItemDefinitionImpl.FACTORY);
+    }
+
     List<StatementRule<?>> rules = new ArrayList<>();
 
-    public Map<AxiomIdentifier,AxiomItemDefinition> rootItems = new HashMap<>();
 
-    Map<Object, AxiomStatement<?>> staticGlobalItems = new HashMap<>();
+    private final AxiomSchemaContext boostrapContext;
+
+
+        public ModelReactorContext(AxiomSchemaContext boostrapContext) {
+        this.boostrapContext = boostrapContext;
+    }
+
     Map<Object, StatementContextImpl<?>> globalItems = new HashMap<>();
     Map<AxiomIdentifier, Factory<?,?>> typeFactories = new HashMap<>();
-
-
-    List<StatementContextImpl<?>.RuleContextImpl> outstanding = new ArrayList<>();
+    List<StatementRuleContextImpl> outstanding = new ArrayList<>();
     List<StatementContextImpl<?>> roots = new ArrayList<>();
 
 
-    public List<AxiomStatement<?>> process() throws AxiomSemanticException {
+    public AxiomSchemaContext computeSchemaContext() throws AxiomSemanticException {
         boolean anyCompleted = false;
         do {
             anyCompleted = false;
-            List<StatementContextImpl<?>.RuleContextImpl> toCheck = outstanding;
+            List<StatementRuleContextImpl> toCheck = outstanding;
             outstanding = new ArrayList<>();
 
-            Iterator<StatementContextImpl<?>.RuleContextImpl> iterator = toCheck.iterator();
+            Iterator<StatementRuleContextImpl> iterator = toCheck.iterator();
             while(iterator.hasNext()) {
-                StatementContextImpl<?>.RuleContextImpl ruleCtx = iterator.next();
+                StatementRuleContextImpl ruleCtx = iterator.next();
                 if(ruleCtx.canProcess()) {
                     ruleCtx.perform();
                     iterator.remove();
@@ -65,12 +119,12 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
         }
 
 
-        return buildRoots();
+        return createSchemaContext();
     }
 
-    private void failOutstanding(List<StatementContextImpl<?>.RuleContextImpl> report) {
+    private void failOutstanding(List<StatementRuleContextImpl> report) {
         StringBuilder messages = new StringBuilder("Can not complete models, following errors occured:\n");
-        for (RuleContextImpl rule : report) {
+        for (StatementRuleContextImpl rule : report) {
             RuleErrorMessage exception = rule.errorMessage();
             if(exception != null) {
                 messages.append(exception.toString()).append("\n");
@@ -81,43 +135,48 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
 
     }
 
-    private List<AxiomStatement<?>> buildRoots() {
-        ArrayList<AxiomStatement<?>> ret = new ArrayList<>(roots.size());
-        for (StatementContextImpl<?> root : roots) {
-            ret.add(root.build().get());
+    private AxiomSchemaContext createSchemaContext() {
+        ImmutableMap.Builder<AxiomIdentifier,AxiomItemDefinition> roots = ImmutableMap.builder();
+        for (StatementContextImpl<?> rootDoc : this.roots) {
+            Collection<AxiomItemDefinition> rootDefs = rootDoc.asLazy().get().children(AxiomBuiltIn.Item.ROOT_DEFINITION.name(), AxiomItemDefinition.class);
+            for (AxiomItemDefinition rootDef : rootDefs) {
+                roots.put(rootDef.name(), rootDef);
+            }
         }
-        return ret;
+        ImmutableMap.Builder<AxiomIdentifier,AxiomTypeDefinition> types = ImmutableMap.builder();
+        for (StatementContextImpl<?> root : this.globalItems.values()) {
+            AxiomStatement<?> globalItem = root.asRequirement().get();
+            if(globalItem instanceof AxiomTypeDefinition) {
+                AxiomTypeDefinition type = (AxiomTypeDefinition) globalItem;
+                types.put(type.name(), type);
+            }
+
+        }
+
+        return AxiomSchemaContextImpl.of(roots.build(), types.build());
+
     }
 
     public void registerGlobalItem(AxiomIdentifier typeName, StatementContextImpl<?> context) {
         globalItems.put(typeName, context);
     }
 
-    public Requirement<Supplier<AxiomStatement<?>>> requireGlobalItem(AxiomIdentifier key) {
-        AxiomStatement<?> maybe = staticGlobalItems.get(key);
+    public Requirement<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier key) {
+        /*AxiomStatement<?> maybe = staticGlobalItems.get(key);
         if(maybe != null) {
-            return Requirement.immediate(Lazy.instant(maybe));
-        }
+            return Requirement.immediate(maybe);
+        }*/
 
-        return new Requirement<Supplier<AxiomStatement<?>>>() {
-
-            @Override
-            boolean isSatisfied() {
-                StatementContextImpl<?> maybe = globalItems.get(key);
-                if(maybe == null) {
-                    return false;
-                }
-                return maybe.isCompleted();
+        return (Requirement) Requirement.retriableDelegate(() -> {
+            StatementContextImpl<?> maybeCtx = globalItems.get(key);
+            if(maybeCtx != null) {
+                return maybeCtx.asRequirement();
             }
-
-            @Override
-            public Supplier<AxiomStatement<?>> get() {
-                return (Supplier) globalItems.get(key).build();
-            }
-        };
+            return null;
+        });
     }
 
-    public void addOutstanding(StatementContextImpl<?>.RuleContextImpl rule) {
+    public void addOutstanding(StatementRuleContextImpl rule) {
             outstanding.add(rule);
     }
 
@@ -156,7 +215,7 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
 
         @Override
         public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
-            return Optional.ofNullable(rootItems.get(statement));
+            return boostrapContext.getRoot(statement);
         }
 
         @Override
@@ -175,10 +234,6 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
         public void setValue(Object value, SourceLocation loc) {
 
         }
-    }
-
-    public void addRootItemDef(AxiomItemDefinition modelDefinition) {
-        rootItems.put(modelDefinition.name(), modelDefinition);
     }
 
     public void addStatementFactory(AxiomIdentifier statementType, Factory<?, ?> factory) {

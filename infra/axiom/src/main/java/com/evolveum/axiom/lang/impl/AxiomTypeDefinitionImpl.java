@@ -22,6 +22,8 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
 
     public static final Factory<AxiomIdentifier, AxiomTypeDefinitionImpl> FACTORY =AxiomTypeDefinitionImpl::new;
     private final Map<AxiomIdentifier, AxiomItemDefinition> items;
+    private final Optional<AxiomTypeDefinition> superType;
+    private Optional<AxiomItemDefinition> argument;
 
     public AxiomTypeDefinitionImpl(AxiomIdentifier keyword, AxiomIdentifier value, List<AxiomStatement<?>> children,
             Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap) {
@@ -29,16 +31,22 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
         ImmutableMap.Builder<AxiomIdentifier, AxiomItemDefinition> builder =  ImmutableMap.builder();
         putAll(builder, children(ITEM_DEFINITION.name(), AxiomItemDefinition.class));
         items = builder.build();
+        superType = first(SUPERTYPE_REFERENCE.name(), AxiomTypeDefinition.class);
+        argument = firstValue(ARGUMENT.name(), AxiomIdentifier.class)
+                .flatMap((AxiomIdentifier k) -> item(k));
     }
 
     @Override
     public Optional<AxiomItemDefinition> argument() {
-        return first(ARGUMENT.name(), AxiomItemDefinition.class);
+        if(argument.isEmpty() && superType().isPresent()) {
+            return superType().get().argument();
+        }
+        return argument;
     }
 
     @Override
     public Optional<AxiomTypeDefinition> superType() {
-        return first(SUPERTYPE_REFERENCE.name(), AxiomTypeDefinition.class);
+        return superType;
     }
 
     @Override
