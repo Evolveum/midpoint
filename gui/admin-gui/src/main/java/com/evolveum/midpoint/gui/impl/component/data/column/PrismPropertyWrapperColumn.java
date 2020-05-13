@@ -49,7 +49,18 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
 
     @Override
     protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
-        return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel(mainModel, itemName, pageBase));
+        return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel(mainModel, itemName, pageBase)) {
+
+            @Override
+            protected boolean isAddButtonVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isButtonEnabled() {
+                return false;
+            }
+        };
     }
 
 
