@@ -51,7 +51,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
 
     @Override
     protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
-        return new PrismReferenceHeaderPanel<>(componentId, new PrismReferenceWrapperHeaderModel(mainModel, itemName, pageBase)) {
+        return new PrismReferenceHeaderPanel<R>(componentId, new PrismReferenceWrapperHeaderModel(mainModel, itemName, pageBase)) {
             @Override
             protected boolean isAddButtonVisible() {
                 return false;
