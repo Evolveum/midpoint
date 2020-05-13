@@ -22,7 +22,7 @@ class DefaultItemDefinition implements AxiomItemDefinition {
     }
 
     @Override
-    public AxiomIdentifier identifier() {
+    public AxiomIdentifier name() {
         return identifier;
     }
 

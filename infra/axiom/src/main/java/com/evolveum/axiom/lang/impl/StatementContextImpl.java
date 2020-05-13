@@ -13,6 +13,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
@@ -32,12 +33,17 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     private V value;
 
     private AxiomStatementBuilder<V> builder;
+    private SourceLocation startLocation;
+    private SourceLocation endLocation;
+    private SourceLocation valueLocation;
 
-    StatementContextImpl(ModelReactorContext reactor, StatementContextImpl<?> parent, AxiomItemDefinition definition) {
+
+    StatementContextImpl(ModelReactorContext reactor, StatementContextImpl<?> parent, AxiomItemDefinition definition, SourceLocation loc) {
         this.parent = parent;
         this.reactor = reactor;
         this.definition = definition;
-        this.builder = new AxiomStatementBuilder<>(definition.identifier(), reactor.typeFactory(definition.type()));
+        this.startLocation = loc;
+        this.builder = new AxiomStatementBuilder<>(definition.name(), reactor.typeFactory(definition.type()));
     }
 
     @Override
@@ -50,8 +56,8 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
         return definition.type().item(child).isPresent();
     }
 
-    public <V> StatementContextImpl<V> createChild(AxiomIdentifier child) {
-        StatementContextImpl<V> childCtx = new StatementContextImpl<V>(reactor, this, childDef(child).get());
+    public <V> StatementContextImpl<V> createChild(AxiomIdentifier child, SourceLocation loc) {
+        StatementContextImpl<V> childCtx = new StatementContextImpl<V>(reactor, this, childDef(child).get(), loc);
         childrenList.add(childCtx);
         children.put(child, childCtx);
         builder.add(child, childCtx.build());
@@ -59,8 +65,8 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     }
 
     @Override
-    public StatementTreeBuilder createChildNode(AxiomIdentifier identifier) {
-        return createChild(identifier);
+    public StatementTreeBuilder createChildNode(AxiomIdentifier identifier, SourceLocation loc) {
+        return createChild(identifier, loc);
     }
 
 
@@ -70,7 +76,7 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
 
     @Override
     public String toString() {
-        return "Context(" + definition.identifier() + ")";
+        return "Context(" + definition.name() + ")";
     }
 
     @Override
@@ -80,7 +86,7 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
 
     @Override
     public AxiomIdentifier identifier() {
-        return definition.identifier();
+        return definition.name();
     }
 
     @Override
@@ -113,8 +119,8 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     }
 
     @Override
-    public <V> StatementContext<V> createChild(AxiomIdentifier axiomIdentifier, V value) {
-        StatementContextImpl<V> child = createChild(axiomIdentifier);
+    public <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value) {
+        StatementContextImpl<V> child = createChild(axiomIdentifier, null);
         child.setValue(value);
         return child;
     }
@@ -124,7 +130,7 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
         private final StatementRule<V> rule;
         private final List<Requirement<?>> requirements = new ArrayList<>();
         private Action<V> action;
-        private Supplier<String> errorReport = () -> null;
+        private Supplier<RuleErrorMessage> errorReport = () -> null;
         private boolean applied = false;
 
 
@@ -191,12 +197,12 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
 
 
         @Override
-        public StatementRuleContext<V> errorMessage(Supplier<String> errorFactory) {
+        public StatementRuleContext<V> errorMessage(Supplier<RuleErrorMessage> errorFactory) {
             this.errorReport = errorFactory;
             return this;
         }
 
-        String errorMessage() {
+        RuleErrorMessage errorMessage() {
             return errorReport.get();
         }
 
@@ -210,6 +216,11 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
             return definition.type();
         }
 
+        @Override
+        public RuleErrorMessage error(String format, Object... arguments) {
+            return RuleErrorMessage.from(startLocation, format, arguments);
+        }
+
     }
 
     public void registerRule(StatementContextImpl<V>.RuleContextImpl rule) {
@@ -218,7 +229,7 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     }
 
     public <V> Optional<StatementContext<V>> firstChild(AxiomItemDefinition child) {
-        return Optionals.first(children(child.identifier()));
+        return Optionals.first(children(child.name()));
     }
 
     private <V> Collection<StatementContext<V>> children(AxiomIdentifier identifier) {
@@ -243,6 +254,12 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     @Override
     public StatementContext<?> parent() {
         return parent;
+    }
+
+    @Override
+    public void setValue(Object value, SourceLocation loc) {
+        setValue(value);
+        this.valueLocation = loc;
     }
 
 }

@@ -21,7 +21,9 @@ public interface StatementRuleContext<V> {
 
     StatementRuleContext<V> apply(StatementRuleContext.Action<V> action);
 
-    StatementRuleContext<V> errorMessage(Supplier<String> errorFactory);
+    StatementRuleContext<V> errorMessage(Supplier<RuleErrorMessage> errorFactory);
+
+    RuleErrorMessage error(String format, Object... arguments);
 
     public interface Action<V> {
 

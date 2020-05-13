@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomSyntaxException extends RuntimeException {
@@ -72,6 +73,10 @@ public class AxiomSyntaxException extends RuntimeException {
             throw new AxiomSyntaxException(source, line, posInLine, Strings.lenientFormat(format, args));
         }
 
+    }
+
+    public static void check(boolean present, SourceLocation loc, String format, Object... args) {
+        check(present, loc.getSource(), loc.getLine(), loc.getChar(),format, args);
     }
 
 }

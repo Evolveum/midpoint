@@ -6,10 +6,17 @@
  */
 package com.evolveum.axiom.lang.api;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.google.common.base.MoreObjects;
 
 public interface AxiomItemDefinition extends AxiomBaseDefinition {
 
     AxiomTypeDefinition type();
     boolean required();
+
+    static String toString(AxiomItemDefinition def) {
+        return MoreObjects.toStringHelper(AxiomItemDefinition.class)
+                .add("name", def.name())
+                .add("type", def.type())
+                .toString();
+    }
 }

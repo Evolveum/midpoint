@@ -17,6 +17,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.impl.StatementContextImpl.RuleContextImpl;
 
@@ -70,9 +71,9 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
     private void failOutstanding(List<StatementContextImpl<?>.RuleContextImpl> report) {
         StringBuilder messages = new StringBuilder("Can not complete models, following errors occured:\n");
         for (RuleContextImpl rule : report) {
-            String exception = rule.errorMessage();
+            RuleErrorMessage exception = rule.errorMessage();
             if(exception != null) {
-                messages.append("  ").append(rule.rule().name()).append(": ").append(exception).append("\n");
+                messages.append(exception.toString()).append("\n");
 
             }
         }
@@ -120,14 +121,7 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
             outstanding.add(rule);
     }
 
-    StatementContextImpl<?> createStmtCtx(StatementContextImpl<?> current, AxiomItemDefinition item) {
-        if (current == null) {
-
-        }
-        return current.createChild(item.identifier());
-    }
-
-    void endStatement(StatementTreeBuilder cur) throws AxiomSemanticException {
+    void endStatement(StatementTreeBuilder cur, SourceLocation loc) throws AxiomSemanticException {
         if(cur instanceof StatementContextImpl) {
             StatementContextImpl<?> current = (StatementContextImpl<?>) cur;
             for (StatementRule statementRule : rules) {
@@ -166,8 +160,8 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
         }
 
         @Override
-        public StatementTreeBuilder createChildNode(AxiomIdentifier identifier) {
-            StatementContextImpl<?> ret = new StatementContextImpl<>(ModelReactorContext.this, null, childDef(identifier).get());
+        public StatementTreeBuilder createChildNode(AxiomIdentifier identifier, SourceLocation loc) {
+            StatementContextImpl<?> ret = new StatementContextImpl<>(ModelReactorContext.this, null, childDef(identifier).get(), loc);
             roots.add(ret);
             return ret;
         }
@@ -177,10 +171,14 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
             return ROOT;
         }
 
+        @Override
+        public void setValue(Object value, SourceLocation loc) {
+
+        }
     }
 
     public void addRootItemDef(AxiomItemDefinition modelDefinition) {
-        rootItems.put(modelDefinition.identifier(), modelDefinition);
+        rootItems.put(modelDefinition.name(), modelDefinition);
     }
 
     public void addStatementFactory(AxiomIdentifier statementType, Factory<?, ?> factory) {
@@ -190,7 +188,7 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
     public <V> Factory<V,?> typeFactory(AxiomTypeDefinition statementType) {
         Optional<AxiomTypeDefinition> current = Optional.of(statementType);
         do {
-            Factory maybe = typeFactories.get(current.get().identifier());
+            Factory maybe = typeFactories.get(current.get().name());
             if(maybe != null) {
                 return maybe;
             }

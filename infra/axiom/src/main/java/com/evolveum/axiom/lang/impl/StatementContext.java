@@ -18,7 +18,7 @@ public interface StatementContext<V> {
 
     void registerAsGlobalItem(AxiomIdentifier typeName) throws AxiomSemanticException;
 
-    <V> StatementContext<V> createChild(AxiomIdentifier axiomIdentifier, V value);
+    <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value);
 
     Optional<V> optionalValue();
 

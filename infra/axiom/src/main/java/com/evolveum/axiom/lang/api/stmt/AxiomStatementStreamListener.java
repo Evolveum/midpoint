@@ -6,13 +6,16 @@
  */
 package com.evolveum.axiom.lang.api.stmt;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 
 public interface AxiomStatementStreamListener {
 
-    void endStatement();
-    void startStatement(AxiomIdentifier identifier,  String sourceName,  int line, int posInLine) throws AxiomSyntaxException;
-    void argument(String argument ,  String sourceName,  int line, int posInLine);
-    void argument(AxiomIdentifier argument, String sourceName, int sourceLine, int sourcePosition);
+    void endStatement( @Nullable SourceLocation sourceLocation);
+    void startStatement(@NotNull AxiomIdentifier identifier,  @Nullable SourceLocation sourceLocation) throws AxiomSyntaxException;
+    void argument(@NotNull AxiomIdentifier convert, @Nullable SourceLocation sourceLocation);
+    void argument(@NotNull String convert, @Nullable SourceLocation sourceLocation);
 }

@@ -9,28 +9,20 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.google.common.collect.Multimap;
 
-public class AxiomItemDefinitionImpl extends AxiomStatementImpl<AxiomIdentifier> implements AxiomItemDefinition {
+public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition implements AxiomItemDefinition {
 
     public static final Factory<AxiomIdentifier,AxiomItemDefinitionImpl> FACTORY = AxiomItemDefinitionImpl::new ;
+    private final AxiomTypeDefinition type;
 
     public AxiomItemDefinitionImpl(AxiomIdentifier keyword, AxiomIdentifier value, List<AxiomStatement<?>> children,
             Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap) {
         super(keyword, value, children, keywordMap);
-    }
-
-    @Override
-    public AxiomIdentifier identifier() {
-        return value();
-    }
-
-    @Override
-    public String documentation() {
-        return null;
+        type = first(AxiomBuiltIn.Item.TYPE_DEFINITION.name(), AxiomTypeDefinition.class).get();;
     }
 
     @Override
     public AxiomTypeDefinition type() {
-        return first(AxiomBuiltIn.Item.TYPE_DEFINITION.identifier(), AxiomTypeDefinition.class).get();
+        return type;
     }
 
     @Override
@@ -38,5 +30,9 @@ public class AxiomItemDefinitionImpl extends AxiomStatementImpl<AxiomIdentifier>
         return false;
     }
 
+    @Override
+    public String toString() {
+        return AxiomItemDefinition.toString(this);
+    }
 
 }

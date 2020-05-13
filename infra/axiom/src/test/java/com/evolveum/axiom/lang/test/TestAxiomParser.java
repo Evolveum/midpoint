@@ -57,25 +57,30 @@ public class TestAxiomParser extends AbstractUnitTest {
 
         ModelReactorContext bootstrapContext =createReactor(Item.MODEL_DEFINITION);
         InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG);
-        bootstrapContext.addStatementFactory(Type.TYPE_DEFINITION.identifier(), AxiomTypeDefinitionImpl.FACTORY);
-        bootstrapContext.addStatementFactory(Type.ITEM_DEFINITION.identifier(), AxiomItemDefinitionImpl.FACTORY);
+        bootstrapContext.addStatementFactory(Type.TYPE_DEFINITION.name(), AxiomTypeDefinitionImpl.FACTORY);
+        bootstrapContext.addStatementFactory(Type.ITEM_DEFINITION.name(), AxiomItemDefinitionImpl.FACTORY);
 
         AxiomStatementSource statementSource = AxiomStatementSource.from(AXIOM_LANG, stream);
         bootstrapContext.loadModelFromSource(statementSource);
         List<AxiomStatement<?>> roots = bootstrapContext.process();
         assertNotNull(roots);
         AxiomStatement<?> model = roots.get(0);
-        Collection<AxiomStatement<?>> typeDefs = model.children(Item.TYPE_DEFINITION.identifier());
+        Collection<AxiomStatement<?>> typeDefs = model.children(Item.TYPE_DEFINITION.name());
         for (AxiomStatement<?> typeDef : typeDefs) {
             assertInstanceOf(AxiomTypeDefinition.class, typeDef);
         }
-        AxiomItemDefinition modelDef = model.first(Item.ROOT_DEFINITION.identifier(), AxiomItemDefinition.class).get();
-        assertEquals(modelDef.identifier(), Item.MODEL_DEFINITION.identifier());
+        AxiomItemDefinition modelDef = model.first(Item.ROOT_DEFINITION.name(), AxiomItemDefinition.class).get();
+        assertEquals(modelDef.name(), Item.MODEL_DEFINITION.name());
 
         ModelReactorContext folowupContext = createReactor(modelDef);
         folowupContext.loadModelFromSource(statementSource);
         List<AxiomStatement<?>> folowupRoots = bootstrapContext.process();
         assertNotNull(roots);
+        AxiomStatement<?> root = roots.get(0);
+        AxiomTypeDefinition typeDef = root.children(Item.TYPE_DEFINITION.name()).stream()
+                .filter(t -> Type.TYPE_DEFINITION.name().equals(t.firstValue(Item.NAME.name(), AxiomIdentifier.class).get())).findFirst().map(AxiomTypeDefinition.class::cast).get();
+        assertNotNull(typeDef);
+        assertEquals(typeDef.superType().get().name(), Type.BASE_DEFINITION.name());
     }
 
 
@@ -90,7 +95,7 @@ public class TestAxiomParser extends AbstractUnitTest {
         List<AxiomStatement<?>> roots = parseFile(NAME);
         AxiomStatement<?> root = roots.get(0);
         assertNotNull(root);
-        assertEquals(root.keyword(), Item.MODEL_DEFINITION.identifier());
+        assertEquals(root.keyword(), Item.MODEL_DEFINITION.name());
         assertNotNull(root.first(Item.DOCUMENTATION).get().value());
         assertEquals(root.first(Item.TYPE_DEFINITION).get().first(Item.IDENTIFIER).get().value(), AxiomIdentifier.axiom("Example"));
 

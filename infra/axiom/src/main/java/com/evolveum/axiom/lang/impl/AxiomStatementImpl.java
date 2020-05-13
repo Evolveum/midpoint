@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.ImmutableMap.Builder;
 
 public class AxiomStatementImpl<V> implements AxiomStatement<V> {
 
@@ -67,6 +68,13 @@ public class AxiomStatementImpl<V> implements AxiomStatement<V> {
         I create(AxiomIdentifier type, V value, List<AxiomStatement<?>> children,
             Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap);
 
+    }
+
+    protected void putAll(Builder<AxiomIdentifier, AxiomItemDefinition> builder,
+            Collection<AxiomItemDefinition> children) {
+        for (AxiomItemDefinition definition : children) {
+            builder.put(definition.name(), definition);
+        };
     }
 
     public static <V, T extends AxiomStatement<V>> Factory<V, T> factory() {

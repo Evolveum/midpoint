@@ -10,28 +10,33 @@ model axiom-lang {
     type AxiomModel {
         extends AxiomBaseDefinition;
         
-        property root {
+        item root {
             type AxiomItemDefinition;
         }
         
-        property type {
+        item type {
             documentation """
                 Type Declaration
             """;
             type AxiomTypeDefinition;
         }
         
-        property object {
+        item object {
             type AxiomObjectDefinition;
         }
     }
-    
+
     type AxiomBaseDefinition {
-        argument identifier;
-        property identifier {
+        argument name;
+
+        item name {
+            type AxiomIdentifier;
+        } 
+        
+        item identifier {
             type AxiomIdentifier;
         }
-        property documentation {
+        item documentation {
             type string;
         }
     }
@@ -39,50 +44,50 @@ model axiom-lang {
     type AxiomTypeDefinition {
         extends AxiomBaseDefinition;
 
-        property argument {
+        item argument {
             type AxiomIdentifier;
         }
-        property extends {  // Should be reference
+        item extends {  // Should be reference
             type AxiomIdentifier; // Should be AxiomTypeIdentifier in future
         }
         
-        property identifier {
+        item identifier {
             type AxiomIdentifier;
         }
-        property property {
-            type AxiomPropertyDefinition;
-        }
-        
-        container container {
-            type AxiomContainerDefinition;
+        item item {
+            type AxiomItemDefinition;
         }
     }
 
-    type AxiomItemDefinition {
-        extends AxiomBaseDefinition;
-        property type {
-            type AxiomIdentifier;
-        }
-    }
-
-    type AxiomPropertyDefinition {
-        extends AxiomItemDefinition;
-    }
-    
-    type AxiomContainerDefinition {
-        extends AxiomItemDefinition;
-    }
-    
     type AxiomObjectDefinition {
         extends AxiomTypeDefinition;
     }
     
     type AxiomIdentifier {
-    
     }
 
     type string {
     
     }
 
+    type AxiomItemDefinition {
+        extends AxiomBaseDefinition;
+        item type {
+            //type AxiomTypeReference;
+            type AxiomIdentifier;
+        }
+    }
+
+    type AxiomReference {
+        item targetType {
+            type AxiomTypeReference;
+        }
+    }
+
+    type AxiomTypeReference {
+    //    extends AxiomReference;
+    //    item targetType {
+    //        value AxiomTypeDefinition;
+    //    }
+    }
 }

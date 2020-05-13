@@ -24,30 +24,29 @@ public class AxiomBuiltIn {
         throw new UnsupportedOperationException("Utility class");
     }
 
+    public static class Item implements AxiomItemDefinition {
+        public static final AxiomItemDefinition NAME = new Item("name", Type.IDENTIFIER, true);
+        public static final AxiomItemDefinition IDENTIFIER = new Item("identifier", Type.IDENTIFIER, true);
+        public static final AxiomItemDefinition ARGUMENT = new Item("argument", Type.IDENTIFIER, false);
+        public static final AxiomItemDefinition DOCUMENTATION = new Item("documentation", Type.STRING, true);
+        public static final AxiomItemDefinition NAMESPACE = new Item("namespace", Type.STRING, true);
+        public static final AxiomItemDefinition VERSION = new Item("version", Type.STRING, true);
+        public static final AxiomItemDefinition TYPE_REFERENCE = new Item("type", Type.TYPE_REFERENCE, true);
+        public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
+        public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.IDENTIFIER, false);
+        public static final AxiomItemDefinition ROOT_DEFINITION = new Item("root", Type.ITEM_DEFINITION, false);
+        public static final AxiomItemDefinition OBJECT_DEFINITION = new Item("object", Type.OBJECT_DEFINITION, false);
+        public static final AxiomItemDefinition REFERENCE_DEFINITION = new Item("reference", Type.ITEM_DEFINITION, false);
+        public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false);
+        public static final AxiomItemDefinition OBJECT_REFERENCE_DEFINITION = new Item("objectReference", Type.OBJECT_REFERENCE_DEFINITION, false);
+        public static final AxiomItemDefinition MODEL_DEFINITION = new Item("model", Type.MODEL, false);
+        public static final AxiomItemDefinition ITEM_NAME = new Item("itemName", Type.IDENTIFIER, false);
+        public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
+        public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
+        public static final AxiomItemDefinition TARGET_TYPE = new Item("targetType", Type.IDENTIFIER, true);
 
-    public enum Item implements AxiomItemDefinition {
-        IDENTIFIER("identifier", Type.IDENTIFIER, true),
-        ARGUMENT("argument", Type.IDENTIFIER, false),
-        DOCUMENTATION("documentation", Type.STRING, true),
-        NAMESPACE("namespace", Type.STRING, true),
-        VERSION("version", Type.STRING, true),
-        TYPE_REFERENCE("type", Type.TYPE_REFERENCE, true),
-        TYPE_DEFINITION("type", Type.TYPE_DEFINITION, false),
-        SUPERTYPE_REFERENCE("extends", Type.IDENTIFIER, false),
-        ROOT_DEFINITION("root", Type.ITEM_DEFINITION, false),
-        OBJECT_DEFINITION("object", Type.OBJECT_DEFINITION, false),
-        REFERENCE_DEFINITION("reference", Type.ITEM_DEFINITION, false),
-        PROPERTY_DEFINITION("property", Type.ITEM_DEFINITION, false),
-        CONTAINER_DEFINITION("container", Type.ITEM_DEFINITION, false),
-        OBJECT_REFERENCE_DEFINITION("objectReference", Type.OBJECT_REFERENCE_DEFINITION, false),
-        MODEL_DEFINITION("model", Type.MODEL, false),
-        ITEM_NAME("itemName", Type.IDENTIFIER, false),
-        MIN_OCCURS("minOccurs", Type.STRING, false),
-        MAX_OCCURS("maxOccurs", Type.STRING, false),
-        TARGET_TYPE("targetType", Type.IDENTIFIER, true)
-        ;
-        private AxiomIdentifier identifier;
-        private AxiomTypeDefinition type;
+        private final AxiomIdentifier identifier;
+        private final AxiomTypeDefinition type;
         private boolean required;
 
 
@@ -58,7 +57,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public AxiomIdentifier identifier() {
+        public AxiomIdentifier name() {
             return identifier;
         }
 
@@ -77,47 +76,57 @@ public class AxiomBuiltIn {
         public boolean required() {
             return required;
         }
+
+        @Override
+        public String toString() {
+            return AxiomItemDefinition.toString(this);
+        }
     }
 
-    public enum Type implements AxiomTypeDefinition {
-        UUID("uuid"),
-        STRING("string"),
-        IDENTIFIER("AxiomIdentifier"),
-        TYPE_REFERENCE("AxiomTypeReference"),
-        BASE_DEFINITION("AxiomBaseDefinition", null, () -> Item.IDENTIFIER, () -> itemDefs(
-                Item.IDENTIFIER,
-                Item.DOCUMENTATION
-                )),
+    public static class Type implements AxiomTypeDefinition {
+        public static final Type UUID = new Type("uuid");
+        public static final Type STRING = new Type("string");
+        public static final Type IDENTIFIER = new Type("AxiomIdentifier");
+        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference");
+        public static final Type BASE_DEFINITION =
+                new Type("AxiomBaseDefinition", null, () -> Item.NAME, () -> itemDefs(
+                        Item.NAME,
+                        Item.DOCUMENTATION
+                ));
 
-        MODEL("AxiomModel", BASE_DEFINITION,  () -> itemDefs(
-                Item.NAMESPACE,
-                Item.VERSION,
-                Item.TYPE_DEFINITION,
-                Item.OBJECT_DEFINITION,
-                Item.ROOT_DEFINITION
-                )),
-        TYPE_DEFINITION("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
-                Item.ARGUMENT,
-                Item.SUPERTYPE_REFERENCE,
-                Item.PROPERTY_DEFINITION,
-                Item.CONTAINER_DEFINITION,
-                Item.OBJECT_REFERENCE_DEFINITION
-                )),
-        ITEM_DEFINITION("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
-                Item.TYPE_REFERENCE,
-                Item.MIN_OCCURS,
-                Item.MAX_OCCURS
-                )),
-        REFERENCE_DEFINITION("AxiomReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
+        public static final Type MODEL =
+                new Type("AxiomModel", BASE_DEFINITION,  () -> itemDefs(
+                    Item.NAMESPACE,
+                    Item.VERSION,
+                    Item.TYPE_DEFINITION,
+                    Item.OBJECT_DEFINITION,
+                    Item.ROOT_DEFINITION
+                ));
+        public static final Type TYPE_DEFINITION =
+                new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
+                    Item.ARGUMENT,
+                    Item.SUPERTYPE_REFERENCE,
+                    Item.ITEM_DEFINITION,
+                    Item.OBJECT_REFERENCE_DEFINITION
+                ));
+        public static final Type ITEM_DEFINITION =
+                new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
+                    Item.TYPE_REFERENCE,
+                    Item.MIN_OCCURS,
+                    Item.MAX_OCCURS
+                ));
+        public static final Type REFERENCE_DEFINITION =
+                new Type("AxiomReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
 
-                )),
-        OBJECT_DEFINITION("AxiomObjectDefinition", TYPE_DEFINITION, () -> itemDefs(
-                Item.ITEM_NAME
-                )),
-        OBJECT_REFERENCE_DEFINITION("AxiomObjectReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
-                Item.TARGET_TYPE
-                ))
-        ;
+                ));
+        public static final Type OBJECT_DEFINITION =
+                new Type("AxiomObjectDefinition", TYPE_DEFINITION, () -> itemDefs(
+                        Item.ITEM_NAME
+                ));
+        public static final Type OBJECT_REFERENCE_DEFINITION =
+                new Type("AxiomObjectReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
+                        Item.TARGET_TYPE
+                ));
 
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition superType;
@@ -152,7 +161,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public AxiomIdentifier identifier() {
+        public AxiomIdentifier name() {
             return identifier;
         }
 
@@ -175,7 +184,7 @@ public class AxiomBuiltIn {
             Builder<AxiomIdentifier, AxiomItemDefinition> builder = ImmutableMap.builder();
 
             for (AxiomItemDefinition item : items) {
-                builder.put(item.identifier(), item);
+                builder.put(item.name(), item);
             }
             return builder.build();
         }

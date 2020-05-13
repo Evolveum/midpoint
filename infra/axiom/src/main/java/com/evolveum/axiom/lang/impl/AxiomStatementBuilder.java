@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
+import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.google.common.collect.HashMultimap;
@@ -43,9 +44,13 @@ public class AxiomStatementBuilder<T> implements Lazy.Supplier<AxiomStatement<T>
     private List<Supplier<? extends AxiomStatement<?>>> childList = new ArrayList<>();
     private Multimap<AxiomIdentifier, Supplier<? extends AxiomStatement<?>>> children = HashMultimap.create();
 
-    public void add(AxiomIdentifier type, Supplier<? extends AxiomStatement<?>> axiomStatement) {
-        childList.add(axiomStatement);
-        children.put(type, axiomStatement);
+    public void add(AxiomItemDefinition item, Supplier<? extends AxiomStatement<?>> statement) {
+        add(item.name(), statement);
+    }
+
+    public void add(AxiomIdentifier type, Supplier<? extends AxiomStatement<?>> statement) {
+        childList.add(statement);
+        children.put(type, statement);
     }
 
     @Override

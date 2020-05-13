@@ -9,28 +9,25 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.google.common.collect.ImmutableSet;
 
-import static com.evolveum.axiom.lang.api.AxiomBuiltIn.Item.*;
+import static com.evolveum.axiom.lang.api.AxiomBuiltIn.*;
 
 public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
 
-    COPY_ARGUMENT_VALUE(TYPE_DEFINITION.identifier()) {
+    COPY_ARGUMENT_VALUE(all(),all()) {
 
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Optional<AxiomIdentifier> argument = rule.optionalChildValue(ARGUMENT, AxiomIdentifier.class);
+            Optional<AxiomItemDefinition> argument = rule.typeDefinition().argument();
             if(argument.isPresent()) {
-               rule.apply((ctx) -> {
-                   ctx.createChild(argument.get(), ctx.requireValue());
-               });
+               rule.apply(ctx -> ctx.createEffectiveChild(argument.get().name(), ctx.requireValue()));
             }
         }
     },
-
-
-    REGISTER_TYPE(TYPE_DEFINITION.identifier()) {
+    REGISTER_TYPE(items(Item.TYPE_DEFINITION), types(Type.TYPE_DEFINITION)) {
 
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
@@ -39,34 +36,31 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         }
     },
 
-    ADD_TYPE_TO_ITEM(TYPE_REFERENCE.identifier()) {
+    ADD_TYPE_TO_ITEM(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
-            if(Type.TYPE_REFERENCE.identifier().equals(rule.typeDefinition().identifier())) {
-                AxiomIdentifier type = rule.requireValue();
-                Requirement<Supplier<AxiomStatement<?>>> typeDef = rule.requireGlobalItem(TYPE_DEFINITION, type);
-                rule.apply(ctx -> {
-                    ctx.parent().builder().add(TYPE_DEFINITION.identifier(), typeDef.get());
-                });
-                rule.errorMessage(() ->  "type " + type + " was not found.");
-            }
-
+            AxiomIdentifier type = rule.requireValue();
+            Requirement<Supplier<AxiomStatement<?>>> typeDef = rule.requireGlobalItem(Item.TYPE_DEFINITION, type);
+            rule.apply(ctx -> {
+                ctx.parent().builder().add(Item.TYPE_DEFINITION, typeDef.get());
+            });
+            rule.errorMessage(() ->  rule.error("type '%s' was not found.", type));
         }
     },
 
-    ADD_SUPERTYPE(TYPE_DEFINITION.identifier()) {
+    ADD_SUPERTYPE(items(), types(Type.TYPE_DEFINITION)) {
 
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Optional<AxiomIdentifier> superType = rule.optionalChildValue(SUPERTYPE_REFERENCE, AxiomIdentifier.class);
+            Optional<AxiomIdentifier> superType = rule.optionalChildValue(Item.SUPERTYPE_REFERENCE, AxiomIdentifier.class);
             if(superType.isPresent()) {
-                Requirement<Supplier<AxiomStatement<?>>> req = rule.requireGlobalItem(TYPE_DEFINITION, superType.get());
+                Requirement<Supplier<AxiomStatement<?>>> req = rule.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
                 rule.apply((ctx) -> {
-                    ctx.builder().add(SUPERTYPE_REFERENCE.identifier(), req.get());
+                    ctx.builder().add(Item.SUPERTYPE_REFERENCE, req.get());
                 });
                 rule.errorMessage(() -> {
                     if(!req.isSatisfied()) {
-                        return "Supertype " + superType.get() + " is not defined";
+                        return rule.error("Supertype %s is not defined", superType.get());
                     }
                     return null;
                 });
@@ -74,15 +68,39 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         }
     };
 
-    private final Set<AxiomIdentifier> applicable;
+    private final Set<AxiomIdentifier> items;
+    private final Set<AxiomIdentifier> types;
 
-    private BasicStatementRule(AxiomIdentifier... applicable) {
-        this.applicable = ImmutableSet.copyOf(applicable);
+
+    private BasicStatementRule(Set<AxiomIdentifier> items, Set<AxiomIdentifier> types) {
+        this.items = ImmutableSet.copyOf(items);
+        this.types = ImmutableSet.copyOf(types);
     }
 
     @Override
     public boolean isApplicableTo(AxiomItemDefinition definition) {
-        return applicable.contains(definition.identifier());
+        return (items.isEmpty() || items.contains(definition.name()))
+                && (types.isEmpty() || types.contains(definition.type().name()));
     }
 
+    private static ImmutableSet<AxiomIdentifier> types(AxiomTypeDefinition... types) {
+        ImmutableSet.Builder<AxiomIdentifier> builder = ImmutableSet.builder();
+        for (AxiomTypeDefinition item : types) {
+            builder.add(item.name());
+        }
+        return builder.build();
+
+    }
+
+    private static ImmutableSet<AxiomIdentifier> items(AxiomItemDefinition... items) {
+        ImmutableSet.Builder<AxiomIdentifier> builder = ImmutableSet.builder();
+        for (AxiomItemDefinition item : items) {
+            builder.add(item.name());
+        }
+        return builder.build();
+    }
+
+    private static ImmutableSet<AxiomIdentifier> all() {
+        return ImmutableSet.of();
+    }
 }

@@ -33,11 +33,15 @@ public interface AxiomStatement<V> {
     }
 
     default Optional<AxiomStatement<?>> first(AxiomItemDefinition item) {
-        return first(item.identifier());
+        return first(item.name());
     }
 
     default Optional<AxiomStatement<?>> first(AxiomIdentifier name) {
         return children(name).stream().findFirst();
+    }
+
+    default <V> Optional<V> firstValue(AxiomIdentifier name, Class<V> type) {
+        return children(name).stream().filter(s -> type.isInstance(s.value())).map(s -> type.cast(s.value())).findFirst();
     }
 
 }

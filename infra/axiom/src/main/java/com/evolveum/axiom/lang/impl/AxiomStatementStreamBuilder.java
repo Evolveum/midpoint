@@ -14,6 +14,7 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.google.common.collect.Iterables;
 
 
@@ -33,35 +34,35 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
     }
 
     @Override
-    public void argument(AxiomIdentifier identifier, String source, int line, int posInLine) {
-        argument0(identifier, source, line, posInLine);
+    public void argument(AxiomIdentifier identifier, SourceLocation loc) {
+        argument0(identifier, loc);
     }
 
     @Override
-    public void argument(String identifier, String source, int line, int posInLine) {
-        argument0(identifier, source, line, posInLine);
+    public void argument(String identifier, SourceLocation loc) {
+        argument0(identifier, loc);
     }
 
-    private void argument0(Object value, String source, int line, int posInLine) {
-            current().setValue(value);
+    private void argument0(Object value, SourceLocation loc) {
+            current().setValue(value, loc);
 
     }
 
     @Override
-    public void startStatement(AxiomIdentifier statement, String sourceName,  int line, int posInLine) throws AxiomSyntaxException {
+    public void startStatement(AxiomIdentifier statement, SourceLocation loc) throws AxiomSyntaxException {
         Optional<AxiomItemDefinition> childDef = current().childDef(statement);
-        AxiomSyntaxException.check(childDef.isPresent(), sourceName, line, posInLine, "Statement %s not allowed in %s", statement, current().identifier());
-        queue.offerFirst(createBuilder(childDef.get()));
+        AxiomSyntaxException.check(childDef.isPresent(), loc , "Statement %s not allowed in %s", statement, current().identifier());
+        queue.offerFirst(createBuilder(childDef.get(), loc));
     }
 
-    private StatementTreeBuilder createBuilder(AxiomItemDefinition item) {
-        return current().createChildNode(item.identifier());
+    private StatementTreeBuilder createBuilder(AxiomItemDefinition item, SourceLocation loc) {
+        return current().createChildNode(item.name(), loc);
     }
 
     @Override
-    public void endStatement() {
+    public void endStatement(SourceLocation loc) {
         StatementTreeBuilder current = queue.poll();
-        context.endStatement(current);
+        context.endStatement(current, loc);
     }
 
 }

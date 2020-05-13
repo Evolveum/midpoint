@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 
@@ -21,6 +22,7 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
@@ -52,12 +54,9 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     public T visitStatement(StatementContext ctx) {
         AxiomIdentifier identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
-            delegate.startStatement(identifier,
-                    sourceName,
-                    sourceLine(ctx.identifier()),
-                    sourcePosition(ctx.identifier()));
+            delegate.startStatement(identifier, sourceLocation(ctx.identifier().start));
             T ret = super.visitStatement(ctx);
-            delegate.endStatement();
+            delegate.endStatement(sourceLocation(ctx.stop));
             return ret;
         }
         return defaultResult();
@@ -73,9 +72,9 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     @Override
     public T visitArgument(ArgumentContext ctx) {
         if (ctx.identifier() != null) {
-            delegate.argument(convert(ctx.identifier()), sourceName, sourceLine(ctx),sourcePosition(ctx));
+            delegate.argument(convert(ctx.identifier()), sourceLocation(ctx.start));
         } else {
-            delegate.argument(convert(ctx.string()), sourceName, sourceLine(ctx),sourcePosition(ctx));
+            delegate.argument(convert(ctx.string()), sourceLocation(ctx.start));
         }
         return defaultResult();
     }
@@ -98,8 +97,8 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return node.start.getLine();
     }
 
-    private int sourcePosition(ParserRuleContext node) {
-        return node.start.getCharPositionInLine();
+    private SourceLocation sourceLocation(Token start) {
+        return SourceLocation.from(sourceName, start.getLine(), start.getCharPositionInLine());
     }
 
     private String convertSingleQuote(String text) {

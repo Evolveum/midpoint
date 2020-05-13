@@ -25,7 +25,7 @@ class DefaultTypeDefinition implements AxiomTypeDefinition {
     }
 
     @Override
-    public AxiomIdentifier identifier() {
+    public AxiomIdentifier name() {
         return identifier;
     }
 
