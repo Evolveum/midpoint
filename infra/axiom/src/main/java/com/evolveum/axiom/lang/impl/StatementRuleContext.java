@@ -32,4 +32,6 @@ public interface StatementRuleContext<V> {
 
     AxiomTypeDefinition typeDefinition();
 
+    Optional<V> optionalValue();
+
 }

@@ -100,6 +100,11 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     @Override
+    public Optional<V> optionalValue() {
+        return context.optionalValue();
+    }
+
+    @Override
     public RuleErrorMessage error(String format, Object... arguments) {
         return RuleErrorMessage.from(context.startLocation(), format, arguments);
     }

@@ -20,7 +20,7 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             Optional<AxiomItemDefinition> argument = rule.typeDefinition().argument();
-            if(argument.isPresent()) {
+            if(argument.isPresent() && rule.optionalValue().isPresent()) {
                rule.apply(ctx -> ctx.createEffectiveChild(argument.get().name(), ctx.requireValue()));
             }
         }

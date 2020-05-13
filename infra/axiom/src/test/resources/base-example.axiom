@@ -14,9 +14,9 @@ model model-header {
     version "0.0.1";
     
     type string;
-    type PolyString;
     type Address;
     type Link;
+    type PolyString;
     
     type Example {
         documentation """
@@ -44,5 +44,10 @@ model model-header {
           type Link;
           maxOccurs unbounded;
         }
+    }
+    
+    object {
+        name User2;
+        itemName user;
     }
 }

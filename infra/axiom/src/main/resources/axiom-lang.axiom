@@ -98,10 +98,5 @@ model axiom-lang {
         }
     }
 
-    type AxiomTypeReference {
-    //    extends AxiomReference;
-    //    item targetType {
-    //        value AxiomTypeDefinition;
-    //    }
-    }
+    type AxiomTypeReference;
 }
