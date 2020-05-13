@@ -422,7 +422,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     @NotNull
     @Override
     public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, serializationContext);
         RootXNodeImpl xroot = LexicalUtils.createRootXNode((XNodeImpl) xnode, rootElementName);
         Element element = serializer.serialize(xroot);
         return DOMUtil.serializeDOMToString(element);
@@ -431,7 +431,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     @NotNull
     @Override
     public String write(@NotNull RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, serializationContext);
         Element element = serializer.serialize((RootXNodeImpl) xnode);
         return DOMUtil.serializeDOMToString(element);
     }
@@ -446,29 +446,23 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     @NotNull
     public Element writeXRootListToElement(@NotNull List<RootXNodeImpl> roots, QName aggregateElementName) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, null);
         return serializer.serialize(roots, aggregateElementName);
     }
 
-    public Element serializeUnderElement(XNodeImpl xnode, QName rootElementName, Element parentElement) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
-        RootXNodeImpl xroot = LexicalUtils.createRootXNode(xnode, rootElementName);
-        return serializer.serializeUnderElement(xroot, parentElement);
-    }
-
     public Element serializeXMapToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, null);
         return serializer.serializeToElement(xmap, elementName);
     }
 
     private Element serializeXPrimitiveToElement(PrimitiveXNodeImpl<?> xprim, QName elementName) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, null);
         return serializer.serializeXPrimitiveToElement(xprim, elementName);
     }
 
     @NotNull
     public Element writeXRootToElement(@NotNull RootXNodeImpl xroot) throws SchemaException {
-        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry);
+        DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, null);
         return serializer.serialize(xroot);
     }
 

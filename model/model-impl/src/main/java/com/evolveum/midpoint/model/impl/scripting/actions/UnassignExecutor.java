@@ -46,7 +46,7 @@ public class UnassignExecutor extends AssignmentOperationsExecutor<UnassignParam
 
     private static final String NAME = "unassign";
 
-    static class UnassignParameters extends Parameters {
+    static class UnassignParameters extends AssignmentOperationsExecutor.Parameters {
         // These come from dynamic parameters (~ legacy way)
         private final Collection<ObjectReferenceType> dynamicRoleRefs = new ArrayList<>();
         private final Collection<ObjectReferenceType> dynamicResourceRefs = new ArrayList<>();

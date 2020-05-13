@@ -17,6 +17,10 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
@@ -67,11 +71,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
-    public static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
-    public static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
-    public static final String OP_LIST_RECORDS = "listRecords";
-    public static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
-    public static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
+    private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
+    private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
+    private static final String OP_LIST_RECORDS = "listRecords";
+    private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
+    private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
     @Autowired
     private BaseHelper baseHelper;
@@ -82,7 +86,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
-    private Map<String, String> customColumn = new HashMap<>();
+    private final Map<String, String> customColumn = new HashMap<>();
+
+    private volatile SystemConfigurationAuditType auditConfiguration;
 
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -201,10 +207,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = baseHelper.beginTransaction();
         try {
 
-            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext(), null);
-            //TODO FIXME temporary hack, merge will eventyually load the object to the session if there isn't one,
+            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext(), null, auditConfiguration);
+            //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
             // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
-            // during serializing/deserializing which causes constraint violation on priamry key..
+            // during serializing/deserializing which causes constraint violation on primary key..
             RAuditEventRecord rRecord = session.load(RAuditEventRecord.class, record.getRepoId());
             rRecord.getChangedItems().clear();
             rRecord.getChangedItems().addAll(reindexed.getChangedItems());
@@ -464,7 +470,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                     SingleSqlQuery deltaQuery;
                     try {
-                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext());
+                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext(), auditConfiguration);
                         deltaBatchQuery.addQueryForBatch(deltaQuery);
                     } catch (DtoTranslationException e) {
                         baseHelper.handleGeneralCheckedException(e, session, null);
@@ -844,9 +850,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                 setParametersToQuery(queryBuilder, params);
 
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
-                }
+                LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
 
                 try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection)) {
                     ResultSet resultList = stmt.executeQuery();
@@ -876,4 +880,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return customColumn;
     }
 
+    @Override
+    public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
+        this.auditConfiguration = CloneUtil.clone(configuration);
+    }
 }

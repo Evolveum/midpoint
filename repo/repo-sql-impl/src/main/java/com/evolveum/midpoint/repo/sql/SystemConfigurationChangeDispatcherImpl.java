@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
@@ -37,7 +38,7 @@ import java.util.Collections;
 import java.util.HashSet;
 
 /**
- * @author mederly
+ * Dispatches "system configuration changed" events to relevant objects.
  */
 @Component
 public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurationChangeDispatcher {
@@ -45,6 +46,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationChangeDispatcherImpl.class);
 
     @Autowired private RepositoryService repositoryService;
+    @Autowired(required = false) private AuditService auditService;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
@@ -95,6 +97,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         applyRemoteHostAddressHeadersConfiguration(configuration);
         applyPolyStringNormalizerConfiguration(configuration);
         applyFullTextSearchConfiguration(configuration);
+        applyAuditConfiguration(configuration);
         applyRelationsConfiguration(configuration);
         applyOperationResultHandlingConfiguration(configuration);
         applyCachingConfiguration(configuration);
@@ -160,6 +163,17 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             repositoryService.applyFullTextSearchConfiguration(configuration.getFullTextSearch());
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply fulltext search configuration", t);
+            lastVersionApplied = null;
+        }
+    }
+
+    private void applyAuditConfiguration(SystemConfigurationType configuration) {
+        try {
+            if (auditService != null) {
+                auditService.applyAuditConfiguration(configuration.getAudit());
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply audit configuration", t);
             lastVersionApplied = null;
         }
     }

@@ -1417,6 +1417,32 @@ public class DOMUtil {
         }
     }
 
+    public static String escapeInvalidXmlCharsIfPresent(String value) {
+        if (value == null) {
+            return null;
+        }
+        int codepointCount = value.codePointCount(0, value.length());
+        for (int i = 0; i < codepointCount; i++) {
+            if (!XMLChar.isValid(value.codePointAt(i))) {
+                return escapeInvalidXmlChars(value, codepointCount);
+            }
+        }
+        return value;
+    }
+
+    private static String escapeInvalidXmlChars(String value, int codepointCount) {
+        StringBuilder sb = new StringBuilder(value.length());
+        for (int i = 0; i < codepointCount; i++) {
+            int cp = value.codePointAt(i);
+            if (XMLChar.isValid(cp)) {
+                sb.appendCodePoint(cp);
+            } else {
+                sb.append("[INVALID CODE POINT: ").append(cp).append(']');
+            }
+        }
+        return sb.toString();
+    }
+
     // todo move to some Util class
     private static String makeSafelyPrintable(String text, int maxSize) {
         StringBuilder sb = new StringBuilder();
