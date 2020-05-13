@@ -15,7 +15,7 @@
     </appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="PROFILING" level="TRACE" />
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="X" />
     </root>
 </configuration>
