@@ -43,7 +43,7 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private AxiomIdentifier statementIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
-        return statements.resolveStatementIdentifier(prefix,localName);
+        return statements.resolveStatementIdentifier(prefix, localName);
     }
 
     private String nullableText(ParserRuleContext prefix) {

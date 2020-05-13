@@ -35,12 +35,8 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
         public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.TYPE_REFERENCE, false);
         public static final AxiomItemDefinition ROOT_DEFINITION = new Item("root", Type.ITEM_DEFINITION, false);
-        public static final AxiomItemDefinition OBJECT_DEFINITION = new Item("object", Type.OBJECT_DEFINITION, false);
-        public static final AxiomItemDefinition REFERENCE_DEFINITION = new Item("reference", Type.ITEM_DEFINITION, false);
         public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false);
-        public static final AxiomItemDefinition OBJECT_REFERENCE_DEFINITION = new Item("objectReference", Type.OBJECT_REFERENCE_DEFINITION, false);
         public static final AxiomItemDefinition MODEL_DEFINITION = new Item("model", Type.MODEL, false);
-        public static final AxiomItemDefinition ITEM_NAME = new Item("itemName", Type.IDENTIFIER, false);
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
         public static final AxiomItemDefinition TARGET_TYPE = new Item("targetType", Type.IDENTIFIER, true);
@@ -99,33 +95,19 @@ public class AxiomBuiltIn {
                     Item.NAMESPACE,
                     Item.VERSION,
                     Item.TYPE_DEFINITION,
-                    Item.OBJECT_DEFINITION,
                     Item.ROOT_DEFINITION
                 ));
         public static final Type TYPE_DEFINITION =
                 new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.ARGUMENT,
                     Item.SUPERTYPE_REFERENCE,
-                    Item.ITEM_DEFINITION,
-                    Item.OBJECT_REFERENCE_DEFINITION
+                    Item.ITEM_DEFINITION
                 ));
         public static final Type ITEM_DEFINITION =
                 new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.TYPE_REFERENCE,
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS
-                ));
-        public static final Type REFERENCE_DEFINITION =
-                new Type("AxiomReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
-
-                ));
-        public static final Type OBJECT_DEFINITION =
-                new Type("AxiomObjectDefinition", TYPE_DEFINITION, () -> itemDefs(
-                        Item.ITEM_NAME
-                ));
-        public static final Type OBJECT_REFERENCE_DEFINITION =
-                new Type("AxiomObjectReferenceDefinition", ITEM_DEFINITION, () -> itemDefs(
-                        Item.TARGET_TYPE
                 ));
 
         private final AxiomIdentifier identifier;

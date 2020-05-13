@@ -38,7 +38,7 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
 
     @Override
     public Optional<AxiomItemDefinition> argument() {
-        if(argument.isEmpty() && superType().isPresent()) {
+        if (!argument.isPresent() && superType().isPresent()) {
             return superType().get().argument();
         }
         return argument;

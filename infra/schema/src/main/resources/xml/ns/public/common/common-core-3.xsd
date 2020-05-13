@@ -83,9 +83,6 @@
                     white space may be skipped, multiple spaces can be collapsed to one and so on.
                 </p>
             </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -109,6 +106,9 @@
                     non-blank line of text is also skipped.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 

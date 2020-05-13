@@ -14,8 +14,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
@@ -28,23 +26,21 @@ import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
-import com.evolveum.axiom.lang.impl.AxiomItemDefinitionImpl;
 
 import com.evolveum.axiom.lang.impl.AxiomStatementSource;
 
 import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
-import com.evolveum.axiom.lang.impl.AxiomTypeDefinitionImpl;
-import com.evolveum.axiom.lang.impl.BasicStatementRule;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
-import com.google.common.collect.Iterables;
 
 public class TestAxiomParser extends AbstractUnitTest {
 
     private static final String COMMON_DIR_PATH = "src/test/resources/";
-    private static final String NAME = "base-example.axiom";
     private static final String AXIOM_LANG = "/axiom-lang.axiom";
+
+    private static final String BASE_EXAMPLE = "base-example.axiom";
+    private static final String COMMON_CORE = "common-core.axiom";
+    private static final String SCRIPTING = "scripting.axiom";
 
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
@@ -76,16 +72,23 @@ public class TestAxiomParser extends AbstractUnitTest {
 
     private void assertInstanceOf(Class<?> clz, Object value) {
         assertTrue(clz.isInstance(value));
-
     }
-
 
     @Test
     public void moduleHeaderTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(NAME);
+        AxiomSchemaContext context = parseFile(BASE_EXAMPLE);
         assertNotNull(context.getType(AxiomIdentifier.axiom("Example")).get());
     }
 
+    @Test
+    public void commonCoreTest() throws IOException, AxiomSyntaxException {
+        AxiomSchemaContext context = parseFile(COMMON_CORE);
+    }
+
+    @Test
+    public void scriptingTest() throws IOException, AxiomSyntaxException {
+        AxiomSchemaContext context = parseFile(SCRIPTING);
+    }
 
     private AxiomSchemaContext parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
         return parseInputStream(name, new FileInputStream(COMMON_DIR_PATH + name));

@@ -17,7 +17,8 @@ public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition impleme
     public AxiomItemDefinitionImpl(AxiomIdentifier keyword, AxiomIdentifier value, List<AxiomStatement<?>> children,
             Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap) {
         super(keyword, value, children, keywordMap);
-        type = first(AxiomBuiltIn.Item.TYPE_DEFINITION.name(), AxiomTypeDefinition.class).get();;
+        type = first(AxiomBuiltIn.Item.TYPE_DEFINITION.name(), AxiomTypeDefinition.class)
+                .orElseThrow(() -> new IllegalStateException("No 'type' declaration in " + super.toString()));
     }
 
     @Override

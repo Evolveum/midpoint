@@ -74,7 +74,7 @@ public class AxiomStatementImpl<V> implements AxiomStatement<V> {
             Collection<AxiomItemDefinition> children) {
         for (AxiomItemDefinition definition : children) {
             builder.put(definition.name(), definition);
-        };
+        }
     }
 
     public static <V, T extends AxiomStatement<V>> Factory<V, T> factory() {

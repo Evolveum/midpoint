@@ -28,6 +28,8 @@ import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.google.common.collect.ImmutableMap;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ModelReactorContext implements AxiomIdentifierResolver {
 
 
@@ -202,7 +204,7 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
     }
 
     @Override
-    public AxiomIdentifier resolveStatementIdentifier(@NotNull String prefix, @NotNull String localName) {
+    public AxiomIdentifier resolveStatementIdentifier(@Nullable String prefix, @NotNull String localName) {
         return AxiomIdentifier.axiom(localName);
     }
 
