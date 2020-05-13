@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.springframework.stereotype.Component;
@@ -40,21 +41,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     public boolean match(ItemDefinition<?> def) {
         return false;
     }
-
-
-
-    @Override
-    protected boolean canCreateValueWrapper(PrismContainerValue<ClassLoggerConfigurationType> value) {
-        if(value == null || value.getRealValue() == null) {
-            return false;
-        }
-        String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
-        if(loggerPackage == null) {
-            return false;
-        }
-        return loggerPackage.equals(LOGGER_PROFILING);
-    }
-
+    
     @Override
     protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapperInternal(PrismContainerValueWrapper<?> parent,
             PrismContainer<ClassLoggerConfigurationType> childContainer, ItemStatus status, WrapperContext ctx) {
@@ -66,6 +53,20 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     public void registerWrapperPanel(PrismContainerWrapper<ClassLoggerConfigurationType> wrapper) {
         getRegistry().registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
 
+    }
+
+    @Override
+    protected List<PrismContainerValue<ClassLoggerConfigurationType>> getValues(PrismContainer<ClassLoggerConfigurationType> item) {
+        return item.getValues().stream().filter(value -> {
+            if(value == null || value.getRealValue() == null) {
+                return false;
+            }
+            String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
+            if(loggerPackage == null) {
+                return false;
+            }
+            return loggerPackage.equals(LOGGER_PROFILING);
+        }).collect(Collectors.toList());
     }
 
     @Override

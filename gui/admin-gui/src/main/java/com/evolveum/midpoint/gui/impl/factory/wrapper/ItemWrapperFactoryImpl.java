@@ -168,9 +168,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     protected List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
         List<VW> pvWrappers = new ArrayList<>();
 
-        List<PV> values = item.getValues();
-        //TODO : prismContainer.isEmpty() interates and check is all prismcontainervalues are empty.. isn't it confusing?
-        if (item.isEmpty() && values.isEmpty()) {
+        List<PV> values = getValues(item);
+        if (values.isEmpty()) {
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
                 VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
@@ -188,6 +187,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
         return pvWrappers;
 
+    }
+
+    protected List<PV> getValues(I item) {
+        return item.getValues();
     }
 
     private boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
