@@ -1,0 +1,157 @@
+model axiom-lang {
+
+    root model {
+        documentation """
+            Axiom Model
+            """;
+        type AxiomModel;
+    }
+
+    type AxiomModel {
+        extends AxiomBaseDefinition;
+
+        item root {
+            type AxiomItemDefinition;
+        }
+
+        item type {
+            documentation """
+                Type Declaration
+            """;
+            type AxiomTypeDefinition;
+        }
+
+        item namespace {
+            type string;
+        }
+
+        item version {
+            type string;
+        }
+
+        // TODO move to prism schema; consider renaming to objectType?
+        item object {
+            type PrismObjectDefinition;
+        }
+
+        // TODO move to prism schema; consider renaming to containerType?
+        item container {
+            type PrismContainerDefinition;
+        }
+
+        // TODO move to prism schema; consider renaming to referenceType?
+        item reference {
+            type PrismReferenceDefinition;
+        }
+
+        // TODO move to prism schema
+        item item {
+            type PrismItemDefinition;
+        }
+    }
+
+    type AxiomBaseDefinition {
+        argument name;
+
+        item name {
+            type AxiomIdentifier;
+        }
+
+        item identifier {
+            type AxiomIdentifier;
+        }
+
+        item documentation {
+            type string;
+        }
+    }
+
+    type AxiomTypeDefinition {
+        extends AxiomBaseDefinition;
+
+        item argument {
+            type AxiomIdentifier;
+        }
+
+        item extends {  // Should be reference
+            type AxiomIdentifier; // Should be AxiomTypeIdentifier in future
+        }
+
+        item identifier {
+            type AxiomIdentifier;
+        }
+
+        // TODO move to prism schema
+        item object {
+            type boolean;
+        }
+
+        // TODO move to prism schema
+        item container {
+            type boolean;
+        }
+
+        // TODO move to prism schema
+        item objectReference {
+            type boolean;
+        }
+
+        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
+        item itemName {
+            type AxiomIdentifier;
+        }
+
+        item item {
+            type AxiomItemDefinition;
+        }
+    }
+
+    // TODO move to prism schema; probably should be prism:ObjectDefinition
+    type PrismObjectDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ContainerDefinition
+    type PrismContainerDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ReferenceDefinition
+    type PrismReferenceDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ItemDefinition
+    type PrismItemDefinition {
+        extends AxiomItemDefinition;
+    }
+
+    type AxiomIdentifier {
+    }
+
+    type AxiomItemDefinition {
+        extends AxiomBaseDefinition;
+        item type {
+            type AxiomTypeReference;
+        }
+        item minOccurs {
+            type string;
+        }
+        item maxOccurs {
+            type string;
+        }
+    }
+
+    type AxiomReference {
+        item targetType {
+            type AxiomTypeReference;
+        }
+    }
+
+    type AxiomTypeReference;
+
+    // "Type library" (temporary)
+
+    type string;
+    type boolean;
+}

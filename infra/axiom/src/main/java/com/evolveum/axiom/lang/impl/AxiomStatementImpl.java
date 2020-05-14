@@ -1,16 +1,26 @@
+/*
+ * Copyright (c) 2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.axiom.lang.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomStatement;
+import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.ImmutableMap.Builder;
 
 public class AxiomStatementImpl<V> implements AxiomStatement<V> {
 
@@ -48,38 +58,27 @@ public class AxiomStatementImpl<V> implements AxiomStatement<V> {
         return value;
     }
 
-    public static class Builder<V> {
+    @Override
+    public String toString() {
+        return keyword + "{value=" + value + "}";
+    }
 
-        private final AxiomIdentifier keyword;
-        private V value;
-        private List<AxiomStatement<?>> children = new ArrayList<>();
-        private Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap = ArrayListMultimap.create();
+    interface Factory<V, I extends AxiomStatement<V>> {
 
-        public Builder(AxiomIdentifier keyword) {
-            this.keyword = keyword;
-        }
+        I create(AxiomIdentifier type, V value, List<AxiomStatement<?>> children,
+            Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap);
 
-        public Builder<V> setValue(V value) {
-            this.value = value;
-            return this;
-        }
+    }
 
-        Builder<V> add(AxiomStatement<?> statement) {
-            children.add(statement);
-            keywordMap.put(statement.keyword(), statement);
-            return this;
-        }
-
-        AxiomStatement<V> build() {
-            return new AxiomStatementImpl<>(keyword, value, children, keywordMap);
-        }
-
-        @Override
-        public String toString() {
-            return "Builder(" + keyword + ")";
+    protected void putAll(Builder<AxiomIdentifier, AxiomItemDefinition> builder,
+            Collection<AxiomItemDefinition> children) {
+        for (AxiomItemDefinition definition : children) {
+            builder.put(definition.name(), definition);
         }
     }
 
-
+    public static <V, T extends AxiomStatement<V>> Factory<V, T> factory() {
+        return (Factory) AxiomStatementImpl::new;
+    }
 
 }

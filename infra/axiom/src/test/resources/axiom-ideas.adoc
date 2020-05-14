@@ -1,0 +1,33 @@
+    
+    type ObjectReference {
+        extends AxiomReference;
+        item targetType;
+        item filter
+    }
+
+    type ObjectFoo {
+        item link {
+            type ObjectReference {
+               targetType ShadowType;
+            }
+        }
+        
+        item language {
+            type string {
+                midpoint:valueEnumeration "015-105-04560";
+            }
+        }
+    }
+    
+    type LanguageCode {
+        extends string;
+    }
+
+    extension midpoint:EnumerationValidation {
+        target string;
+        item valueEnumeration {
+            type ObjectReference {
+                targetType LookupTable;
+            }
+        }
+    }

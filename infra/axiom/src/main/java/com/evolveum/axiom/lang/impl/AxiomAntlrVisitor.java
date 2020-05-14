@@ -1,9 +1,16 @@
+/*
+ * Copyright (c) 2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.axiom.lang.impl;
 
 import java.util.Optional;
 import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 
@@ -14,7 +21,8 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
-import com.evolveum.axiom.lang.api.AxiomStatementStreamListener;
+import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
+import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
@@ -22,9 +30,11 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private final AxiomIdentifierResolver statements;
     private final AxiomStatementStreamListener delegate;
     private final Optional<Set<AxiomIdentifier>> limit;
+    private final String sourceName;
 
-    public AxiomAntlrVisitor(AxiomIdentifierResolver statements, AxiomStatementStreamListener delegate,
+    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomStatementStreamListener delegate,
             Set<AxiomIdentifier> limit) {
+        this.sourceName = name;
         this.statements = statements;
         this.delegate = delegate;
         this.limit = Optional.ofNullable(limit);
@@ -33,7 +43,7 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private AxiomIdentifier statementIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
-        return statements.resolveStatementIdentifier(prefix,localName);
+        return statements.resolveStatementIdentifier(prefix, localName);
     }
 
     private String nullableText(ParserRuleContext prefix) {
@@ -44,9 +54,9 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     public T visitStatement(StatementContext ctx) {
         AxiomIdentifier identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
-            delegate.startStatement(identifier);
+            delegate.startStatement(identifier, sourceLocation(ctx.identifier().start));
             T ret = super.visitStatement(ctx);
-            delegate.endStatement();
+            delegate.endStatement(sourceLocation(ctx.stop));
             return ret;
         }
         return defaultResult();
@@ -62,9 +72,9 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     @Override
     public T visitArgument(ArgumentContext ctx) {
         if (ctx.identifier() != null) {
-            delegate.argument(convert(ctx.identifier()));
+            delegate.argument(convert(ctx.identifier()), sourceLocation(ctx.start));
         } else {
-            delegate.argument(convert(ctx.string()));
+            delegate.argument(convert(ctx.string()), sourceLocation(ctx.start));
         }
         return defaultResult();
     }
@@ -83,6 +93,13 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return convertMultiline(string.multilineString().getText());
     }
 
+    private int sourceLine(ParserRuleContext node) {
+        return node.start.getLine();
+    }
+
+    private SourceLocation sourceLocation(Token start) {
+        return SourceLocation.from(sourceName, start.getLine(), start.getCharPositionInLine());
+    }
 
     private String convertSingleQuote(String text) {
         int stop = text.length();
