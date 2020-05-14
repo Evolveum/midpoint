@@ -23329,13 +23329,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectCollectionRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Referrence to object collection definition that should be used as a basis for the report.
+                        Specification of an explicit or implicit object collection that will be used to select objects in report.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ObjectCollectionType</a:objectReferenceTargetType>
+                        <a:since>4.2</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -24286,13 +24286,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="value">
+            <xsd:enumeration value="string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Value will be displayed as string.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="VALUE"/>
+                        <jaxb:typesafeEnumMember name="STRING"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
