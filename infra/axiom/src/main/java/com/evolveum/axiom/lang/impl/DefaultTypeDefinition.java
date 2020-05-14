@@ -6,10 +6,12 @@
  */
 package com.evolveum.axiom.lang.impl;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
@@ -51,5 +53,10 @@ class DefaultTypeDefinition implements AxiomTypeDefinition {
     }
 
 
+    @Override
+    public Collection<AxiomIdentifierDefinition> identifiers() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }

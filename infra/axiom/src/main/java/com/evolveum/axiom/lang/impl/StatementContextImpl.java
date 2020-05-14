@@ -10,8 +10,10 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.concepts.Optionals;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
+import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
+import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
@@ -54,7 +56,7 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
         if(result instanceof StatementContextResult) {
             return (StatementContextResult) result;
         }
-        throw new IllegalStateException("Result is not mutable");
+        return null;
     }
 
     boolean isChildAllowed(AxiomIdentifier child) {
@@ -122,11 +124,11 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
         return reactor;
     }
 
-    public <V> Optional<StatementContext<V>> firstChild(AxiomItemDefinition child) {
+    public <V> Optional<StatementContextImpl<V>> firstChild(AxiomItemDefinition child) {
         return Optionals.first(children(child.name()));
     }
 
-    private <V> Collection<StatementContext<V>> children(AxiomIdentifier identifier) {
+    private <V> Collection<StatementContextImpl<V>> children(AxiomIdentifier identifier) {
         return (Collection) mutableResult().get(identifier);
     }
 
@@ -171,5 +173,46 @@ public class StatementContextImpl<V> implements StatementContext<V>, StatementTr
     }
 
 
+    @Override
+    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key) {
+        switch (scope) {
+        case GLOBAL:
+            registerGlobal(space, key);
+            break;
+        case LOCAL:
+            registerLocalParent(space, key);
+            break;
+        default:
+            throw new IllegalStateException("Unsupporrted scope");
+        }
+    }
+
+    private void registerLocalParent(AxiomIdentifier space, IdentifierSpaceKey key) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void registerGlobal(AxiomIdentifier space, IdentifierSpaceKey key) {
+        reactor.registerGlobal(space, key, this);
+    }
+
+    @Override
+    public V requireValue(Class<V> type) {
+        if(result instanceof StatementContextResult) {
+            return type.cast(((StatementContextResult) result).value());
+        }
+        return null;
+    }
+
+    public Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+        return Requirement.retriableDelegate(() -> {
+            if(mutableResult() != null) {
+                return (Requirement) firstChild(required).map(StatementContextImpl::asRequirement).orElse(null);
+            }
+            Optional<AxiomStatement<?>> maybe = result.get().first(required);
+
+            return Requirement.from(maybe);
+        });
+    }
 
 }

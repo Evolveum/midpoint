@@ -178,7 +178,5 @@ model scripting {
 
     // basic
     type QName;
-    type boolean;
-    type string;
 }
 

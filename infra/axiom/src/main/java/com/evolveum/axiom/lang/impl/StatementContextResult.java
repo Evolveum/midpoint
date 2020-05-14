@@ -66,4 +66,10 @@ class StatementContextResult<V> implements Requirement<AxiomStatement<V>> {
     public void addRule(StatementRuleContextImpl<V> rule) {
         this.rules.add(rule);
     }
+
+    @Override
+    public RuleErrorMessage errorMessage() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

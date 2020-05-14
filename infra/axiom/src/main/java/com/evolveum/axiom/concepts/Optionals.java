@@ -6,7 +6,6 @@ import java.util.Optional;
 
 public class Optionals {
 
-
     public static <V> Optional<V>first(Collection<V> collection) {
         if(collection.isEmpty()) {
             return Optional.empty();

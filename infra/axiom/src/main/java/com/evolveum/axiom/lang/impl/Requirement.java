@@ -1,5 +1,6 @@
 package com.evolveum.axiom.lang.impl;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,13 +11,13 @@ import com.google.common.base.Preconditions;
 
 public interface Requirement<T> {
 
-    static final Requirement UNSATISFIED = new Unsatified<>();
-
     boolean isSatisfied();
     public T get();
 
+    public RuleErrorMessage errorMessage();
+
     public static <T> Requirement<T> unsatisfied() {
-        return UNSATISFIED;
+        return new Unsatified<>();
     }
 
     public static <T> Requirement<T> immediate(T value) {
@@ -27,7 +28,29 @@ public interface Requirement<T> {
         return new Suppliable<>(supplier);
     }
 
-    public static final class Immediate<V> implements Requirement<V> {
+    public static abstract class Abstract<V> implements Requirement<V> {
+
+
+        private Supplier<RuleErrorMessage> errorMessage;
+
+        @Override
+        public Requirement<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+            errorMessage = unsatisfiedMessage;
+            return this;
+        }
+
+
+        @Override
+        public RuleErrorMessage errorMessage() {
+            if(errorMessage != null) {
+                return errorMessage.get();
+            }
+            return null;
+        }
+    }
+
+
+    public static final class Immediate<V> extends Abstract<V> {
 
         private final V value;
 
@@ -48,7 +71,7 @@ public interface Requirement<T> {
 
     }
 
-    public static final class Suppliable<V> implements Requirement<V> {
+    public static final class Suppliable<V> extends Abstract<V> {
 
         private final Supplier<V> value;
 
@@ -69,7 +92,7 @@ public interface Requirement<T> {
 
     }
 
-    public static final class Unsatified<V> implements Requirement<V> {
+    public static final class Unsatified<V>  extends Abstract<V> {
 
         @Override
         public boolean isSatisfied() {
@@ -82,7 +105,7 @@ public interface Requirement<T> {
         }
     }
 
-    public abstract class Delegated<T> implements Requirement<T> {
+    public abstract class Delegated<T>  extends Abstract<T>  {
 
         abstract Requirement<T> delegate();
 
@@ -128,5 +151,13 @@ public interface Requirement<T> {
         return new RetriableDelegate(lookup);
     }
 
-
+    default Requirement<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        return this;
+    }
+    static <T> Requirement<T> from(Optional<T> maybe) {
+        if(maybe.isPresent()) {
+            return immediate(maybe.get());
+        }
+        return unsatisfied();
+    }
 }

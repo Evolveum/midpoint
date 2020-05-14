@@ -18,7 +18,7 @@ model model-header {
     namespace "https://ns.evolveum.com/example/axiom/model-header";
     version "0.0.1";
 
-    type string;
+
     type Address;
     type Link;
     type PolyString;
@@ -38,7 +38,7 @@ model model-header {
         itemName user;
         item address { // shorthand syntax 'container address type Address';
           type Address;
-          identifier type; // All values should have unique value.
+          //identifier type; // All values should have unique value.
           maxOccurs unbounded;
         }
         item name {

@@ -1196,7 +1196,6 @@ model common-core {
 
     // common-3
     type OperationResult;
-    type ObjectReference;
     type OperationExecution;
     type LensContext;
     type PolicyException;
@@ -1209,6 +1208,4 @@ model common-core {
     type Trigger;
     type Assignment;
 
-    // why these are not found?
-    type string;
 }
