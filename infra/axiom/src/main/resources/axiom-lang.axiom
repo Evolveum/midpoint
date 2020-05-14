@@ -27,7 +27,7 @@ model axiom-lang {
         }
 
         item root {
-            type AxiomItemDefinition;
+            type AxiomRootDefinition;
         }
 
         item type {
@@ -65,15 +65,19 @@ model axiom-lang {
             type PrismItemDefinition;
         }
     }
+    
+    type AxiomRootDefinition {
+        extends AxiomItemDefinition;
+        identifier name {
+            scope global;
+            space AxiomRootDefinition;
+        }
+    }
 
     type AxiomBaseDefinition {
         argument name;
 
         item name {
-            type AxiomIdentifier;
-        }
-
-        item identifier {
             type AxiomIdentifier;
         }
 
@@ -90,12 +94,15 @@ model axiom-lang {
          argument key;
          item key {
             type AxiomIdentifier;
+            minOccurs "1";
          }
          item scope {
             type string;
+            minOccurs "1";
          }
          item space {
             type AxiomIdentifier;
+            minOccurs "1";
          }
     }
 
@@ -111,8 +118,8 @@ model axiom-lang {
             type AxiomIdentifier;
         }
 
-        item extends {  // Should be reference
-            type AxiomIdentifier; // Should be AxiomTypeIdentifier in future
+        item extends {
+            type AxiomTypeReference; 
         }
 
         item identifier {
@@ -149,6 +156,12 @@ model axiom-lang {
 
     type AxiomItemDefinition {
         extends AxiomBaseDefinition;
+
+        identifier name {
+            space AxiomItemDefinition;
+            scope local;
+        }
+
         item type {
             type AxiomTypeReference;
         }

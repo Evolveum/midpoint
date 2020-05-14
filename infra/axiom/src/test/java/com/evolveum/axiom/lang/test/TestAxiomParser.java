@@ -37,8 +37,6 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 public class TestAxiomParser extends AbstractUnitTest {
 
     private static final String COMMON_DIR_PATH = "src/test/resources/";
-    private static final String AXIOM_LANG = "/axiom-lang.axiom";
-
     private static final String BASE_EXAMPLE = "base-example.axiom";
     private static final String COMMON_CORE = "common-core.axiom";
     private static final String SCRIPTING = "scripting.axiom";
@@ -55,19 +53,18 @@ public class TestAxiomParser extends AbstractUnitTest {
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
         ModelReactorContext bootstrapContext = ModelReactorContext.boostrapReactor();
-        InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG);
-        AxiomStatementSource statementSource = AxiomStatementSource.from(AXIOM_LANG, stream);
-        bootstrapContext.loadModelFromSource(statementSource);
         AxiomSchemaContext modelContext = bootstrapContext.computeSchemaContext();
         assertTypedefBasetype(modelContext.getType(Type.TYPE_DEFINITION.name()));
 
         AxiomItemDefinition modelDef = modelContext.getRoot(Item.MODEL_DEFINITION.name()).get();
         assertEquals(modelDef.name(), Item.MODEL_DEFINITION.name());
 
+        // Default reactor has Axiom model already loaded
         ModelReactorContext folowupContext = ModelReactorContext.reactor(modelContext);
-        folowupContext.loadModelFromSource(statementSource);
+        //folowupContext.loadModelFromSource(statementSource);
         AxiomSchemaContext selfparsedContext = bootstrapContext.computeSchemaContext();
         assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
+        assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().item(Item.ID_MEMBER.name()).get().required());
     }
 
 

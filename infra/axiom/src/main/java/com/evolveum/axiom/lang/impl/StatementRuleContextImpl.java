@@ -8,7 +8,9 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
+import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.sun.net.httpserver.Authenticator.Result;
 public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
 
     private final StatementContextImpl<V> context;
@@ -33,9 +35,9 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     @Override
-    public Requirement<AxiomStatement<?>> requireGlobalItem(AxiomItemDefinition typeDefinition,
-            AxiomIdentifier axiomIdentifier) {
-        return requirement(context.reactor().requireGlobalItem(axiomIdentifier));
+    public Requirement<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
+            IdentifierSpaceKey key) {
+        return requirement(context.reactor().requireGlobalItem(space, key));
     }
 
     private <V> Requirement<V> requirement(Requirement<V> req) {
@@ -67,7 +69,8 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     @Override
     public <V> V requiredChildValue(AxiomItemDefinition supertypeReference, Class<V> type)
             throws AxiomSemanticException {
-        return null;
+        StatementContext ctx = context.firstChild(supertypeReference).get();
+        return (V) ctx.requireValue(type);
     }
 
     @Override
@@ -107,6 +110,11 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     @Override
     public RuleErrorMessage error(String format, Object... arguments) {
         return RuleErrorMessage.from(context.startLocation(), format, arguments);
+    }
+
+    @Override
+    public Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+        return context.requireChild(required);
     }
 
 }
