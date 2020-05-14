@@ -1,4 +1,11 @@
-package com.evolveum.midpoint.prism.impl;
+/*
+ * Copyright (c) 2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+package com.evolveum.midpoint.prism.impl.metadata;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +33,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -40,13 +46,10 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.google.common.base.Preconditions;
 
 @Experimental
 public class ValueMetadataAdapter implements ValueMetadata {
 
-    private static final String METADATA_STRING = "metadata";
-    private static final ItemPath METADATA = ItemPath.create(new ItemName(METADATA_STRING));
     private final PrismContainerValue<Containerable> delegate;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -54,14 +57,8 @@ public class ValueMetadataAdapter implements ValueMetadata {
         this.delegate = delegate;
     }
 
-    public static Optional<ValueMetadata> from(PrismObjectValue<?> object) {
-        Item<?, ?> metadata = Preconditions.checkNotNull(object, "object").findItem(METADATA);
-        if(metadata instanceof PrismContainer<?>) {
-            PrismContainer<?> asContainer = (PrismContainer<?>) metadata;
-            PrismContainerValue<?> value = asContainer.getAnyValue();
-            return value != null ? Optional.of(new ValueMetadataAdapter(value)) : Optional.empty();
-        }
-        return Optional.empty();
+    public static ValueMetadata holding(PrismContainerValue<?> value) {
+        return new ValueMetadataAdapter(value);
     }
 
     public PrismContext getPrismContext() {

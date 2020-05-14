@@ -72,11 +72,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         this.oid = oid;
     }
 
-    @Override
-    public Optional<ValueMetadata> valueMetadata() {
-        return Optional.empty();
-    }
-    
     /**
      * OID of the object that this reference refers to (reference target).
      *
