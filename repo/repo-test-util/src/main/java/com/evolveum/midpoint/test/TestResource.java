@@ -35,4 +35,8 @@ public class TestResource<T extends ObjectType> {
     public T getObjectable() {
         return object.asObjectable();
     }
+
+    public Class<T> getObjectClass() {
+        return object.getCompileTimeClass();
+    }
 }

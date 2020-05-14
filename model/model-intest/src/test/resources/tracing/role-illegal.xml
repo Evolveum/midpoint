@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="13ca97ae-5919-42fb-91fb-cbc88704fd91">
+    <name>illegal</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            'A\u0006B'
+                        </code>
+                    </script>
+                </expression>
+                <!-- no target (the value is illegal to be stored into XML) -->
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

@@ -16,7 +16,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import static java.util.Collections.singleton;
 
@@ -27,17 +26,13 @@ import static java.util.Collections.singleton;
  */
 public class ResourceUtils {
 
-    private static final ItemPath SCHEMA_PATH = ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION);
-
-    public static void deleteSchema(PrismObject<ResourceType> resource, ModelService modelService, PrismContext prismContext, Task task, OperationResult parentResult)
+    public static void deleteSchema(PrismObject<? extends ResourceType> resource, ModelService modelService, PrismContext prismContext, Task task, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, PolicyViolationException, SecurityViolationException {
-        PrismProperty<SchemaDefinitionType> definition = resource.findProperty(SCHEMA_PATH);
-        if (definition != null && !definition.isEmpty()) {
-            ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
-                    .item(SCHEMA_PATH).replace()
-                    .asObjectDelta(resource.getOid());
-            modelService.executeChanges(singleton(delta), null, task, parentResult);
-        }
+        ObjectDelta<ResourceType> delta = prismContext.deltaFor(ResourceType.class)
+                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION)).replace()
+                .item(ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_CACHING_METADATA)).replace()
+                .asObjectDelta(resource.getOid());
+        modelService.executeChanges(singleton(delta), null, task, parentResult);
     }
 }

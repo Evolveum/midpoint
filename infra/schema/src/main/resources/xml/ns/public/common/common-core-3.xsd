@@ -16378,6 +16378,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="escapeIllegalCharacters" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should illegal characters (like majority of 0x00-0x1F in XML 1.0) be escaped?
+                        If they occur and are not escaped, audit operation will fail. If they are stored
+                        in escaped form, audit operation will succeed but some parts of the audit records
+                        will not be correctly machine processable in the future. So the default value is "false".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.escapeIllegalCharacters</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -20007,7 +20021,6 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-
     <xsd:simpleType name="LoggingLevelType">
         <xsd:annotation>
             <xsd:documentation>
@@ -20064,13 +20077,6 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TRACE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="ALL">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ALL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -26558,5 +26564,49 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="componentSizeInformation" type="tns:ComponentSizeInformationType" />
+
+    <xsd:complexType name="TriggerCreationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Deals with creation of recompute triggers for selected objects.
+                These triggers can be created in "raw" way, simply by adding respective
+                TriggerType objects. Or, they can be created in so called optimized way, where
+                we look if a compatible trigger already exists and skip trigger creation in such
+                case.
+
+                This structure deals with recompute triggers for now. In might be generalized
+                in the future.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+                <a:container>true</a:container>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="fireAfter" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long after current time the trigger should be fired. When not specified,
+                        trigger is created unconditionally ("raw" way), with the fire time being
+                        equal to the current time. If specified, the trigger is created with the
+                        fire time in the future; skipping the creation if compatible trigger was
+                        created and still has not been fired.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="safetyMargin" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What is the safety margin, i.e. how many long before the trigger fire time
+                        we need to create a new trigger. This is to avoid (rare but in theory possible)
+                        race conditions where we skip creation of a trigger but it fires in the meanwhile.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
+
 </xsd:schema>
 

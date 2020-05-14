@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,10 @@ import javax.annotation.PostConstruct;
 import java.util.Collection;
 
 /**
- * @author mederly
+ * Executes "reencrypt" action.
+ *
+ * There is no static (typed) definition of this action yet.
+ * Also, this code is not refactored yet.
  */
 @Component
 public class ReencryptExecutor extends BaseActionExecutor {
@@ -35,21 +39,21 @@ public class ReencryptExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
         Protector protector = prismContext.getDefaultProtector();
 
-        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
+        boolean dryRun = operationsHelper.getDryRun(expression, input, context, globalResult);
 
         PipelineData output = PipelineData.createEmpty();
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+            OperationResult result = operationsHelper.createActionResult(item, this);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue) {
                 @SuppressWarnings({"unchecked", "raw"})
@@ -81,8 +85,13 @@ public class ReencryptExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
+            operationsHelper.trimAndCloneResult(result, globalResult);
         }
         return output;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

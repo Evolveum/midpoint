@@ -7,31 +7,17 @@
   -->
 <s:executeScript
         xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <s:search>
         <s:type>TaskType</s:type>
         <s:query>
             <q:filter>
-                <q:and>
-                    <q:equal>
-                        <q:path>category</q:path>
-                        <q:value>Workflow</q:value>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>handlerUri</q:path>
-                        <!-- use http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3 for real wf tasks -->
-                        <q:value>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</q:value>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>executionStatus</q:path>
-                        <q:value>suspended</q:value>
-                    </q:equal>
-                </q:and>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>Task to resume</q:value>
+                </q:equal>
             </q:filter>
         </s:query>
-        <s:action>
-            <s:type>resume</s:type>
-        </s:action>
+        <s:resumeTask/>
     </s:search>
 </s:executeScript>

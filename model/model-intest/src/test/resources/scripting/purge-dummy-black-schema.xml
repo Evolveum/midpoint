@@ -6,16 +6,13 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <s:type>c:ResourceType</s:type>
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <s:type>ResourceType</s:type>
     <s:searchFilter>
         <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-            <path>c:name</path>
+            <path>name</path>
             <value>Dummy Resource Black</value>
         </equal>
     </s:searchFilter>
-    <s:action>
-        <s:type>purge-schema</s:type>
-    </s:action>
+    <s:purgeSchema/>
 </s:search>

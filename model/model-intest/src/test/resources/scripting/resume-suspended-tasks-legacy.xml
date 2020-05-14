@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:search>
+        <s:type>TaskType</s:type>
+        <s:query>
+            <q:filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>Task to resume</q:value>
+                </q:equal>
+            </q:filter>
+        </s:query>
+        <s:action>
+            <s:type>resume</s:type>
+        </s:action>
+    </s:search>
+</s:executeScript>

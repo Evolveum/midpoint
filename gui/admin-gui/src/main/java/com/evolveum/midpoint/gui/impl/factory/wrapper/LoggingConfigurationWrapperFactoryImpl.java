@@ -6,21 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -60,31 +56,20 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 
 
     @Override
-    public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
-            throws SchemaException {
-        PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
-        containerValueWrapper.setExpanded(!value.isEmpty());
-
-
-        List<ItemWrapper<?,?>> wrappers = new ArrayList<>();
-        for (ItemDefinition<?> def : parent.getDefinitions()) {
-            if (QNameUtil.match(def.getTypeName(), ClassLoggerConfigurationType.COMPLEX_TYPE)) {
-                wrappers.add(createClassLoggingWrapper(containerValueWrapper, def, context));
-                wrappers.add(createProfilingWrapper(containerValueWrapper, def, context));
+    public void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context, List<ItemWrapper<?, ?>> wrappers) throws SchemaException {
+        if (QNameUtil.match(def.getTypeName(), ClassLoggerConfigurationType.COMPLEX_TYPE)) {
+                wrappers.add(createClassLoggingWrapper(def, containerValueWrapper, context));
+                wrappers.add(createProfilingWrapper(def, containerValueWrapper, context));
             } else {
                 super.addItemWrapper(def, containerValueWrapper, context, wrappers);
             }
-        }
-
-        containerValueWrapper.getItems().addAll((Collection) wrappers);
-        return containerValueWrapper;
     }
 
-    private ItemWrapper<?, ?> createProfilingWrapper(PrismContainerValueWrapper parent, ItemDefinition def, WrapperContext context) throws SchemaException {
+    private ItemWrapper<?, ?> createProfilingWrapper(ItemDefinition def, PrismContainerValueWrapper<?> parent, WrapperContext context) throws SchemaException {
         return profilingClassLoggerFactory.createWrapper(parent, def, context);
     }
 
-    private ItemWrapper<?, ?> createClassLoggingWrapper(PrismContainerValueWrapper parent, ItemDefinition def, WrapperContext context) throws SchemaException {
+    private ItemWrapper<?, ?> createClassLoggingWrapper(ItemDefinition def, PrismContainerValueWrapper parent, WrapperContext context) throws SchemaException {
         return classLoggerFactory.createWrapper(parent, def, context);
     }
 
@@ -94,15 +79,14 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
     }
 
     @Override
-    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
+    protected PrismContainerWrapper<C> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
-        getRegistry().registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
     @Override
     public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
-        return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
+        return new PrismContainerValueWrapperImpl<>(objectWrapper, objectValue, status);
     }
 
 

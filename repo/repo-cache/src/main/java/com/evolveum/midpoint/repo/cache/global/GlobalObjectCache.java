@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.cache.global;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -104,7 +105,9 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 
     public <T extends ObjectType> void put(GlobalCacheObjectValue<T> cacheObject) {
         if (cache != null) {
-            cacheObject.getObject().checkImmutable();
+            PrismObject<T> prismObject = cacheObject.getObject();
+            prismObject.checkImmutable();
+            LOGGER.trace("Putting {} into cache (v{})", prismObject, prismObject.getVersion());
             cache.put(cacheObject.getObjectOid(), cacheObject);
         }
     }

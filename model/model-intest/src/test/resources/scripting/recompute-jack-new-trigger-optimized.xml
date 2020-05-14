@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <s:type>UserType</s:type>
+    <s:query>
+        <filter xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <equal>
+                <path>name</path>
+                <value>jack</value>
+            </equal>
+        </filter>
+    </s:query>
+    <s:recompute>
+        <s:triggered>
+            <fireAfter>PT5M</fireAfter>
+        </s:triggered>
+    </s:recompute>
+</s:search>

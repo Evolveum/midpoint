@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingDataUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -20,6 +21,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -32,51 +36,45 @@ import java.util.stream.Collectors;
 
 /**
  * Data that are passed between individual scripting actions.
- *
+ * <p/>
  * The content passed between actions (expressions) is a list of prism values
- * (object, container, reference, property).
- *
- * @author mederly
+ * (object, container, reference, property) enriched with some additional information,
+ * see {@link PipelineItem}.
  */
 public class PipelineData implements DebugDumpable {
 
     private static final String ITEM_OPERATION_NAME = ScriptingExpressionEvaluator.class.getName() + ".process";
 
-    private final List<PipelineItem> data = new ArrayList<>();            // all items are not null
+    /**
+     * The data in the pipeline. All items are not null.
+     */
+    @NotNull private final List<PipelineItem> data = new ArrayList<>();
 
     // we want clients to use explicit constructors
     private PipelineData() {
     }
 
-    public List<PipelineItem> getData() {
+    public @NotNull List<PipelineItem> getData() {
         return data;
     }
 
-    @Override
-    public String debugDump(int indent) {
-        return DebugUtil.debugDump(data, indent);
-    }
 
-    public static PipelineData create(PrismValue value) {
-        return create(value, VariablesMap.emptyMap());
-    }
-
-    public static PipelineData create(PrismValue value, VariablesMap variables) {
+    public @NotNull static PipelineData create(@NotNull PrismValue value, @NotNull VariablesMap variables) {
         PipelineData d = createEmpty();
         d.add(new PipelineItem(value, newOperationResult(), variables));
         return d;
     }
 
-    public static OperationResult newOperationResult() {
+    public @NotNull static PipelineData createEmpty() {
+        return new PipelineData();
+    }
+
+    public @NotNull static OperationResult newOperationResult() {
         return new OperationResult(ITEM_OPERATION_NAME);
     }
 
     public void add(@NotNull PipelineItem pipelineItem) {
         data.add(pipelineItem);
-    }
-
-    public static PipelineData createEmpty() {
-        return new PipelineData();
     }
 
     public void addAllFrom(PipelineData otherData) {
@@ -95,39 +93,38 @@ public class PipelineData implements DebugDumpable {
                 variables != null ? variables : VariablesMap.emptyMap()));
     }
 
-    public String getDataAsSingleString() throws ScriptExecutionException {
-        if (!data.isEmpty()) {
-            if (data.size() == 1) {
-                return (String) ((PrismPropertyValue) data.get(0).getValue()).getRealValue();       // todo implement some diagnostics when this would fail
-            } else {
-                throw new ScriptExecutionException("Multiple values where just one is expected");
-            }
-        } else {
+    public <T> T getSingleValue(Class<T> clazz) throws SchemaException {
+        if (data.isEmpty()) {
             return null;
+        } else if (data.size() == 1) {
+            return ScriptingDataUtil.getRealValue(data.get(0).getValue(), clazz);
+        } else {
+            throw new SchemaException("Multiple values where just one is expected");
         }
     }
 
-    static PipelineData createItem(@NotNull PrismValue value, VariablesMap variables) throws SchemaException {
-        PipelineData data = createEmpty();
-        data.addValue(value, variables);
-        return data;
-    }
-
-    public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
+    /**
+     * Returns the pipeline content as a list of references. Objects, PRVs, OIDs are converted directly
+     * to references. Search filters and queries are evaluated first.
+     *
+     * This is a legacy method and its use should be avoided.
+     */
+    @NotNull
+    public List<ObjectReferenceType> getDataAsReferences(QName defaultTargetType, Class<? extends ObjectType> typeForQuery,
             ExecutionContext context, OperationResult result)
             throws ScriptExecutionException, CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        Collection<ObjectReferenceType> retval = new ArrayList<>(data.size());
+        List<ObjectReferenceType> retval = new ArrayList<>(data.size());
         for (PipelineItem item : data) {
             PrismValue value = item.getValue();
             if (value instanceof PrismObjectValue) {
-                PrismObjectValue objectValue = (PrismObjectValue) value;
+                PrismObjectValue<?> objectValue = (PrismObjectValue<?>) value;
                 ObjectReferenceType ref = new ObjectReferenceType();
-                ref.setType(objectValue.asPrismObject().getDefinition().getTypeName()); // todo check the definition is present
-                ref.setOid(objectValue.getOid());                  // todo check if oid is present
+                ref.setType(objectValue.asPrismObject().getDefinition().getTypeName());
+                ref.setOid(objectValue.getOid());
                 retval.add(ref);
             } else if (value instanceof PrismPropertyValue) {
-                Object realValue = ((PrismPropertyValue) value).getRealValue();
+                Object realValue = value.getRealValue();
                 if (realValue instanceof SearchFilterType) {
                     retval.addAll(
                             resolveQuery(
@@ -138,7 +135,7 @@ public class PipelineData implements DebugDumpable {
                 } else if (realValue instanceof String) {
                     ObjectReferenceType ref = new ObjectReferenceType();
                     ref.setType(defaultTargetType);
-                    ref.setOid((String) realValue);                         // todo implement search by name
+                    ref.setOid((String) realValue);
                     retval.add(ref);
                 } else if (realValue instanceof ObjectReferenceType) {
                     retval.add((ObjectReferenceType) realValue);
@@ -165,7 +162,7 @@ public class PipelineData implements DebugDumpable {
         return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o, context.getPrismContext())).collect(Collectors.toList());
     }
 
-    static PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
+    static @NotNull PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
         PipelineData rv = new PipelineData();
         if (input != null) {
             for (Object o : input.getValue()) {
@@ -193,9 +190,39 @@ public class PipelineData implements DebugDumpable {
         return rv;
     }
 
-    public PipelineData cloneMutableState() {
+    PipelineData cloneMutableState() {
         PipelineData rv = new PipelineData();
         data.forEach(d -> rv.add(d.cloneMutableState()));
+        return rv;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        return DebugUtil.debugDump(data, indent);
+    }
+
+    public static PipelineDataType prepareXmlData(
+            List<PipelineItem> output, ScriptingExpressionEvaluationOptionsType options) {
+        boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
+        PipelineDataType rv = new PipelineDataType();
+        if (output != null) {
+            for (PipelineItem item : output) {
+                PipelineItemType itemType = new PipelineItemType();
+                PrismValue value = item.getValue();
+                if (value instanceof PrismReferenceValue) {
+                    // This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
+                    ObjectReferenceType ort = new ObjectReferenceType();
+                    ort.setupReferenceValue((PrismReferenceValue) value);
+                    itemType.setValue(ort);
+                } else {
+                    itemType.setValue(value.getRealValue());
+                }
+                if (!hideResults) {
+                    itemType.setResult(item.getResult().createOperationResultType());
+                }
+                rv.getItem().add(itemType);
+            }
+        }
         return rv;
     }
 }

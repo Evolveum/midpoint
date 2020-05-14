@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 /**
- * @author Pavol Mederly
+ *
  */
 public class SerializationOptions implements Cloneable {
 
@@ -28,6 +30,14 @@ public class SerializationOptions implements Cloneable {
      * schema registry (like attributes or connector configuration properties) will get xsi:type information.
      */
     private boolean serializeForExport;
+
+    /**
+     * Works around characters that cannot be serialized in XML by replacing them with acceptable form.
+     * Because the result is not machine processable it should be used with caution; for example only
+     * for logging, tracing, or maybe auditing purposes.
+     */
+    @Experimental
+    private boolean escapeInvalidCharacters;
 
 //    private NameQualificationStrategy itemTypeQualificationStrategy;
 //    private NameQualificationStrategy itemPathQualificationStrategy;
@@ -117,6 +127,27 @@ public class SerializationOptions implements Cloneable {
         return options != null && options.isSerializeForExport();
     }
 
+    public boolean isEscapeInvalidCharacters() {
+        return escapeInvalidCharacters;
+    }
+
+    public void setEscapeInvalidCharacters(boolean escapeInvalidCharacters) {
+        this.escapeInvalidCharacters = escapeInvalidCharacters;
+    }
+
+    public SerializationOptions escapeInvalidCharacters(boolean value) {
+        setEscapeInvalidCharacters(value);
+        return this;
+    }
+
+    public static SerializationOptions createEscapeInvalidCharacters() {
+        return new SerializationOptions().escapeInvalidCharacters(true);
+    }
+
+    public static boolean isEscapeInvalidCharacters(SerializationOptions options) {
+        return options != null && options.isEscapeInvalidCharacters();
+    }
+
     public void setSkipIndexOnly(boolean skipIndexOnly) {
         this.skipIndexOnly = skipIndexOnly;
     }
@@ -203,6 +234,7 @@ public class SerializationOptions implements Cloneable {
                 ", skipIndexOnly=" + skipIndexOnly +
                 ", itemNameQualificationStrategy=" + itemNameQualificationStrategy +
                 ", serializeForExport=" + serializeForExport +
+                ", escapeInvalidCharacters=" + escapeInvalidCharacters +
                 '}';
     }
 }

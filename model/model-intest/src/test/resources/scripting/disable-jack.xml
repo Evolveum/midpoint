@@ -7,18 +7,15 @@
   -->
 
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <s:expression xsi:type="s:SearchExpressionType">
-        <s:type>c:UserType</s:type>
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:search>
+        <s:type>UserType</s:type>
         <s:searchFilter>
-            <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-                <path>c:name</path>
-                <value>jack</value>
-            </equal>
+            <q:equal>
+                <q:path>name</q:path>
+                <q:value>jack</q:value>
+            </q:equal>
         </s:searchFilter>
-    </s:expression>
-    <s:expression xsi:type="s:ActionExpressionType">
-        <s:type>disable</s:type>
-    </s:expression>
+    </s:search>
+    <s:disable/>
 </s:pipeline>

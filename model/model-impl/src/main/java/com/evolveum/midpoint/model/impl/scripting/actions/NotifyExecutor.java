@@ -7,32 +7,35 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.api.events.CustomEvent;
-import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import static java.util.Objects.requireNonNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.CustomEvent;
+import com.evolveum.midpoint.notifications.api.events.factory.CustomEventFactory;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.NotifyActionExpressionType;
 
 /**
- * @author mederly
+ * Executes "notify" actions.
  */
 @Component
 public class NotifyExecutor extends BaseActionExecutor {
 
-    @Autowired(required = false)                            // During some tests this might be unavailable
+    @Autowired(required = false) // During some tests this might be unavailable
     private NotificationManager notificationManager;
 
     @Autowired(required = false)
@@ -47,56 +50,54 @@ public class NotifyExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, NotifyActionExpressionType.class, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType action, PipelineData input, ExecutionContext context,
+            OperationResult globalResult) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
-        String subtype = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);
-        EventHandlerType handler = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_HANDLER, false, false,
-                PARAM_HANDLER, input, context, EventHandlerType.class, globalResult);
-        EventStatusType status = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_STATUS, false, false,
-                PARAM_STATUS, input, context, EventStatusType.class, globalResult);
-        EventOperationType operation = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OPERATION, false, false,
-                PARAM_OPERATION, input, context, EventOperationType.class, globalResult);
-        boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
+        String subtype = expressionHelper.getActionArgument(String.class, action,
+                NotifyActionExpressionType.F_SUBTYPE, PARAM_SUBTYPE, input, context, null, PARAM_SUBTYPE, globalResult);
+        EventHandlerType handler = expressionHelper.getActionArgument(EventHandlerType.class, action,
+                NotifyActionExpressionType.F_HANDLER, PARAM_HANDLER, input, context, null, PARAM_HANDLER, globalResult);
+        EventStatusType status = expressionHelper.getActionArgument(EventStatusType.class, action,
+                NotifyActionExpressionType.F_STATUS, PARAM_STATUS, input, context, EventStatusType.SUCCESS, PARAM_STATUS, globalResult);
+        EventOperationType operation = expressionHelper.getActionArgument(EventOperationType.class, action,
+                NotifyActionExpressionType.F_OPERATION, PARAM_OPERATION, input, context, EventOperationType.ADD, PARAM_OPERATION, globalResult);
+        boolean forWholeInput = expressionHelper.getActionArgument(Boolean.class, action,
+                NotifyActionExpressionType.F_FOR_WHOLE_INPUT, PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
         if (handler != null) {
-            checkRootAuthorization(context, globalResult, NAME);        // TODO explain that the reason is that handler is not null
+            checkRootAuthorization(context, globalResult, NAME); // TODO explain that the reason is that handler is not null
         }
 
-        if (status == null) {
-            status = EventStatusType.SUCCESS;
-        }
-        if (operation == null) {
-            operation = EventOperationType.ADD;
-        }
+        requireNonNull(notificationManager, "Notification manager is unavailable");
+        requireNonNull(customEventFactory, "Custom event factory is unavailable");
 
-        if (notificationManager == null) {
-            throw new IllegalStateException("Notification manager is unavailable");
-        }
-        if (customEventFactory == null) {
-            throw new IllegalStateException("Custom event factory is unavailable");
-        }
-
-        int eventCount = 0;
+        AtomicInteger eventCount = new AtomicInteger();
         if (forWholeInput) {
             CustomEvent event = customEventFactory.createEvent(subtype, handler, input.getData(), operation, status, context.getChannel());
             notificationManager.processEvent(event, context.getTask(), globalResult);
-            eventCount++;
+            eventCount.incrementAndGet();
         } else {
-            for (PipelineItem item: input.getData()) {
-                PrismValue value = item.getValue();
-                OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-                context.checkTaskStop();
-                CustomEvent event = customEventFactory.createEvent(subtype, handler, value, operation, status, context.getChannel());
-                notificationManager.processEvent(event, context.getTask(), result);
-                eventCount++;
-                operationsHelper.trimAndCloneResult(result, globalResult, context);
-            }
+            iterateOverItems(input, context, globalResult,
+                    (value, item, result) -> {
+                        CustomEvent event = customEventFactory.createEvent(subtype, handler, value, operation, status, context.getChannel());
+                        notificationManager.processEvent(event, context.getTask(), result);
+                        eventCount.incrementAndGet();
+                    },
+                    (value, exception) -> {
+                        context.println("Failed to notify on " + getDescription(value) + exceptionSuffix(exception));
+                    });
         }
-        context.println("Produced " + eventCount + " event(s)");
+        context.println("Produced " + eventCount.get() + " event(s)");
         return input;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

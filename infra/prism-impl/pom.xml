@@ -125,11 +125,6 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>javax.xml.soap</groupId>
-            <artifactId>javax.xml.soap-api</artifactId>
-        </dependency>
-
         <!-- TEST -->
         <dependency>
             <groupId>org.testng</groupId>

@@ -7,50 +7,33 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import javax.xml.datatype.Duration;
-import javax.xml.soap.SOAPMessage;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.util.AuditHelper;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.security.api.HttpConnectionInformation;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.cxf.binding.soap.SoapMessage;
-import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
-import org.apache.wss4j.common.ext.WSSecurityException;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -59,8 +42,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SecurityHelper implements ModelAuditRecorder {
 
     private static final Trace LOGGER = TraceManager.getTrace(SecurityHelper.class);
-
-    public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName() + ".audited";
 
     @Autowired private TaskManager taskManager;
     @Autowired private AuditHelper auditHelper;
@@ -83,7 +64,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     }
 
     private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
-                            @Nullable String message) {
+            @Nullable String message) {
         Task task = taskManager.createTaskInstance();
         task.setChannel(connEnv.getChannel());
 
@@ -93,7 +74,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
-        if (focus != null ) {
+        if (focus != null) {
             record.setInitiator(focus.asPrismObject());
         }
         record.setTimestamp(System.currentTimeMillis());
@@ -122,47 +103,6 @@ public class SecurityHelper implements ModelAuditRecorder {
             record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
             record.setHostIdentifier(connInfo.getLocalHostName());
         }
-    }
-
-    public String getUsernameFromMessage(SOAPMessage saajSoapMessage) throws WSSecurityException {
-        if (saajSoapMessage == null) {
-            return null;
-        }
-        Element securityHeader = WSSecurityUtil.getSecurityHeader(saajSoapMessage.getSOAPPart(), "");
-        return getUsernameFromSecurityHeader(securityHeader);
-    }
-
-    private String getUsernameFromSecurityHeader(Element securityHeader) {
-        if (securityHeader == null) {
-            return null;
-        }
-
-        String username = "";
-        NodeList list = securityHeader.getChildNodes();
-        int len = list.getLength();
-        Node elem;
-        for (int i = 0; i < len; i++) {
-            elem = list.item(i);
-            if (elem.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-            if ("UsernameToken".equals(elem.getLocalName())) {
-                NodeList nodes = elem.getChildNodes();
-                int len2 = nodes.getLength();
-                for (int j = 0; j < len2; j++) {
-                    Node elem2 = nodes.item(j);
-                    if ("Username".equals(elem2.getLocalName())) {
-                        username = elem2.getTextContent();
-                    }
-                }
-            }
-        }
-        return username;
-    }
-
-    public SOAPMessage getSOAPMessage(SoapMessage msg) {
-        SAAJInInterceptor.INSTANCE.handleMessage(msg);
-        return msg.getContent(SOAPMessage.class);
     }
 
     /**
@@ -230,7 +170,6 @@ public class SecurityHelper implements ModelAuditRecorder {
         return securityPolicy;
     }
 
-
     private SecurityPolicyType loadProjectionLegacyPasswordPolicy(RefinedObjectClassDefinition structuralObjectClassDefinition, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ObjectReferenceType passwordPolicyRef = structuralObjectClassDefinition.getPasswordPolicy();
         if (passwordPolicyRef == null || passwordPolicyRef.getOid() == null) {
@@ -249,11 +188,10 @@ public class SecurityHelper implements ModelAuditRecorder {
         PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
         securityPolicy.asObjectable()
                 .beginCredentials()
-                    .beginPassword()
-                        .valuePolicyRef(dummyPasswordPolicyRef);
+                .beginPassword()
+                .valuePolicyRef(dummyPasswordPolicyRef);
         return securityPolicy.asObjectable();
     }
-
 
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> focus,
             SystemConfigurationType systemConfiguration, Task task, OperationResult result)
@@ -302,7 +240,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             if (passwd != null) {
                 postProcessPasswordCredentialPolicy(securityPolicyType, passwd, task, result);
             }
-            for (NonceCredentialsPolicyType nonce: creds.getNonce()) {
+            for (NonceCredentialsPolicyType nonce : creds.getNonce()) {
                 postProcessCredentialPolicy(securityPolicyType, nonce, "nonce credential policy", task, result);
             }
             SecurityQuestionsCredentialsPolicyType securityQuestions = creds.getSecurityQuestions();

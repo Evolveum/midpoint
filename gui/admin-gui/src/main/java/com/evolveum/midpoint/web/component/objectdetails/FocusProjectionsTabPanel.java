@@ -16,6 +16,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -335,6 +336,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
                 IW object = rowModel.getObject();
+                if (object == null) {
+                    return new WebMarkupContainer(componentId);
+                }
                 List<PrismValueWrapper<PendingOperationType, PrismValue>> values = object.getValues();
                 List<PendingOperationType> pendingOperations = new ArrayList<PendingOperationType>();
                 values.forEach(value -> {

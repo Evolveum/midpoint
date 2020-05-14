@@ -9,12 +9,11 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 /**
  * Executes an action of a given type. Instances of this type must be registered with ScriptingExpressionEvaluator.
- *
- * @author mederly
  */
 @FunctionalInterface
 public interface ActionExecutor {
@@ -22,9 +21,18 @@ public interface ActionExecutor {
     /**
      * Executes given action command.
      *
-     * @param command
-     * @param context
-     * @param parentResult
+     * @param command Command to be executed. Its parameters can be defined statically (using "new" specific subclasses
+     *                in the schema) or dynamically (using "old fashioned" dynamic name-value parameters) or in a mixed style, where
+     *                dynamic definitions take precedence.
+     *
+     * @param input Input data (pipeline) that the action has to be executed on.
+     *
+     * @param context Overall execution context.
+     *
+     * @param globalResult Global operation result. This is the parent result that receives subresults related to
+     *                     actions executions. (But individual results are stored also into the pipeline, to indicate success/failure of
+     *                     individual pipeline items processing.)
      */
-    PipelineData execute(ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException;
+    PipelineData execute(ActionExpressionType command, PipelineData input, ExecutionContext context, OperationResult globalResult)
+            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 }

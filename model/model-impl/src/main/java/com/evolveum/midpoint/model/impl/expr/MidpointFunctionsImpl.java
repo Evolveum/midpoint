@@ -2064,4 +2064,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
         return object.asObjectable();
     }
+
+    @Override
+    public void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException,
+            ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".createRecomputeTrigger");
+
+        TriggerType trigger = new TriggerType(prismContext)
+                .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .timestamp(XmlTypeConverter.createXMLGregorianCalendar());
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(type)
+                .item(ObjectType.F_TRIGGER).add(trigger)
+                .asItemDeltas();
+        repositoryService.modifyObject(type, oid, itemDeltas, result);
+    }
 }
