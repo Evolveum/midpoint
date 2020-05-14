@@ -85,9 +85,27 @@ model axiom-lang {
             type SemanticVersion;
         }
     }
+    
+    type AxiomIdentifierDefinition {
+         argument key;
+         item key {
+            type AxiomIdentifier;
+         }
+         item scope {
+            type string;
+         }
+         item space {
+            type AxiomIdentifier;
+         }
+    }
 
     type AxiomTypeDefinition {
         extends AxiomBaseDefinition;
+
+        identifier name {
+            scope global;
+            space AxiomTypeDefinition;
+        }
 
         item argument {
             type AxiomIdentifier;
@@ -98,7 +116,7 @@ model axiom-lang {
         }
 
         item identifier {
-            type AxiomIdentifier;
+            type AxiomIdentifierDefinition;
         }
 
         // TODO move to prism schema

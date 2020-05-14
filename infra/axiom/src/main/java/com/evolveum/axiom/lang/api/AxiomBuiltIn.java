@@ -26,7 +26,6 @@ public class AxiomBuiltIn {
 
     public static class Item implements AxiomItemDefinition {
         public static final AxiomItemDefinition NAME = new Item("name", Type.IDENTIFIER, true);
-        public static final AxiomItemDefinition IDENTIFIER = new Item("identifier", Type.IDENTIFIER, true);
         public static final AxiomItemDefinition ARGUMENT = new Item("argument", Type.IDENTIFIER, false);
         public static final AxiomItemDefinition DOCUMENTATION = new Item("documentation", Type.STRING, true);
         public static final AxiomItemDefinition NAMESPACE = new Item("namespace", Type.STRING, true);
@@ -40,6 +39,13 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
         public static final AxiomItemDefinition TARGET_TYPE = new Item("targetType", Type.IDENTIFIER, true);
+
+        public static final AxiomItemDefinition IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
+
+        public static final AxiomItemDefinition ID_MEMBER = new Item("key", Type.STRING, false);
+        public static final AxiomItemDefinition ID_SCOPE = new Item("scope", Type.STRING, false);
+        public static final AxiomItemDefinition ID_SPACE = new Item("space", Type.IDENTIFIER, false);
+
 
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition type;
@@ -100,6 +106,7 @@ public class AxiomBuiltIn {
         public static final Type TYPE_DEFINITION =
                 new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.ARGUMENT,
+                    Item.IDENTIFIER_DEFINITION,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION
                 ));
@@ -109,7 +116,12 @@ public class AxiomBuiltIn {
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS
                 ));
-
+        public static final Type IDENTIFIER_DEFINITION =
+                new Type("AxiomIdentifierDefinition", BASE_DEFINITION, () -> Item.ID_MEMBER, () -> itemDefs(
+                    Item.ID_MEMBER,
+                    Item.ID_SCOPE,
+                    Item.ID_SPACE
+                ));
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;
