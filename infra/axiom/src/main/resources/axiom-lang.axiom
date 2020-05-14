@@ -154,6 +154,7 @@ model axiom-lang {
 
     type string;
     type boolean;
+
     type SemanticVersion {
         extends string;
     }

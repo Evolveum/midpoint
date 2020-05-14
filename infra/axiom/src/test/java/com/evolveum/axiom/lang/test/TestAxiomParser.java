@@ -54,7 +54,6 @@ public class TestAxiomParser extends AbstractUnitTest {
 
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
-
         ModelReactorContext bootstrapContext = ModelReactorContext.boostrapReactor();
         InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG);
         AxiomStatementSource statementSource = AxiomStatementSource.from(AXIOM_LANG, stream);
@@ -69,7 +68,6 @@ public class TestAxiomParser extends AbstractUnitTest {
         folowupContext.loadModelFromSource(statementSource);
         AxiomSchemaContext selfparsedContext = bootstrapContext.computeSchemaContext();
         assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
-
     }
 
 
