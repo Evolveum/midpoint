@@ -12,12 +12,15 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -41,6 +44,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     private static final String ID_TYPE = "type";
     private static final String ID_TYPE_PANEL = "typePanel";
     private static final String ID_TABLE = "table";
+    private static final String ID_WARNING_MESSAGE = "warningMessage";
 
     private static final String ID_BUTTON_ADD = "addButton";
 
@@ -100,6 +104,11 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     }
 
     private void initLayout() {
+        MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
+        warningMessage.setOutputMarkupId(true);
+        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        add(warningMessage);
+
         List<ObjectTypes> supported = new ArrayList<>();
         for (QName qname : supportedTypes) {
             supported.add(ObjectTypes.getObjectTypeFromTypeQName(qname));
@@ -215,6 +224,10 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         if (ObjectTypes.SHADOW.getTypeQName().equals(typeModel.getObject() != null ? typeModel.getObject().getTypeQName() : null)) {
             return getSchemaHelper().getOperationOptionsBuilder().noFetch().build();
         }
+        return null;
+    }
+
+    protected IModel<String> getWarningMessageModel(){
         return null;
     }
 
