@@ -81,4 +81,6 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     void setVirtualContainerItems(List<VirtualContainerItemSpecificationType> virtualItems);
     boolean isVirtual();
 
+    PrismContainerDefinition<C> getDefinition();
+
 }

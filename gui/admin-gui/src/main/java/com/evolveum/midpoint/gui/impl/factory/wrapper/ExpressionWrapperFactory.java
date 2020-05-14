@@ -44,16 +44,30 @@ public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<E
     }
 
     @Override
-    protected PrismPropertyWrapper<ExpressionType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
+    protected PrismPropertyWrapper<ExpressionType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<ExpressionType> item,
                                                                  ItemStatus status, WrapperContext ctx) {
 
-        ExpressionWrapper propertyWrapper = new ExpressionWrapper(parent, item, status);
-        if (propertyWrapper.isConstructionExpression() || propertyWrapper.isAttributeExpression() || propertyWrapper.isAssociationExpression()) {
-            getRegistry().registerWrapperPanel(propertyWrapper.getTypeName(), ExpressionPropertyPanel.class);
-        } else {
-            return super.createWrapper(parent, item, status, ctx);
+        ExpressionWrapper expressionWrapper = new ExpressionWrapper(parent, item, status);
+        if (!expressionWrapper.isConstructionExpression() && !expressionWrapper.isAttributeExpression() && !expressionWrapper.isAssociationExpression()) {
+            return super.createWrapperInternal(parent, item, status, ctx);
         }
-        return propertyWrapper;
+
+        return expressionWrapper;
     }
 
+    @Override
+    public void registerWrapperPanel(PrismPropertyWrapper<ExpressionType> wrapper) {
+        if (!(wrapper instanceof ExpressionWrapper)) {
+            super.registerWrapperPanel(wrapper);
+            return;
+        }
+        ExpressionWrapper expressionWrapper = (ExpressionWrapper) wrapper;
+        if (expressionWrapper.isConstructionExpression() || expressionWrapper.isAttributeExpression() || expressionWrapper.isAssociationExpression()) {
+            getRegistry().registerWrapperPanel(expressionWrapper.getTypeName(), ExpressionPropertyPanel.class);
+            return;
+        }
+
+        super.registerWrapperPanel(wrapper);
+
+    }
 }

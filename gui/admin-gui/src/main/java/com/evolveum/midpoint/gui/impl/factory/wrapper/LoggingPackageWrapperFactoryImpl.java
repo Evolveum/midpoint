@@ -8,18 +8,12 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -46,24 +40,15 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
 
     @Override
     public int getOrder() {
-        return Integer.MAX_VALUE-1;
+        return super.getOrder() - 10;
     }
 
-    @Override
-    protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
-            ItemStatus status, WrapperContext ctx) {
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
-        PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-        propertyWrapper.setPredefinedValues(getPredefinedValues());
-        return propertyWrapper;
-    }
 
-    private LookupTableType getPredefinedValues() {
+    public LookupTableType getPredefinedValues(PrismProperty<T> item, WrapperContext wrapperContext) {
         LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
-        List<StandardLoggerType> standardLoggers = EnumUtils.getEnumList(StandardLoggerType.class);
-        List<LoggingComponentType> componentLoggers = EnumUtils.getEnumList(LoggingComponentType.class);
 
+        List<StandardLoggerType> standardLoggers = EnumUtils.getEnumList(StandardLoggerType.class);
         for(StandardLoggerType standardLogger : standardLoggers) {
             LookupTableRowType row = new LookupTableRowType();
             row.setKey(standardLogger.getValue());
@@ -75,6 +60,8 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
             row.setLabel(label);
             list.add(row);
         }
+
+        List<LoggingComponentType> componentLoggers = EnumUtils.getEnumList(LoggingComponentType.class);
         for(LoggingComponentType componentLogger : componentLoggers) {
             LookupTableRowType row = new LookupTableRowType();
                 String value = ComponentLoggerType.getPackageByValue(componentLogger);

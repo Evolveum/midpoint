@@ -35,4 +35,6 @@ public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends Pris
         }
         return !loggerPackage.equals(ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING);
     }
+
+
 }

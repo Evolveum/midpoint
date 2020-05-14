@@ -7,16 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Component
 public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl {
@@ -43,7 +43,7 @@ public class ConnectorConfigurationWrapperFactoryImpl extends PrismContainerWrap
                 relevantDefinitions.add((PrismContainerDefinition) def);
             }
         }
-        Collections.sort(relevantDefinitions, (o1, o2) -> {
+        relevantDefinitions.sort((o1, o2) -> {
             int ord1 = o1.getDisplayOrder() != null ? o1.getDisplayOrder() : Integer.MAX_VALUE;
             int ord2 = o2.getDisplayOrder() != null ? o2.getDisplayOrder() : Integer.MAX_VALUE;
             return Integer.compare(ord1, ord2);

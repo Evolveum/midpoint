@@ -54,27 +54,30 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
     }
 
     @Override
-    protected PrismReferenceValue createNewValue(PrismReference item) throws SchemaException {
+    protected PrismReferenceValue createNewValue(PrismReference item) {
         PrismReferenceValue prv = getPrismContext().itemFactory().createReferenceValue();
         item.getValues().add(prv);
         return prv;
     }
 
     @Override
-    protected PrismReferenceWrapper<R> createWrapper(PrismContainerValueWrapper<?> parent, PrismReference item,
+    protected PrismReferenceWrapper<R> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item,
             ItemStatus status, WrapperContext ctx) {
-        PrismReferenceWrapperImpl<R> wrapper = new PrismReferenceWrapperImpl<>(parent, item, status);
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismReferencePanel.class);
-        return wrapper;
+
+        return new PrismReferenceWrapperImpl<>(parent, item, status);
     }
 
 
     @Override
     public PrismReferenceValueWrapperImpl<R> createValueWrapper(PrismReferenceWrapper<R> parent, PrismReferenceValue value, ValueStatus status,
-            WrapperContext context) throws SchemaException {
+            WrapperContext context) {
 
-        PrismReferenceValueWrapperImpl<R> refValue = new PrismReferenceValueWrapperImpl<>(parent, value, status);
-        return refValue;
+        return new PrismReferenceValueWrapperImpl<>(parent, value, status);
+    }
+
+    @Override
+    public void registerWrapperPanel(PrismReferenceWrapper<R> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismReferencePanel.class);
     }
 
     @Override
