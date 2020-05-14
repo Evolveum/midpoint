@@ -20,6 +20,7 @@ import org.testng.annotations.Test;
 
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
@@ -41,6 +42,15 @@ public class TestAxiomParser extends AbstractUnitTest {
     private static final String BASE_EXAMPLE = "base-example.axiom";
     private static final String COMMON_CORE = "common-core.axiom";
     private static final String SCRIPTING = "scripting.axiom";
+    private static final String AXIOM_BUILTIN_TYPES = "axiom-base-types.axiom";
+    private static final Lazy<AxiomStatementSource> AXIOM_TYPES_SCHEMA = Lazy.from(() -> {
+        try {
+            InputStream stream = new FileInputStream(COMMON_DIR_PATH + AXIOM_BUILTIN_TYPES);
+            return AxiomStatementSource.from(AXIOM_BUILTIN_TYPES, stream);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    });
 
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
@@ -102,6 +112,7 @@ public class TestAxiomParser extends AbstractUnitTest {
         ModelReactorContext reactorContext =ModelReactorContext.defaultReactor();
         AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
         reactorContext.loadModelFromSource(statementSource);
+        reactorContext.loadModelFromSource(AXIOM_TYPES_SCHEMA.get());
         return reactorContext.computeSchemaContext();
     }
 

@@ -165,7 +165,7 @@ model common-core {
             """;
             // <a:displayName>ObjectType.lifecycleState</a:displayName>
             // <a:displayOrder>20</a:displayOrder>
-            // <a:since>3.5</a:since>
+            since "3.5";
             // <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
         }
 
@@ -176,7 +176,7 @@ model common-core {
                 Description of recent operations executed on this object (or related objects, e.g. shadows
                 in case of a focal object). The number of operations to be kept here is configurable.
             """;
-            // <a:since>3.6</a:since>
+            since "3.6";
             // <a:operational>true</a:operational>
         }
 
@@ -185,7 +185,7 @@ model common-core {
             documentation """
                 Model context describing executed operation.
             """;
-            // <a:since>4.0</a:since>
+            since "4.0";
             // <a:experimental>true</a:experimental>
         }
 
@@ -198,7 +198,7 @@ model common-core {
                 and can be used for reporting, diagnostics, target selection in certification
                 campaigns, etc.
             """;
-            // <a:since>3.5</a:since>
+            since "3.5";
             // <a:operational>true</a:operational>
         }
 
@@ -210,7 +210,7 @@ model common-core {
                 recoded here to avoid re-evaluating and re-approving them all the time.
                 This is EXPERIMENTAL functionality. It is likely to change in the near future.
             """;
-            // <a:since>3.5</a:since>
+            since "3.5";
             // <a:experimental>true</a:experimental>
         }
 
@@ -220,7 +220,7 @@ model common-core {
             documentation """
                 Diagnostic information attached to this object.
             """;
-            // <a:since>4.0</a:since>
+            since "4.0";
             // <a:experimental>true</a:experimental>
         }
 
@@ -287,7 +287,7 @@ model common-core {
             // <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
             // <a:operational>true</a:operational>
             // <a:displayName>AssignmentHolderType.archetypeRef</a:displayName>
-            // <a:since>4.0</a:since>
+            since "4.0";
         }
 
         item roleMembership {
@@ -329,7 +329,7 @@ model common-core {
             """;
             // <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
             // <a:operational>true</a:operational>
-            // <a:since>3.5</a:since>
+            since "3.5";
         }
 
         item roleInfluence {
@@ -399,7 +399,7 @@ model common-core {
                 things (cf. assignment).
             """;
             // <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
-            // <a:since>3.6</a:since>
+            since "3.6";
         }
 
         item activation {
@@ -762,7 +762,7 @@ model common-core {
                 Specifies the admin GUI configuration that should be used
                 by this user.
             """;
-            // <a:since>3.5</a:since>
+            since "3.5";
             // <a:displayName>AdminGuiConfigurationType.adminGuiConfiguration</a:displayName>
         }
     }
@@ -815,7 +815,7 @@ model common-core {
                 Definition of the behavior related to non-existence of object with specified target OID.
                 (Currently supported only at selected places in midPoint.)
             """;
-            // <a:since>4.1</a:since>
+            since "4.1";
         }
 
         item targetName {
@@ -946,7 +946,7 @@ model common-core {
                 Used for diagnostic purposes.
             """;
             // <a:operational>true</a:operational>
-            // <a:since>4.0</a:since>
+            since "4.0";
         }
         item extension { // TODO
             type Extension;
@@ -992,7 +992,7 @@ model common-core {
             """;
             // <a:displayName>MetadataType.requestTimestamp</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.5</a:since>
+            since "3.5";
             // <a:valueMetadata />
         }
 
@@ -1014,7 +1014,7 @@ model common-core {
             """;
             // <a:displayName>MetadataType.requestorComment</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item createTimestamp {
@@ -1029,7 +1029,7 @@ model common-core {
             // <a:displayName>MetadataType.createTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             // <a:indexed>true</a:indexed>
-            // <a:since>3.5</a:since>
+            since "3.5";
         }
 
         item creator {
@@ -1055,7 +1055,7 @@ model common-core {
             """;
             // <a:displayName>MetadataType.createApprovalComment</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item createApprovalTimestamp {
@@ -1065,7 +1065,7 @@ model common-core {
             """;
             // <a:displayName>MetadataType.createApprovalTimestamp</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.5</a:since>
+            since "3.5";
         }
 
         item createChannel {
@@ -1086,7 +1086,7 @@ model common-core {
             // <a:displayName>MetadataType.createTaskRef</a:displayName>
             // <a:operational>true</a:operational>
             // <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item modifyTimestamp {
@@ -1118,7 +1118,7 @@ model common-core {
             maxOccurs unbounded;
             // <a:displayName>MetadataType.modifyApprovalComment</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item modifyChannel {
@@ -1133,28 +1133,28 @@ model common-core {
             // <a:displayName>MetadataType.modifyTaskRef</a:displayName>
             // <a:operational>true</a:operational>
             // <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item lastProvisioningTimestamp {
             type dateTime;
             // <a:displayName>MetadataType.lastProvisioningTimestamp</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.6.1</a:since>
+            since "3.6.1";
         }
 
         item certificationFinishedTimestamp {
             type dateTime;
             // <a:displayName>MetadataType.certificationFinishedTimestamp</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item certificationOutcome {
             type string;
             // <a:displayName>MetadataType.certificationOutcome</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item certifier {
@@ -1162,7 +1162,7 @@ model common-core {
             // <a:displayName>MetadataType.certifierRef</a:displayName>
             // <a:operational>true</a:operational>
             // <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item certifierComment {
@@ -1170,22 +1170,18 @@ model common-core {
             maxOccurs unbounded;
             // <a:displayName>MetadataType.certifierComment</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
 
         item originMappingName {
             type string;
             // <a:displayName>MetadataType.originMappingName</a:displayName>
             // <a:operational>true</a:operational>
-            // <a:since>3.7</a:since>
+            since "3.7";
         }
     }
 
     // axiom
-    type uri;
-    type int;
-    type binary;
-    type dateTime;
 
     // types-3
     type PolyString;

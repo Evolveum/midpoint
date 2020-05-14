@@ -6,9 +6,25 @@ model axiom-lang {
             """;
         type AxiomModel;
     }
+    
+    type AxiomImportDeclaration {
+        argument prefix;
+
+        item prefix {
+            type AxiomIdentifier;
+        }
+
+        item uri {
+            type string;
+        }
+    }
 
     type AxiomModel {
         extends AxiomBaseDefinition;
+        
+        item import {
+            type AxiomImportDeclaration;
+        }
 
         item root {
             type AxiomItemDefinition;
@@ -64,6 +80,10 @@ model axiom-lang {
         item documentation {
             type string;
         }
+        
+        item since {
+            type SemanticVersion;
+        }
     }
 
     type AxiomTypeDefinition {
@@ -106,26 +126,6 @@ model axiom-lang {
         }
     }
 
-    // TODO move to prism schema; probably should be prism:ObjectDefinition
-    type PrismObjectDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ContainerDefinition
-    type PrismContainerDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ReferenceDefinition
-    type PrismReferenceDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ItemDefinition
-    type PrismItemDefinition {
-        extends AxiomItemDefinition;
-    }
-
     type AxiomIdentifier {
     }
 
@@ -154,4 +154,27 @@ model axiom-lang {
 
     type string;
     type boolean;
+    type SemanticVersion {
+        extends string;
+    }
+    
+    // TODO move to prism schema; probably should be prism:ObjectDefinition
+    type PrismObjectDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ContainerDefinition
+    type PrismContainerDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ReferenceDefinition
+    type PrismReferenceDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    // TODO move to prism schema; probably should be prism:ItemDefinition
+    type PrismItemDefinition {
+        extends AxiomItemDefinition;
+    }
 }
