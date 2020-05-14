@@ -38,7 +38,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private static final long serialVersionUID = 1L;
 
     private QName objectType;
-    private final String viewIdentifier;
+    private String viewIdentifier;
 
     private List<GuiActionType> actions = new ArrayList<>();
     private CollectionRefSpecificationType collection;
@@ -84,6 +84,10 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public String getViewIdentifier() {
         return viewIdentifier;
+    }
+
+    public void setViewIdentifier(String viewIdentifier) {
+        this.viewIdentifier = viewIdentifier;
     }
 
     @NotNull

@@ -472,5 +472,5 @@ public interface ModelInteractionService {
      * Applying all GuiObjectListViewsType to CompiledObjectCollectionView
      */
     @Experimental
-    void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType);
+    void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType);
 }

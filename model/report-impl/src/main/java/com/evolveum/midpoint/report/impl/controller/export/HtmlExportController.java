@@ -7,27 +7,18 @@
 package com.evolveum.midpoint.report.impl.controller.export;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -108,15 +99,15 @@ public class HtmlExportController extends ExportController {
                 }
                 ObjectCollectionType collection = getReportService().getDashboardService().getObjectCollectionType(widget, task, result);
                 CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-                getReportService().getModelInteractionService().compileView(compiledCollection, collection.getDefaultView());
+                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
 
                 if(!useDefaultColumn(widget)) {
-                    getReportService().getModelInteractionService().compileView(compiledCollection, widget.getPresentation().getView());
+                    getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
                 }
                 QName collectionType = collection.getAuditSearch() != null ? AuditEventRecordType.COMPLEX_TYPE : collection.getType();
                 GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
                 if (reportView != null) {
-                    getReportService().getModelInteractionService().compileView(compiledCollection, reportView);
+                    getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
                 }
                 switch (sourceType) {
                     case OBJECT_COLLECTION:
@@ -293,7 +284,7 @@ public class HtmlExportController extends ExportController {
         //noinspection unchecked
 
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().compileView(compiledCollection, DefaultColumnUtils.getDefaultColumns(type));
+            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultColumns(type));
         }
         ContainerTag table = createTable(compiledCollection, values, def, type, task, result);
         DisplayType display = compiledCollection.getDisplay();
@@ -315,7 +306,7 @@ public class HtmlExportController extends ExportController {
 
 //        ContainerTag table = createTable();
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().compileView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
+            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
         }
 //        if(!useDefaultColumn(widget)) {
 //            table = createTable(widget.getPresentation().getView(), records, task, result);

@@ -1947,7 +1947,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    public void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         collectionProcessor.compileView(existingView, objectListViewType);
     }
 

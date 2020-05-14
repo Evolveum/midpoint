@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 /**
  * @author skublik
  */
@@ -53,6 +55,7 @@ public class SmallInfoBoxPanel extends InfoBoxPanel{
 
                 @Override
                 protected void onEvent(AjaxRequestTarget target) {
+                    PageParameters parameters = new PageParameters();
                     WebPage page = getLinkRef();
                     getPageBase().navigateToNext(page);
                 }
