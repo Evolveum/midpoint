@@ -122,18 +122,8 @@
             <artifactId>commons-collections4</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-email</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-        </dependency>
-        <dependency> <!-- Explicit version (in dependency management) -->
-            <groupId>com.sun.activation</groupId>
-            <artifactId>javax.activation</artifactId>
-            <scope>runtime</scope>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>jakarta.mail</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>

@@ -26,9 +26,10 @@
             <artifactId>prism-api</artifactId>
             <version>4.2-SNAPSHOT</version>
             <exclusions>
+                <!-- superset jakarta.activation:jakarta.activation comes from other deps -->
                 <exclusion>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
+                    <groupId>jakarta.activation</groupId>
+                    <artifactId>jakarta.activation-api</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
@@ -42,10 +43,6 @@
             <version>4.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>javax.activation</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>javax.xml.bind</groupId>
                     <artifactId>jaxb-api</artifactId>
                 </exclusion>
@@ -56,10 +53,6 @@
             <artifactId>util</artifactId>
             <version>4.2-SNAPSHOT</version>
             <exclusions>
-                <exclusion>
-                    <groupId>javax.activation</groupId>
-                    <artifactId>activation</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>javax.xml.bind</groupId>
                     <artifactId>jaxb-api</artifactId>

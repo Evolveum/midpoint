@@ -168,26 +168,18 @@
         </dependency>
         <!-- connector-powershell transitively uses CXF deps where we want some exclude -->
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-bindings-soap</artifactId>
-            <version>${cxf.version}</version>
-            <scope>provided</scope>
+            <groupId>io.cloudsoft.windows</groupId>
+            <artifactId>winrm4j-client</artifactId>
+            <version>0.4.0.e5</version>
+            <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>javax.annotation</groupId>
-                    <artifactId>javax.annotation-api</artifactId>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-transports-http-hc</artifactId>
                 </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-simple</artifactId>
-            <version>${cxf.version}</version>
-            <scope>provided</scope>
-            <exclusions>
                 <exclusion>
-                    <groupId>javax.annotation</groupId>
-                    <artifactId>javax.annotation-api</artifactId>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-frontend-jaxws</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
