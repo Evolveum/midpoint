@@ -2028,6 +2028,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
+                    <xsd:element name="object" type="c:ScriptExecutionObjectType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object(s) on which the script should be executed.
+                                (If not specified, current focus is assumed.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
@@ -2537,5 +2545,56 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
+    <xsd:complexType name="ScriptExecutionObjectType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object(s) on which the script should be executed.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assigned" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Assigned object(s) matching given selector(s).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignedMatchingPolicyConstraints" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Assigned object(s) that were matched by the policy constraint(s); and are also matching given selector(s).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignedOnPath" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Assigned object(s) that are present on assignment path that leads to the particular policy rule; and are also matching given selector(s).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignee" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Assignee object(s) matching given selector(s).
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
 </xsd:schema>

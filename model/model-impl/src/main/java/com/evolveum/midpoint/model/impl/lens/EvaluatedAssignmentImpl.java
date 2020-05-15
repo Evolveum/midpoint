@@ -291,9 +291,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.focusMappingEvaluationRequests.add(request);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getTarget()
-     */
     @Override
     public PrismObject<?> getTarget() {
         return target;

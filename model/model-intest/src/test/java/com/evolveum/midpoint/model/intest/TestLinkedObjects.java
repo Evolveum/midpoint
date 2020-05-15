@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
-
 import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -16,13 +14,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -77,22 +74,43 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        // @formatter:off
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
-                    .add(ObjectTypeUtil.createAssignmentTo(SERVICE_MEDALLION.object, SchemaConstants.ORG_DEFAULT))
-                .asObjectDelta(USER_CAVIN.oid);
-        // @formatter:on
-
-        executeChanges(delta, null, task, result);
+        assign(USER_CAVIN, SERVICE_MEDALLION, SchemaConstants.ORG_DEFAULT, null, task, result);
 
         then();
+        assertSuccess(result);
+
         assertUserAfter(USER_CAVIN.oid)
                 .assertOrganizationalUnits("medallion holders");
 
-        recomputeFocus(ServiceType.class, SERVICE_MEDALLION.oid, task, result); // should occur automatically
         assertServiceAfter(SERVICE_MEDALLION.oid)
                 .assertDescription("Held by cavin (Cavin)");
+    }
+
+    /**
+     * Cavin is being entitled.
+     * We should observe update on the medallion.
+     */
+    @Test
+    public void test110EntitleCavin() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Sir Cavin"))
+                .asObjectDelta(USER_CAVIN.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_CAVIN.oid)
+                .assertFullName("Sir Cavin")
+                .assertOrganizationalUnits("medallion holders");
+
+        assertServiceAfter(SERVICE_MEDALLION.oid)
+                .assertDescription("Held by cavin (Sir Cavin)");
     }
 
     /**
@@ -100,29 +118,22 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
      * Phase one is that it is unassigned from Cavin.
      */
     @Test
-    public void test110PassMedallionToZummiPhaseOne() throws Exception {
+    public void test120PassMedallionToZummiPhaseOne() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         refresh(USER_CAVIN, task, result);
-        AssignmentType medallionAssignment = extractSingleton(USER_CAVIN.getObjectable().getAssignment());
 
         when();
-        // @formatter:off
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
-                    .delete(medallionAssignment.clone())
-                .asObjectDelta(USER_CAVIN.oid);
-        // @formatter:on
-
-        executeChanges(delta, null, task, result);
+        unassignIfSingle(USER_CAVIN, SERVICE_MEDALLION, SchemaConstants.ORG_DEFAULT, null, task, result);
 
         then();
+        assertSuccess(result);
+
         assertUserAfter(USER_CAVIN.oid)
                 .assertOrganizationalUnits();
 
-        recomputeFocus(ServiceType.class, SERVICE_MEDALLION.oid, task, result); // should occur automatically
         assertServiceAfter(SERVICE_MEDALLION.oid)
                 .assertDescription("Not held");
     }
@@ -132,28 +143,44 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
      * Phase two is that it is assigned to Zummi.
      */
     @Test
-    public void test120PassMedallionToZummiPhaseTwo() throws Exception {
+    public void test130PassMedallionToZummiPhaseTwo() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         when();
-        // @formatter:off
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_ASSIGNMENT)
-                    .add(ObjectTypeUtil.createAssignmentTo(SERVICE_MEDALLION.object, SchemaConstants.ORG_DEFAULT))
-                .asObjectDelta(USER_ZUMMI.oid);
-        // @formatter:on
-
-        executeChanges(delta, null, task, result);
+        assign(USER_ZUMMI, SERVICE_MEDALLION, SchemaConstants.ORG_DEFAULT, null, task, result);
 
         then();
+        assertSuccess(result);
+
         assertUserAfter(USER_ZUMMI.oid)
                 .assertOrganizationalUnits("medallion holders");
 
-        recomputeFocus(ServiceType.class, SERVICE_MEDALLION.oid, task, result); // should occur automatically
         assertServiceAfter(SERVICE_MEDALLION.oid)
                 .assertDescription("Held by zummi (Zummi Gummi)");
+    }
+
+    /**
+     * Medallion is renamed. So its holder(s) should be updated.
+     */
+    @Test
+    public void test140RenameMedallion() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        ObjectDelta<ServiceType> delta = deltaFor(ServiceType.class)
+                .item(ServiceType.F_NAME).replace(PolyString.fromOrig("gummi-medallion"))
+                .asObjectDelta(SERVICE_MEDALLION.oid);
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_ZUMMI.oid)
+                .assertOrganizationalUnits("gummi-medallion holders");
     }
 
 }

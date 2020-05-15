@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptySet;
+
 @Component
 public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
 
@@ -78,6 +80,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
             boolean allowEnabled = !Boolean.FALSE.equals(constraint.isEnabled());
             boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
 
+            List<PrismObject<?>> matchingTargets = new ArrayList<>();
             for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
                 AssignmentOrigin origin = evaluatedAssignment.getOrigin();
                 boolean assignmentIsAdded = origin.isBeingAdded();
@@ -111,16 +114,24 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     if (ExclusionConstraintEvaluator
                             .oidMatches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry,
                                     "hasAssignment constraint")) {
-                        if (shouldExist) {
-                            // TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
-                            return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-                                    createPositiveMessage(constraintElement, ctx, target.getTarget(), result),
-                                    createPositiveShortMessage(constraintElement, ctx, target.getTarget(), result));
-                        }
+                        // TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
+                        matchingTargets.add(target.getTarget());
                     }
                 }
             }
-            return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
+            if (!matchingTargets.isEmpty()) {
+                if (shouldExist) {
+                    PrismObject<?> anyTargetObject = matchingTargets.get(0);
+                    return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint, matchingTargets,
+                            createPositiveMessage(constraintElement, ctx, anyTargetObject, result),
+                            createPositiveShortMessage(constraintElement, ctx, anyTargetObject, result));
+                } else {
+                    // we matched something but the constraint was "has no assignment"
+                    return null;
+                }
+            } else {
+                return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
+            }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;
@@ -182,7 +193,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
         if (shouldExist) {
             return null;
         } else {
-            return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint,
+            return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_NO_ASSIGNMENT, constraint, emptySet(),
                     createNegativeMessage(constraintElement, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result),
                     createNegativeShortMessage(constraintElement, ctx, constraint.getTargetRef().getType(), constraint.getTargetRef().getOid(), result));
             // targetName seems to be always null, even if specified in the policy rule
