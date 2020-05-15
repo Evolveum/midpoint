@@ -6,86 +6,47 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyWrapperImpl;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @Component
 public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<String> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerWrapperFactory.class);
-
-    private static final String OPERATION_DETERMINE_LOOKUP_TABLE = "determineLookupTable";
-
     @Override
-    protected PrismPropertyWrapper<String> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<String> item,
-            ItemStatus status, WrapperContext ctx) {
-
+    protected LookupTableType getPredefinedValues(PrismProperty<String> item, WrapperContext ctx) {
         PrismObject<?> prismObject = getParent(ctx);
-        if (prismObject == null || !TaskType.class.equals(prismObject.getCompileTimeClass())) {
-            return super.createWrapper(parent, item, status, ctx);
+        if (!TaskType.class.equals(prismObject.getCompileTimeClass())) {
+            return super.getPredefinedValues(item, ctx);
         }
 
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
-        PrismPropertyWrapper<String> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-        PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
-        if (valueEnumerationRef != null) {
-            Task task = ctx.getTask();
-            OperationResult result = ctx.getResult().createSubresult(OPERATION_DETERMINE_LOOKUP_TABLE);
-            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-                    .createLookupTableRetrieveOptions(schemaHelper);
-
-            try {
-                PrismObject<LookupTableType> lookupTable = getModelService().getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
-                propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
-            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
-                    | ConfigurationException | ExpressionEvaluationException e) {
-                LOGGER.error("Cannot load lookup table for {} ", item);
-                //TODO throw???
-            }
-
-            return propertyWrapper;
+        LookupTableType parentLookup = super.getPredefinedValues(item, ctx);
+        if (parentLookup != null) {
+            return parentLookup;
         }
 
-        if (parent != null && parent.getParent() != null) {
+        TaskType task = (TaskType) prismObject.asObjectable();
+           Collection<AssignmentType> assignmentTypes = task.getAssignment()
+                .stream()
+                .filter(WebComponentUtil::isArchetypeAssignment)
+                .collect(Collectors.toList());
 
-            TaskType task = (TaskType) prismObject.asObjectable();
-
-            if (ItemStatus.ADDED == status) {
-                Collection<AssignmentType> assignmentTypes = task.getAssignment()
-                        .stream()
-                        .filter(assignmentType -> WebComponentUtil.isArchetypeAssignment(assignmentType))
-                        .collect(Collectors.toList());
-
-                Collection<String> handlers;
-                if (assignmentTypes.isEmpty()) {
-                    // TODO all handlers
+           Collection<String> handlers;
+           if (assignmentTypes.isEmpty()) {
                     handlers = getTaskManager().getAllHandlerUris(true);
                 } else if (assignmentTypes.size() == 1) {
                     AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
@@ -107,11 +68,7 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
                     lookupTableType.getRow().add(row);
                 });
 
-                propertyWrapper.setPredefinedValues(lookupTableType);
-
-            }
-        }
-        return propertyWrapper;
+                return lookupTableType;
     }
 
     private PrismObject<?> getParent(WrapperContext ctx) {

@@ -780,6 +780,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             PrismContainerValueWrapper<ConstructionType> constructionValue = null;
             try {
                 PrismContainerWrapper<ConstructionType> construction = modelObject.findContainer(AssignmentType.F_CONSTRUCTION);
+                if (construction == null) {
+                    return null;
+                }
                 constructionValue = construction.getValue();
             } catch (SchemaException e) {
                 LOGGER.error("Unexpected problem during construction wrapper lookup, {}", e.getMessage(), e);

@@ -106,7 +106,7 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
         if (dummyResourceName == null) {
             return descWithDetails(dummyObject) + " on default dummy resource";
         } else {
-            return descWithDetails(dummyObject.toString()) + " on dummy resource '"+dummyResourceName+"'";
+            return descWithDetails(dummyObject) + " on dummy resource '"+dummyResourceName+"'";
         }
     }
 

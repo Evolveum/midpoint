@@ -492,7 +492,7 @@ public class AuditEventRecord implements DebugDumpable {
 //        }
     }
 
-    public AuditEventRecordType createAuditEventRecordType(){
+    public AuditEventRecordType createAuditEventRecordType() {
         return createAuditEventRecordType(false);
     }
 
@@ -522,7 +522,12 @@ public class AuditEventRecord implements DebugDumpable {
         for (ObjectDeltaOperation delta : deltas) {
             ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
             try {
-                DeltaConvertor.toObjectDeltaOperationType(delta, odo, DeltaConversionOptions.createSerializeReferenceNames());
+                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+                // This can be tricky because it can create human-readable but machine-unprocessable
+                // data, see MID-6262. But in current context the results of this method are to be
+                // used only in GUI and reports, so we are safe here.
+                options.setEscapeInvalidCharacters(true);
+                DeltaConvertor.toObjectDeltaOperationType(delta, odo, options);
                 auditRecordType.getDelta().add(odo);
             } catch (Exception e) {
                 if (tolerateInconsistencies){

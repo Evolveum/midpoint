@@ -8,19 +8,18 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ProfilingClassLoggerPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.panel.ProfilingClassLoggerPanel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -34,8 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 @Component
 public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ClassLoggerConfigurationType> {
 
-    @Autowired private GuiComponentRegistry registry;
-
     public static final QName PROFILING_LOGGER_PATH = new QName("profilingClassLogger");
 
     public static final String LOGGER_PROFILING = "PROFILING";
@@ -44,48 +41,44 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
     public boolean match(ItemDefinition<?> def) {
         return false;
     }
-
+    
     @Override
-    protected boolean canCreateValueWrapper(PrismContainerValue<ClassLoggerConfigurationType> value) {
-        if(value == null || value.getRealValue() == null) {
-            return false;
-        }
-        String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
-        if(loggerPackage == null) {
-            return false;
-        }
-        return loggerPackage.equals(LOGGER_PROFILING);
-    }
-
-    @Override
-    protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapper(PrismContainerValueWrapper<?> parent,
+    protected PrismContainerWrapper<ClassLoggerConfigurationType> createWrapperInternal(PrismContainerValueWrapper<?> parent,
             PrismContainer<ClassLoggerConfigurationType> childContainer, ItemStatus status, WrapperContext ctx) {
         PrismContainer<ClassLoggerConfigurationType> clone = childContainer.clone();
-        registry.registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
         return new ProfilingClassLoggerContainerWrapperImpl<>(parent, clone, status);
     }
 
     @Override
-    protected <ID extends ItemDefinition<PrismContainer<ClassLoggerConfigurationType>>> List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> createValuesWrapper(
-            PrismContainerWrapper<ClassLoggerConfigurationType> itemWrapper, PrismContainer<ClassLoggerConfigurationType> item, WrapperContext context)
-            throws SchemaException {
-        List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> pvWrappers = new ArrayList<>();
+    public void registerWrapperPanel(PrismContainerWrapper<ClassLoggerConfigurationType> wrapper) {
+        getRegistry().registerWrapperPanel(PROFILING_LOGGER_PATH, ProfilingClassLoggerPanel.class);
 
-        for (PrismContainerValue<ClassLoggerConfigurationType> pcv : item.getValues()) {
-            if(canCreateValueWrapper(pcv)) {
-                PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-                pvWrappers.add(valueWrapper);
+    }
+
+    @Override
+    protected List<PrismContainerValue<ClassLoggerConfigurationType>> getValues(PrismContainer<ClassLoggerConfigurationType> item) {
+        return item.getValues().stream().filter(value -> {
+            if(value == null || value.getRealValue() == null) {
+                return false;
             }
-        }
+            String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
+            if(loggerPackage == null) {
+                return false;
+            }
+            return loggerPackage.equals(LOGGER_PROFILING);
+        }).collect(Collectors.toList());
+    }
 
-        if (pvWrappers.isEmpty()) {
-            PrismContainerValue<ClassLoggerConfigurationType> prismValue = createNewValue(item);
-            PrismContainerValueWrapper<ClassLoggerConfigurationType> valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
-            valueWrapper.getRealValue().setPackage(LOGGER_PROFILING);
-            pvWrappers.add(valueWrapper);
-        }
+    @Override
+    protected boolean shouldCreateEmptyValue(PrismContainer<ClassLoggerConfigurationType> item, WrapperContext context) {
+        return true;
+    }
 
-        return pvWrappers;
+    @Override
+    protected PrismContainerValue<ClassLoggerConfigurationType> createNewValue(PrismContainer<ClassLoggerConfigurationType> item) {
+        PrismContainerValue<ClassLoggerConfigurationType> profilingLogger = super.createNewValue(item);
+        profilingLogger.asContainerable().setPackage(LOGGER_PROFILING);
+        return profilingLogger;
     }
 
     @Override
@@ -93,9 +86,12 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
             PrismContainerValue<ClassLoggerConfigurationType> objectValue, ValueStatus status, WrapperContext context) {
 
         ClassLoggerConfigurationType logger = objectValue.getRealValue();
-        logger.setPackage(LOGGER_PROFILING);
+        if (logger != null) {
+            logger.setPackage(LOGGER_PROFILING);
+        }
 
         return new ProfilingClassLoggerContainerValueWrapperImpl(objectWrapper, objectValue, status);
     }
+
 
 }

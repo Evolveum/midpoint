@@ -29,20 +29,6 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
 
     public ExpressionWrapper(@Nullable PrismContainerValueWrapper parent, PrismProperty<ExpressionType> property, ItemStatus status) {
         super(parent, property, status);
-
-        PrismContainerWrapperImpl outboundContainer = (PrismContainerWrapperImpl)parent.getParent();
-        if (outboundContainer != null) {
-            PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
-            if (outboundValue != null) {
-                PrismContainerWrapperImpl associationContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
-                if (associationContainer != null) {
-                    PrismContainerValueWrapperImpl constructionContainer = (PrismContainerValueWrapperImpl) associationContainer.getParent();
-                    if (constructionContainer != null && constructionContainer.getRealValue() instanceof ConstructionType) {
-                        construction = (ConstructionType) constructionContainer.getRealValue();
-                    }
-                }
-            }
-        }
     }
 
     public boolean isConstructionExpression(){
@@ -101,6 +87,31 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     }
 
     public ConstructionType getConstruction() {
+        if (getParent() == null) {
+            return construction;
+        }
+
+        if (construction == null) {
+            PrismContainerWrapperImpl outboundContainer = getParent().getParent();
+            if (outboundContainer == null) {
+                return construction;
+            }
+
+            PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
+            if (outboundValue == null) {
+                return construction;
+            }
+
+            PrismContainerWrapperImpl associationContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
+            if (associationContainer != null) {
+                PrismContainerValueWrapperImpl constructionContainer = (PrismContainerValueWrapperImpl) associationContainer.getParent();
+                if (constructionContainer != null && constructionContainer.getRealValue() instanceof ConstructionType) {
+                    construction = (ConstructionType) constructionContainer.getRealValue();
+                }
+            }
+
+        }
+
         return construction;
     }
 

@@ -124,7 +124,10 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                     long start = System.currentTimeMillis();
                     TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
                     String xml = prismContext.xmlSerializer()
-                            .options(SerializationOptions.createSerializeReferenceNames())
+                            .options(
+                                    SerializationOptions
+                                            .createSerializeReferenceNames()
+                                            .escapeInvalidCharacters(true))
                             .serializeRealValue(tracingOutput);
                     if (zip) {
                         MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);

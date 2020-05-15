@@ -483,4 +483,8 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
         return ((PrismContainerWrapper) parent).isExpanded() || isHeterogenous();
     }
+
+    public PrismContainerDefinition<C> getDefinition() {
+        return getNewValue().getDefinition();
+    }
 }

@@ -43,11 +43,14 @@ public class ProtectedStringWrapperFactory extends PrismPropertyWrapperFactoryIm
     }
 
     @Override
-    protected PrismPropertyWrapper<ProtectedStringType> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<ProtectedStringType> item,
+    protected PrismPropertyWrapper<ProtectedStringType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismProperty<ProtectedStringType> item,
                                                                       ItemStatus status, WrapperContext ctx) {
-        ProtectedStringTypeWrapperImpl propertyWrapper = new ProtectedStringTypeWrapperImpl(parent, item, status);
-        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PasswordPropertyPanel.class);
-        return propertyWrapper;
+        return new ProtectedStringTypeWrapperImpl(parent, item, status);
     }
 
+    @Override
+    public void registerWrapperPanel(PrismPropertyWrapper<ProtectedStringType> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PasswordPropertyPanel.class);
+
+    }
 }

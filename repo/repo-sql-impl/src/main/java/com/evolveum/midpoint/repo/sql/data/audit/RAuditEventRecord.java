@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -504,7 +506,8 @@ public class RAuditEventRecord implements Serializable {
                 changedItems, resourceOids, propertyValues, referenceValues, result);
     }
 
-    public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext, Boolean isTransient)
+    public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext, Boolean isTransient,
+            SystemConfigurationAuditType auditConfiguration)
         throws DtoTranslationException {
 
         Validate.notNull(record, "Audit event record must not be null.");
@@ -588,7 +591,7 @@ public class RAuditEventRecord implements Serializable {
                     }
                 }
 
-                RObjectDeltaOperation rDelta = RObjectDeltaOperation.toRepo(repo, delta, prismContext);
+                RObjectDeltaOperation rDelta = RObjectDeltaOperation.toRepo(repo, delta, prismContext, auditConfiguration);
                 rDelta.setTransient(true);
                 rDelta.setRecord(repo);
                 repo.getDeltas().add(rDelta);

@@ -6,14 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ShadowWrapperImpl;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -25,9 +22,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 public class ShadowWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<ShadowType> {
-
-    @Autowired private GuiComponentRegistry registry;
-    @Autowired private ModelService modelService;
 
     @Override
     public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {

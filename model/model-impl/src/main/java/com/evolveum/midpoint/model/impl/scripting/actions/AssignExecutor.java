@@ -52,7 +52,7 @@ public class AssignExecutor extends AssignmentOperationsExecutor<AssignParameter
      * They are created by merging dynamically and statically defined parameters, resolving
      * filters in references, and so on.
      */
-    static class AssignParameters extends Parameters {
+    static class AssignParameters extends AssignmentOperationsExecutor.Parameters {
         private final List<ObjectReferenceType> targetRefs = new ArrayList<>();
         private final List<ConstructionType> constructions = new ArrayList<>();
     }

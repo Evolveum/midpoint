@@ -6,7 +6,17 @@
  */
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -24,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.page.error.PageOperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author semancik
@@ -35,12 +46,17 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectNameColumn.class);
 
+    private ExpressionType expression;
+    private PageBase pageBase;
+
     public ObjectNameColumn(IModel<String> displayModel) {
         super(displayModel, ObjectType.F_NAME.getLocalPart());
     }
 
-    public ObjectNameColumn(IModel<String> displayModel, String itemPath) {
+    public ObjectNameColumn(IModel<String> displayModel, String itemPath, ExpressionType expression, PageBase pageBase) {
         super(displayModel, itemPath);
+        this.expression = expression;
+        this.pageBase = pageBase;
     }
 
     @Override
@@ -59,14 +75,38 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
                     OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
                     return cellItem.getString(props.getStatusLabelKey());
                 } else {
-                    String name = WebComponentUtil.getName(value, true);
-                    if (selectableBean.getResult() != null){
-                        StringBuilder complexName = new StringBuilder();
-                        complexName.append(name);
-                        complexName.append(" (");
-                        complexName.append(selectableBean.getResult().getStatus());
-                        complexName.append(")");
-                        return complexName.toString();
+                    String name;
+                    if (expression != null){
+                        Task task = pageBase.createSimpleTask("evaluate column expression");
+                        try {
+                            Object object;
+                            if (getSortProperty().isEmpty()) {
+                                object = value;
+                            } else {
+                                object = new PropertyModel<>(value, getSortProperty()).getObject();
+                            }
+                            ExpressionVariables expressionVariables = new ExpressionVariables();
+                            expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
+                            name = ExpressionUtil.evaluateStringExpression(expressionVariables, pageBase.getPrismContext(), expression,
+                                    MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "evaluate column expression",
+                                    task, task.getResult()).iterator().next();
+                        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                                | ConfigurationException | SecurityViolationException e) {
+                            LOGGER.error("Couldn't execute expression for name column");
+                            OperationResult result = task.getResult();
+                            OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+                            return cellItem.getString(props.getStatusLabelKey());
+                        }
+                    } else {
+                        name = WebComponentUtil.getName(value, true);
+                        if (selectableBean.getResult() != null) {
+                            StringBuilder complexName = new StringBuilder();
+                            complexName.append(name);
+                            complexName.append(" (");
+                            complexName.append(selectableBean.getResult().getStatus());
+                            complexName.append(")");
+                            return complexName.toString();
+                        }
                     }
                         return name;
 

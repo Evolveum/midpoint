@@ -16376,6 +16376,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="escapeIllegalCharacters" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should illegal characters (like majority of 0x00-0x1F in XML 1.0) be escaped?
+                        If they occur and are not escaped, audit operation will fail. If they are stored
+                        in escaped form, audit operation will succeed but some parts of the audit records
+                        will not be correctly machine processable in the future. So the default value is "false".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.escapeIllegalCharacters</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

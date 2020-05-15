@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,8 +24,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryImpl<ConstructionType> {
@@ -54,8 +53,15 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
             }
 
         }
+        setupResource(constructionValueWrapper, constructionType, context);
+        return constructionValueWrapper;
+    }
 
+    private void setupResource(ConstructionValueWrapper constructionValueWrapper, ConstructionType constructionType, WrapperContext context) {
         ObjectReferenceType resourceRef = constructionType.getResourceRef();
+        if (resourceRef == null) {
+            return;
+        }
 
         PrismObject<ResourceType> resource;
         try {
@@ -63,10 +69,9 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Problem occurred during resolving resource, reason: {}", e.getMessage(), e);
             context.getResult().recordFatalError("A problem occurred during resolving resource, reason: " + e.getMessage(), e);
-            return constructionValueWrapper;
+            return;
         }
 
         constructionValueWrapper.setResource(resource);
-        return constructionValueWrapper;
     }
 }
