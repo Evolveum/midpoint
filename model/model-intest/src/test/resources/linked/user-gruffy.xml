@@ -8,5 +8,8 @@
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="30b59b40-2875-410d-8731-482743eb6de2">
     <name>gruffy</name>
+    <assignment>
+        <targetRef oid="c46b1bcc-af43-44ee-a107-71f36e952cc5" type="ArchetypeType"/> <!-- user -->
+    </assignment>
     <fullName>Gruffy Gummi</fullName>
 </user>

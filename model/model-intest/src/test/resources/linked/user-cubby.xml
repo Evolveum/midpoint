@@ -6,10 +6,10 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="041d0c03-c322-4e0d-89ba-a2d49b732674">
-    <name>grammi</name>
+      oid="7b8f2e00-a49e-40ff-a4bd-11b70bac89d3">
+    <name>cubby</name>
     <assignment>
         <targetRef oid="c46b1bcc-af43-44ee-a107-71f36e952cc5" type="ArchetypeType"/> <!-- user -->
     </assignment>
-    <fullName>Grammi Gummi</fullName>
+    <fullName>Cubby Gummi</fullName>
 </user>

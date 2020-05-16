@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
 
-    final PrismObject<? extends AssignmentHolderType> target;
+    @NotNull private final PrismObject<? extends AssignmentHolderType> target;
     private final boolean evaluateConstructions;
     @NotNull private final AssignmentPathImpl assignmentPath;     // TODO reconsider (maybe we should store only some lightweight information here)
     private final AssignmentType assignment;
@@ -32,7 +32,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
     private final boolean isValid;
 
     EvaluatedAssignmentTargetImpl(
-            PrismObject<? extends AssignmentHolderType> target, boolean evaluateConstructions,
+            @NotNull PrismObject<? extends AssignmentHolderType> target, boolean evaluateConstructions,
             @NotNull AssignmentPathImpl assignmentPath, AssignmentType assignment,
             boolean isValid) {
         this.target = target;
@@ -43,7 +43,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
     }
 
     @Override
-    public PrismObject<? extends AssignmentHolderType> getTarget() {
+    public @NotNull PrismObject<? extends AssignmentHolderType> getTarget() {
         return target;
     }
 

@@ -9,7 +9,7 @@
            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
            oid="e7bff8d1-cebd-4fbe-b935-64cfc2f22f52">
     <name>token</name>
-    <documentation>A token has some special characteristics:
+    <documentation>A magic token has some special characteristics:
 
         1. It is held by at most single user at given time.
 
@@ -18,6 +18,14 @@
 
         3. On the other hand, it knows who holds it by storing the holder's `name` and `fullName` in
         its `description` property.
+
+        Note that points 2 and 3 are implemented by induced mappings for this particular archetype.
+        This means that they work only for active tokens. This is fully in accord with the magical
+        character of the token: if it's inactive (e.g. disabled) it loses all its powers.
+
+        (But what about triggering the changes? They obviously will stop for disabled tokens.)
+
+        For a different approach please see the "device" archetype.
     </documentation>
 
     <!-- Part 1: Data transfer itself: Mappings that - when evaluated - cause data to flow between objects. -->

@@ -22,9 +22,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
@@ -99,10 +97,11 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
+
+import static java.util.Collections.*;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
@@ -1895,16 +1894,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (!(object instanceof AssignmentHolderType)) {
             return archetypeOid == null;
         }
-
-        ModelContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext != null) {
-            ModelElementContext<O> focusContext = lensContext.getFocusContext();
-            ArchetypeType archetypeType = focusContext.getArchetype();
-            if (archetypeType != null) {
-                return archetypeType.getOid().equals(archetypeOid);
-            }
-        }
-
         List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
         if (archetypeOid == null) {
             return archetypeRefs.isEmpty();
@@ -2034,6 +2023,40 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                     .ref(getFocusObjectReference().asReferenceValue().clone())
                 .build();
         return searchObjects(type, query, null);
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
+    public <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid) {
+        return MiscUtil.extractSingleton(findAssignedObjects(type, archetypeOid),
+                () -> new IllegalStateException("More than one assigned object found"));
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
+    @NotNull
+    public <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid) {
+        LensContext<?> lensContext = (LensContext<?>) getModelContext();
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> assignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        if (assignmentTriple == null) {
+            return emptyList();
+        }
+        Map<String, PrismObject<T>> assignedMap = new HashMap<>();
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : assignmentTriple.getNonNegativeValues()) {
+            for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getNonNegativeTargets()) {
+                if (!assignedMap.containsKey(target.getOid()) && matches(target, type, archetypeOid)) {
+                    //noinspection unchecked
+                    assignedMap.put(target.getOid(), (PrismObject<T>) target.getTarget());
+                }
+            }
+        }
+        return asObjectables(assignedMap.values());
+    }
+
+    private <T extends AssignmentHolderType> boolean matches(EvaluatedAssignmentTargetImpl target, Class<T> type, String archetypeOid) {
+        AssignmentHolderType targetObject = target.getTarget().asObjectable();
+        return type.isAssignableFrom(targetObject.getClass())
+                && (archetypeOid == null || hasArchetype(targetObject, archetypeOid));
     }
 
     @Experimental
