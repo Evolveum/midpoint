@@ -140,6 +140,7 @@ public class ModelRestService {
         // nothing to do
     }
 
+    // Migrated to ModelRestController
     @POST
     @Path("/{type}/{oid}/generate")
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
@@ -167,6 +168,7 @@ public class ModelRestService {
 
     }
 
+    // Migrated to ModelRestController
     @POST
     @Path("/rpc/generate")
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
@@ -205,6 +207,7 @@ public class ModelRestService {
         return response;
     }
 
+    // Migrated to ModelRestController
     @POST
     @Path("/{type}/{oid}/validate")
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
@@ -228,6 +231,7 @@ public class ModelRestService {
         return response;
     }
 
+    // Migrated to ModelRestController
     @POST
     @Path("/rpc/validate")
     @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })
@@ -314,6 +318,7 @@ public class ModelRestService {
         return response;
     }
 
+    // Migrated to ModelRestController
     @GET
     @Path("/{type}/{id}")
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML })

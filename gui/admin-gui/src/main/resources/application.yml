@@ -11,11 +11,18 @@ spring:
       file-size-threshold: 256KB
   thymeleaf:
     cache: false
+# REST error handling TODO new-rest, investigate impact
+#  mvc:
+#    throw-exception-if-no-handler-found: true
+# TODO: resources.add-mappings=false breaks images (all static content?) serving for Wicket app!
+# but without it RestExceptionHandler is not found, alternative solution needs to be found
+#  resources:
+#    add-mappings: false
 
 server:
   tomcat:
     basedir: ${midpoint.home}
-    max-http-post-size: 104857600 # in bytes
+    max-http-form-post-size: 100MB
 ## Enable and configuration ajp connector for mp
 #    ajp:
 #      enabled: true
