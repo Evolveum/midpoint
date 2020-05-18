@@ -22,7 +22,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.springframework.test.annotation.DirtiesContext;

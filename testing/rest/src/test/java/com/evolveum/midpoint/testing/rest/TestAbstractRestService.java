@@ -17,7 +17,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
