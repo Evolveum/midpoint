@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -24,36 +26,40 @@ import javax.xml.namespace.QName;
  * @author katka
  *
  */
-public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements PrismValueWrapper<T, V> {
+public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
 
     private static final long serialVersionUID = 1L;
 
     private ItemWrapper<?,?> parent;
 
-    private V oldValue;
-    private V newValue;
+    private PrismValue oldValue;
+    private PrismValue newValue;
 
     private ValueStatus status;
+    private ValueMetadataWrapperImpl valueMetadata;
+    private boolean showMetadata;
 
 
-    PrismValueWrapperImpl(ItemWrapper<?, ?> parent, V value, ValueStatus status) {
+    PrismValueWrapperImpl(ItemWrapper<?, ?> parent, PrismValue value, ValueStatus status) {
         this.parent = parent;
         this.newValue = value;
-        this.oldValue = (V) value.clone();
+        if (value != null) {
+            this.oldValue = value.clone();
+        }
         this.status = status;
     }
 
     @Override
-    public <D extends ItemDelta<V, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
+    public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
         switch (status) {
             case ADDED:
                 if (newValue.isEmpty()) {
                     break;
                 }
                 if (parent.isSingleValue()) {
-                    delta.addValueToReplace((V) newValue.clone());
+                    delta.addValueToReplace(getNewValue().clone());
                 } else {
-                    delta.addValueToAdd((V) newValue.clone());
+                    delta.addValueToAdd(getNewValue().clone());
                 }
                 break;
             case NOT_CHANGED:
@@ -64,23 +70,23 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 
                 if (parent.isSingleValue()) {
                     if (newValue.isEmpty())  {
-                        delta.addValueToDelete((V) oldValue.clone());
+                        delta.addValueToDelete(oldValue.clone());
                     } else {
-                        delta.addValueToReplace((V) newValue.clone());
+                        delta.addValueToReplace(newValue.clone());
                     }
                     break;
                 }
 
                 if (!newValue.isEmpty()) {
-                    delta.addValueToAdd((V) newValue.clone());
+                    delta.addValueToAdd(newValue.clone());
                 }
                 if (!oldValue.isEmpty()) {
-                    delta.addValueToDelete((V) oldValue.clone());
+                    delta.addValueToDelete(oldValue.clone());
                 }
                 break;
             case DELETED:
                 if (oldValue != null && !oldValue.isEmpty()) {
-                    delta.addValueToDelete((V) oldValue.clone());
+                    delta.addValueToDelete(oldValue.clone());
                 }
                 break;
             default:
@@ -106,13 +112,13 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 
 
     @Override
-    public V getNewValue() {
-        return newValue;
+    public <V extends PrismValue> V getNewValue() {
+        return (V) newValue;
     }
 
     @Override
-    public V getOldValue() {
-        return oldValue;
+    public <V extends PrismValue> V getOldValue() {
+        return (V) oldValue;
     }
 
     @Override
@@ -141,5 +147,24 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 
     public boolean isVisible() {
         return !ValueStatus.DELETED.equals(getStatus());
+    }
+
+    @Override
+    public void setValueMetadata(ValueMetadataWrapperImpl valueMetadata) {
+        this.valueMetadata = valueMetadata;
+    }
+
+    @Override
+    public ValueMetadataWrapperImpl getValueMetadata() {
+        return valueMetadata;
+    }
+
+    @Override
+    public boolean isShowMetadata() {
+        return true;
+    }
+
+    public void setShowMetadata(boolean showMetadata) {
+        this.showMetadata = showMetadata;
     }
 }

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
+public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -56,4 +57,10 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     public void setLink(boolean link) {
         isLink = link;
     }
+
+    @Override
+    public PrismReferenceValue getNewValue() {
+        return super.getNewValue();
+    }
+
 }

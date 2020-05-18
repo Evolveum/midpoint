@@ -24,7 +24,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -75,7 +74,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
 
-    public ItemWrapperImpl(@Nullable PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
+    public ItemWrapperImpl(PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
         Validate.notNull(item, "Item must not be null.");
         Validate.notNull(status, "Item status must not be null.");
 

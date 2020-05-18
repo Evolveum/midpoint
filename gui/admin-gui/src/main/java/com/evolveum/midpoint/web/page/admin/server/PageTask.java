@@ -434,7 +434,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return null;
         }
 
-        PrismValueWrapper<?, ?> itemValue = item.getValue();
+        PrismValueWrapper<?> itemValue = item.getValue();
         if (itemValue == null) {
             return null;
         }

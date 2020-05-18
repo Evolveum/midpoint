@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable, DebugDumpable {
+public interface PrismValueWrapper<T> extends Serializable, DebugDumpable {
 
     T getRealValue();
     void setRealValue(T realValue);
@@ -27,12 +28,18 @@ public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable
     ValueStatus getStatus();
     void setStatus(ValueStatus status);
 
-    V getNewValue();
-    V getOldValue();
+    <V extends PrismValue> V getNewValue();
+    <V extends PrismValue> V getOldValue();
     <IW extends ItemWrapper> IW getParent();
 
-    <D extends ItemDelta<V,? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException;
+    <D extends ItemDelta<PrismValue,? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException;
 
     boolean isVisible();
+
+    PrismContainerValueWrapper getValueMetadata();
+    void setValueMetadata(ValueMetadataWrapperImpl valueMetadata);
+
+    boolean isShowMetadata();
+    void setShowMetadata(boolean showMetadata);
 
 }

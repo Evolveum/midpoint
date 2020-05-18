@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.prism.wrapper;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -14,6 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface PrismObjectValueWrapper<O extends ObjectType> extends PrismContainerValueWrapper<O> {
 
-
-
+    @Override
+    PrismContainerValue<O> getNewValue();
 }

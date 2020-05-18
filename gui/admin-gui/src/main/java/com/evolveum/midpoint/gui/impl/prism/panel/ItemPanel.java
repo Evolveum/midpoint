@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author katka
  *
  */
-public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismValue>, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
+public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
 
     private static final long serialVersionUID = 1L;
 
