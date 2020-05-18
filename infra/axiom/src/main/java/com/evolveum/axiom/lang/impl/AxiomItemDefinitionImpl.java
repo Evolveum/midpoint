@@ -13,12 +13,14 @@ public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition impleme
 
     public static final Factory<AxiomIdentifier,AxiomItemDefinitionImpl> FACTORY = AxiomItemDefinitionImpl::new ;
     private final AxiomTypeDefinition type;
+    private int minOccurs;
 
     public AxiomItemDefinitionImpl(AxiomIdentifier keyword, AxiomIdentifier value, List<AxiomStatement<?>> children,
             Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap) {
         super(keyword, value, children, keywordMap);
         type = first(AxiomBuiltIn.Item.TYPE_DEFINITION.name(), AxiomTypeDefinition.class)
                 .orElseThrow(() -> new IllegalStateException("No 'type' declaration in " + super.toString()));
+        minOccurs = firstValue(AxiomBuiltIn.Item.MIN_OCCURS.name(), String.class).map(Integer::parseInt).orElse(0);
     }
 
     @Override
@@ -28,7 +30,7 @@ public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition impleme
 
     @Override
     public boolean required() {
-        return false;
+        return minOccurs > 0;
     }
 
     @Override

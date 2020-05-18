@@ -12,7 +12,7 @@ import com.google.common.base.Preconditions;
 
 public class AxiomIdentifier {
 
-    public static final String AXIOM_NAMESPACE = "https://ns.evolveum.com/axiom";
+    public static final String AXIOM_NAMESPACE = "https://ns.evolveum.com/axiom/language";
     private final String namespace;
     private final String localName;
 
@@ -60,7 +60,7 @@ public class AxiomIdentifier {
 
     @Override
     public String toString() {
-        return localName;
+        return "(" + namespace + ")" +localName;
     }
 
     public static AxiomIdentifier axiom(String identifier) {

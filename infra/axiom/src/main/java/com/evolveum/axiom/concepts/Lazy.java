@@ -15,7 +15,7 @@ public class Lazy<T> implements java.util.function.Supplier<T> {
         value = supplier;
     }
 
-    public static final <T> Lazy<T> from(Supplier<T> supplier) {
+    public static final <T> Lazy<T> from(Supplier<? extends T> supplier) {
         return new Lazy<>(supplier);
     }
 

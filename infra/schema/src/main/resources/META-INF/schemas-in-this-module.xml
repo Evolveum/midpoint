@@ -45,6 +45,10 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" uri="../xml/ns/public/common/common-policy-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" uri="../xml/ns/public/common/common-case-management-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3" uri="../xml/ns/public/common/common-security-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3" uri="../xml/ns/public/common/common-metadata-3.xsd" />
+
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3" uri="../xml/ns/public/common/extension-metadata-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-mock-3" uri="../xml/ns/public/common/extension-metadata-mock-3.xsd" />
 
     <!-- WSDLs -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />

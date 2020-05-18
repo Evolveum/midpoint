@@ -1,0 +1,23 @@
+model schema-org-person {
+
+    namespace "https://example.org";
+
+    import foaf {
+        namespace "http://xmlns.com/foaf/0.1/";
+    }
+    import schemaOrg {
+        namespace "https://schema.org";
+    }
+
+    type Person {
+        item name {
+            type string;
+        }
+        item foaf {
+            type foaf:Person;
+        }
+        item schemaorg {
+            type schemaOrg:Person;
+        }
+    }
+}

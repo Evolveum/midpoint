@@ -6,9 +6,12 @@
  */
 package com.evolveum.axiom.lang.api;
 
+import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.base.MoreObjects;
 
 public interface AxiomItemDefinition extends AxiomBaseDefinition {
+
+    AxiomIdentifier ROOT_SPACE = AxiomIdentifier.axiom("AxiomRootDefinition");
 
     AxiomTypeDefinition type();
     boolean required();

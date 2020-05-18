@@ -30,7 +30,7 @@ public class AxiomErrorListener extends BaseErrorListener {
     @Override
     public void syntaxError(final Recognizer<?, ?> recognizer, final Object offendingSymbol, final int line,
             final int charPositionInLine, final String msg, final RecognitionException e) {
-        // TODO Auto-generated method stub
+        exceptions.add(new AxiomSyntaxException(source, line, charPositionInLine, msg));
 
     }
 

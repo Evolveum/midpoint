@@ -1,6 +1,7 @@
 package com.evolveum.axiom.lang.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -8,7 +9,9 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
+import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.sun.net.httpserver.Authenticator.Result;
 public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
 
     private final StatementContextImpl<V> context;
@@ -17,6 +20,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     private Action<V> action;
     private Supplier<RuleErrorMessage> errorReport = () -> null;
     private boolean applied = false;
+    private Exception error;
 
     public StatementRuleContextImpl(StatementContextImpl<V> context, StatementRule<V> rule) {
         this.context = context;
@@ -33,12 +37,18 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     @Override
-    public Requirement<AxiomStatement<?>> requireGlobalItem(AxiomItemDefinition typeDefinition,
-            AxiomIdentifier axiomIdentifier) {
-        return requirement(context.reactor().requireGlobalItem(axiomIdentifier));
+    public Requirement.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
+            IdentifierSpaceKey key) {
+        return requirement(Requirement.retriableDelegate(() -> {
+            StatementContextImpl<?> maybe = context.lookup(space, key);
+            if(maybe != null) {
+                return (Requirement) maybe.asRequirement();
+            }
+            return null;
+        }));
     }
 
-    private <V> Requirement<V> requirement(Requirement<V> req) {
+    private <V,X extends Requirement<V>> X requirement(X req) {
         this.requirements.add(req);
         return req;
     }
@@ -60,14 +70,21 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     public void perform() throws AxiomSemanticException {
-        this.action.apply(context);
-        this.applied = true;
+        if(!applied && error == null) {
+            try {
+                this.action.apply(context);
+                this.applied = true;
+            } catch (Exception e) {
+                error = e;
+            }
+        }
     }
 
     @Override
     public <V> V requiredChildValue(AxiomItemDefinition supertypeReference, Class<V> type)
             throws AxiomSemanticException {
-        return null;
+        StatementContext ctx = context.firstChild(supertypeReference).get();
+        return (V) ctx.requireValue(type);
     }
 
     @Override
@@ -86,6 +103,10 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     RuleErrorMessage errorMessage() {
+        if(error != null) {
+            return RuleErrorMessage.from(context.startLocation(), error.getMessage());
+        }
+
         return errorReport.get();
     }
 
@@ -108,5 +129,28 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     public RuleErrorMessage error(String format, Object... arguments) {
         return RuleErrorMessage.from(context.startLocation(), format, arguments);
     }
+
+    @Override
+    public Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+        return context.requireChild(required);
+    }
+
+    @Override
+    public Requirement<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+        return requirement(context.root().requireNamespace(name, namespaceId));
+    }
+
+    public boolean notFailed() {
+        return error == null;
+    }
+
+    public boolean successful() {
+        return applied;
+    }
+
+    public Collection<Requirement<?>> requirements() {
+        return requirements;
+    }
+
 
 }

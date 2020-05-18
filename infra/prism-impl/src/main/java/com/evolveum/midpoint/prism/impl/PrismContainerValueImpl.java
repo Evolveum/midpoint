@@ -62,11 +62,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     public PrismContainerValueImpl() {
     }
 
-    @Override
-    public Optional<ValueMetadata> valueMetadata() {
-        return Optional.empty();
-    }
-
     public PrismContainerValueImpl(C containerable) {
         this(containerable, null);
     }

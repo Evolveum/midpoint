@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
 import com.evolveum.midpoint.prism.xnode.XNodeMutator;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -86,6 +88,9 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull private final DefinitionFactory definitionFactory;
     @NotNull private final ItemPathParser itemPathParser;
     @NotNull private final SchemaFactory schemaFactory;
+
+    @Experimental // temporary
+    private ValueMetadataMockUpFactory valueMetadataMockUpFactory;
 
     private ParsingMigrator parsingMigrator;
     private PrismMonitor monitor = null;
@@ -664,5 +669,15 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public SchemaFactory schemaFactory() {
         return schemaFactory;
+    }
+
+    @Override
+    public void setValueMetadataMockUpFactory(ValueMetadataMockUpFactory factory) {
+        this.valueMetadataMockUpFactory = factory;
+    }
+
+    @Override
+    public ValueMetadataMockUpFactory getValueMetadataMockUpFactory() {
+        return valueMetadataMockUpFactory;
     }
 }

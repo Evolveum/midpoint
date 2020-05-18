@@ -28,14 +28,16 @@ import com.google.common.base.Strings;
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private final AxiomIdentifierResolver statements;
+    private final AxiomIdentifierResolver arguments;
     private final AxiomStatementStreamListener delegate;
     private final Optional<Set<AxiomIdentifier>> limit;
     private final String sourceName;
 
-    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomStatementStreamListener delegate,
+    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomStatementStreamListener delegate,
             Set<AxiomIdentifier> limit) {
         this.sourceName = name;
         this.statements = statements;
+        this.arguments = arguments;
         this.delegate = delegate;
         this.limit = Optional.ofNullable(limit);
     }
@@ -43,7 +45,7 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private AxiomIdentifier statementIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
-        return statements.resolveStatementIdentifier(prefix, localName);
+        return statements.resolveIdentifier(prefix, localName);
     }
 
     private String nullableText(ParserRuleContext prefix) {
@@ -80,18 +82,16 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     }
 
     private AxiomIdentifier convert(IdentifierContext argument) {
-        return statementIdentifier(argument);
+        return argumentIdentifier(argument);
     }
 
-    private String convert(StringContext string) {
-        if(string.singleQuoteString() != null) {
-            return convertSingleQuote(string.singleQuoteString().getText());
-        }
-        if(string.doubleQuoteString() != null) {
-            return covertDoubleQuote(string.doubleQuoteString().getText());
-        }
-        return convertMultiline(string.multilineString().getText());
+    private AxiomIdentifier argumentIdentifier(IdentifierContext identifier) {
+        String prefix = nullableText(identifier.prefix());
+        String localName = identifier.localIdentifier().getText();
+        return arguments.resolveIdentifier(prefix, localName);
     }
+
+
 
     private int sourceLine(ParserRuleContext node) {
         return node.start.getLine();
@@ -101,17 +101,27 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return SourceLocation.from(sourceName, start.getLine(), start.getCharPositionInLine());
     }
 
-    private String convertSingleQuote(String text) {
+    static String convert(StringContext string) {
+        if(string.singleQuoteString() != null) {
+            return convertSingleQuote(string.singleQuoteString().getText());
+        }
+        if(string.doubleQuoteString() != null) {
+            return covertDoubleQuote(string.doubleQuoteString().getText());
+        }
+        return convertMultiline(string.multilineString().getText());
+    }
+
+    private static String convertSingleQuote(String text) {
         int stop = text.length();
         return text.substring(1, stop - 1);
     }
 
-    private String covertDoubleQuote(String text) {
+    private static String covertDoubleQuote(String text) {
         int stop = text.length();
         return text.substring(1, stop - 1);
     }
 
-    private String convertMultiline(String text) {
+    private static String convertMultiline(String text) {
         return text.replace("\"\"\"", "");
     }
 
