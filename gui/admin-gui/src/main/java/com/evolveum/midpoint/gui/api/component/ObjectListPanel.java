@@ -189,7 +189,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 if (searchByName != null) {
                     for (SearchItem item : search.getItems()) {
                         if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                            item.setValue(new SearchValue(searchByName));
                         }
                     }
                 }
