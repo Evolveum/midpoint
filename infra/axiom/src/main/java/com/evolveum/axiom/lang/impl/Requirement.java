@@ -28,6 +28,19 @@ public interface Requirement<T> {
         return new Suppliable<>(supplier);
     }
 
+    default Requirement<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        return this;
+    }
+
+    interface Search<T> extends Requirement<T> {
+
+        default Requirement.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+            return this;
+        }
+
+    }
+
+
     public static abstract class Abstract<V> implements Requirement<V> {
 
 
@@ -121,9 +134,10 @@ public interface Requirement<T> {
         }
     }
 
-    public final class RetriableDelegate<T> extends Delegated<T> {
+    public final class RetriableDelegate<T> extends Delegated<T> implements Search<T> {
 
-        Object maybeDelegate;
+        private Object maybeDelegate;
+        private Supplier<RuleErrorMessage> notFound;
 
         public RetriableDelegate(Supplier<Requirement<T>> lookup) {
             maybeDelegate = lookup;
@@ -145,19 +159,37 @@ public interface Requirement<T> {
             return unsatisfied();
         }
 
+        @Override
+        public Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+            notFound = unsatisfiedMessage;
+            return this;
+        }
+
+        @Override
+        public RuleErrorMessage errorMessage() {
+            if(maybeDelegate instanceof Supplier && notFound != null) {
+                return notFound.get();
+            }
+            // TODO Auto-generated method stub
+            return super.errorMessage();
+        }
+
     }
 
-    static <T> Requirement<T> retriableDelegate(Supplier<Requirement<T>> lookup) {
+    static <T> Search<T> retriableDelegate(Supplier<Requirement<T>> lookup) {
         return new RetriableDelegate(lookup);
     }
 
-    default Requirement<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
-        return this;
-    }
     static <T> Requirement<T> from(Optional<T> maybe) {
         if(maybe.isPresent()) {
             return immediate(maybe.get());
         }
         return unsatisfied();
+    }
+    static <T> Requirement<T> orNull(T value) {
+        if(value != null) {
+            return immediate(value);
+        }
+        return null;
     }
 }

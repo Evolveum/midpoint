@@ -1,12 +1,14 @@
 model axiom-lang {
 
+    namespace "https://ns.evolveum.com/axiom/language";
+
     root model {
         documentation """
             Axiom Model
             """;
         type AxiomModel;
     }
-    
+
     type AxiomImportDeclaration {
         argument prefix;
 
@@ -14,7 +16,7 @@ model axiom-lang {
             type AxiomIdentifier;
         }
 
-        item uri {
+        item namespace {
             type string;
         }
     }
@@ -88,6 +90,12 @@ model axiom-lang {
         item since {
             type SemanticVersion;
         }
+        //item status {
+        //    documentation """
+        //        Status of definition, could be experimental, stable, deprecated.
+        //        """;
+        //    type string;
+        //}
     }
     
     type AxiomIdentifierDefinition {
@@ -183,8 +191,7 @@ model axiom-lang {
 
     // "Type library" (temporary)
 
-    type string;
-    type boolean;
+
 
     type SemanticVersion {
         extends string;

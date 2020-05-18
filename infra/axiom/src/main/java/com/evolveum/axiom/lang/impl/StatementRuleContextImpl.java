@@ -1,6 +1,7 @@
 package com.evolveum.axiom.lang.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -19,6 +20,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     private Action<V> action;
     private Supplier<RuleErrorMessage> errorReport = () -> null;
     private boolean applied = false;
+    private Exception error;
 
     public StatementRuleContextImpl(StatementContextImpl<V> context, StatementRule<V> rule) {
         this.context = context;
@@ -35,12 +37,18 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     @Override
-    public Requirement<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
+    public Requirement.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
             IdentifierSpaceKey key) {
-        return requirement(context.reactor().requireGlobalItem(space, key));
+        return requirement(Requirement.retriableDelegate(() -> {
+            StatementContextImpl<?> maybe = context.lookup(space, key);
+            if(maybe != null) {
+                return (Requirement) maybe.asRequirement();
+            }
+            return null;
+        }));
     }
 
-    private <V> Requirement<V> requirement(Requirement<V> req) {
+    private <V,X extends Requirement<V>> X requirement(X req) {
         this.requirements.add(req);
         return req;
     }
@@ -62,8 +70,14 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     public void perform() throws AxiomSemanticException {
-        this.action.apply(context);
-        this.applied = true;
+        if(!applied && error == null) {
+            try {
+                this.action.apply(context);
+                this.applied = true;
+            } catch (Exception e) {
+                error = e;
+            }
+        }
     }
 
     @Override
@@ -89,6 +103,10 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     RuleErrorMessage errorMessage() {
+        if(error != null) {
+            return RuleErrorMessage.from(context.startLocation(), error.getMessage());
+        }
+
         return errorReport.get();
     }
 
@@ -116,5 +134,23 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     public Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
         return context.requireChild(required);
     }
+
+    @Override
+    public Requirement<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+        return requirement(context.root().requireNamespace(name, namespaceId));
+    }
+
+    public boolean notFailed() {
+        return error == null;
+    }
+
+    public boolean successful() {
+        return applied;
+    }
+
+    public Collection<Requirement<?>> requirements() {
+        return requirements;
+    }
+
 
 }

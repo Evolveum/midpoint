@@ -46,7 +46,7 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
             Set<AxiomItemDefinition> members = idDef.children(Item.ID_MEMBER.name()).stream()
                     .map(k -> item((AxiomIdentifier) k.value()).get()).collect(Collectors.toSet());
             AxiomIdentifier space = idDef.firstValue(ID_SPACE.name(), AxiomIdentifier.class).get();
-            AxiomIdentifierDefinition.Scope scope = AxiomIdentifierDefinition.scope(idDef.firstValue(ID_SCOPE.name(), Object.class).get().toString());
+            AxiomIdentifierDefinition.Scope scope = AxiomIdentifierDefinition.scope(idDef.firstValue(ID_SCOPE.name(), AxiomIdentifier.class).get().getLocalName());
             return AxiomIdentifierDefinition.from(space, scope, members);
         }).collect(Collectors.toList());
     }

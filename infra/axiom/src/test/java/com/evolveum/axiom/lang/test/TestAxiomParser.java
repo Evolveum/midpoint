@@ -34,21 +34,13 @@ import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
-public class TestAxiomParser extends AbstractUnitTest {
+public class TestAxiomParser extends AbstractReactorTest {
 
-    private static final String COMMON_DIR_PATH = "src/test/resources/";
     private static final String BASE_EXAMPLE = "base-example.axiom";
     private static final String COMMON_CORE = "common-core.axiom";
     private static final String SCRIPTING = "scripting.axiom";
-    private static final String AXIOM_BUILTIN_TYPES = "axiom-base-types.axiom";
-    private static final Lazy<AxiomStatementSource> AXIOM_TYPES_SCHEMA = Lazy.from(() -> {
-        try {
-            InputStream stream = new FileInputStream(COMMON_DIR_PATH + AXIOM_BUILTIN_TYPES);
-            return AxiomStatementSource.from(AXIOM_BUILTIN_TYPES, stream);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    });
+
+
 
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
@@ -62,7 +54,7 @@ public class TestAxiomParser extends AbstractUnitTest {
         // Default reactor has Axiom model already loaded
         ModelReactorContext folowupContext = ModelReactorContext.reactor(modelContext);
         //folowupContext.loadModelFromSource(statementSource);
-        AxiomSchemaContext selfparsedContext = bootstrapContext.computeSchemaContext();
+        AxiomSchemaContext selfparsedContext = folowupContext.computeSchemaContext();
         assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
         assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().item(Item.ID_MEMBER.name()).get().required());
     }
@@ -82,7 +74,7 @@ public class TestAxiomParser extends AbstractUnitTest {
     @Test
     public void moduleHeaderTest() throws IOException, AxiomSyntaxException {
         AxiomSchemaContext context = parseFile(BASE_EXAMPLE);
-        assertNotNull(context.getType(AxiomIdentifier.axiom("Example")).get());
+        assertNotNull(context.getType(AxiomIdentifier.from("https://ns.evolveum.com/example/axiom/model-header", "Example")).get());
     }
 
     @Test
@@ -95,21 +87,7 @@ public class TestAxiomParser extends AbstractUnitTest {
         AxiomSchemaContext context = parseFile(SCRIPTING);
     }
 
-    private AxiomSchemaContext parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        return parseInputStream(name, new FileInputStream(COMMON_DIR_PATH + name));
-    }
 
-    private AxiomSchemaContext parseInputStream(String name, InputStream stream) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        return parseInputStream(name, stream, AxiomBuiltIn.Item.MODEL_DEFINITION);
-    }
-
-    private AxiomSchemaContext parseInputStream(String name, InputStream stream, AxiomItemDefinition rootItemDefinition) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        ModelReactorContext reactorContext =ModelReactorContext.defaultReactor();
-        AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
-        reactorContext.loadModelFromSource(statementSource);
-        reactorContext.loadModelFromSource(AXIOM_TYPES_SCHEMA.get());
-        return reactorContext.computeSchemaContext();
-    }
 
 
 }

@@ -181,6 +181,7 @@ public class AxiomBuiltIn {
                     Item.ID_SCOPE,
                     Item.ID_SPACE
                 ));
+        public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;

@@ -8,12 +8,14 @@
 
 model axiom-base-types {
 
-    namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+    namespace "https://ns.evolveum.com/axiom/language";
     version "0.1.0";
 
+    type string;
+    type boolean;
     type uri;
     type int;
     type binary;
     type dateTime;
-    
+
 }

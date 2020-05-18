@@ -1,0 +1,23 @@
+model invalid-import {
+
+    import foafInvalid {
+        namespace "foaf";
+    }
+
+    import schemaOrg {
+        namespace "https://schema.org";
+    }
+
+    type InvalidGlobal {
+        item person {
+            type Person;
+        }
+    }
+
+    type InvalidPrefix {
+        item person {
+            type InvalidPrefix;
+        }
+    }
+
+}

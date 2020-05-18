@@ -16,8 +16,6 @@ public interface StatementContext<V> {
 
     AxiomItemDefinition definition();
 
-    void registerAsGlobalItem(AxiomIdentifier typeName) throws AxiomSemanticException;
-
     <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value);
 
     Optional<V> optionalValue();
@@ -29,5 +27,10 @@ public interface StatementContext<V> {
     void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key);
 
     V requireValue(Class<V> type);
+
+
+    void importIdentifierSpace(NamespaceContext namespaceContext);
+
+    void exportIdentifierSpace(IdentifierSpaceKey namespace);
 
 }

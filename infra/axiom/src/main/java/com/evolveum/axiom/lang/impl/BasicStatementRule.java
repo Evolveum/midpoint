@@ -10,6 +10,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
@@ -56,6 +57,45 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
             }
         }
     },
+    IMPORT_DEFAULT_TYPES(all(), types(Type.MODEL)) {
+
+        @Override
+        public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
+            Requirement<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES));
+            req.unsatisfiedMessage(() -> rule.error("Default types not found."));
+            rule.apply((ctx) -> {
+                ctx.parent().importIdentifierSpace(req.get());
+            });
+        }
+    },
+    EXPORT_GLOBALS_FROM_MODEL(all(), types(Type.MODEL)) {
+
+        @Override
+        public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
+            String namespace = rule.requiredChildValue(Item.NAMESPACE, String.class);
+            rule.apply(ctx -> {
+                ctx.exportIdentifierSpace(namespaceId(namespace));
+            });
+        }
+    },
+    IMPORT_MODEL(all(),types(Type.IMPORT_DEFINITION)) {
+
+        @Override
+        public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
+            String child = rule.requiredChildValue(Item.NAMESPACE, String.class);
+            AxiomIdentifier namespaceId = Item.NAMESPACE.name();
+            Requirement<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(child));
+            req.unsatisfiedMessage(() -> rule.error("Namespace %s not found.", child));
+            rule.apply((ctx) -> {
+                ctx.parent().importIdentifierSpace(req.get());
+            });
+
+        }
+
+
+
+
+    },
     /*
      * Not needed - registration is handled by identifier statement
     REGISTER_TYPE(items(Item.TYPE_DEFINITION), types(Type.TYPE_DEFINITION)) {
@@ -71,11 +111,12 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             AxiomIdentifier type = rule.requireValue();
-            Requirement<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
+            Requirement.Search<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
+            typeDef.notFound(() ->  rule.error("type '%s' was not found.", type));
+            typeDef.unsatisfiedMessage(() -> rule.error("Referenced type %s is not complete.", type));
             rule.apply(ctx -> {
                 ctx.replace(typeDef);
             });
-            rule.errorMessage(() ->  rule.error("type '%s' was not found.", type));
         }
     };
 /*
@@ -141,5 +182,9 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
 
     private static ImmutableSet<AxiomIdentifier> all() {
         return ImmutableSet.of();
+    }
+
+    private static IdentifierSpaceKey namespaceId(String uri) {
+        return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 }

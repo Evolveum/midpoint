@@ -9,6 +9,7 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.impl.Requirement.Search;
 
 public interface StatementRuleContext<V> {
 
@@ -33,8 +34,10 @@ public interface StatementRuleContext<V> {
 
     Optional<V> optionalValue();
 
-    Requirement<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space, IdentifierSpaceKey key);
+    Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space, IdentifierSpaceKey key);
 
     Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required);
+
+    Requirement<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
 
 }
