@@ -20,7 +20,14 @@ public class RestExceptionHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(RestExceptionHandler.class);
 
-    // TODO only catch all at the moment, later I'l diversify it to various
+    /*
+     * TODO only catch all at the moment, later I'l diversify it to various
+     * Seems to be working for exceptions, but not for 404.
+     * 404 worked with:
+     * spring.mvc.throw-exception-if-no-handler-found=true
+     * spring.resources.add-mappings=false
+     * But this broke images (and perhaps other static content) serving for Wicket app.
+     */
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> defaultHandler(
