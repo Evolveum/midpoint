@@ -50,8 +50,9 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
     /**
      * @pre construction is already evaluated and not ignored (has resource)
      */
-    EvaluatedOutboundConstructionImpl(@NotNull final OutboundConstruction<AH> construction, @NotNull final ResourceShadowDiscriminator rsd) {
-        super(construction, rsd);
+    EvaluatedOutboundConstructionImpl(@NotNull final OutboundConstruction<AH> construction, @NotNull LensProjectionContext projectionContext) {
+        super(construction, projectionContext.getResourceShadowDiscriminator());
+        setProjectionContext(projectionContext);
     }
 
     @Override
@@ -91,6 +92,8 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                 getConstruction().loadFullShadow(getProjectionContext(), "strong/weak outbound mapping", task, result);
                 projectionOdo = getProjectionContext().getObjectDeltaObject();
             }
+
+            LOGGER.info("XXXX: projectionOdo for {}:\n{}", getProjectionContext().getResourceShadowDiscriminator(), projectionOdo.debugDump(1));
 
             String mappingShortDesc = "outbound mapping for " +
                     PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName()) + " in " + getProjectionContext().getResource();

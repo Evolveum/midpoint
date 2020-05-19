@@ -81,7 +81,7 @@ public class OutboundConstruction<AH extends AssignmentHolderType> extends Const
 
     @Override
     protected EvaluatedOutboundConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return new EvaluatedOutboundConstructionImpl<>(this, rsd);
+        return new EvaluatedOutboundConstructionImpl<>(this, projectionContext);
     }
 
 }

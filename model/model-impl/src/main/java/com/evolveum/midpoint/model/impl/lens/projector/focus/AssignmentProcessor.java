@@ -15,7 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
@@ -525,7 +524,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         LOGGER.trace("Construction delta set triple for {}:\n{}", rsd,
                                 projectionEvaluatedConstructionDeltaSetTriple.debugDump(1));
                     }
-                    projectionContext.setConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
+                    projectionContext.setEvaluatedConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
                     if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) || isForceRecon(
                             constructionMapTriple.getPlusMap().get(rsd)) || isForceRecon(
                             constructionMapTriple.getMinusMap().get(rsd))) {

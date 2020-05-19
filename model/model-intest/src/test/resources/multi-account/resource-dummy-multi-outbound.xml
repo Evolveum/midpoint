@@ -176,6 +176,7 @@
                         <path>$focus/organization</path>
                     </expression> -->
                     <outbound>
+                        <trace>true</trace>
                         <source>
                             <path>$focus/organization</path>
                         </source>
@@ -186,6 +187,7 @@
                 <ref>icfs:name</ref>
                 <displayName>Username</displayName>
                 <outbound>
+                    <trace>true</trace>
                     <source>
                         <path>name</path>
                     </source>
@@ -193,8 +195,9 @@
                         <path>$projection/tag</path>
                     </source>
                     <expression>
+                        <trace>true</trace>
                         <script>
-                                <code>'envoy-' + name + '-' + tag</code>
+                                <code>'envoy-' + name + '-' + tag.toLowerCase()</code>
                         </script>
                     </expression>
                 </outbound>

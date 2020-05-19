@@ -10,6 +10,8 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -461,28 +463,47 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
-        assertUserAfter(userIdahoOid)
-                .displayWithProjections()
-                .links()
-                    .assertLinks(3)
-                    .by()
-                        .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
-                        .intent(SchemaConstants.INTENT_DEFAULT)
-                    .find()
-                        .target()
-                            .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
-                            .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_KAITAIN);
+
+        assertUsers(getNumberOfUsers() + 2);
+    }
+
+    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        UserAsserter<Void> asserter = assertUserAfter(userOid)
+            .displayWithProjections()
+            .links()
+                .assertLinks(planets.length + 1)
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                    .intent(SchemaConstants.INTENT_DEFAULT)
+                .find()
+                    .target()
+                        .assertResource(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                        .assertKind(ShadowKindType.ACCOUNT)
+                        .assertIntent(SchemaConstants.INTENT_DEFAULT)
 //                          .assertTagIsOid()
-                        .end()
                     .end()
+                .end()
+            .end();
+
+        asserter
+            .links()
+                .by()
+                    .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
+                    .intent(INTENT_ENVOY)
+                    .assertCount(planets.length);
+
+        for (String planet : planets) {
+            asserter
+                .links()
                     .by()
                         .resourceOid(RESOURCE_DUMMY_MULTI_OUTBOUND_OID)
                         .intent(INTENT_ENVOY)
-                    .assertCount(2);
-
-
-        assertUsers(getNumberOfUsers() + 2);
+                        .tag(planet)
+                    .find()
+                        .target()
+                            .assertName(getEnvoy(username,planet));
+            }
     }
 
     private void importMultiGreenAccounts(Task task, OperationResult result) throws Exception {
@@ -490,5 +511,9 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, true, 40000);
+    }
+
+    private String getEnvoy(String username, String planet) {
+        return "envoy-" + username + "-" + planet.toLowerCase();
     }
 }

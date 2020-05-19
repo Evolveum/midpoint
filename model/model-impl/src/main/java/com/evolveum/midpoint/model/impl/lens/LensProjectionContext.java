@@ -46,7 +46,6 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -175,7 +174,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Source: AssignmentProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> constructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
 
     /**
      * Triples for outbound mappings; similar to the above.
@@ -258,7 +257,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-        return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew(), getObjectDefinition());
+        PrismObject<ShadowType> base = getObjectCurrent();
+        ObjectDelta<ShadowType> delta = getDelta();
+        if (base == null && delta != null && delta.isModify()) {
+            RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+            if (rOCD != null) {
+                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+            }
+        }
+        return new ObjectDeltaObject<>(base, delta, getObjectNew(), getObjectDefinition());
     }
 
     public boolean hasSecondaryDelta() {
@@ -583,13 +590,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getConstructionDeltaSetTriple() {
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
         //noinspection unchecked
-        return (DeltaSetTriple)constructionDeltaSetTriple;
+        return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
     }
 
-    public <AH extends AssignmentHolderType> void setConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
-        this.constructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
+        this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
     }
 
     public Construction getOutboundConstruction() {
@@ -846,7 +853,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (base == null && accDelta.isModify()) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
-                base = rOCD.createBlankShadow();
+                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
             }
         }
 
@@ -881,7 +888,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
                             + " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow();
+                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow(resourceShadowDiscriminator.getTag());
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
@@ -1250,7 +1257,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), evaluatedConstructionDeltaSetTriple, indent + 1);
 
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);

@@ -139,9 +139,15 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         return null;
     }
 
+    protected void setProjectionContext(LensProjectionContext projectionContext) {
+        this.projectionContext = projectionContext;
+    }
+
     protected void initializeProjectionContext() {
-        projectionContext = construction.getLensContext().findProjectionContext(rsd);
-        // projection context may not exist yet (existence might not be yet decided)
+        if (projectionContext == null) {
+            projectionContext = construction.getLensContext().findProjectionContext(rsd);
+            // projection context may not exist yet (existence might not be yet decided)
+        }
     }
 
 

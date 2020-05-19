@@ -847,8 +847,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return createProjectionContext(null);
     }
 
-    public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rat) {
-        LensProjectionContext projCtx = new LensProjectionContext(this, rat);
+    public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rsd) {
+        LensProjectionContext projCtx = new LensProjectionContext(this, rsd);
         addProjectionContext(projCtx);
         return projCtx;
     }
