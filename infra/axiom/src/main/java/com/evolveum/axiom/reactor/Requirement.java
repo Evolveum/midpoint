@@ -3,10 +3,7 @@ package com.evolveum.axiom.reactor;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.axiom.lang.impl.RuleErrorMessage;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.base.Preconditions;
 
 

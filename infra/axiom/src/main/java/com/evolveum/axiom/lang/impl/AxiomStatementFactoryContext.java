@@ -6,15 +6,14 @@
  */
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
+import com.evolveum.axiom.lang.spi.AxiomStatementImpl;
 
 public interface AxiomStatementFactoryContext {
 
     AxiomStatementImpl.Factory<?, ?> factoryFor(AxiomTypeDefinition identifier);
 
-    static AxiomStatementFactoryContext defaultFactory(AxiomStatementImpl.Factory factory) {
+    static AxiomStatementFactoryContext defaultFactory(AxiomStatementImpl.Factory<?,?> factory) {
         return (identifier) -> factory;
     }
 

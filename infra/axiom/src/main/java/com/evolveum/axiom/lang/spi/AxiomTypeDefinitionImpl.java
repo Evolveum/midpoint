@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.spi;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +16,6 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.Identifiable;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.Multimap;

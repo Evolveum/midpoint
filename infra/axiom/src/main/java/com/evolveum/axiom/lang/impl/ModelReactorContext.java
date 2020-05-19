@@ -20,10 +20,13 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.evolveum.axiom.lang.spi.AxiomStatementImpl;
+import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
 import com.evolveum.axiom.lang.spi.SourceLocation;
+import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.reactor.Requirement;
 
 import org.jetbrains.annotations.Nullable;

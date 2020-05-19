@@ -15,10 +15,11 @@ import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatementBuilder;
 import com.evolveum.axiom.lang.spi.SourceLocation;
+import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.reactor.Requirement;
 
 public abstract class StatementContextImpl<V> implements StatementContext<V>, StatementTreeBuilder, IdentifierSpaceHolder {

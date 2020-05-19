@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.spi;
 
 import com.evolveum.axiom.concepts.Lazy;
 
@@ -10,8 +10,7 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;

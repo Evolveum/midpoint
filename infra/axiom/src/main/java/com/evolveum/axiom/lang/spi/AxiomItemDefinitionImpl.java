@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.spi;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.Multimap;
 
 public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition implements AxiomItemDefinition {
