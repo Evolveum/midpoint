@@ -7,8 +7,12 @@
 package com.evolveum.midpoint.model.intest.multi;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.*;
@@ -79,6 +83,8 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     private static final String PLANET_CALADAN = "Caladan";
     private static final String PLANET_KAITAIN = "Kaitain";
+    private static final String PLANET_IX = "Ix";
+    private static final String PLANET_GINAZ = "Ginaz";
 
     private String accountPaulOid;
     private String accountMuaddibOid;
@@ -403,6 +409,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Create Duncan Idaho user, assign default account on outbound resource, make sure that the usual use case works.
+     * MID-6242
      */
     @Test
     public void test300CreateIdaho() throws Exception {
@@ -438,6 +445,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Create Duncan Idaho user, assign default account on outbound resource, make sure that the usual use case works.
+     * MID-6242
      */
     @Test
     public void test310IdahoEnvoyCaladanKaitain() throws Exception {
@@ -468,7 +476,118 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         assertUsers(getNumberOfUsers() + 2);
     }
 
-    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+    /**
+     * Remove Kaitain from Idaho's organization. His Kaitain envoy account should be deleted.
+     * MID-6242
+     */
+    @Test
+    public void test320IdahoEnvoyRemoveKaitain() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ORGANIZATION).delete(createPolyString(PLANET_KAITAIN))
+                        .asObjectDelta(userIdahoOid),
+                null, task , result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN);
+
+        assertUsers(getNumberOfUsers() + 2);
+    }
+
+    /**
+     * Add Ix and Ginaz to Idaho's organization. New envoy account should be created.
+     * MID-6242
+     */
+    @Test
+    public void test330IdahoEnvoyAddIxGinaz() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ORGANIZATION).add(createPolyString(PLANET_IX), createPolyString(PLANET_GINAZ))
+                        .asObjectDelta(userIdahoOid),
+                null, task , result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_IX, PLANET_GINAZ);
+
+        assertUsers(getNumberOfUsers() + 2);
+        display("Outbound dummy resource\n" + getDummyResource(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME).debugDump(1));
+    }
+
+    /**
+     * MID-6242
+     */
+    @Test
+    public void test340IdahoUnassignOutboundMultiaccount() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        unassignAccountFromUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, INTENT_ENVOY, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME /* no values */);
+
+        assertUsers(getNumberOfUsers() + 2);
+    }
+
+    /**
+     * MID-6242
+     */
+    @Test
+    public void test350IdahoAssignOutboundMultiaccount() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 2);
+
+        // WHEN
+        when();
+        assignAccountToUser(userIdahoOid, RESOURCE_DUMMY_MULTI_OUTBOUND_OID, INTENT_ENVOY, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        assertEnvoyAccounts(userIdahoOid, USER_IDAHO_NAME, PLANET_CALADAN, PLANET_IX, PLANET_GINAZ);
+
+        assertUsers(getNumberOfUsers() + 2);
+    }
+
+    private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {
         UserAsserter<Void> asserter = assertUserAfter(userOid)
             .displayWithProjections()
             .links()
@@ -503,6 +622,9 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                     .find()
                         .target()
                             .assertName(getEnvoy(username,planet));
+
+                assertDummyAccountByUsername(RESOURCE_DUMMY_MULTI_OUTBOUND_NAME, getEnvoy(username,planet))
+                    .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, planet);
             }
     }
 
