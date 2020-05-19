@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.base.Preconditions;
 
 

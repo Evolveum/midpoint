@@ -10,7 +10,7 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 

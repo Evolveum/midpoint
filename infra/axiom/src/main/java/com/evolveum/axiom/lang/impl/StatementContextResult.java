@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 

@@ -14,7 +14,7 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.concepts.Lazy.Supplier;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;

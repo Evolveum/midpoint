@@ -8,9 +8,9 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.impl.Requirement.Search;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 
 public interface StatementRuleContext<V> {
 

@@ -7,7 +7,7 @@ import com.evolveum.axiom.lang.api.AxiomBaseDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.Multimap;
 
 public class AbstractAxiomBaseDefinition extends AxiomStatementImpl<AxiomIdentifier> implements AxiomBaseDefinition {

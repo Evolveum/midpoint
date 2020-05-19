@@ -10,8 +10,8 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.sun.net.httpserver.Authenticator.Result;
 public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
 
