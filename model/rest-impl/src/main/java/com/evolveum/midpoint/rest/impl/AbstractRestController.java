@@ -2,6 +2,8 @@ package com.evolveum.midpoint.rest.impl;
 
 import static org.springframework.http.ResponseEntity.status;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +63,20 @@ class AbstractRestController {
         }
 
         return status(httpStatus).body(body);
+    }
+
+    protected ResponseEntity<?> createResponseWithLocation(
+            HttpStatus httpStatus, URI location, OperationResult result) {
+        result.computeStatusIfUnknown();
+
+        if (result.isPartialError()) {
+            return ResponseEntity.status(250).location(location).body(result);
+        } else if (result.isHandledError()) {
+            return ResponseEntity.status(240).location(location).body(result);
+        }
+
+        return location == null ? ResponseEntity.status(httpStatus).build()
+                : ResponseEntity.status(httpStatus).location(location).build();
     }
 
     protected <T> ResponseEntity<?> createBody(ResponseEntity.BodyBuilder builder,

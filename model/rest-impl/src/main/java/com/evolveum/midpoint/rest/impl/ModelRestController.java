@@ -325,10 +325,10 @@ public class ModelRestController extends AbstractRestController {
             logger.debug("returned oid: {}", oid);
 
             if (oid != null) {
-                URI resourceURI = uriGetObject(type, oid);
-                response = clazz.isAssignableFrom(TaskType.class)
-                        ? createResponse(HttpStatus.ACCEPTED, resourceURI, parentResult)
-                        : createResponse(HttpStatus.CREATED, resourceURI, parentResult);
+                response = createResponseWithLocation(
+                        clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
+                        uriGetObject(type, oid),
+                        parentResult);
             } else {
                 // OID might be null e.g. if the object creation is a subject of workflow approval
                 response = createResponse(HttpStatus.ACCEPTED, parentResult);
@@ -416,10 +416,10 @@ public class ModelRestController extends AbstractRestController {
             oid = model.addObject(object, modelExecuteOptions, task, parentResult);
             logger.debug("returned oid : {}", oid);
 
-            URI resourceURI = uriGetObject(type, oid);
-            response = clazz.isAssignableFrom(TaskType.class)
-                    ? createResponse(HttpStatus.ACCEPTED, resourceURI, parentResult)
-                    : createResponse(HttpStatus.CREATED, resourceURI, parentResult);
+            response = createResponseWithLocation(
+                    clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
+                    uriGetObject(type, oid),
+                    parentResult);
         } catch (Exception ex) {
             response = handleException(parentResult, ex);
         }
@@ -625,7 +625,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             modelService.importFromResource(resourceOid, objClass, task, parentResult);
-            response = createResponse(
+            response = createResponseWithLocation(
                     HttpStatus.SEE_OTHER,
                     uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
                     parentResult);
@@ -733,8 +733,10 @@ public class ModelRestController extends AbstractRestController {
         try {
             if (Boolean.TRUE.equals(asynchronous)) {
                 scriptingService.evaluateExpressionInBackground(command, task, result);
-                URI resourceUri = uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid());
-                response = createResponse(HttpStatus.CREATED, resourceUri, result);
+                response = createResponseWithLocation(
+                        HttpStatus.CREATED,
+                        uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
+                        result);
             } else {
                 ScriptExecutionResult executionResult = scriptingService.evaluateExpression(
                         command, VariablesMap.emptyMap(), false, task, result);
