@@ -23,6 +23,7 @@ import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.SourceLocation;
+import com.evolveum.axiom.reactor.Requirement;
 
 import org.jetbrains.annotations.Nullable;
 

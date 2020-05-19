@@ -19,6 +19,7 @@ import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.lang.spi.SourceLocation;
+import com.evolveum.axiom.reactor.Requirement;
 
 public abstract class StatementContextImpl<V> implements StatementContext<V>, StatementTreeBuilder, IdentifierSpaceHolder {
 
@@ -156,7 +157,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
 
     public Requirement<AxiomStatement<V>> asRequirement() {
         if (result instanceof StatementContextResult) {
-            return new Deffered<>(result);
+            return Requirement.deffered(result);
         }
         return result;
     }

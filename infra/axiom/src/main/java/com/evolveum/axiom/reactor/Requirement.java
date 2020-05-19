@@ -1,10 +1,11 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.reactor;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.axiom.lang.impl.RuleErrorMessage;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.base.Preconditions;
 
@@ -26,6 +27,10 @@ public interface Requirement<T> {
 
     public static <T> Requirement<T> from(Supplier<T> supplier) {
         return new Suppliable<>(supplier);
+    }
+
+    public static <T> Requirement<T> deffered(Requirement<T> original) {
+        return new Deffered<>(original);
     }
 
     default Requirement<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {

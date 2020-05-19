@@ -15,6 +15,7 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
+import com.evolveum.axiom.reactor.Requirement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
