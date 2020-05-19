@@ -1,6 +1,7 @@
 package com.evolveum.axiom.lang.impl;
 
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
 public interface StatementRule<V> {
 

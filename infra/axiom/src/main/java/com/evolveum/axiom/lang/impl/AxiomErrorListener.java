@@ -18,6 +18,8 @@ import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
 
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+
 public class AxiomErrorListener extends BaseErrorListener {
 
     private final String source;

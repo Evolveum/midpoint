@@ -10,8 +10,8 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.impl.AxiomStatementSource;
-import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 public abstract class AbstractReactorTest extends AbstractUnitTest {

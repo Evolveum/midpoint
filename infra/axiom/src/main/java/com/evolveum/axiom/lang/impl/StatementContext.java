@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;

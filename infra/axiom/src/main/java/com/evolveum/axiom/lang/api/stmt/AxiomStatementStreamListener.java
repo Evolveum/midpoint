@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public interface AxiomStatementStreamListener {
 

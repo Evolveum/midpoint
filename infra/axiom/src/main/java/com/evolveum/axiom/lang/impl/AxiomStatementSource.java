@@ -27,6 +27,7 @@ import com.evolveum.axiom.lang.antlr.AxiomLexer;
 import com.evolveum.axiom.lang.antlr.AxiomParser;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class AxiomStatementSource implements AxiomModelInfo, AxiomIdentifierResolver {
 

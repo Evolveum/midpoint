@@ -5,39 +5,14 @@ model axiom-lang {
     root model {
         documentation """
             Axiom Model
+
+            Declares a new axiom model.
             """;
         type AxiomModel;
     }
 
-    type AxiomImportDeclaration {
-        argument prefix;
-
-        item prefix {
-            type AxiomIdentifier;
-        }
-
-        item namespace {
-            type string;
-        }
-    }
-
     type AxiomModel {
         extends AxiomBaseDefinition;
-        
-        item import {
-            type AxiomImportDeclaration;
-        }
-
-        item root {
-            type AxiomRootDefinition;
-        }
-
-        item type {
-            documentation """
-                Type Declaration
-            """;
-            type AxiomTypeDefinition;
-        }
 
         item namespace {
             type string;
@@ -46,6 +21,32 @@ model axiom-lang {
         item version {
             type string;
         }
+
+        item import {
+            type AxiomImportDeclaration;
+        }
+
+        item root {
+            documentation """
+              Root Definition
+
+              Root Definition defines allowed root for serialized documents
+              modeled by Axiom language.
+            """;
+            type AxiomRootDefinition;
+        }
+
+        item type {
+            documentation """
+                Type Declaration
+
+                type statement declares a new global type, which is available
+                to model items.
+            """;
+            type AxiomTypeDefinition;
+        }
+
+
 
         // TODO move to prism schema; consider renaming to objectType?
         item object {
@@ -67,7 +68,19 @@ model axiom-lang {
             type PrismItemDefinition;
         }
     }
-    
+
+    type AxiomImportDeclaration {
+        argument prefix;
+
+        item prefix {
+            type AxiomIdentifier;
+        }
+
+        item namespace {
+            type string;
+        }
+    }
+
     type AxiomRootDefinition {
         extends AxiomItemDefinition;
         identifier name {
@@ -86,7 +99,7 @@ model axiom-lang {
         item documentation {
             type string;
         }
-        
+
         item since {
             type SemanticVersion;
         }
@@ -97,7 +110,7 @@ model axiom-lang {
         //    type string;
         //}
     }
-    
+
     type AxiomIdentifierDefinition {
          argument key;
          item key {
@@ -127,7 +140,7 @@ model axiom-lang {
         }
 
         item extends {
-            type AxiomTypeReference; 
+            type AxiomTypeReference;
         }
 
         item identifier {
@@ -196,7 +209,7 @@ model axiom-lang {
     type SemanticVersion {
         extends string;
     }
-    
+
     // TODO move to prism schema; probably should be prism:ObjectDefinition
     type PrismObjectDefinition {
         extends AxiomTypeDefinition;

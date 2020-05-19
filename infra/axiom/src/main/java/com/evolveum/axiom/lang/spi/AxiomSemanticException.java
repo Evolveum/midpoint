@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.spi;
 
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.stmt.SourceLocation;
@@ -35,7 +35,6 @@ public class AxiomSemanticException extends RuntimeException {
         if(!check) {
             throw new AxiomSemanticException(start + Strings.lenientFormat(format, arguments));
         }
-        ;
     }
 
 }

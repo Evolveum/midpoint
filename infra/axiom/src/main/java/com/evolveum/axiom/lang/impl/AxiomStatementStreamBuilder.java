@@ -15,6 +15,7 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
 import com.evolveum.axiom.lang.api.stmt.SourceLocation;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.google.common.collect.Iterables;
 
 

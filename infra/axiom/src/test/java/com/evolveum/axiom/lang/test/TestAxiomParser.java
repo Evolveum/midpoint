@@ -29,9 +29,8 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 
 import com.evolveum.axiom.lang.impl.AxiomStatementSource;
-
-import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 public class TestAxiomParser extends AbstractReactorTest {

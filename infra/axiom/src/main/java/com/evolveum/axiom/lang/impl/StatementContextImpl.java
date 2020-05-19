@@ -18,6 +18,7 @@ import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
 public abstract class StatementContextImpl<V> implements StatementContext<V>, StatementTreeBuilder, IdentifierSpaceHolder {
 
