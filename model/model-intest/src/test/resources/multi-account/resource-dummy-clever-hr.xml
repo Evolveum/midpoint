@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- Clever HR resource. It has one account for every work contract. One of these contracts is the primary one. -->
+<!-- MID-6080 -->
+
+<resource oid="4b20aab4-99d2-11ea-b0ae-bfae68238f94"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource Clever HR</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>clever-hr</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <expression>
+                        <script>
+                            <code>basic.getIdentifierValue(projection)</code>
+                        </script>
+                    </expression>
+                </tag>
+            </multiplicity>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Contract number</displayName>
+                <description>
+                    Employee number is number of the primary employment contract
+                </description>
+                <inbound>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                    <condition>
+                        <trace>true</trace>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:firstName</ref>
+                <inbound>
+                    <target>
+                        <path>$focus/givenName</path>
+                    </target>
+                    <condition>
+                        <trace>true</trace>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastName</ref>
+                <inbound>
+                    <target>
+                        <path>$focus/familyName</path>
+                    </target>
+                    <condition>
+                        <trace>true</trace>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+                <inbound>
+                    <expression>
+                        <trace>true</trace>
+                        <script>
+                            <!-- Why this does not work?
+                                lastName.toLowerCase() + iterationToken -->
+                            <code>input.toLowerCase()</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>$focus/name</path>
+                    </target>
+                    <condition>
+                        <trace>true</trace>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:personalNumber</ref>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$focus/extension/personalNumber</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <inbound>
+                    <name>MMMlocation</name>
+                    <trace>true</trace>
+                    <strength>strong</strength>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                    <condition>
+                        <trace>true</trace>
+                        <script>
+                            <code>basic.getAttributeValue(projection, "primary")</code>
+                        </script>
+                    </condition>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ou</ref>
+                <inbound>
+                    <description>
+                        Normal mapping to a multi-value user attribute.
+                        Therefore organizationalUnit should have values from all the accounts.
+                    </description>
+                    <target>
+                        <path>organizationalUnit</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <administrativeStatus>
+                    <inbound>
+                        <condition>
+                            <trace>true</trace>
+                            <script>
+                                <code>basic.getAttributeValue(projection, "primary")</code>
+                            </script>
+                        </condition>
+                    </inbound>
+                </administrativeStatus>
+                <validFrom>
+                    <inbound>
+                        <condition>
+                            <trace>true</trace>
+                            <script>
+                                <code>basic.getAttributeValue(projection, "primary")</code>
+                            </script>
+                        </condition>
+                    </inbound>
+                </validFrom>
+                <validTo>
+                    <inbound>
+                        <condition>
+                            <trace>true</trace>
+                            <script>
+                                <code>basic.getAttributeValue(projection, "primary")</code>
+                            </script>
+                        </condition>
+                    </inbound>
+                </validTo>
+            </activation>
+
+            <credentials>
+                <password>
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+
+    <synchronization>
+        <objectSynchronization>
+            <name>default account</name>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>extension/personalNumber</q:path>
+                    <expression>
+                        <path>$projection/attributes/personalNumber</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+
+</resource>
