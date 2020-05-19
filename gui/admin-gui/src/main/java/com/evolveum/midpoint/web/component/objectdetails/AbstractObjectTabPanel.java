@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,8 +22,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -109,9 +112,8 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
     protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
 
         try {
-            //FIXME : really always visible?
             ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
-            settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.VISIBLE);
+            settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.AUTO);
 
             Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());
             parentComponent.add(panel);

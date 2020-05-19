@@ -65,6 +65,7 @@
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestArchetypes"/>
             <class name="com.evolveum.midpoint.model.intest.archetypes.TestCollections"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMisc"/>
+            <class name="com.evolveum.midpoint.model.intest.misc.TestTracing"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestUuidNonUniqueName"/>
             <class name="com.evolveum.midpoint.model.intest.misc.TestMigration"/>
             <class name="com.evolveum.midpoint.model.intest.TestFunctions"/>
@@ -105,7 +106,8 @@
     </test>
     <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasic"/>
+            <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasicNew"/>
+            <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasicLegacy"/>
         </classes>
     </test>
     <test name="Password" preserve-order="true" parallel="false" verbose="10" enabled="true">
@@ -125,7 +127,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestLoggingConfiguration"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestBrokenResources"/>
             <class name="com.evolveum.midpoint.model.intest.negative.TestAssignmentErrors"/>
-            <class name="com.evolveum.midpoint.model.intest.negative.TestModelWebServiceNegative"/>
         </classes>
     </test>
     <test name="Manual" preserve-order="true" parallel="false" verbose="10">

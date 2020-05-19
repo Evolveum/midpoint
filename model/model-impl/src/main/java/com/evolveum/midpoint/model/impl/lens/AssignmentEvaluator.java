@@ -722,7 +722,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         if (oid == null) {
             LOGGER.trace("Resolving dynamic target ref");
-            if (targetRef.getFilter() == null){
+            if (targetRef.getFilter() == null) {
                 throw new SchemaException("The OID and filter are both null in assignment targetRef in "+segment.source);
             }
             return resolveTargetsFromFilter(targetClass, targetRef.getFilter(), segment, ctx, result);

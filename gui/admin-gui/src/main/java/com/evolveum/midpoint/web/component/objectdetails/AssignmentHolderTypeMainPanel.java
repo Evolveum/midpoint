@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.HistoryPageTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;

@@ -956,12 +956,12 @@ public class ChangeExecutor {
                 objectContext.addToExecutedDeltas(objectDeltaOp);
                 if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
                     TraceType trace = new ModelExecuteDeltaTraceType(prismContext)
-                            .delta(objectDeltaOp.clone().toLensObjectDeltaOperationType());     // todo kill operation result?
+                            .delta(objectDeltaOp.clone().toLensObjectDeltaOperationType()); // todo kill operation result?
                     result.addTrace(trace);
                 }
             } else {
                 if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
-                    LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta);    // todo
+                    LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta); // todo
                     TraceType trace = new ModelExecuteDeltaTraceType(prismContext)
                             .delta(objectDeltaOp.toLensObjectDeltaOperationType());
                     result.addTrace(trace);

@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +47,7 @@ import java.util.List;
 import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
 
 /**
- * @author mederly
+ * Evaluates "search" scripting expression.
  */
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
@@ -63,7 +62,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 
     public <T extends ObjectType> PipelineData evaluate(SearchExpressionType searchExpression, PipelineData input,
             ExecutionContext context, OperationResult globalResult)
-            throws ScriptExecutionException {
+            throws ScriptExecutionException, SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notNull(searchExpression.getType());
 
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
@@ -139,7 +138,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                         }
                         globalResult.setSummarizeSuccesses(true);
                         globalResult.summarize();
-                    } catch (ScriptExecutionException e) {
+                    } catch (ScriptExecutionException | SchemaException | ConfigurationException | ObjectNotFoundException | CommunicationException | SecurityViolationException | ExpressionEvaluationException e) {
                         // todo think about this
                         if (context.isContinueOnAnyError()) {
                             LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);

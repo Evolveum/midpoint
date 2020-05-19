@@ -76,8 +76,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath) {
-        if (StringUtils.isEmpty(itemPath)) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath, ExpressionType expression) {
+        if (StringUtils.isEmpty(itemPath) && expression == null) {
             return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel) {
                 private static final long serialVersionUID = 1L;
 
@@ -94,7 +94,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             };
         } else {
             return new ObjectNameColumn<O>(columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
-                    itemPath) {
+                    itemPath, expression, getPageBase()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override

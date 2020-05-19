@@ -38,7 +38,7 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
 //    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
-    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
+    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:origValueWithButton:origValue:input";
     private static final String FORM_SAVE = "save";
 
     private static final String NEW_ORG_NAME = "A-newOrg";                  // starts with "A" to be alphabetically first

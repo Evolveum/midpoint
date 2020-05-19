@@ -22,7 +22,6 @@
     <name>midPoint Testing Infrastructure</name>
 
     <modules>
-        <module>sanity</module>
         <!--
         The following modules skip tests by default, but we ALWAYS want to build the sources.
         That's why we don't want to add modules optionally based on profile.

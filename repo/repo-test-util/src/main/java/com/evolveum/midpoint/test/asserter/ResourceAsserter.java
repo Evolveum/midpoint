@@ -10,6 +10,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.prism.Containerable.asPrismContainerValue;
 
+import static org.testng.AssertJUnit.assertNull;
+
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -87,6 +89,12 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType, RA> 
     public ResourceAsserter<RA> assertHasSchema() {
         Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
         assertNotNull("No schema in " + desc(), schemaElement);
+        return this;
+    }
+
+    public ResourceAsserter<RA> assertHasNoSchema() {
+        Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
+        assertNull("Schema present in " + desc(), schemaElement);
         return this;
     }
 

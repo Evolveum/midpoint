@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
-    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
+    private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:origValueWithButton:origValue:input";
     private static final String FORM_SAVE = "save";
 
     @Override

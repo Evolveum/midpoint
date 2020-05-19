@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.test;
 
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
@@ -128,7 +129,6 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
 /**
@@ -164,7 +164,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected ModelDiagnosticService modelDiagnosticService;
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
-    @Autowired protected ModelPortType modelWeb;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -1660,6 +1659,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         AssignmentType assignmentType = new AssignmentType();
         assignmentType.setPolicyRule(policyRule);
         assign(type, focusOid, assignmentType, task, result);
+    }
+
+    protected void assign(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+            Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
+                .item(UserType.F_ASSIGNMENT)
+                    .add(ObjectTypeUtil.createAssignmentTo(assigned.object, relation))
+                .asObjectDelta(assignee.oid);
+        executeChanges(delta, options, task, result);
+    }
+
+    protected void unassignIfSingle(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
+            Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
+            ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
+        List<AssignmentType> assignments = ((AssignmentHolderType) assignee.getObjectable()).getAssignment().stream()
+                .filter(a -> a.getTargetRef() != null && assigned.oid.equals(a.getTargetRef().getOid())
+                        && QNameUtil.match(a.getTargetRef().getRelation(), relation))
+                .collect(Collectors.toList());
+        assertThat(assignments).size().as("# of assignments of " + assigned).isEqualTo(1);
+        AssignmentType assignment = MiscUtil.extractSingleton(assignments);
+        ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
+                .item(UserType.F_ASSIGNMENT)
+                    .delete(assignment.clone())
+                .asObjectDelta(assignee.oid);
+        executeChanges(delta, options, task, result);
     }
 
     protected <F extends FocusType> void assign(Class<F> type, String focusOid,
@@ -3880,9 +3905,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         taskManager.addTask(prismContext.parseObject(file), new OperationResult("addTask"));
     }
 
-    protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> String addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = prismContext.parseObject(file);
-        addObject(object);
+        return addObject(object);
     }
 
     protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -5980,14 +6005,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertResource(resource, message);
     }
 
-    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> user, String message) {
-        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(user, message);
+    protected ResourceAsserter<Void> assertResource(PrismObject<ResourceType> resource, String message) {
+        ResourceAsserter<Void> asserter = ResourceAsserter.forResource(resource, message);
         initializeAsserter(asserter);
         return asserter;
     }
 
     protected ResourceAsserter<Void> assertResourceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         return assertResource(oid, "after")
+                .display();
+    }
+
+    protected ResourceAsserter<Void> assertResourceBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return assertResource(oid, "before")
                 .display();
     }
 

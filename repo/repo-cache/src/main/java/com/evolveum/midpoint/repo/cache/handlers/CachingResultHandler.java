@@ -65,6 +65,7 @@ final class CachingResultHandler<T extends ObjectType> implements ResultHandler<
             } else {
                 CachePerformanceCollector.INSTANCE.registerOverSizedQuery(type);
                 overflown = true;
+                objects.clear();
             }
         }
 

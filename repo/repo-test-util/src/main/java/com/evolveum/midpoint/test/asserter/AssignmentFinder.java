@@ -30,6 +30,7 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
     private String targetOid;
     private QName targetType;
     private QName targetRelation;
+    private String resourceOid;
 
     public AssignmentFinder(AssignmentsAsserter<F,FA,RA> assignmentsAsserter) {
         this.assignmentsAsserter = assignmentsAsserter;
@@ -50,12 +51,16 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
         return this;
     }
 
+    public AssignmentFinder<F,FA,RA> resourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
+        return this;
+    }
+
     public AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> find() throws ObjectNotFoundException, SchemaException {
         AssignmentType found = null;
         PrismObject<?> foundTarget = null;
         for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
             PrismObject<ShadowType> assignmentTarget = null;
-//            PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
             if (matches(assignment, assignmentTarget)) {
                 if (found == null) {
                     found = assignment;
@@ -125,6 +130,12 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
             }
         }
 
+        if (resourceOid != null) {
+            if (assignment.getConstruction() == null || assignment.getConstruction().getResourceRef() == null
+                    || !resourceOid.equals(assignment.getConstruction().getResourceRef().getOid())) {
+                return false;
+            }
+        }
         // TODO: more criteria
         return true;
     }

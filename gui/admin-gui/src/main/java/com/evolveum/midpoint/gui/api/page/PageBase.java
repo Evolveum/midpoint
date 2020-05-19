@@ -15,6 +15,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
 import com.evolveum.midpoint.web.page.admin.certification.*;
@@ -71,19 +73,18 @@ import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -2678,7 +2679,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AsyncWebProcessManager getAsyncWebProcessManager() {
         return MidPointApplication.get().getAsyncWebProcessManager();
     }
-
     @Override
     public Locale getLocale() {
         return getSession().getLocale();
@@ -2697,7 +2697,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
 
-        ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
+        ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);
 
         return factory.createValueWrapper(parentWrapper, newValue, status, context);
 
@@ -2705,19 +2705,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
+        PrismContainerWrapperFactory<?> factory = registry.findContainerWrapperFactory(parent.getDefinition());
         ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
-        return factory.createWrapper(parent, def, ctx);
+        return (IW) factory.createWrapper(parent, def, ctx);
 
     }
 
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
+        ItemWrapperFactory<IW, ?,?> factory = registry.findWrapperFactory(item.getDefinition());
 
         ctx.setCreateIfEmpty(true);
-        return factory.createWrapper(item, status, ctx);
+        return factory.createWrapper(null, item, status, ctx);
 
     }
 
@@ -2744,7 +2744,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model,
+    public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
         return new PrismContainerValuePanel<>(id, model, settings);

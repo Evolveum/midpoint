@@ -157,21 +157,12 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
                 PageBase pageBase = CaseWorkItemActionsPanel.this.getPageBase();
                 pageBase.hideMainPopup(target);
-                ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(),
-                        createStringResource("CaseWorkItemActionsPanel.forwardConfirmationMessage", user.getName().getOrig())){
-                    private static final long serialVersionUID = 1L;
+                forwardConfirmedPerformed(target, user);
+            }
 
-                    @Override
-                    public void yesPerformed(AjaxRequestTarget target) {
-                        forwardConfirmedPerformed(target, user);
-                    }
-
-                    @Override
-                    public StringResourceModel getTitle() {
-                        return new StringResourceModel("CaseWorkItemActionsPanel.forwardConfirmationTitle");
-                    }
-                };
-                pageBase.showMainPopup(confirmationPanel, target);
+            @Override
+            protected IModel<String> getWarningMessageModel(){
+                return getPageBase().createStringResource("CaseWorkItemActionsPanel.forwardWarningMessage");
             }
 
         };

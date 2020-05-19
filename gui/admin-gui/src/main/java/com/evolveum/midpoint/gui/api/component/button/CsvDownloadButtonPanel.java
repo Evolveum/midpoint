@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component.button;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -15,8 +16,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.dialog.SelectExportingColumnsPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -39,6 +43,9 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     private static final String ID_EXPORT_DATA = "exportData";
 
     private final boolean canCountBeforeExporting;
+    List<Integer> exportableColumnsIndex = new ArrayList<>();
+
+    private IModel<List<Integer>> exportedColumnsIndex = Model.ofList(new ArrayList<>());
 
     public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
         super(id);
@@ -64,7 +71,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 }
                 try {
                     ((BaseSortableDataProvider) dataProvider).setExportSize(true);
-                    super.exportData(dataProvider, columns, outputStream);
+                    super.exportData(dataProvider, getExportableColumns(), outputStream);
                     ((BaseSortableDataProvider) dataProvider).setExportSize(false);
                 } catch (Exception ex){
                     LOGGER.error("Unable to export data,", ex);
@@ -132,23 +139,32 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                         askForSizeLimitConfirmation = true;     // size is unknown
                     }
                 }
+                Long useExportSizeLimit = null;
                 if (askForSizeLimitConfirmation) {
-                    ConfirmationPanel confirmationPanel = new ConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                            createStringResource("CsvDownloadButtonPanel.confirmationMessage", exportSizeLimit)) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void yesPerformed(AjaxRequestTarget target) {
-                            ajaxDownloadBehavior.initiate(target);
-                        }
-                    };
-                    getPageBase().showMainPopup(confirmationPanel, target);
-                } else {
-                    ajaxDownloadBehavior.initiate(target);
+                    useExportSizeLimit = exportSizeLimit;
                 }
+                SelectExportingColumnsPanel selectExportingColumnsPanel = new SelectExportingColumnsPanel(getPageBase().getMainPopupBodyId(),
+                        getDataTable(), exportableColumnsIndex, useExportSizeLimit) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void exportPerformed(AjaxRequestTarget target) {
+                        ajaxDownloadBehavior.initiate(target);
+                    }
+                };
+                getPageBase().showMainPopup(selectExportingColumnsPanel, target);
             }
         };
         add(exportDataLink);
+    }
+
+    private <T> List<IExportableColumn<T, ?>> getExportableColumns() {
+        List<IExportableColumn<T, ?>> exportableColumns = new ArrayList<>();
+        List<? extends IColumn<?, ?>> allColumns = getDataTable().getColumns();
+        for (Integer index : exportableColumnsIndex) {
+            exportableColumns.add((IExportableColumn) allColumns.get(index));
+        }
+        return exportableColumns;
     }
 
     protected abstract DataTable<?,?> getDataTable();

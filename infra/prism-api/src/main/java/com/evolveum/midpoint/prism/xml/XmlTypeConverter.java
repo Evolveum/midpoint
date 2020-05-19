@@ -190,9 +190,18 @@ public class XmlTypeConverter {
     }
 
     public static XMLGregorianCalendar fromNow(Duration duration) {
-        XMLGregorianCalendar rv = createXMLGregorianCalendar(System.currentTimeMillis());
+        return fromNow(System.currentTimeMillis(), duration);
+    }
+
+    public static XMLGregorianCalendar fromNow(long now, Duration duration) {
+        XMLGregorianCalendar rv = createXMLGregorianCalendar(now);
         rv.add(duration);
         return rv;
+    }
+
+    public static long toMillis(Duration duration) {
+        long now = System.currentTimeMillis();
+        return toMillis(fromNow(now, duration)) - now;
     }
 
     public static Duration createDuration(long durationInMilliSeconds) {

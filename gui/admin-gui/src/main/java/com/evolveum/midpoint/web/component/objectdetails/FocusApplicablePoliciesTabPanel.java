@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.assignment.ApplicablePolicyConfigPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;

@@ -94,6 +94,10 @@ public enum PageUrlMapping {
     REST("/ws/rest/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_REST_ALL_URL,
                     "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")
+    }),
+    REST2("/rest2/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_REST_ALL_URL,
+                    "RestEndpoint.authRest.all.label", "RestEndpoint.authRest.all.description")
     });
 
     private String url;

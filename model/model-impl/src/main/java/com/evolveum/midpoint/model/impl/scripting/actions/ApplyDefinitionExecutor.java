@@ -7,64 +7,65 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ApplyDefinitionActionExpressionType;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Applies definitions to relevant objects. Currently supports ShadowType and ResourceType
+ * that are given definitions by provisioning module.
  */
 @Component
-public class ApplyDefinitionExecutor extends BaseActionExecutor {
-
-    //private static final Trace LOGGER = TraceManager.getTrace(ReencryptExecutor.class);
+public class ApplyDefinitionExecutor extends AbstractObjectBasedActionExecutor<ObjectType> {
 
     private static final String NAME = "apply-definition";
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, ApplyDefinitionActionExpressionType.class, this);
     }
 
     @Override
-    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input,
+            ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        for (PipelineItem item: input.getData()) {
-            PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
-            context.checkTaskStop();
-            if (value instanceof PrismObjectValue) {
-                @SuppressWarnings({"unchecked", "raw"})
-                PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
-                ObjectType objectBean = prismObject.asObjectable();
-                if (objectBean instanceof ShadowType || objectBean instanceof ResourceType) {
-                    try {
-                        provisioningService.applyDefinition(prismObject, context.getTask(), result);
-                        result.computeStatus();
-                    } catch (Throwable ex) {
-                        result.recordFatalError("Couldn't reencrypt object", ex);
-                        Throwable exception = processActionException(ex, NAME, value, context);
-                        context.println("Couldn't apply definition to " + prismObject.toString() + exceptionSuffix(exception));
-                    }
-                }
-            } else {
-                //noinspection ThrowableNotThrown
-                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
-            }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
-        }
+        iterateOverObjects(input, context, globalResult,
+                (object, item, result) ->
+                        applyDefinition(object.asObjectable(), context, result),
+                (object, exception) ->
+                        context.println("Failed to apply definition to " + object + exceptionSuffix(exception))
+        );
+
         return input;
+    }
+
+    private void applyDefinition(ObjectType object, ExecutionContext context, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        if (object instanceof ShadowType || object instanceof ResourceType) {
+            provisioningService.applyDefinition(object.asPrismObject(), context.getTask(), result);
+            context.println("Applied definition to " + object);
+        }
+    }
+
+    @Override
+    protected Class<ObjectType> getObjectType() {
+        return ObjectType.class;
+    }
+
+    @Override
+    protected String getActionName() {
+        return NAME;
     }
 }
