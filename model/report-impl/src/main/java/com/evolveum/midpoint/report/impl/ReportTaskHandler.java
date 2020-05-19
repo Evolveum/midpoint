@@ -20,8 +20,10 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.DashboardEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.EngineController;
+import com.evolveum.midpoint.report.impl.controller.export.CsvExporterController;
 import com.evolveum.midpoint.report.impl.controller.export.ExportController;
 import com.evolveum.midpoint.report.impl.controller.export.HtmlExportController;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -129,42 +131,6 @@ public class ReportTaskHandler implements TaskHandler {
             }
             result.computeStatus();
 
-////            if (parentReport.getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
-////                parentReport.getJasper().setExport(JasperExportType.HTML);
-////                return super.run(task, partition);
-////
-////            } else if (parentReport.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
-//
-//                if (parentReport.getDashboard() != null && parentReport.getDashboard().getDashboardRef() != null) {
-//                    ObjectReferenceType ref = parentReport.getDashboard().getDashboardRef();
-//                    Class<ObjectType> type = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-//                    Task taskSearchDashboard = taskManager.createTaskInstance("Search dashboard");
-//                    DashboardType dashboard = (DashboardType) modelService
-//                            .getObject(type, ref.getOid(), null, taskSearchDashboard, taskSearchDashboard.getResult())
-//                            .asObjectable();
-//                    ClassLoader classLoader = getClass().getClassLoader();
-//                    InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
-//                    if (in == null) {
-//                        throw new IllegalStateException("Resource " + REPORT_CSS_STYLE_FILE_NAME + " couldn't be found");
-//                    }
-//                    byte[] data = IOUtils.toByteArray(in);
-//                    String style = new String(data, Charset.defaultCharset());
-//
-//                    String reportFilePath = getDestinationFileName(parentReport);
-//                    FileUtils.writeByteArrayToFile(new File(reportFilePath), getBody(dashboard, style, task, result).getBytes());
-//                    super.saveReportOutputType(reportFilePath, parentReport, task, result);
-//                    LOGGER.trace("create report output type : {}", reportFilePath);
-//
-//                    if (parentReport.getPostReportScript() != null) {
-//                        super.processPostReportScript(parentReport, reportFilePath, task, result);
-//                    }
-//                    result.computeStatus();
-//                } else {
-//                    LOGGER.error("Dashboard or DashboardRef is null");
-//                    throw new IllegalArgumentException("Dashboard or DashboardRef is null");
-//                }
-//
-////            }
         } catch (Exception ex) {
             LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
             result.recordFatalError(ex.getMessage(), ex);
@@ -182,6 +148,9 @@ public class ReportTaskHandler implements TaskHandler {
         if (parentReport.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
             return new DashboardEngineController(reportService);
         }
+        if (parentReport.getReportEngine().equals(ReportEngineSelectionType.COLLECTION)) {
+            return new CollectionEngineController(reportService);
+        }
         LOGGER.error("Dashboard or DashboardRef is null");
         throw new IllegalArgumentException("Dashboard or DashboardRef is null");
     }
@@ -196,6 +165,8 @@ public class ReportTaskHandler implements TaskHandler {
         switch (export.getType()) {
             case HTML:
                 return new HtmlExportController(export, reportService);
+            case CSV:
+                return new CsvExporterController(export, reportService);
             default:
                 LOGGER.error("Unsupported ExportType " + export);
                 throw new IllegalArgumentException("Unsupported ExportType " + export);

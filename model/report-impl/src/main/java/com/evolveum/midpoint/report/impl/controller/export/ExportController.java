@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.report.impl.controller.export;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
@@ -24,7 +20,6 @@ import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -32,11 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.namespace.QName;
 import java.text.SimpleDateFormat;
@@ -88,7 +79,7 @@ public abstract class ExportController {
 
     public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception;
 
-    public abstract byte[] processView() throws Exception;
+    public abstract byte[] processCollection(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception;
 
     protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
         try {
@@ -179,7 +170,7 @@ public abstract class ExportController {
         StringBuilder sb = new StringBuilder();
         values.forEach(value -> {
             if (!sb.toString().isEmpty()) {
-                appendNewLine(sb);
+                appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
                 Object realObject = ((PrismPropertyValue) value).getRealValue();
@@ -215,7 +206,7 @@ public abstract class ExportController {
         return object.getName().getOrig();
     }
 
-    protected abstract void appendNewLine(StringBuilder sb);
+    protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
     private String evaluateExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;

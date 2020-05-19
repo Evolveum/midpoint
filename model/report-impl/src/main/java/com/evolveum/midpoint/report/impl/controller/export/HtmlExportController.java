@@ -101,20 +101,22 @@ public class HtmlExportController extends ExportController {
                 CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
                 getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
 
-                if(!useDefaultColumn(widget)) {
+                if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
                     getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
                 }
+
                 QName collectionType = collection.getAuditSearch() != null ? AuditEventRecordType.COMPLEX_TYPE : collection.getType();
                 GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
                 if (reportView != null) {
                     getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
                 }
+
                 switch (sourceType) {
                     case OBJECT_COLLECTION:
-                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collection, compiledCollection, task, result);
+                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collection, compiledCollection, false, task, result);
                         break;
                     case AUDIT_SEARCH:
-                        tableBox = createTableBoxForAuditView(widgetData.getLabel(), collection, compiledCollection, task, result);
+                        tableBox = createTableBoxForAuditView(widgetData.getLabel(), collection, compiledCollection, false, task, result);
                         break;
                 }
                 if (tableBox != null) {
@@ -148,8 +150,53 @@ public class HtmlExportController extends ExportController {
     }
 
     @Override
-    public byte[] processView() throws Exception {
-        return new byte[0];
+    public byte[] processCollection(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
+        ObjectReferenceType ref = collectionConfig.getCollection().getCollectionRef();
+        Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
+        ObjectCollectionType collection = (ObjectCollectionType) getReportService().getModelService()
+                .getObject(type, ref.getOid(), null, task, result)
+                .asObjectable();
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
+        if (in == null) {
+            throw new IllegalStateException("Resource " + REPORT_CSS_STYLE_FILE_NAME + " couldn't be found");
+        }
+        byte[] data = IOUtils.toByteArray(in);
+        String cssStyle = new String(data, Charset.defaultCharset());
+
+        StringBuilder body = new StringBuilder();
+        body.append("<div> <style> ").append(cssStyle).append(" </style>");
+
+
+        CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
+        getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+
+        GuiObjectListViewType reportView = collectionConfig.getView();
+        if (reportView != null) {
+            getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
+        }
+
+        String label;
+        if (compiledCollection.getDisplay() != null && StringUtils.isEmpty(compiledCollection.getDisplay().getLabel().getOrig())) {
+            label = compiledCollection.getDisplay().getLabel().getOrig();
+        } else {
+            label = collection.getName().getOrig();
+        }
+
+        ContainerTag tableBox;
+        boolean isAuditCollection = collection.getAuditSearch() != null ? true : false;
+        if (!isAuditCollection) {
+            tableBox = createTableBoxForObjectView(label, collection, compiledCollection, true, task, result);
+        } else {
+            tableBox = createTableBoxForAuditView(label, collection, compiledCollection, true, task, result);
+        }
+
+        body.append(tableBox.render());
+
+        body.append("</div>");
+
+        return body.toString().getBytes();
     }
 
     private ContainerTag createTable() {
@@ -158,12 +205,13 @@ public class HtmlExportController extends ExportController {
 
     private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<PrismObject<ObjectType>> values,
             PrismObjectDefinition<ObjectType> def, Class<? extends ObjectType> type,
-            Task task, OperationResult result) {
+            boolean recordProgress, Task task, OperationResult result) {
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
         List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
+
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
             ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
@@ -186,11 +234,17 @@ public class HtmlExportController extends ExportController {
                 }
             }
             trForHead.with(th);
+
         });
         tHead.with(trForHead);
         table.with(tHead);
 
-        values.forEach(value -> {
+        int i = 0;
+        if (recordProgress) {
+            task.setExpectedTotal((long) values.size());
+            recordProgress(task, i, result, LOGGER);
+        }
+        for (PrismObject<ObjectType> value : values) {
             ContainerTag tr = TagCreator.tr();
             columns.forEach(column -> {
                 ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
@@ -200,13 +254,17 @@ public class HtmlExportController extends ExportController {
                                 .withStyle("white-space: pre-wrap")));
             });
             tBody.with(tr);
-        });
+            if (recordProgress) {
+                i++;
+                recordProgress(task, i, result, LOGGER);
+            }
+        }
         table.with(tBody);
         return table;
     }
 
-    private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecord> records, Task task,
-            OperationResult result) {
+    private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecord> records, boolean recordProgress,
+            Task task, OperationResult result) {
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
@@ -236,7 +294,12 @@ public class HtmlExportController extends ExportController {
         tHead.with(trForHead);
         table.with(tHead);
 
-        records.forEach(record -> {
+        int i = 0;
+        if (recordProgress) {
+            task.setExpectedTotal((long) records.size());
+            recordProgress(task, i, result, LOGGER);
+        }
+        for (AuditEventRecord record : records) {
             ContainerTag tr = TagCreator.tr();
             columns.forEach(column -> {
                 ExpressionType expression = column.getExpression();
@@ -246,7 +309,11 @@ public class HtmlExportController extends ExportController {
                                 .withStyle("white-space: pre-wrap")));
             });
             tBody.with(tr);
-        });
+            if (recordProgress) {
+                i++;
+                recordProgress(task, i, result, LOGGER);
+            }
+        }
         table.with(tBody);
         return table;
     }
@@ -270,7 +337,7 @@ public class HtmlExportController extends ExportController {
     }
 
     private ContainerTag createTableBoxForObjectView(String label, ObjectCollectionType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            boolean recordProgress, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
         Class<ObjectType> type = (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
@@ -278,22 +345,26 @@ public class HtmlExportController extends ExportController {
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
         List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, true, options, task, result);
         if (values == null || values.isEmpty()) {
-            return null;
+            if (recordProgress) {
+                values = new ArrayList<>();
+            } else {
+                return null;
+            }
         }
-        PrismObjectDefinition<ObjectType> def = values.get(0).getDefinition();
-        //noinspection unchecked
+        PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionsByCompileTimeClass(type, PrismObjectDefinition.class).get(0);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultColumns(type));
         }
-        ContainerTag table = createTable(compiledCollection, values, def, type, task, result);
+
+        ContainerTag table = createTable(compiledCollection, values, def, type, recordProgress, task, result);
         DisplayType display = compiledCollection.getDisplay();
         return createTableBox(table, label, values.size(),
                 convertMillisToString(startMillis), display);
     }
 
     private ContainerTag createTableBoxForAuditView(String label, ObjectCollectionType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            boolean recordProgress, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> parameters = new HashMap<>();
         long startMillis = getReportService().getClock().currentTimeMillis();
@@ -304,26 +375,10 @@ public class HtmlExportController extends ExportController {
             return null;
         }
 
-//        ContainerTag table = createTable();
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
         }
-//        if(!useDefaultColumn(widget)) {
-//            table = createTable(widget.getPresentation().getView(), records, task, result);
-//            display = widget.getPresentation().getView().getDisplay();
-//        } else {
-//            table.with(createTHead(getHeadsOfAuditEventRecords()));
-//            ContainerTag tBody = TagCreator.tbody();
-//            records.forEach(record -> {
-//                ContainerTag tr = TagCreator.tr();
-//                getHeadsOfAuditEventRecords().forEach(column -> {
-//                    tr.with(TagCreator.th(TagCreator.div(getStringForColumnOfAuditRecord(column, record, null)).withStyle("white-space: pre-wrap")));
-//                });
-//                tBody.with(tr);
-//            });
-//            table.with(tBody);
-//        }
-        ContainerTag table = createTable(compiledCollection, records, task, result);
+        ContainerTag table = createTable(compiledCollection, records, recordProgress, task, result);
         DisplayType display = compiledCollection.getDisplay();
         return createTableBox(table, label, records.size(),
                 convertMillisToString(startMillis), display);
@@ -333,8 +388,6 @@ public class HtmlExportController extends ExportController {
         return TagCreator.thead(TagCreator.tr(TagCreator.each(set,
                 header -> TagCreator.th(TagCreator.div(TagCreator.span(getMessage(prefix+header)).withClass("sortableLabel")))))
                     .withStyle("width: 100%;"));
-//                header -> TagCreator.th(TagCreator.div(TagCreator.span(getMessage(prefix+header)).withClass("sortableLabel")))
-//                        .withStyle(getStyleForColumn(header)))).withStyle("width: 100%;"));
     }
 
     private ContainerTag createTBodyRow(DashboardWidget data) {
@@ -365,18 +418,17 @@ public class HtmlExportController extends ExportController {
         return TagCreator.th();
     }
 
-    private boolean useDefaultColumn(DashboardWidgetType widget) {
-        return widget.getPresentation() == null || widget.getPresentation().getView() == null
-                || widget.getPresentation().getView().getColumn() == null || widget.getPresentation().getView().getColumn().isEmpty();
-    }
-
     private String convertMillisToString(long millis) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", Locale.getDefault());
         return dateFormat.format(millis);
     }
 
-    protected void appendNewLine(StringBuilder body) {
+    private void appendNewLine(StringBuilder body) {
         body.append("<br>");
+    }
+
+    protected void appendMultivalueDelimiter(StringBuilder body) {
+        appendNewLine(body);
     }
 
     @Override

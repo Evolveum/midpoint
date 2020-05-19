@@ -22963,13 +22963,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="objectCollection">
+            <xsd:enumeration value="collection">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object collection reports. The reports will be based on a object collection.
+                        Collection reports. The reports will be based on a collection.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION"/>
+                        <jaxb:typesafeEnumMember name="COLLECTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23044,8 +23044,16 @@
         <xsd:complexContent>
             <xsd:extension base="c:AbstractExportType">
                 <xsd:sequence>
-                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=","/>
+                    <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=";"/>
+                    <xsd:element name="escape" type="xsd:string" minOccurs="0" maxOccurs="1" default="\"/>
+                    <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="1" default="&quot;"/>
+                    <xsd:element name="quoteMode" type="xsd:string" minOccurs="0" maxOccurs="1" default="MINIMAL"/>
+                    <xsd:element name="recordSeparator" type="xsd:string" minOccurs="0" maxOccurs="1" default="&#13;&#10;"/>
+                    <xsd:element name="trailingDelimiter" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+                    <xsd:element name="trim" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+                    <xsd:element name="createHeader" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true"/>
+                    <xsd:element name="encoding" type="xsd:string" minOccurs="0" maxOccurs="1" default="utf-8"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
