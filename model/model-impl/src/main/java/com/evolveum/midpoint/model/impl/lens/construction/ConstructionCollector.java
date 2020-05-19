@@ -77,9 +77,11 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
         for (AC construction : constructions) {
             LOGGER.trace("Collecting evaluated constructions from construction:\n{}", construction.debugDumpLazily(1));
             DeltaSetTriple<EC> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
-            collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getZeroSet(), mode1, mode2, PlusMinusZero.ZERO);
-            collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getPlusSet(), mode1, mode2, PlusMinusZero.PLUS);
-            collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getMinusSet(), mode1, mode2, PlusMinusZero.MINUS);
+            if (evaluatedConstructionTriple != null) {
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getZeroSet(), mode1, mode2, PlusMinusZero.ZERO);
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getPlusSet(), mode1, mode2, PlusMinusZero.PLUS);
+                collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getMinusSet(), mode1, mode2, PlusMinusZero.MINUS);
+            }
         }
     }
 

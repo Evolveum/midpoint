@@ -93,8 +93,6 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                 projectionOdo = getProjectionContext().getObjectDeltaObject();
             }
 
-            LOGGER.info("XXXX: projectionOdo for {}:\n{}", getProjectionContext().getResourceShadowDiscriminator(), projectionOdo.debugDump(1));
-
             String mappingShortDesc = "outbound mapping for " +
                     PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName()) + " in " + getProjectionContext().getResource();
             MappingImpl.Builder<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> builder =

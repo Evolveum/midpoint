@@ -399,11 +399,9 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
     protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
-        LOGGER.info("XXXX: tagTriple\n{}", DebugUtil.debugDump(tagTriple));
-
         evaluatedConstructionTriple = getPrismContext().deltaFactory().createDeltaSetTriple();
 
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
         if (tagTriple == null) {
             // Singleaccount case (not multiaccount). We just create a simple EvaluatedConstruction
             EC evaluatedConstruction = createEvaluatedConstruction((String)null);
@@ -413,8 +411,6 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
 
             tagTriple.transform(evaluatedConstructionTriple, tag -> createEvaluatedConstruction(tag.getRealValue()));
         }
-
-        LOGGER.info("XXXX: evaluatedConstructionTriple\n{}", DebugUtil.debugDump(evaluatedConstructionTriple));
     }
 
 

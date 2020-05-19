@@ -12,6 +12,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
+import java.util.Collections;
+
 /**
  * @author semancik
  *
@@ -23,8 +25,8 @@ public class PersonaConstruction<AH extends AssignmentHolderType> extends Abstra
     }
 
     public DeltaSetTriple<EvaluatedPersonaConstructionImpl<AH>> getEvaluatedConstructionTriple() {
-        // TODO: return single evaluated construction in zero set?
-        return null;
+        EvaluatedPersonaConstructionImpl<AH> evaluatedConstruction = new EvaluatedPersonaConstructionImpl<>(this);
+        return getPrismContext().deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
     }
 
     @Override

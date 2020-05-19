@@ -156,7 +156,7 @@ public class PersonaProcessor {
                 evaluatedConstruction -> new PersonaKey(((PersonaConstruction<F>)evaluatedConstruction.getConstruction()).getConstructionType()),
                 consumer);
 
-        LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily());
+        LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily(1));
 
         List<FocusType> existingPersonas = readExistingPersonas(context, task, result);
         LOGGER.trace("existingPersonas:\n{}", existingPersonas);
