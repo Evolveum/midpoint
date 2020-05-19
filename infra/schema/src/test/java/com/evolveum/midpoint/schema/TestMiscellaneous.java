@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -20,9 +21,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-/**
- * @author mederly
- */
 public class TestMiscellaneous extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/misc");
@@ -86,4 +84,15 @@ public class TestMiscellaneous extends AbstractSchemaTest {
         assertEquals("Wrong property values after", propertyValuesBefore.intValue() - 6, propertyValuesAfter.intValue());
     }
 
+    /**
+     * MID-6256
+     */
+    @Test
+    public void testFilterInReferences() {
+        UserType user = new UserType(getPrismContext())
+                .linkRef("123", ShadowType.COMPLEX_TYPE);
+
+        ObjectReferenceType reference = user.getLinkRef().get(0);
+        assertThat(reference.getFilter()).as("filter in simple reference").isNull();
+    }
 }

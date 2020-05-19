@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
-import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;

@@ -10,27 +10,24 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -169,13 +166,12 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private List<ITab> createConfigurationTabs() {
-        final com.evolveum.midpoint.web.component.form.Form form = getForm();
         List<ITab> tabs = new ArrayList<>();
         PrismContainerWrapper<ConnectorConfigurationType> configuration = configurationModel.getObject();
         if (configuration == null) {
             return new ArrayList<>();
         }
-        PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue = null;
+        PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue;
         try {
             configurationValue = configuration.getValue();
         } catch (SchemaException e) {
@@ -190,13 +186,7 @@ public class ConfigurationStep extends WizardStep {
 
                 @Override
                 public WebMarkupContainer getPanel(String panelId) {
-                    try {
-                        return getPageBase().initItemPanel(panelId, wrapper.getTypeName(), Model.of(wrapper), null);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Cannot create panel for {}, reason: {}", wrapper.getTypeName(), e.getMessage(), e);
-                        getSession().error("Cannot create panel for " + wrapper.getTypeName() + ", reason: " + e.getMessage());
-                        return null;
-                    }
+                    return new SingleContainerPanel<>(panelId, Model.of(wrapper), wrapper.getTypeName());
                 }
             });
         }

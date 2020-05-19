@@ -12,6 +12,7 @@ import java.util.Map;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
 /**
  * @author semancik
@@ -54,4 +55,9 @@ public interface AuditService {
      */
     boolean supportsRetrieval();
 
+    /**
+     * Called when audit configuration is established or changed.
+     */
+    default void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
+    }
 }

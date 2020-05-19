@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.Panel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 
 public interface GuiComponentFactory<T extends ItemPanelContext>{
 //    public void register();
@@ -20,6 +22,10 @@ public interface GuiComponentFactory<T extends ItemPanelContext>{
     Panel createPanel(T panelCtx);
 
     Integer getOrder();
+
+    default void configure(T panelCtx, Component component) {
+//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+    }
 
 //    Panel build(PanelContext panelContext);
 

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrationTest {
 
     private static final String MAIN_FORM = "mainPanel:mainForm";
-    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
+    private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:valueForm:valueContainer:input:propertiesLabel:properties:1:property:values:0:value:valueForm:valueContainer:input:input";
     private static final String FORM_SAVE = "save";
 
     @Override
@@ -56,7 +56,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     public void test001testModifySystemConfig() throws Exception {
         renderPage();
 
-        tester.clickLink(MAIN_FORM + ":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
+        tester.clickLink(MAIN_FORM + ":tabPanel:panel:basicSystemConfiguration:values:0:value:valueForm:valueContainer:input:propertiesLabel:showEmptyButton");
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         String des = "new description";

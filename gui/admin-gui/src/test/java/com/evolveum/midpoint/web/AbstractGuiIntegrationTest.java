@@ -28,14 +28,14 @@ import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
@@ -225,15 +225,15 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
-                ItemWrapperFactory<IW, ?, ?> factory = (ItemWrapperFactory<IW, ?, ?>) registry.findWrapperFactory(item.getDefinition());
+                ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition());
 
                 ctx.setCreateIfEmpty(true);
-                return factory.createWrapper(item, status, ctx);
+                return factory.createWrapper(null, item, status, ctx);
             }
 
             @Override
             public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
-                ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
+                ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);
 
                 return factory.createValueWrapper(parentWrapper, newValue, status, context);
             }

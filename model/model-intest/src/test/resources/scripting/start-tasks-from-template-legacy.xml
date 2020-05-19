@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:executeScript
+        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    import javax.xml.namespace.*
+                    def newTask1 = midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3',
+                        [(new QName('userName')):'jack', (new QName('userDescription')):'new desc jack'])
+                    def newTask2 = midpoint.submitTaskFromTemplate('79dacdf7-2bc9-4eef-9c63-08d53d2392c3',
+                        [(new QName('userName')):'administrator', (new QName('userDescription')):'new desc admin'])
+                    return [newTask1, newTask2]
+                </c:code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>outputItem</s:name>
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#task</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+    </s:action>
+</s:executeScript>

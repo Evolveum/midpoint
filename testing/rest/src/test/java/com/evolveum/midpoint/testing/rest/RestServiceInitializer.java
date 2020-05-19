@@ -106,7 +106,9 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     protected abstract String getContentType();
     protected abstract MidpointAbstractProvider getProvider();
 
-    protected String ENDPOINT_ADDRESS = "http://localhost:" + TestMidPointSpringApplication.DEFAULT_PORT + "/ws/rest";
+    protected String ENDPOINT_ADDRESS = "http://localhost:"
+            + TestMidPointSpringApplication.DEFAULT_PORT
+            + System.getProperty("mp.test.rest.context.path", "/ws/rest");
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {

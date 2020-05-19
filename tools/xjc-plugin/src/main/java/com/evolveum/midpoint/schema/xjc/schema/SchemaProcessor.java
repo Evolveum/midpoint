@@ -30,7 +30,7 @@ import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
 import com.sun.xml.xsom.*;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -109,6 +109,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF = "setReferenceValueAsRef";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE = "getReferenceFilterClauseXNode";
+    private static final String METHOD_PRISM_UTIL_GET_FILTER = "getFilter";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_CLAUSE_XNODE = "setReferenceFilterClauseXNode";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_TARGET_NAME = "getReferenceTargetName";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_TARGET_NAME = "setReferenceTargetName";
@@ -335,13 +336,9 @@ public class SchemaProcessor implements Processor {
         copyAnnotations(getFilter, filterField);
         definedClass.removeField(filterField);
         JBlock body = getFilter.body();
-        JType innerFilterType = getFilter.type();
-        JVar filterClassVar = body.decl(innerFilterType, "filter", JExpr._new(innerFilterType));
-        JInvocation getFilterElementInvocation =CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE);
+        JInvocation getFilterElementInvocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_FILTER);
         getFilterElementInvocation.arg(JExpr.invoke(asReferenceValue));
-        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilterClauseXNode");
-        setFilterInvocation.arg(getFilterElementInvocation);
-        body._return(filterClassVar);
+        body._return(getFilterElementInvocation);
 
         JMethod setFilter = recreateMethod(findMethod(definedClass, "setFilter"), definedClass);
         body = setFilter.body();

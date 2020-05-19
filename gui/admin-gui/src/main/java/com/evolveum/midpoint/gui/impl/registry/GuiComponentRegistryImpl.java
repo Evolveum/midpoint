@@ -15,17 +15,18 @@ import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.*;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -114,6 +115,22 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
         LOGGER.trace("Found factory: {}", factory);
         return factory;
 
+    }
+
+    @Override
+    public <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def) {
+        ItemWrapperFactory<?, ?, ?> factory = findWrapperFactory(def);
+        if (factory == null) {
+            return null;
+        }
+
+        //TODO do we want to throw exception? or just pretend as nothing has happend?
+        if (!(factory instanceof PrismContainerWrapperFactory)) {
+            LOGGER.trace("Unexpected facotry found, expected container wrapper factory, byt found: {}", factory);
+            return null;
+        }
+
+        return (PrismContainerWrapperFactory) factory;
     }
 
     public <O extends ObjectType> PrismObjectWrapperFactory<O> getObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {

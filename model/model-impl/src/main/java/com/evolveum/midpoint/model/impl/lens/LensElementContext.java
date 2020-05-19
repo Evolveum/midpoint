@@ -669,7 +669,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
                 lensElementContextType.getExecutedDeltas()
                         .add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
             }
-            lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
+            lensElementContextType.setObjectTypeClass(objectTypeClass.getName());
             lensElementContextType.setOid(oid);
             lensElementContextType.setIteration(iteration);
             lensElementContextType.setIterationToken(iterationToken);

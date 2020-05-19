@@ -35,5 +35,7 @@
         <module>report-impl</module>
         <module>certification-api</module>
         <module>certification-impl</module>
+        <!-- TODO separate rest-api after PoC is finished -->
+        <module>rest-impl</module>
     </modules>
 </project>

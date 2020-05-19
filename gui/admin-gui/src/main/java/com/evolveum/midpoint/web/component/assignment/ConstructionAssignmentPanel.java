@@ -13,11 +13,11 @@ import javax.xml.namespace.QName;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -66,7 +66,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?, ?, ?> wrapper) {
+    protected ItemVisibility getTypedContainerVisibility(ItemWrapper<?, ?> wrapper) {
         if (QNameUtil.match(AssignmentType.F_TARGET_REF, wrapper.getItemName())) {
             return ItemVisibility.HIDDEN;
         }
@@ -91,7 +91,7 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
     }
 
     @Override
-    protected boolean getContainerReadability(ItemWrapper<?, ?, ?, ?> wrapper) {
+    protected boolean getContainerReadability(ItemWrapper<?, ?> wrapper) {
 
         if (QNameUtil.match(ConstructionType.F_KIND, wrapper.getItemName())) {
             return false;

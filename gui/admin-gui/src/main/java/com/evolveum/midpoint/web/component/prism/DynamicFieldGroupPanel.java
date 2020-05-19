@@ -20,9 +20,9 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
@@ -90,7 +90,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
                 continue;
             }
 
-            ItemWrapper<?,?,?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
+            ItemWrapper<?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
             try {
                 Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
@@ -108,14 +108,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
     }
 
     @NotNull
-    private ItemWrapper<?, ?, ?, ?> findAndTailorItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
-        ItemWrapper<?, ?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
+    private ItemWrapper<?, ?> findAndTailorItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
+        ItemWrapper<?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
         applyFormDefinition(itemWrapper, formField);
         return itemWrapper;
     }
 
     @NotNull
-    private ItemWrapper<?, ?, ?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
+    private ItemWrapper<?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
         ItemPath path = GuiImplUtil.getItemPath(formField);
         if (path == null) {
             getSession().error("Bad form item definition. It has to contain reference to the real attribute");
@@ -123,8 +123,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             throw new RestartResponseException(getPageBase());
         }
 
-        ItemWrapper<?,?,?,?> itemWrapper;
-        ItemDefinition<?> itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
+        ItemWrapper<?,?> itemWrapper;
         try {
             itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
         } catch (SchemaException e) {
@@ -141,7 +140,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
         return itemWrapper;
     }
 
-    private void applyFormDefinition(ItemWrapper<?, ?, ?, ?> itemWrapper, AbstractFormItemType formField) {
+    private void applyFormDefinition(ItemWrapper<?, ?> itemWrapper, AbstractFormItemType formField) {
 
         FormItemDisplayType displayType = formField.getDisplay();
 
@@ -182,7 +181,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Pris
             if (component instanceof PrismPropertyPanel) {
                 IModel<?> model = component.getDefaultModel();
                 if (model != null && model.getObject() instanceof ItemWrapper) {
-                    ItemWrapper<?, ?, ?, ?> itemWrapper = (ItemWrapper<?, ?, ?, ?>) model.getObject();
+                    ItemWrapper<?, ?> itemWrapper = (ItemWrapper<?, ?>) model.getObject();
                     if (!itemWrapper.checkRequired(pageBase)) {
                         rvHolder.setValue(false);
                     }

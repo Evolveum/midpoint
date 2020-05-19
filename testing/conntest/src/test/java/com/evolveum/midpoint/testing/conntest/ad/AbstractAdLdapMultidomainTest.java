@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;

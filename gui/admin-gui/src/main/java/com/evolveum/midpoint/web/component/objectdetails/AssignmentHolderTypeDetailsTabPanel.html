@@ -10,11 +10,21 @@
     xmlns:wicket="http://wicket.apache.org">
 <body>
     <wicket:panel>
-        <div class="row">
-            <div class="col-md-12">
-                <div wicket:id="main" />
-                <div wicket:id="activation" />
-                <div wicket:id="password" />
+        <div class="top-level-prism-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div wicket:id="main" />
+                    <wicket:enclosure child="activation">
+                        <div class="top-level-prism-container">
+                            <div wicket:id="activation" />
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure child="password">
+                        <div class="top-level-prism-container">
+                            <div wicket:id="password" />
+                        </div>
+                    </wicket:enclosure>
+                </div>
             </div>
         </div>
     </wicket:panel>

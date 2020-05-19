@@ -7,54 +7,41 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
-import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.api.*;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.impl.scripting.*;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
-
 /**
- * @author mederly
+ * Superclass for all action executors.
  */
 public abstract class BaseActionExecutor implements ActionExecutor {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseActionExecutor.class);
-
-    private static final String PARAM_RAW = "raw";
-    private static final String PARAM_DRY_RUN = "dryRun";
-    private static final String PARAM_SKIP_APPROVALS = "skipApprovals";
-    private static final String PARAM_OPTIONS = "options";
 
     @Autowired protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     @Autowired protected PrismContext prismContext;
@@ -66,46 +53,21 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected TaskService taskService;
     @Autowired @Qualifier("cacheRepositoryService") protected RepositoryService cacheRepositoryService;
-
-    // todo move to some helper?
-
-    protected ModelExecuteOptions getOptions(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws  ScriptExecutionException {
-        boolean raw = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_RAW, input, context, false, PARAM_RAW, result);
-        boolean skipApprovals = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_SKIP_APPROVALS, input, context, false, PARAM_RAW, result);
-        ModelExecuteOptionsType optionsBean = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OPTIONS, false, false, "options", input, context,
-                ModelExecuteOptionsType.class, result);
-        ModelExecuteOptions options;
-        if (optionsBean != null) {
-            options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
-        } else {
-            options = new ModelExecuteOptions();
-        }
-        if (raw) {
-            options.setRaw(true);
-        }
-        if (skipApprovals) {
-            if (options.getPartialProcessing() != null) {
-                options.getPartialProcessing().setApprovals(SKIP);
-            } else {
-                options.setPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
-            }
-        }
-        return options;
-    }
-
-    protected boolean getParamDryRun(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_DRY_RUN, input, context, false, PARAM_DRY_RUN, result);
-    }
+    @Autowired protected ScriptingActionExecutorRegistry actionExecutorRegistry;
+    @Autowired protected MidpointFunctions midpointFunctions;
+    @Autowired protected RelationRegistry relationRegistry;
+    @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired protected SchemaHelper schemaHelper;
 
     private String optionsSuffix(ModelExecuteOptions options) {
         return options.notEmpty() ? " " + options : "";
     }
 
-    protected String drySuffix(boolean dry) {
+    String drySuffix(boolean dry) {
         return dry ? " (dry run)" : "";
     }
 
-    protected String optionsSuffix(ModelExecuteOptions options, boolean dry) {
+    String optionsSuffix(ModelExecuteOptions options, boolean dry) {
         return optionsSuffix(options) + drySuffix(dry);
     }
 
@@ -113,7 +75,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         return t != null ? " (error: " + t.getClass().getSimpleName() + ": " + t.getMessage() + ")" : "";
     }
 
-    protected Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context) throws ScriptExecutionException {
+    Throwable processActionException(Throwable e, String actionName, PrismValue value, ExecutionContext context) throws ScriptExecutionException {
         if (context.isContinueOnAnyError()) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action '{}' on {}: {}", e,
                     actionName, value, e.getMessage());
@@ -123,8 +85,8 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         }
     }
 
-    protected void checkRootAuthorization(ExecutionContext context,
-            OperationResult globalResult, String actionName) throws ScriptExecutionException {
+    void checkRootAuthorization(ExecutionContext context, OperationResult globalResult, String actionName)
+            throws ScriptExecutionException {
         if (context.isPrivileged()) {
             return;
         }
@@ -135,4 +97,58 @@ public abstract class BaseActionExecutor implements ActionExecutor {
         }
     }
 
+    @FunctionalInterface
+    public interface ItemProcessor {
+        void process(PrismValue value, PipelineItem item, OperationResult result) throws ScriptExecutionException, CommonException;
+    }
+
+    @FunctionalInterface
+    public interface ConsoleFailureMessageWriter {
+        void write(PrismValue value, @NotNull Throwable exception);
+    }
+
+    void iterateOverItems(PipelineData input, ExecutionContext context, OperationResult globalResult,
+            ItemProcessor itemProcessor, ConsoleFailureMessageWriter writer)
+            throws ScriptExecutionException {
+
+        for (PipelineItem item : input.getData()) {
+            PrismValue value = item.getValue();
+            OperationResult result = operationsHelper.createActionResult(item, this);
+
+            context.checkTaskStop();
+            long started;
+            if (value instanceof PrismObjectValue) {
+                started = operationsHelper.recordStart(context, asObjectType(value));
+            } else {
+                started = 0;
+            }
+            try {
+                itemProcessor.process(value, item, result);
+                if (value instanceof PrismObjectValue) {
+                    operationsHelper.recordEnd(context, asObjectType(value), started, null);
+                }
+            } catch (Throwable ex) {
+                if (value instanceof PrismObjectValue) {
+                    operationsHelper.recordEnd(context, asObjectType(value), started, ex);
+                }
+                Throwable exception = processActionException(ex, getActionName(), value, context);
+                writer.write(value, exception);
+            }
+            operationsHelper.trimAndCloneResult(result, globalResult);
+        }
+    }
+
+    private ObjectType asObjectType(PrismValue value) {
+        return (ObjectType) ((PrismObjectValue) value).asObjectable();
+    }
+
+    String getDescription(PrismValue value) {
+        if (value instanceof PrismObjectValue<?>) {
+            return asObjectType(value).asPrismObject().toString();
+        } else {
+            return value.toHumanReadableString();
+        }
+    }
+
+    abstract String getActionName();
 }

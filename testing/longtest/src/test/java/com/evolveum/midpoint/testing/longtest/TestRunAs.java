@@ -46,7 +46,6 @@ public class TestRunAs extends AbstractLongTest {
     private static final String RESOURCE_DUMMY_OID = "2f454e92-c9e8-11e7-8f60-17bc95e695f8";
 
     protected static final File USER_ROBOT_FILE = new File(TEST_DIR, "user-robot.xml");
-    protected static final String USER_ROBOT_OID = "20b4d7c0-c9e9-11e7-887c-7fe1dc65a3ed";
     protected static final String USER_ROBOT_USERNAME = "robot";
 
     protected static final File USER_TEMPLATE_PLAIN_FILE = new File(TEST_DIR, "user-template-plain.xml");
@@ -59,6 +58,9 @@ public class TestRunAs extends AbstractLongTest {
 
     private static final int NUM_ORG_MAPPINGS = 10;
     private static final int WARM_UP_ROUNDS = 30;
+
+    // fixed time added to the baseline before any % comparison as random stuff like GC can happen
+    private static final long BASELINE_RUN_TIME_TOLERANCE = 40;
 
     private long baselineRunTime;
     private long baselineRepoReadCountIncrement;
@@ -207,7 +209,7 @@ public class TestRunAs extends AbstractLongTest {
 
         long readCountIncremenet = getCounterIncrement(InternalCounters.REPOSITORY_READ_COUNT);
         display("Run time " + (endMillis - starMillis) + "ms, repo read count increment " + readCountIncremenet);
-        baselineRunTime = endMillis - starMillis;
+        baselineRunTime = endMillis - starMillis + BASELINE_RUN_TIME_TOLERANCE;
         baselineRepoReadCountIncrement = readCountIncremenet;
 
         PrismObject<UserType> userAfter = getUser(USER_BARBOSSA_OID);
@@ -283,7 +285,7 @@ public class TestRunAs extends AbstractLongTest {
         if (readCountIncrease > 2) {
             fail("High increase over repo read count baseline: " + readCountIncrease + " (expected: at most 2)");
         }
-        if (percentRuntimeIncrease > 20) {
+        if (percentRuntimeIncrease > 40) {
             fail("Too high run time increase over baseline: " + percentRuntimeIncrease + "% " + baselineRunTime + "ms -> " + runTimeMillis + "ms");
         }
 

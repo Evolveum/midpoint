@@ -10,7 +10,6 @@ import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThreadLocalCache;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +22,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -261,8 +260,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-
-//        DebugUtil.setDetailedDebugDump(true);
     }
 
     /**
@@ -288,7 +285,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      */
     @Test
     public void test000Integrity() throws Exception {
-        assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
         assertNotNull(taskManager);
@@ -326,22 +322,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      */
     @Test
     public void test001TestConnectionOpenDJ() throws Exception {
-        Task task = taskManager.createTaskInstance();
-        // GIVEN
-
+        given();
         assertNoRepoThreadLocalCache();
 
-        // WHEN
-        OperationResultType result = modelWeb.testResource(RESOURCE_OPENDJ_OID);
+        when();
+        OperationResult result = modelService.testResource(RESOURCE_OPENDJ_OID, getTestTask());
 
-        // THEN
-
+        then();
         assertNoRepoThreadLocalCache();
-
-        displayJaxb("testResource result:", result, SchemaConstants.C_RESULT);
-
         TestUtil.assertSuccess("testResource has failed", result);
-
         OperationResult opResult = createOperationResult();
 
         PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class,
@@ -357,11 +346,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull("Resource schema was not generated", resourceOpenDjXsdSchemaElement);
 
         PrismObject<ResourceType> openDjResourceProvisioninig = provisioningService.getObject(
-                ResourceType.class, RESOURCE_OPENDJ_OID, null, task, opResult);
+                ResourceType.class, RESOURCE_OPENDJ_OID, null, getTestTask(), opResult);
         display("Initialized OpenDJ resource resource (provisioning)", openDjResourceProvisioninig);
 
         PrismObject<ResourceType> openDjResourceModel = provisioningService.getObject(ResourceType.class,
-                RESOURCE_OPENDJ_OID, null, task, opResult);
+                RESOURCE_OPENDJ_OID, null, getTestTask(), opResult);
         display("Initialized OpenDJ resource OpenDJ resource (model)", openDjResourceModel);
 
         checkOpenDjResource(resourceTypeOpenDjrepo, "repository");
@@ -373,8 +362,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         checkOpenDjResource(openDjResourceProvisioninig.asObjectable(), "provisioning");
         checkOpenDjResource(openDjResourceModel.asObjectable(), "model");
-        // TODO: model web
-
     }
 
     /**
