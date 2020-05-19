@@ -15,7 +15,7 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.reactor.Requirement;
+import com.evolveum.axiom.reactor.Depedency;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -63,7 +63,7 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
 
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Requirement<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES));
+            Depedency<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES));
             req.unsatisfiedMessage(() -> rule.error("Default types not found."));
             rule.apply((ctx) -> {
                 ctx.parent().importIdentifierSpace(req.get());
@@ -86,7 +86,7 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             String child = rule.requiredChildValue(Item.NAMESPACE, String.class);
             AxiomIdentifier namespaceId = Item.NAMESPACE.name();
-            Requirement<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(child));
+            Depedency<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(child));
             req.unsatisfiedMessage(() -> rule.error("Namespace %s not found.", child));
             rule.apply((ctx) -> {
                 ctx.parent().importIdentifierSpace(req.get());
@@ -113,7 +113,7 @@ public enum BasicStatementRule implements StatementRule<AxiomIdentifier> {
         @Override
         public void apply(StatementRuleContext<AxiomIdentifier> rule) throws AxiomSemanticException {
             AxiomIdentifier type = rule.requireValue();
-            Requirement.Search<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
+            Depedency.Search<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
             typeDef.notFound(() ->  rule.error("type '%s' was not found.", type));
             typeDef.unsatisfiedMessage(() -> rule.error("Referenced type %s is not complete.", type));
             rule.apply(ctx -> {

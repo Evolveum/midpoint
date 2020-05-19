@@ -2,6 +2,7 @@ package com.evolveum.axiom.lang.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -12,13 +13,14 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.reactor.Requirement;
-import com.sun.net.httpserver.Authenticator.Result;
-public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
+import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.DependantAction;
+import com.google.common.collect.ImmutableList;
+public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, DependantAction<AxiomSemanticException> {
 
     private final StatementContextImpl<V> context;
     private final StatementRule<V> rule;
-    private final List<Requirement<?>> requirements = new ArrayList<>();
+    private final List<Depedency<?>> dependencies = new ArrayList<>();
     private Action<V> action;
     private Supplier<RuleErrorMessage> errorReport = () -> null;
     private boolean applied = false;
@@ -29,29 +31,25 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
         this.rule = rule;
     }
 
-    public StatementRule<V> rule() {
-        return rule;
-    }
-
     @Override
     public <V> Optional<V> optionalChildValue(AxiomItemDefinition child, Class<V> type) {
         return (Optional) context.firstChild(child).flatMap(v -> v.optionalValue());
     }
 
     @Override
-    public Requirement.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
+    public Depedency.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
             IdentifierSpaceKey key) {
-        return requirement(Requirement.retriableDelegate(() -> {
+        return requirement(Depedency.retriableDelegate(() -> {
             StatementContextImpl<?> maybe = context.lookup(space, key);
             if(maybe != null) {
-                return (Requirement) maybe.asRequirement();
+                return (Depedency) maybe.asRequirement();
             }
             return null;
         }));
     }
 
-    private <V,X extends Requirement<V>> X requirement(X req) {
-        this.requirements.add(req);
+    private <V,X extends Depedency<V>> X requirement(X req) {
+        this.dependencies.add(req);
         return req;
     }
 
@@ -63,7 +61,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     public boolean canProcess() {
-        for (Requirement<?> requirement : requirements) {
+        for (Depedency<?> requirement : dependencies) {
             if (!requirement.isSatisfied()) {
                 return false;
             }
@@ -71,14 +69,11 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
         return true;
     }
 
-    public void perform() throws AxiomSemanticException {
+    @Override
+    public void apply() throws AxiomSemanticException {
         if(!applied && error == null) {
-            try {
-                this.action.apply(context);
-                this.applied = true;
-            } catch (Exception e) {
-                error = e;
-            }
+            this.action.apply(context);
+            this.applied = true;
         }
     }
 
@@ -133,25 +128,49 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V> {
     }
 
     @Override
-    public Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+    public Depedency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
         return context.requireChild(required);
     }
 
     @Override
-    public Requirement<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+    public Depedency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
         return requirement(context.root().requireNamespace(name, namespaceId));
     }
 
-    public boolean notFailed() {
-        return error == null;
-    }
-
+    @Override
     public boolean successful() {
         return applied;
     }
 
-    public Collection<Requirement<?>> requirements() {
-        return requirements;
+    public Collection<Depedency<?>> requirements() {
+        return dependencies;
+    }
+
+    @Override
+    public void fail(Exception e) throws AxiomSemanticException {
+        this.error = e;
+    }
+
+
+    @Override
+    public Collection<Depedency<?>> dependencies() {
+        return dependencies;
+    }
+
+    @Override
+    public Optional<AxiomSemanticException> error() {
+        return Optional.empty();
+    }
+
+    public boolean isDefined() {
+        return action != null;
+    }
+
+    public Collection<StatementRuleContextImpl<?>> build() {
+        if(action != null) {
+            return ImmutableList.of(this);
+        }
+        return Collections.emptyList();
     }
 
 

@@ -4,18 +4,18 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
-class Deffered<T> extends Requirement.Delegated<T> {
+class Deffered<T> extends Depedency.Delegated<T> {
 
     private Object ret;
 
-    Deffered(Requirement<T> delegate) {
+    Deffered(Depedency<T> delegate) {
         ret = delegate;
     }
 
     @Override
-    Requirement<T> delegate() {
-        if(ret instanceof Requirement<?>) {
-            return (Requirement<T>) ret;
+    Depedency<T> delegate() {
+        if(ret instanceof Depedency<?>) {
+            return (Depedency<T>) ret;
         }
         return null;
     }

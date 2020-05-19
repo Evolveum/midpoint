@@ -10,11 +10,11 @@ import java.util.stream.Collectors;
 import org.checkerframework.checker.units.qual.K;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.concepts.Identifiable;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.api.Identifiable;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;

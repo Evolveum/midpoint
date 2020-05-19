@@ -7,49 +7,49 @@ import com.evolveum.axiom.lang.impl.RuleErrorMessage;
 import com.google.common.base.Preconditions;
 
 
-public interface Requirement<T> {
+public interface Depedency<T> {
 
     boolean isSatisfied();
     public T get();
 
     public RuleErrorMessage errorMessage();
 
-    public static <T> Requirement<T> unsatisfied() {
+    public static <T> Depedency<T> unsatisfied() {
         return new Unsatified<>();
     }
 
-    public static <T> Requirement<T> immediate(T value) {
+    public static <T> Depedency<T> immediate(T value) {
         return new Immediate<>(value);
     }
 
-    public static <T> Requirement<T> from(Supplier<T> supplier) {
+    public static <T> Depedency<T> from(Supplier<T> supplier) {
         return new Suppliable<>(supplier);
     }
 
-    public static <T> Requirement<T> deffered(Requirement<T> original) {
+    public static <T> Depedency<T> deffered(Depedency<T> original) {
         return new Deffered<>(original);
     }
 
-    default Requirement<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+    default Depedency<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
         return this;
     }
 
-    interface Search<T> extends Requirement<T> {
+    interface Search<T> extends Depedency<T> {
 
-        default Requirement.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        default Depedency.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
             return this;
         }
 
     }
 
 
-    public static abstract class Abstract<V> implements Requirement<V> {
+    public static abstract class Abstract<V> implements Depedency<V> {
 
 
         private Supplier<RuleErrorMessage> errorMessage;
 
         @Override
-        public Requirement<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        public Depedency<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
             errorMessage = unsatisfiedMessage;
             return this;
         }
@@ -122,7 +122,7 @@ public interface Requirement<T> {
 
     public abstract class Delegated<T>  extends Abstract<T>  {
 
-        abstract Requirement<T> delegate();
+        abstract Depedency<T> delegate();
 
         @Override
         public boolean isSatisfied() {
@@ -141,20 +141,20 @@ public interface Requirement<T> {
         private Object maybeDelegate;
         private Supplier<RuleErrorMessage> notFound;
 
-        public RetriableDelegate(Supplier<Requirement<T>> lookup) {
+        public RetriableDelegate(Supplier<Depedency<T>> lookup) {
             maybeDelegate = lookup;
         }
 
         @Override
-        Requirement<T> delegate() {
-            if(maybeDelegate instanceof Requirement<?>) {
-                return (Requirement) maybeDelegate;
+        Depedency<T> delegate() {
+            if(maybeDelegate instanceof Depedency<?>) {
+                return (Depedency) maybeDelegate;
             }
             if(maybeDelegate instanceof Supplier<?>) {
-                Requirement<?> result = ((Supplier<Requirement<?>>) maybeDelegate).get();
+                Depedency<?> result = ((Supplier<Depedency<?>>) maybeDelegate).get();
                 if(result != null) {
                     maybeDelegate = result;
-                    return (Requirement) result;
+                    return (Depedency) result;
                 }
 
             }
@@ -177,17 +177,17 @@ public interface Requirement<T> {
 
     }
 
-    static <T> Search<T> retriableDelegate(Supplier<Requirement<T>> lookup) {
+    static <T> Search<T> retriableDelegate(Supplier<Depedency<T>> lookup) {
         return new RetriableDelegate(lookup);
     }
 
-    static <T> Requirement<T> from(Optional<T> maybe) {
+    static <T> Depedency<T> from(Optional<T> maybe) {
         if(maybe.isPresent()) {
             return immediate(maybe.get());
         }
         return unsatisfied();
     }
-    static <T> Requirement<T> orNull(T value) {
+    static <T> Depedency<T> orNull(T value) {
         if(value != null) {
             return immediate(value);
         }

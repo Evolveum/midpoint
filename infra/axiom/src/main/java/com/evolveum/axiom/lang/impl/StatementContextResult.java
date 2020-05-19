@@ -9,11 +9,11 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.lang.spi.AxiomStatementBuilder;
-import com.evolveum.axiom.reactor.Requirement;
+import com.evolveum.axiom.reactor.Depedency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-class StatementContextResult<V> implements Requirement<AxiomStatement<V>> {
+class StatementContextResult<V> implements Depedency<AxiomStatement<V>> {
 
     private V value;
     private final List<StatementContextImpl<?>> childrenList = new ArrayList<>();

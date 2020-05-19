@@ -7,7 +7,7 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.reactor.Requirement;
+import com.evolveum.axiom.reactor.Depedency;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
@@ -22,7 +22,7 @@ public interface StatementContext<V> {
 
     Optional<V> optionalValue();
 
-    void replace(Requirement<AxiomStatement<?>> statement);
+    void replace(Depedency<AxiomStatement<?>> statement);
 
     StatementContext<?> parent();
 

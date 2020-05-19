@@ -10,8 +10,8 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.reactor.Requirement;
-import com.evolveum.axiom.reactor.Requirement.Search;
+import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.Depedency.Search;
 
 public interface StatementRuleContext<V> {
 
@@ -38,8 +38,8 @@ public interface StatementRuleContext<V> {
 
     Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space, IdentifierSpaceKey key);
 
-    Requirement<AxiomStatement<?>> requireChild(AxiomItemDefinition required);
+    Depedency<AxiomStatement<?>> requireChild(AxiomItemDefinition required);
 
-    Requirement<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
+    Depedency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
 
 }

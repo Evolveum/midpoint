@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.concepts;
 
 import java.util.Map;
 
