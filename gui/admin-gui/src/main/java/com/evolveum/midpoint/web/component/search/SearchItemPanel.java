@@ -86,6 +86,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
+    private static final String ID_REMOVE_BUTTON = "removeButton";
 
     private LoadableModel<SearchItemPopoverDto<T>> popoverModel;
 
@@ -105,7 +106,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
         item.setEditWhenVisible(false);
 
-        //todo show popover for this item somehow [lazyman]
     }
 
     private void initLayout() {
@@ -166,6 +166,17 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         searchItemContainer.add(searchItemLabel);
 
         initSearchItemField(searchItemContainer);
+
+        AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                deletePerformed(target);
+            }
+        };
+        removeButton.setOutputMarkupId(true);
+        searchItemContainer.add(removeButton);
     }
 
     private void initSearchItemField(WebMarkupContainer searchItemContainer) {
@@ -207,7 +218,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                         return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                     }
                 }, true);
-                ((DropDownChoicePanel)searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "max-width: 150px !important;"));
                 break;
             case TEXT:
                 searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
@@ -222,6 +232,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         searchItemField.setOutputMarkupId(true);
         if (searchItemField instanceof InputPanel){
             ((InputPanel)searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            ((InputPanel)searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
         }
         searchItemContainer.add(searchItemField);
     }
@@ -454,17 +465,16 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //        panel.togglePopover(target, get(ID_MAIN_BUTTON), get(ID_POPOVER), 0);
 //    }
 
-//    private void deletePerformed(AjaxRequestTarget target) {
-//        SearchItem<T> item = getModelObject();
-//        LOG.debug("Delete of item {} performed", item.getName());
-//
-//        Search search = item.getSearch();
-//        search.delete(item);
-//
-//        SearchPanel panel = findParent(SearchPanel.class);
-//        panel.refreshSearchForm(target);
-//        panel.searchPerformed(target);
-//    }
+    private void deletePerformed(AjaxRequestTarget target) {
+        SearchItem<T> item = getModelObject();
+
+        Search search = item.getSearch();
+        search.delete(item);
+
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.refreshSearchForm(target);
+        panel.searchPerformed(target);
+    }
 
 //    void updatePopupBody(AjaxRequestTarget target) {
 //        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
