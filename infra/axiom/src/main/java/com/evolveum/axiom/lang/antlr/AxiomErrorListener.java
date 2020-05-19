@@ -4,20 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.antlr;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-import org.antlr.v4.runtime.atn.ATNConfigSet;
-import org.antlr.v4.runtime.dfa.DFA;
-
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class AxiomErrorListener extends BaseErrorListener {
@@ -33,7 +27,6 @@ public class AxiomErrorListener extends BaseErrorListener {
     public void syntaxError(final Recognizer<?, ?> recognizer, final Object offendingSymbol, final int line,
             final int charPositionInLine, final String msg, final RecognitionException e) {
         exceptions.add(new AxiomSyntaxException(source, line, charPositionInLine, msg));
-
     }
 
     public void validate() throws AxiomSyntaxException {

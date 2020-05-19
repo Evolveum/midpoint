@@ -14,6 +14,7 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
@@ -34,19 +35,19 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
     private static final String AXIOM_LANG_RESOURCE = "/axiom-lang.axiom";
     private static final String AXIOM_BUILTIN_RESOURCE = "/axiom-base-types.axiom";
 
-    private static final Lazy<AxiomStatementSource> BASE_LANGUAGE_SOURCE = Lazy.from(() -> {
+    private static final Lazy<AxiomModelStatementSource> BASE_LANGUAGE_SOURCE = Lazy.from(() -> {
         InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG_RESOURCE);
         try {
-            return AxiomStatementSource.from(AXIOM_LANG_RESOURCE, stream);
+            return AxiomModelStatementSource.from(AXIOM_LANG_RESOURCE, stream);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     });
 
-    private static final Lazy<AxiomStatementSource> BASE_TYPES_SOURCE = Lazy.from(() -> {
+    private static final Lazy<AxiomModelStatementSource> BASE_TYPES_SOURCE = Lazy.from(() -> {
         InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_BUILTIN_RESOURCE);
         try {
-            return AxiomStatementSource.from(AXIOM_BUILTIN_RESOURCE, stream);
+            return AxiomModelStatementSource.from(AXIOM_BUILTIN_RESOURCE, stream);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -184,7 +185,7 @@ public class ModelReactorContext implements AxiomIdentifierResolver {
         }
     }
 
-    public void loadModelFromSource(AxiomStatementSource statementSource) {
+    public void loadModelFromSource(AxiomModelStatementSource statementSource) {
         statementSource.stream(this, new AxiomStatementStreamBuilder(this, new Root()));
     }
 

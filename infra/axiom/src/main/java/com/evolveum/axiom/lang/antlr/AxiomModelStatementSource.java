@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.antlr;
 
 import java.beans.Statement;
 import java.io.IOException;
@@ -30,66 +30,52 @@ import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
-public class AxiomStatementSource implements AxiomModelInfo, AxiomIdentifierResolver {
+public class AxiomModelStatementSource extends AxiomAntlrStatementSource implements AxiomIdentifierResolver {
 
     private static final String IMPORT = "import";
     private static final String NAMESPACE = "namespace";
-    private final StatementContext root;
-    private String sourceName;
-    private Map<String,String> imports;
 
-    public static AxiomStatementSource from(InputStream stream) throws IOException, AxiomSyntaxException {
+    private String name;
+    private Map<String,String> imports;
+    private String namespace;
+
+    public static AxiomModelStatementSource from(InputStream stream) throws IOException, AxiomSyntaxException {
         return from(null, CharStreams.fromStream(stream));
     }
 
-    public static AxiomStatementSource from(String sourceName, InputStream stream) throws IOException, AxiomSyntaxException {
+    public static AxiomModelStatementSource from(String sourceName, InputStream stream) throws IOException, AxiomSyntaxException {
         return from(sourceName, CharStreams.fromStream(stream));
     }
 
-    public static AxiomStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
-
-        AxiomLexer lexer = new AxiomLexer(stream);
-        AxiomParser parser = new AxiomParser(new CommonTokenStream(lexer));
-
-        lexer.removeErrorListeners();
-        parser.removeErrorListeners();
-        AxiomErrorListener errorListener = new AxiomErrorListener(sourceName);
-        parser.addErrorListener(errorListener);
-        StatementContext statement = parser.statement();
-        errorListener.validate();
-        return new AxiomStatementSource(sourceName, statement, imports(statement));
+    public static AxiomModelStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
+        StatementContext statement = AxiomAntlrStatementSource.contextFrom(sourceName, stream);
+        String name = statement.argument().identifier().localIdentifier().getText();
+        return new AxiomModelStatementSource(sourceName, statement, name, namespace(statement), imports(statement));
     }
 
-    private AxiomStatementSource(String sourceName, StatementContext statement, Map<String, String> imports) {
-        this.sourceName = sourceName;
-        this.root = statement;
+    private AxiomModelStatementSource(String sourceName, StatementContext statement, String namespace, String name, Map<String, String> imports) {
+        super(sourceName, statement);
+        this.name = name;
         this.imports = imports;
+        this.namespace = namespace;
     }
 
-    @Override
-    public String getModelName() {
-        return root.argument().identifier().localIdentifier().getText();
+
+    public String modelName() {
+        return name;
     }
 
-    @Override
-    public String getNamespace() {
-        return null;
-    }
-
-    @Override
-    public String getDescription() {
-        // TODO Auto-generated method stub
-        return null;
+    public String namespace() {
+        return namespace;
     }
 
     public void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener) {
         stream(resolver, listener, Optional.empty());
     }
 
-    private void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener,
+    public void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener,
             Optional<Set<AxiomIdentifier>> emitOnly) {
-        AxiomAntlrVisitor<?> visitor = new AxiomAntlrVisitor<>(sourceName, resolver, BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly.orElse(null));
-        visitor.visit(root);
+        stream(resolver, BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
     }
 
     public static Map<String,String> imports(AxiomParser.StatementContext root) {

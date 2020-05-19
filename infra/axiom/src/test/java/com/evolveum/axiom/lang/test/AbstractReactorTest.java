@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
-import com.evolveum.axiom.lang.impl.AxiomStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
@@ -28,13 +28,13 @@ public abstract class AbstractReactorTest extends AbstractUnitTest {
 
     protected static AxiomSchemaContext parseInputStream(String name, InputStream stream, AxiomItemDefinition rootItemDefinition) throws AxiomSyntaxException, FileNotFoundException, IOException {
         ModelReactorContext reactorContext =ModelReactorContext.defaultReactor();
-        AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
+        AxiomModelStatementSource statementSource = AxiomModelStatementSource.from(name, stream);
         reactorContext.loadModelFromSource(statementSource);
         return reactorContext.computeSchemaContext();
     }
 
-    protected static AxiomStatementSource source(String name) throws AxiomSyntaxException, IOException {
+    protected static AxiomModelStatementSource source(String name) throws AxiomSyntaxException, IOException {
         InputStream stream = new FileInputStream(COMMON_DIR_PATH + name);
-        return AxiomStatementSource.from(name, stream);
+        return AxiomModelStatementSource.from(name, stream);
     }
 }
