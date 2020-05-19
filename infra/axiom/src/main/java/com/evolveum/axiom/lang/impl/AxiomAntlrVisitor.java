@@ -22,7 +22,7 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 import com.evolveum.axiom.lang.api.stmt.AxiomStatementStreamListener;
-import com.evolveum.axiom.lang.api.stmt.SourceLocation;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {

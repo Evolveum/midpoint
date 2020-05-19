@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public interface AxiomStatementStreamListener {
 

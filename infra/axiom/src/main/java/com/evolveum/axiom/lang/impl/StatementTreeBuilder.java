@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.stmt.SourceLocation;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public interface StatementTreeBuilder {
 

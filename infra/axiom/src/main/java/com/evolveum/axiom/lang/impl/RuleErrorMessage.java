@@ -1,6 +1,6 @@
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.lang.api.stmt.SourceLocation;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.google.common.base.Strings;
 
 public class RuleErrorMessage {

@@ -19,9 +19,9 @@ import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.stmt.SourceLocation;
 import com.evolveum.axiom.lang.impl.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 
 import org.jetbrains.annotations.Nullable;
 
