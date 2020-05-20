@@ -4,33 +4,24 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.lang.spi;
 
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
-import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
-import com.evolveum.axiom.lang.spi.SourceLocation;
-import com.google.common.collect.Iterables;
 
 
-public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener {
+public class AxiomStreamTreeBuilder implements AxiomStatementStreamListener {
 
+    private final Deque<NodeBuilder> queue = new LinkedList<>();
 
-    private final ModelReactorContext context;
-    private final Deque<StatementTreeBuilder> queue = new LinkedList<>();
-
-    public AxiomStatementStreamBuilder(ModelReactorContext context, StatementTreeBuilder root) {
-        this.context = context;
+    public AxiomStreamTreeBuilder(NodeBuilder root) {
         queue.add(root);
     }
 
-    protected StatementTreeBuilder current() {
+    protected NodeBuilder current() {
         return queue.peek();
     }
 
@@ -46,7 +37,6 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
 
     private void argument0(Object value, SourceLocation loc) {
             current().setValue(value, loc);
-
     }
 
     @Override
@@ -56,14 +46,29 @@ public class AxiomStatementStreamBuilder implements AxiomStatementStreamListener
         queue.offerFirst(createBuilder(childDef.get(), loc));
     }
 
-    private StatementTreeBuilder createBuilder(AxiomItemDefinition item, SourceLocation loc) {
-        return current().createChildNode(item.name(), loc);
+    private NodeBuilder createBuilder(AxiomItemDefinition item, SourceLocation loc) {
+        return current().startChildNode(item.name(), loc);
     }
 
     @Override
     public void endStatement(SourceLocation loc) {
-        StatementTreeBuilder current = queue.poll();
-        context.endStatement(current, loc);
+        NodeBuilder current = queue.poll();
+        current.endNode(loc);
+    }
+
+    public interface NodeBuilder {
+
+        void endNode(SourceLocation loc);
+
+        Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement);
+
+        AxiomIdentifier identifier();
+
+        void setValue(Object value, SourceLocation loc);
+
+        NodeBuilder startChildNode(AxiomIdentifier identifier, SourceLocation loc);
+
+
     }
 
 }

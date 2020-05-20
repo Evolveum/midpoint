@@ -16,9 +16,6 @@ public class SourceLocation {
         return new SourceLocation(source, line, pos);
     }
 
-
-
-
     @Override
     public String toString() {
         return sourceName + "["+ line + ":" + character + "]";
@@ -35,7 +32,5 @@ public class SourceLocation {
     public int getChar() {
         return character;
     }
-
-
 
 }

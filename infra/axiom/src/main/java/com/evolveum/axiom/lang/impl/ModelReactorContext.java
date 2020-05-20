@@ -24,6 +24,7 @@ import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl;
+import com.evolveum.axiom.lang.spi.AxiomStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
@@ -142,9 +143,9 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
 
     }
 
-    void endStatement(StatementTreeBuilder cur, SourceLocation loc) throws AxiomSemanticException {
+    void endStatement(StatementContextImpl<?> cur, SourceLocation loc) throws AxiomSemanticException {
         if (cur instanceof StatementContextImpl) {
-            StatementContextImpl<?> current = (StatementContextImpl<?>) cur;
+            StatementContextImpl<?> current = cur;
             addActionsFor(current);
         }
     }
@@ -161,7 +162,7 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     }
 
     public void loadModelFromSource(AxiomModelStatementSource statementSource) {
-        statementSource.stream(this, new AxiomStatementStreamBuilder(this, new Root()));
+        statementSource.stream(this, new AxiomStreamTreeBuilder(new Root()));
     }
 
     @Override
@@ -169,12 +170,7 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         return AxiomIdentifier.axiom(localName);
     }
 
-    private class Root implements StatementTreeBuilder {
-
-        @Override
-        public void setValue(Object value) {
-            // NOOP
-        }
+    private class Root implements AxiomStreamTreeBuilder.NodeBuilder {
 
         @Override
         public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
@@ -182,7 +178,7 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         }
 
         @Override
-        public StatementTreeBuilder createChildNode(AxiomIdentifier identifier, SourceLocation loc) {
+        public StatementContextImpl<?> startChildNode(AxiomIdentifier identifier, SourceLocation loc) {
             StatementContextImpl<?> ret = new StatementContextImpl.Root<>(ModelReactorContext.this,
                     childDef(identifier).get(), loc);
             roots.add(ret);
@@ -198,6 +194,12 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         public void setValue(Object value, SourceLocation loc) {
 
         }
+
+        @Override
+        public void endNode(SourceLocation loc) {
+            // TODO Auto-generated method stub
+
+        }
     }
 
     public void addStatementFactory(AxiomIdentifier statementType, Factory<?, ?> factory) {
@@ -207,14 +209,15 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     public <V> Factory<V, ?> typeFactory(AxiomTypeDefinition statementType) {
         Optional<AxiomTypeDefinition> current = Optional.of(statementType);
         do {
-            Factory maybe = typeFactories.get(current.get().name());
+            @SuppressWarnings("unchecked")
+            Factory<V,?> maybe = (Factory<V,?>) typeFactories.get(current.get().name());
             if (maybe != null) {
                 return maybe;
             }
             current = current.get().superType();
         } while (current.isPresent());
 
-        return (Factory) AxiomStatementImpl.factory();
+        return AxiomStatementImpl.factory();
     }
 
     public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {

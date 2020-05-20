@@ -8,7 +8,7 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 
-public class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContext {
+class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContext {
 
     private final Set<IdentifierSpaceHolder> delegates = new HashSet<>();
 

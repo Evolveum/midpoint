@@ -17,11 +17,12 @@ import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.lang.spi.AxiomStatementBuilder;
+import com.evolveum.axiom.lang.spi.AxiomStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.reactor.Depedency;
 
-public abstract class StatementContextImpl<V> implements StatementContext<V>, StatementTreeBuilder, IdentifierSpaceHolder {
+public abstract class StatementContextImpl<V> implements StatementContext<V>, AxiomStreamTreeBuilder.NodeBuilder, IdentifierSpaceHolder {
 
     private final AxiomItemDefinition definition;
 
@@ -49,7 +50,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
         return parent().typeFactory(type);
     }
 
-    @Override
+
     public void setValue(Object value) {
         mutableResult().setValue((V) value);
     }
@@ -68,11 +69,12 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
 
     @SuppressWarnings("rawtypes")
     @Override
-    public StatementContextImpl createChildNode(AxiomIdentifier identifier, SourceLocation loc) {
+    public StatementContextImpl startChildNode(AxiomIdentifier identifier, SourceLocation loc) {
         StatementContextImpl<V> childCtx = new StatementContextImpl.Child<V>(this, childDef(identifier).get(), loc);
         mutableResult().add(childCtx);
         return childCtx;
     }
+
 
     public IdentifierSpaceHolder localSpace() {
         return localSpace;
@@ -105,8 +107,8 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
 
     @Override
     public <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value) {
-        StatementContextImpl<V> child = createChildNode(axiomIdentifier, null);
-        child.setValue(value);
+        StatementContextImpl<V> child = startChildNode(axiomIdentifier, null);
+        child.setValue(value, null);
         return child;
     }
 
@@ -222,6 +224,12 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
         return null;
     }
 
+    @Override
+    public void endNode(SourceLocation loc) {
+        this.endLocation = loc;
+        root().reactor.endStatement(this, loc);
+    }
+
     public Depedency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
         return Depedency.retriableDelegate(() -> {
             if(mutableResult() != null) {
@@ -266,6 +274,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, St
         public void importIdentifierSpace(NamespaceContext namespaceContext) {
             throw new UnsupportedOperationException("Child can not import identifier space");
         }
+
     }
 
     static class Root<V> extends StatementContextImpl<V> {
