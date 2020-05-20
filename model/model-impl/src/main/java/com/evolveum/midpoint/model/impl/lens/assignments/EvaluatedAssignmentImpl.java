@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
@@ -88,13 +91,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private String tenantOid;
 
     private PrismObject<?> target;
-    private boolean isValid;
+    private boolean isValid; // TODO define!
     private boolean wasValid;
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
     @NotNull private final AssignmentOrigin origin;
-    private Collection<String> policySituations = new HashSet<>();
+    private final Collection<String> policySituations = new HashSet<>();
 
-    private PrismContext prismContext;
+    private final PrismContext prismContext;
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
@@ -178,7 +181,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return rv;
     }
 
-    Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
+    @VisibleForTesting
+    public Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructionTriple().getZeroSet();
             case PLUS: return getConstructionTriple().getPlusSet();
@@ -208,7 +212,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @NotNull
-    DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
+    public DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
         return personaConstructionTriple;
     }
 
@@ -304,9 +308,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return origin.isVirtual();
     }
 
-    /* (non-Javadoc)
-         * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
-         */
     @Override
     public boolean isValid() {
         return isValid;
@@ -345,7 +346,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-    void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+    @VisibleForTesting
+    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         evaluateConstructions(focusOdo, null, null, task, result);
     }
 
@@ -534,7 +536,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 + "; " + focusPolicyRules.size()+" rules)";
     }
 
-    String toHumanReadableString() {
+    public String toHumanReadableString() {
         if (target != null) {
             return "EvaluatedAssignment(" + target + ")";
         } else if (!constructionTriple.isEmpty()) {

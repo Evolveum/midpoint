@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionT
  */
 public class PersonaConstruction<F extends AssignmentHolderType> extends AbstractConstruction<F, PersonaConstructionType> {
 
-    PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
+    public PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
         super(constructionType, source);
     }
 

@@ -84,7 +84,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
 
-    void setOrderOneObject(ObjectType orderOneObject) {
+    public void setOrderOneObject(ObjectType orderOneObject) {
         this.orderOneObject = orderOneObject;
     }
 

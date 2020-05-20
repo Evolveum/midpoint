@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -19,7 +20,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -107,7 +107,7 @@ public abstract class AbstractConstruction<F extends AssignmentHolderType, T ext
         return prismContext;
     }
 
-    void setPrismContext(PrismContext prismContext) {
+    public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 

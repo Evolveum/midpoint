@@ -30,7 +30,7 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     /**
      * @pre construction is already evaluated and not ignored (has resource)
      */
-    <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction) {
+    public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction) {
         resource = construction.getResource().asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();

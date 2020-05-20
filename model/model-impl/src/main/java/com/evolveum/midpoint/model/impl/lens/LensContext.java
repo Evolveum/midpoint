@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -1233,7 +1234,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
+    public static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
         return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
     }
 

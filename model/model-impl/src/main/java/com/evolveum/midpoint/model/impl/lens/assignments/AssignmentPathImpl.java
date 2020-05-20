@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,24 +20,22 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author semancik
+ * Path from focus object to a given assignment.
+ * Contains also some (although not complete) information on evaluation of individual segments.
  *
+ * @author semancik
  */
 public class AssignmentPathImpl implements AssignmentPath {
 
     @NotNull private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
     @NotNull private final PrismContext prismContext;
 
-    public AssignmentPathImpl(PrismContext prismContext) {
+    public AssignmentPathImpl(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
@@ -60,15 +58,19 @@ public class AssignmentPathImpl implements AssignmentPath {
         segments.add(segment);
     }
 
-    public void removeLast(AssignmentPathSegmentImpl segment) {
+    void removeLast(AssignmentPathSegmentImpl segment) {
         AssignmentPathSegmentImpl last = last();
         if (last == null) {
             throw new IllegalStateException("Attempt to remove segment from empty path: " + this + "; segment=" + segment);
-        } else if (!last.equals(segment)) {
+        } else if (!last.equalsExceptForTarget(segment)) {
             throw new IllegalStateException("Attempt to remove wrong segment from the end of path: " + this + "; segment=" + segment);
         } else {
             segments.remove(segments.size() - 1);
         }
+    }
+
+    private void replaceLast(AssignmentPathSegmentImpl newLastSegment) {
+        segments.set(segments.size() - 1, newLastSegment);
     }
 
     @Override
@@ -129,7 +131,7 @@ public class AssignmentPathImpl implements AssignmentPath {
     @Override
     public List<ObjectType> getFirstOrderChain() {
         return segments.stream()
-                .filter(seg -> seg.isMatchingOrder() && seg.getTarget() != null)
+                .filter(seg -> seg.isMatchingOrder && seg.getTarget() != null)
                 .map(seg -> seg.getTarget())
                 .collect(Collectors.toList());
     }
@@ -138,7 +140,7 @@ public class AssignmentPathImpl implements AssignmentPath {
     public ObjectType getProtoRole() {
         ObjectType protoRole = null;
         for (AssignmentPathSegmentImpl segment: segments) {
-            if (segment.isMatchingOrder() && segment.getTarget() != null) {
+            if (segment.isMatchingOrder && segment.getTarget() != null) {
                 protoRole = segment.getTarget();
             }
         }
@@ -208,7 +210,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 //            segment.getEvaluationOrder().shortDump(sb);
 //            sb.append("): ");
             ObjectType target = segment.getTarget();
-            QName relation = segment.getRelation();
+            QName relation = segment.relation;
             if (target != null) {
                 sb.append("--");
                 if (segment.isAssignment()) {
@@ -281,5 +283,13 @@ public class AssignmentPathImpl implements AssignmentPath {
     boolean containsDelegation(boolean evaluateOld, RelationRegistry relationRegistry) {
         return segments.stream()
                 .anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment(evaluateOld), relationRegistry));
+    }
+
+    void replaceLastSegmentWithTargetedOne(@NotNull AssignmentHolderType target) {
+        AssignmentPathSegmentImpl last = last();
+        assert last != null && last.target == null;
+        AssignmentPathSegmentImpl newLast = last.cloneWithTargetSet(target);
+        newLast.freeze();
+        replaceLast(newLast);
     }
 }

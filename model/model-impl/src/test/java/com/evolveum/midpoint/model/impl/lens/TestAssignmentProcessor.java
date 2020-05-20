@@ -14,6 +14,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 

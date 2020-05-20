@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.delta.DeltaTriple;
@@ -25,25 +25,24 @@ import java.util.Map;
  * @author semancik
  *
  */
-public class EvaluatedAssignmentTargetCache implements DebugDumpable {
+class EvaluatedAssignmentTargetCache implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentTargetCache.class);
 
     // Triple. Target processed for addition is not necessarily reusable for deletion
     // This is indexed by OID and relation only
-    private DeltaTriple<Map<Key, AssignmentTargetEvaluationInformation>> processedKeys;
+    private final DeltaTriple<Map<Key, AssignmentTargetEvaluationInformation>> processedKeys;
 
     // Triple. Target processed for addition is not necessarily reusable for deletion
     // This is indexed by OID, relation and order
-    private DeltaTriple<Map<OrderKey, AssignmentTargetEvaluationInformation>> processedOrderKeys;
-
+    private final DeltaTriple<Map<OrderKey, AssignmentTargetEvaluationInformation>> processedOrderKeys;
 
     EvaluatedAssignmentTargetCache() {
         processedOrderKeys = new DeltaTriple<>(HashMap::new);
         processedKeys = new DeltaTriple<>(HashMap::new);
     }
 
-    public void reset() {
+    void reset() {
         processedOrderKeys.foreach(Map::clear);
         processedKeys.foreach(Map::clear);
     }
@@ -85,7 +84,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
         return idempotence != null && idempotence != IdempotenceType.NONE;
     }
 
-    public boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
+    boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
         ObjectType target = segment.getTarget();
         if (!(target instanceof AbstractRoleType)) {
 //            LOGGER.trace("Non-skippable target: {}", target);
@@ -96,7 +95,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 //            LOGGER.trace("Not idempotent target: {}", target);
             return false;
         }
-        if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder()) {
+        if (idempotence == IdempotenceType.CONSERVATIVE && !segment.isMatchingOrder) {
             // this is quite important (and perhaps not too frequent) message, so let's keep it here
             LOGGER.trace("Conservative idempotent and order is not matching: {}", target);
             return false;
@@ -120,13 +119,13 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
     }
 
     private class Key {
-        private String targetOid;
-        private QName relation;
+        private final String targetOid;
+        private final QName relation;
 
-        public Key(AssignmentPathSegmentImpl segment) {
+        Key(AssignmentPathSegmentImpl segment) {
             super();
             this.targetOid = segment.getTarget().getOid();
-            this.relation = segment.getRelation();
+            this.relation = segment.relation;
         }
 
         @Override
@@ -139,6 +138,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
             return result;
         }
 
+        @SuppressWarnings("RedundantIfStatement")
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {
@@ -188,9 +188,9 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
     }
 
     private class OrderKey extends Key {
-        private EvaluationOrder evaluationOrder;
+        private final EvaluationOrder evaluationOrder;
 
-        public OrderKey(AssignmentPathSegmentImpl segment) {
+        private OrderKey(AssignmentPathSegmentImpl segment) {
             super(segment);
             this.evaluationOrder = segment.getEvaluationOrder();
         }
@@ -204,6 +204,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
             return result;
         }
 
+        @SuppressWarnings("RedundantIfStatement")
         @Override
         public boolean equals(Object obj) {
             if (this == obj) {

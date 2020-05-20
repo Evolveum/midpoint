@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.AbstractConstruction;
 import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.FailableLensFunction;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;

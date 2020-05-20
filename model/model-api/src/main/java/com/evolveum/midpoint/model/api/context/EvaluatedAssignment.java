@@ -47,6 +47,10 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
     QName getNormalizedRelation(RelationRegistry relationRegistry);
 
+    /**
+     * TODO Define this concept. It looks like it mixes ideas of validity (activation, lifecycle state)
+     *  and relativity mode (condition).
+     */
     boolean isValid();
 
     boolean isPresentInCurrentObject();
