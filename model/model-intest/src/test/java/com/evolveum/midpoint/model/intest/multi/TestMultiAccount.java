@@ -97,8 +97,10 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     protected static final String ACCOUNT_ODRADE_FIRST_NAME = "Darwi";
     protected static final String ACCOUNT_ODRADE_LAST_NAME = "Odrade";
     protected static final String ACCOUNT_ODRADE_PERSONAL_NUMBER = "54321";
-    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR = "MS007";
+    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE = "A007";
     protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_GUARDIAN = "G007";
+    protected static final String ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR = "MS007";
+    protected static final String OU_MOTHER_SCHOOL = "Mother School";
     protected static final String OU_MOTHER_SUPERIOR_OFFICE = "Mother Superior Office";
     protected static final String OU_SECURITY = "Security";
 
@@ -109,6 +111,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
     private static final String PLANET_KAITAIN = "Kaitain";
     private static final String PLANET_IX = "Ix";
     private static final String PLANET_GINAZ = "Ginaz";
+    private static final String PLANET_WALLACH_IX = "Wallach IX";
     private static final String PLANET_CHAPTERHOUSE = "Chapterhouse";
     private static final String PLANET_ARRAKIS = "Arrakis";
 
@@ -660,19 +663,19 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
      * Import the first account. Nothing special here yet.
      */
     @Test
-    public void test410ImportOdrade() throws Exception {
+    public void test410ImportOdradeApprentice() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        DummyAccount account = new DummyAccount(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR);
+        DummyAccount account = new DummyAccount(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE);
         account.setEnabled(true);
         account.addAttributeValues(CLEVER_HR_ATTRIBUTE_FIRST_NAME, ACCOUNT_ODRADE_FIRST_NAME);
         account.addAttributeValues(CLEVER_HR_ATTRIBUTE_LAST_NAME, ACCOUNT_ODRADE_LAST_NAME);
         account.addAttributeValues(CLEVER_HR_ATTRIBUTE_PERSONAL_NUMBER, ACCOUNT_ODRADE_PERSONAL_NUMBER);
-        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_LOCATION, PLANET_CHAPTERHOUSE);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_LOCATION, PLANET_WALLACH_IX);
         account.addAttributeValues(CLEVER_HR_ATTRIBUTE_PRIMARY, Collections.singleton(Boolean.TRUE));
-        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_OU, OU_MOTHER_SUPERIOR_OFFICE);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_OU, OU_MOTHER_SCHOOL);
         getDummyResource(RESOURCE_DUMMY_CLEVER_HR_NAME).addAccount(account);
 
         // Preconditions
@@ -689,14 +692,14 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .displayWithProjections()
                 .assertGivenName(ACCOUNT_ODRADE_FIRST_NAME)
                 .assertFamilyName(ACCOUNT_ODRADE_LAST_NAME)
-                .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
-                .assertLocality(PLANET_CHAPTERHOUSE)
-                .assertOrganizationalUnits(OU_MOTHER_SUPERIOR_OFFICE)
+                .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
+                .assertLocality(PLANET_WALLACH_IX)
+                .assertOrganizationalUnits(OU_MOTHER_SCHOOL)
                 .singleLink()
                     .resolveTarget()
                         .assertKind(ShadowKindType.ACCOUNT)
                         .assertIntent(SchemaConstants.INTENT_DEFAULT)
-                        .assertTag(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR);
+                        .assertTag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE);
 
         assertUsers(getNumberOfUsers() + 3);
 
@@ -737,14 +740,13 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
                 .displayWithProjections()
                 .assertGivenName(ACCOUNT_ODRADE_FIRST_NAME)
                 .assertFamilyName(ACCOUNT_ODRADE_LAST_NAME)
-                // TODO
-                .assertLocality(PLANET_CHAPTERHOUSE)
-//                .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
-                .assertOrganizationalUnits(OU_MOTHER_SUPERIOR_OFFICE, OU_SECURITY)
+                .assertLocality(PLANET_WALLACH_IX)
+                .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
+                .assertOrganizationalUnits(OU_MOTHER_SCHOOL, OU_SECURITY)
                 .links()
                     .assertLinks(2)
                     .by()
-                        .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
+                        .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
                     .find()
                         .resolveTarget()
                             .assertKind(ShadowKindType.ACCOUNT)
@@ -762,6 +764,77 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(getNumberOfUsers() + 3);
 
+    }
+
+    /**
+     * Promote Odrade to Mother Superior. The primary contract is changed in this case.
+     * User object should reflect data from the new primary contract.
+     */
+    @Test
+    public void test430ImportOdradeMotherSuperior() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        getDummyResource(RESOURCE_DUMMY_CLEVER_HR_NAME)
+                .getAccountByUsername(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
+                    .replaceAttributeValue(CLEVER_HR_ATTRIBUTE_PRIMARY, Boolean.FALSE);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR);
+        account.setEnabled(true);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_FIRST_NAME, ACCOUNT_ODRADE_FIRST_NAME);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_LAST_NAME, ACCOUNT_ODRADE_LAST_NAME);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_PERSONAL_NUMBER, ACCOUNT_ODRADE_PERSONAL_NUMBER);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_LOCATION, PLANET_CHAPTERHOUSE);
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_PRIMARY, Collections.singleton(Boolean.TRUE));
+        account.addAttributeValues(CLEVER_HR_ATTRIBUTE_OU, OU_MOTHER_SUPERIOR_OFFICE);
+        getDummyResource(RESOURCE_DUMMY_CLEVER_HR_NAME).addAccount(account);
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 3);
+
+        // WHEN
+        when();
+        importCleverHrAccounts(task, result);
+
+        // THEN
+        then();
+
+        assertUserAfterByUsername(USER_ODRADE_USERNAME)
+                .displayWithProjections()
+                .assertGivenName(ACCOUNT_ODRADE_FIRST_NAME)
+                .assertFamilyName(ACCOUNT_ODRADE_LAST_NAME)
+                .assertLocality(PLANET_CHAPTERHOUSE)
+                .assertEmployeeNumber(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
+                .assertOrganizationalUnits(OU_MOTHER_SUPERIOR_OFFICE, OU_MOTHER_SCHOOL, OU_SECURITY)
+                .links()
+                    .assertLinks(3)
+                    .by()
+                        .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_APPRENTICE)
+                    .find()
+                        .resolveTarget()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .end()
+                        .end()
+                    .by()
+                        .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_GUARDIAN)
+                    .find()
+                        .resolveTarget()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .end()
+                        .end()
+                .by()
+                        .tag(ACCOUNT_ODRADE_CONTRACT_NUMBER_MOTHER_SUPERIOR)
+                    .find()
+                        .resolveTarget()
+                            .assertKind(ShadowKindType.ACCOUNT)
+                            .assertIntent(SchemaConstants.INTENT_DEFAULT)
+                            .end()
+                        .end();
+
+        assertUsers(getNumberOfUsers() + 3);
     }
 
     private void assertEnvoyAccounts(String userOid, String username, String... planets) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException, InterruptedException, FileNotFoundException, ConnectException, SchemaViolationException, ConflictException {

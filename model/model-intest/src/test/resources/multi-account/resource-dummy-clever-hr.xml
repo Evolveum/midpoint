@@ -68,9 +68,15 @@
                 <inbound>
                     <target>
                         <path>employeeNumber</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>basic.getAttributeValue(projection, "primary")</code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                     <condition>
-                        <trace>true</trace>
                         <script>
                             <code>basic.getAttributeValue(projection, "primary")</code>
                         </script>
@@ -82,9 +88,28 @@
                 <inbound>
                     <target>
                         <path>$focus/givenName</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        if (basic.getAttributeValue(projection, "primary")) {
+                                            // Primary account. We want to remove all values, except those given by this mapping.
+                                            // Which means that we want range to be "all".
+                                            // Therefore we return true for every value of the target set,
+                                            // which means that all values will be part of the range.
+                                            return true
+                                        } else {
+                                            // Non-primary account. We want to keep all existing values of target property (givenName).
+                                            // Which means that we want range to be "none".
+                                            // Therefore we return false for every value, which means no value will be part of the range.
+                                            return false
+                                        }
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                     <condition>
-                        <trace>true</trace>
                         <script>
                             <code>basic.getAttributeValue(projection, "primary")</code>
                         </script>
@@ -96,9 +121,18 @@
                 <inbound>
                     <target>
                         <path>$focus/familyName</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        // Same thing as above, just written in a simpler form.
+                                        basic.getAttributeValue(projection, "primary")
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                     <condition>
-                        <trace>true</trace>
                         <script>
                             <code>basic.getAttributeValue(projection, "primary")</code>
                         </script>
@@ -108,16 +142,20 @@
                     <expression>
                         <trace>true</trace>
                         <script>
-                            <!-- Why this does not work?
-                                lastName.toLowerCase() + iterationToken -->
                             <code>input.toLowerCase()</code>
                         </script>
                     </expression>
                     <target>
                         <path>$focus/name</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>basic.getAttributeValue(projection, "primary")</code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                     <condition>
-                        <trace>true</trace>
                         <script>
                             <code>basic.getAttributeValue(projection, "primary")</code>
                         </script>
@@ -141,6 +179,13 @@
                     <strength>strong</strength>
                     <target>
                         <path>locality</path>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>basic.getAttributeValue(projection, "primary")</code>
+                                </script>
+                            </condition>
+                        </set>
                     </target>
                     <condition>
                         <trace>true</trace>
@@ -171,7 +216,6 @@
                 <administrativeStatus>
                     <inbound>
                         <condition>
-                            <trace>true</trace>
                             <script>
                                 <code>basic.getAttributeValue(projection, "primary")</code>
                             </script>
@@ -181,7 +225,6 @@
                 <validFrom>
                     <inbound>
                         <condition>
-                            <trace>true</trace>
                             <script>
                                 <code>basic.getAttributeValue(projection, "primary")</code>
                             </script>
@@ -191,7 +234,6 @@
                 <validTo>
                     <inbound>
                         <condition>
-                            <trace>true</trace>
                             <script>
                                 <code>basic.getAttributeValue(projection, "primary")</code>
                             </script>
