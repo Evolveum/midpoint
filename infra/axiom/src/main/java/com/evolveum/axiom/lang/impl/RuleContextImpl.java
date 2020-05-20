@@ -6,9 +6,9 @@ import com.evolveum.axiom.reactor.Rule;
 
 public class RuleContextImpl implements Rule<StatementContextImpl<?>, StatementRuleContextImpl<?>> {
 
-    private final StatementRule delegate;
+    private final AxiomStatementRule delegate;
 
-    public RuleContextImpl(StatementRule delegate) {
+    public RuleContextImpl(AxiomStatementRule delegate) {
         super();
         this.delegate = delegate;
     }
@@ -20,7 +20,7 @@ public class RuleContextImpl implements Rule<StatementContextImpl<?>, StatementR
 
     @Override
     public Collection<StatementRuleContextImpl<?>> applyTo(StatementContextImpl<?> context) {
-        StatementRuleContextImpl<?> actionBuilder = context.addRule(delegate);
+        StatementRuleContextImpl<?> actionBuilder = context.addAction(delegate.name());
         delegate.apply(actionBuilder);
         return actionBuilder.build();
     }
@@ -30,7 +30,7 @@ public class RuleContextImpl implements Rule<StatementContextImpl<?>, StatementR
         return delegate.toString();
     }
 
-    public StatementRule<?> delegate() {
+    public AxiomStatementRule<?> delegate() {
         return delegate;
     }
 

@@ -9,15 +9,15 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.lang.spi.AxiomStatementBuilder;
-import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-class StatementContextResult<V> implements Depedency<AxiomStatement<V>> {
+class StatementContextResult<V> implements Dependency<AxiomStatement<V>> {
 
     private V value;
     private final List<StatementContextImpl<?>> childrenList = new ArrayList<>();
-    private final Multimap<AxiomIdentifier, StatementContext<?>> children = HashMultimap.create();
+    private final Multimap<AxiomIdentifier, AxiomStatementContext<?>> children = HashMultimap.create();
     private AxiomStatementBuilder<V> builder;
 
     private final List<StatementRuleContextImpl<V>> rules = new ArrayList<>();
@@ -41,7 +41,7 @@ class StatementContextResult<V> implements Depedency<AxiomStatement<V>> {
         return value;
     }
 
-    public Collection<StatementContext<?>> get(AxiomIdentifier identifier) {
+    public Collection<AxiomStatementContext<?>> get(AxiomIdentifier identifier) {
         return children.get(identifier);
     }
 

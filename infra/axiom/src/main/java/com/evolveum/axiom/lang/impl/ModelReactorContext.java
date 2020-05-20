@@ -28,7 +28,7 @@ import com.evolveum.axiom.lang.spi.AxiomStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
-import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.RuleReactorContext;
 
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +120,7 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
             if (exception != null) {
                 messages.append(exception.toString()).append("\n");
             }
-            for (Depedency<?> req : rule.dependencies()) {
+            for (Dependency<?> req : rule.dependencies()) {
                 if(!req.isSatisfied()) {
                     messages.append(req.errorMessage()).append("\n");
                 }
@@ -155,8 +155,8 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         super.addOutstanding(action);
     }
 
-    public void addRules(StatementRule<?>... rules) {
-        for (StatementRule<?> statementRule : rules) {
+    public void addRules(AxiomStatementRule<?>... rules) {
+        for (AxiomStatementRule<?> statementRule : rules) {
             this.rules.add(new RuleContextImpl(statementRule));
         }
     }
@@ -228,8 +228,8 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         return exported.computeIfAbsent(namespace, k -> new CompositeIdentifierSpace());
     }
 
-    public Depedency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
-        return Depedency.orNull(exported.get(namespaceId));
+    public Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+        return Dependency.orNull(exported.get(namespaceId));
     }
 
     @Override

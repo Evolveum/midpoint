@@ -71,4 +71,16 @@ public class AxiomStreamTreeBuilder implements AxiomStatementStreamListener {
 
     }
 
+    public void stream(AxiomStatement<?> statement) {
+        startStatement(statement.keyword(), null);
+        if(statement.value() != null) {
+            argument0(statement.value(), null);
+        }
+        for( AxiomStatement<?> child : statement.children()) {
+            stream(child);
+        }
+        endStatement(null);
+
+    }
+
 }

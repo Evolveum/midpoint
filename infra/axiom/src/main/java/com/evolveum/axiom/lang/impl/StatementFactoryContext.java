@@ -9,11 +9,11 @@ package com.evolveum.axiom.lang.impl;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl;
 
-public interface AxiomStatementFactoryContext {
+interface StatementFactoryContext {
 
     AxiomStatementImpl.Factory<?, ?> factoryFor(AxiomTypeDefinition identifier);
 
-    static AxiomStatementFactoryContext defaultFactory(AxiomStatementImpl.Factory<?,?> factory) {
+    static StatementFactoryContext defaultFactory(AxiomStatementImpl.Factory<?,?> factory) {
         return (identifier) -> factory;
     }
 

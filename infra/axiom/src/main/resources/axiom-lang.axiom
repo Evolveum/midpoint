@@ -37,16 +37,26 @@ model axiom-lang {
         }
 
         item type {
+            type AxiomTypeDefinition;
             documentation """
                 Type Declaration
 
                 type statement declares a new global type, which is available
                 to model items.
             """;
-            type AxiomTypeDefinition;
         }
 
+        item mixin {
+            type AxiomMixinDefinition;
+            documentation """
+                Mixin Declaration, declares a new global mixin, aset of reusable item 
+                definitions, which can be used in type definitions.
+            """;
+        }
 
+        item extension {
+            type AxiomExtensionDefinition;
+        }
 
         // TODO move to prism schema; consider renaming to objectType?
         item object {
@@ -143,6 +153,10 @@ model axiom-lang {
             type AxiomTypeReference;
         }
 
+        item uses {
+            type AxiomTypeReference;
+        }
+
         item identifier {
             type AxiomIdentifierDefinition;
         }
@@ -200,7 +214,25 @@ model axiom-lang {
         }
     }
 
-    type AxiomTypeReference;
+    type AxiomTypeReference {
+        //type AxiomIdentifier;
+        //reference {
+        //    scope global;
+        //    space AxiomTypeDefinition;
+        //    argument name;
+        //}
+    }
+
+    type AxiomMixinDefinition {
+        extends AxiomTypeDefinition;
+    }
+
+    type AxiomExtensionDefinition {
+        extends AxiomMixinDefinition;
+        item target {
+            type AxiomTypeReference;
+        }
+    }
 
     // "Type library" (temporary)
 

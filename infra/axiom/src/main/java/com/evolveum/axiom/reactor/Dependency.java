@@ -7,49 +7,55 @@ import com.evolveum.axiom.lang.impl.RuleErrorMessage;
 import com.google.common.base.Preconditions;
 
 
-public interface Depedency<T> {
+public interface Dependency<T> {
 
+    default boolean isRequired() {
+        return true;
+    }
     boolean isSatisfied();
     public T get();
 
     public RuleErrorMessage errorMessage();
 
-    public static <T> Depedency<T> unsatisfied() {
+    public static <T> Dependency<T> unsatisfied() {
         return new Unsatified<>();
     }
 
-    public static <T> Depedency<T> immediate(T value) {
+    public static <T> Dependency<T> immediate(T value) {
         return new Immediate<>(value);
     }
 
-    public static <T> Depedency<T> from(Supplier<T> supplier) {
+    public static <T> Dependency<T> optional(Dependency<T> dependency) {
+        return new OptionalDep<T>(dependency);
+    }
+
+    public static <T> Dependency<T> from(Supplier<T> supplier) {
         return new Suppliable<>(supplier);
     }
 
-    public static <T> Depedency<T> deffered(Depedency<T> original) {
+    public static <T> Dependency<T> deffered(Dependency<T> original) {
         return new Deffered<>(original);
     }
 
-    default Depedency<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+    default Dependency<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
         return this;
     }
 
-    interface Search<T> extends Depedency<T> {
+    interface Search<T> extends Dependency<T> {
 
-        default Depedency.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        default Dependency.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
             return this;
         }
 
     }
 
-
-    public static abstract class Abstract<V> implements Depedency<V> {
+    public static abstract class Abstract<V> implements Dependency<V> {
 
 
         private Supplier<RuleErrorMessage> errorMessage;
 
         @Override
-        public Depedency<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        public Dependency<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
             errorMessage = unsatisfiedMessage;
             return this;
         }
@@ -122,11 +128,16 @@ public interface Depedency<T> {
 
     public abstract class Delegated<T>  extends Abstract<T>  {
 
-        abstract Depedency<T> delegate();
+        abstract Dependency<T> delegate();
 
         @Override
         public boolean isSatisfied() {
             return delegate().isSatisfied();
+        }
+
+        @Override
+        public boolean isRequired() {
+            return delegate().isRequired();
         }
 
         @Override
@@ -136,25 +147,46 @@ public interface Depedency<T> {
         }
     }
 
+    public final class OptionalDep<T> extends Delegated<T> {
+
+        private final Dependency<T> delegate;
+
+        public OptionalDep(Dependency<T> delegate) {
+            super();
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isRequired() {
+            return false;
+        }
+
+        @Override
+        Dependency<T> delegate() {
+            return delegate;
+        }
+
+    }
+
     public final class RetriableDelegate<T> extends Delegated<T> implements Search<T> {
 
         private Object maybeDelegate;
         private Supplier<RuleErrorMessage> notFound;
 
-        public RetriableDelegate(Supplier<Depedency<T>> lookup) {
+        public RetriableDelegate(Supplier<Dependency<T>> lookup) {
             maybeDelegate = lookup;
         }
 
         @Override
-        Depedency<T> delegate() {
-            if(maybeDelegate instanceof Depedency<?>) {
-                return (Depedency) maybeDelegate;
+        Dependency<T> delegate() {
+            if(maybeDelegate instanceof Dependency<?>) {
+                return (Dependency) maybeDelegate;
             }
             if(maybeDelegate instanceof Supplier<?>) {
-                Depedency<?> result = ((Supplier<Depedency<?>>) maybeDelegate).get();
+                Dependency<?> result = ((Supplier<Dependency<?>>) maybeDelegate).get();
                 if(result != null) {
                     maybeDelegate = result;
-                    return (Depedency) result;
+                    return (Dependency) result;
                 }
 
             }
@@ -177,20 +209,21 @@ public interface Depedency<T> {
 
     }
 
-    static <T> Search<T> retriableDelegate(Supplier<Depedency<T>> lookup) {
+    static <T> Search<T> retriableDelegate(Supplier<Dependency<T>> lookup) {
         return new RetriableDelegate(lookup);
     }
 
-    static <T> Depedency<T> from(Optional<T> maybe) {
+    static <T> Dependency<T> from(Optional<T> maybe) {
         if(maybe.isPresent()) {
             return immediate(maybe.get());
         }
         return unsatisfied();
     }
-    static <T> Depedency<T> orNull(T value) {
+    static <T> Dependency<T> orNull(T value) {
         if(value != null) {
             return immediate(value);
         }
         return null;
     }
+
 }

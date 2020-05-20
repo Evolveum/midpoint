@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Iterables;
 
 public interface AxiomStatement<V> {
 

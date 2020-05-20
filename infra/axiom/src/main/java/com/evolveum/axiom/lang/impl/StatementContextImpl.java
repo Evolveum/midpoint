@@ -11,6 +11,7 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.concepts.Optionals;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.lang.impl.AxiomStatementRule.Context;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
@@ -20,9 +21,9 @@ import com.evolveum.axiom.lang.spi.AxiomStatementBuilder;
 import com.evolveum.axiom.lang.spi.AxiomStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
-import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.Dependency;
 
-public abstract class StatementContextImpl<V> implements StatementContext<V>, AxiomStreamTreeBuilder.NodeBuilder, IdentifierSpaceHolder {
+public abstract class StatementContextImpl<V> implements AxiomStatementContext<V>, AxiomStreamTreeBuilder.NodeBuilder, IdentifierSpaceHolder {
 
     private final AxiomItemDefinition definition;
 
@@ -31,7 +32,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
     private SourceLocation startLocation;
     private SourceLocation endLocation;
     private SourceLocation valueLocation;
-    private Depedency<AxiomStatement<V>> result;
+    private Dependency<AxiomStatement<V>> result;
 
 
     StatementContextImpl(AxiomItemDefinition definition, SourceLocation loc, Scope scope, Scope... rest) {
@@ -106,7 +107,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
     }
 
     @Override
-    public <V> StatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value) {
+    public <V> AxiomStatementContext<V> createEffectiveChild(AxiomIdentifier axiomIdentifier, V value) {
         StatementContextImpl<V> child = startChildNode(axiomIdentifier, null);
         child.setValue(value, null);
         return child;
@@ -115,7 +116,7 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
 
     public void registerRule(StatementRuleContextImpl<V> rule) {
         mutableResult().addRule(rule);
-        //addOutstanding(rule);
+        addOutstanding(rule);
     }
 
     protected void addOutstanding(StatementRuleContextImpl<?> rule) {
@@ -134,10 +135,8 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
         return (Collection) mutableResult().get(identifier);
     }
 
-    public StatementRuleContextImpl<V> addRule(StatementRule<V> statementRule) throws AxiomSemanticException {
-        StatementRuleContextImpl<V> action = new StatementRuleContextImpl<V>(this,statementRule);
-        statementRule.apply(action);
-        return action;
+    public StatementRuleContextImpl<V> addAction(String name) throws AxiomSemanticException {
+        return new StatementRuleContextImpl<V>(this,name);
     }
 
     @Override
@@ -146,8 +145,8 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
     }
 
     @Override
-    public void replace(Depedency<AxiomStatement<?>> supplier) {
-        this.result = (Depedency) supplier;
+    public void replace(Dependency<AxiomStatement<?>> supplier) {
+        this.result = (Dependency) supplier;
     }
 
     @Override
@@ -159,9 +158,9 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
         this.valueLocation = loc;
     }
 
-    public Depedency<AxiomStatement<V>> asRequirement() {
+    public Dependency<AxiomStatement<V>> asRequirement() {
         if (result instanceof StatementContextResult) {
-            return Depedency.deffered(result);
+            return Dependency.deffered(result);
         }
         return result;
     }
@@ -230,19 +229,46 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
         root().reactor.endStatement(this, loc);
     }
 
-    public Depedency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
-        return Depedency.retriableDelegate(() -> {
+    public Dependency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+        return Dependency.retriableDelegate(() -> {
             if(mutableResult() != null) {
-                return (Depedency) firstChild(required).map(StatementContextImpl::asRequirement).orElse(null);
+                return (Dependency) firstChild(required).map(StatementContextImpl::asRequirement).orElse(null);
             }
             Optional<AxiomStatement<?>> maybe = result.get().first(required);
 
-            return Depedency.from(maybe);
+            return Dependency.from(maybe);
         });
+    }
+
+    @Override
+    public Context<?> newAction(String name) {
+        return addAction(name);
+    }
+
+    @Override
+    public void addChildren(Collection<AxiomStatement<?>> children) {
+        AxiomStreamTreeBuilder streamBuilder = new AxiomStreamTreeBuilder(this);
+        for(AxiomStatement<?> child : children) {
+            streamBuilder.stream(child);
+        }
+    }
+
+    @Override
+    public void addEffectiveChildren(Collection<AxiomStatement<?>> children) {
+        for(AxiomStatement<?> child :children) {
+            AxiomStatementContext<?> effective = createEffectiveChild(child.keyword(), child.value());
+            effective.replace(Dependency.immediate(child));
+
+        }
     }
 
     protected IdentifierSpaceHolder exports() {
         throw new IllegalStateException("Statement does not provide exports");
+    }
+
+    @Override
+    public Context<?> modify(AxiomStatementContext<?> target, String name) {
+        return (target).newAction(name);
     }
 
     static class Child<V> extends StatementContextImpl<V> {
@@ -357,8 +383,8 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
             return this;
         }
 
-        public Depedency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
-            return Depedency.retriableDelegate(() -> {
+        public Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+            return Dependency.retriableDelegate(() -> {
                 return reactor.namespace(name, namespaceId);
             });
         }
@@ -366,6 +392,11 @@ public abstract class StatementContextImpl<V> implements StatementContext<V>, Ax
 
     protected Root<?> root() {
         return parent().root();
+    }
+
+
+    public Dependency<AxiomStatement<?>> optionalChild(AxiomItemDefinition required) {
+        return Dependency.optional(requireChild(required));
     }
 
 }

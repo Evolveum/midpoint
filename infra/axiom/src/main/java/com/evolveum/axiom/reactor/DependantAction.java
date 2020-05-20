@@ -4,11 +4,11 @@ import java.util.Collection;
 
 public interface DependantAction<E extends Exception> extends Action<E> {
 
-    Collection<Depedency<?>> dependencies();
+    Collection<Dependency<?>> dependencies();
 
     @Override
     default boolean canApply() {
-        for (Depedency<?> dependency : dependencies()) {
+        for (Dependency<?> dependency : dependencies()) {
             if(!dependency.isSatisfied()) {
                 return false;
             }

@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
+import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class AxiomErrorListener extends BaseErrorListener {
 
@@ -26,7 +27,7 @@ public class AxiomErrorListener extends BaseErrorListener {
     @Override
     public void syntaxError(final Recognizer<?, ?> recognizer, final Object offendingSymbol, final int line,
             final int charPositionInLine, final String msg, final RecognitionException e) {
-        exceptions.add(new AxiomSyntaxException(source, line, charPositionInLine, msg));
+        exceptions.add(new AxiomSyntaxException(SourceLocation.from(source, line, charPositionInLine), msg));
     }
 
     public void validate() throws AxiomSyntaxException {
@@ -44,6 +45,6 @@ public class AxiomErrorListener extends BaseErrorListener {
 
             sb.append(e.getFormattedMessage());
         }
-        throw new AxiomSyntaxException(source, 0, 0, sb.toString());
+        throw new AxiomSyntaxException(SourceLocation.from(source, 0, 0), sb.toString());
     }
 }

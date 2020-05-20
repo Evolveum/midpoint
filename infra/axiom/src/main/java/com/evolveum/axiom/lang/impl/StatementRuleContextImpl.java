@@ -11,22 +11,23 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.lang.impl.AxiomStatementRule.Context;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomStatement;
-import com.evolveum.axiom.reactor.Depedency;
+import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.DependantAction;
 import com.google.common.collect.ImmutableList;
-public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, DependantAction<AxiomSemanticException> {
+public class StatementRuleContextImpl<V> implements AxiomStatementRule.Context<V>, DependantAction<AxiomSemanticException> {
 
     private final StatementContextImpl<V> context;
-    private final StatementRule<V> rule;
-    private final List<Depedency<?>> dependencies = new ArrayList<>();
-    private Action<V> action;
+    private final String rule;
+    private final List<Dependency<?>> dependencies = new ArrayList<>();
+    private AxiomStatementRule.Action<V> action;
     private Supplier<RuleErrorMessage> errorReport = () -> null;
     private boolean applied = false;
     private Exception error;
 
-    public StatementRuleContextImpl(StatementContextImpl<V> context, StatementRule<V> rule) {
+    public StatementRuleContextImpl(StatementContextImpl<V> context, String rule) {
         this.context = context;
         this.rule = rule;
     }
@@ -37,31 +38,31 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
     }
 
     @Override
-    public Depedency.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
+    public Dependency.Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space,
             IdentifierSpaceKey key) {
-        return requirement(Depedency.retriableDelegate(() -> {
+        return requirement(Dependency.retriableDelegate(() -> {
             StatementContextImpl<?> maybe = context.lookup(space, key);
             if(maybe != null) {
-                return (Depedency) maybe.asRequirement();
+                return (Dependency) maybe.asRequirement();
             }
             return null;
         }));
     }
 
-    private <V,X extends Depedency<V>> X requirement(X req) {
+    private <V,X extends Dependency<V>> X requirement(X req) {
         this.dependencies.add(req);
         return req;
     }
 
     @Override
-    public StatementRuleContextImpl<V> apply(Action<V> action) {
+    public StatementRuleContextImpl<V> apply(AxiomStatementRule.Action<V> action) {
         this.action = action;
         context.registerRule(this);
         return this;
     }
 
     public boolean canProcess() {
-        for (Depedency<?> requirement : dependencies) {
+        for (Dependency<?> requirement : dependencies) {
             if (!requirement.isSatisfied()) {
                 return false;
             }
@@ -80,7 +81,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
     @Override
     public <V> V requiredChildValue(AxiomItemDefinition supertypeReference, Class<V> type)
             throws AxiomSemanticException {
-        StatementContext ctx = context.firstChild(supertypeReference).get();
+        AxiomStatementContext ctx = context.firstChild(supertypeReference).get();
         return (V) ctx.requireValue(type);
     }
 
@@ -94,7 +95,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
     }
 
     @Override
-    public StatementRuleContext<V> errorMessage(Supplier<RuleErrorMessage> errorFactory) {
+    public AxiomStatementRule.Context<V> errorMessage(Supplier<RuleErrorMessage> errorFactory) {
         this.errorReport = errorFactory;
         return this;
     }
@@ -128,12 +129,16 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
     }
 
     @Override
-    public Depedency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
-        return context.requireChild(required);
+    public Dependency<AxiomStatement<?>> requireChild(AxiomItemDefinition required) {
+        return requirement(context.requireChild(required));
+    }
+
+    public Dependency<AxiomStatement<?>> optionalChild(AxiomItemDefinition required) {
+        return requirement(context.optionalChild(required));
     }
 
     @Override
-    public Depedency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
         return requirement(context.root().requireNamespace(name, namespaceId));
     }
 
@@ -142,7 +147,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
         return applied;
     }
 
-    public Collection<Depedency<?>> requirements() {
+    public Collection<Dependency<?>> requirements() {
         return dependencies;
     }
 
@@ -153,7 +158,7 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
 
 
     @Override
-    public Collection<Depedency<?>> dependencies() {
+    public Collection<Dependency<?>> dependencies() {
         return dependencies;
     }
 
@@ -173,5 +178,34 @@ public class StatementRuleContextImpl<V> implements StatementRuleContext<V>, Dep
         return Collections.emptyList();
     }
 
+    @Override
+    public AxiomItemDefinition itemDefinition() {
+        return context.definition();
+    }
+
+    @Override
+    public Dependency<AxiomStatementContext<?>> modify(AxiomIdentifier space, IdentifierSpaceKey key) {
+        return requirement(Dependency.retriableDelegate(() -> {
+            StatementContextImpl<?> maybe = context.lookup(space, key);
+            if(maybe != null) {
+                return Dependency.immediate(maybe);
+            }
+            return null;
+        }));
+    }
+
+    @Override
+    public Dependency<AxiomStatement<?>> require(AxiomStatementContext<?> ext) {
+        return requirement((Dependency) impl(ext).asRequirement());
+    }
+
+    private StatementContextImpl<?> impl(AxiomStatementContext<?> ext) {
+        return (StatementContextImpl<?>) ext;
+    }
+
+    @Override
+    public Context<V> newAction() {
+        return new StatementRuleContextImpl<V>(context, rule);
+    }
 
 }
