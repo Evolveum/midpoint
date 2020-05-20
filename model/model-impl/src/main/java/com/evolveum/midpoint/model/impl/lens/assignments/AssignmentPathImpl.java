@@ -287,7 +287,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 
     void replaceLastSegmentWithTargetedOne(@NotNull AssignmentHolderType target) {
         AssignmentPathSegmentImpl last = last();
-        assert last != null && last.target == null;
+        assert last != null;
         AssignmentPathSegmentImpl newLast = last.cloneWithTargetSet(target);
         newLast.freeze();
         replaceLast(newLast);
