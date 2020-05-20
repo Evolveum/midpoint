@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.ninja.action;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import com.evolveum.midpoint.ninja.opts.TransformOptions;
-import org.apache.commons.lang.NotImplementedException;
 
 /**
  * Created by Viliam Repan (lazyman).

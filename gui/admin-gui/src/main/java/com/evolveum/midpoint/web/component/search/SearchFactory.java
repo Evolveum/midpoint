@@ -200,7 +200,7 @@ public class SearchFactory {
         return search;
     }
 
-    private static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
+    public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator) {
 
@@ -226,7 +226,7 @@ public class SearchFactory {
         }
     }
 
-    private static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
+    public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
             PrismContainerDefinition<C> objectDef, boolean useDefsFromSuperclass) {
 //        Map<ItemPath, ItemDefinition> map = new HashMap<>();
         List<SearchItemDefinition> definitions = new ArrayList<>();

@@ -15,7 +15,7 @@ spring:
 server:
   tomcat:
     basedir: ${midpoint.home}
-    max-http-post-size: 104857600 # in bytes
+    max-http-form-post-size: 100MB
 ## Enable and configuration ajp connector for mp
 #    ajp:
 #      enabled: true

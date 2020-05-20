@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,7 @@ public class AssignmentCollector {
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private ContextLoader contextLoader;
 
     public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> focus,
             boolean loginMode, Task task, OperationResult result) throws SchemaException {
@@ -104,6 +106,7 @@ public class AssignmentCollector {
                             .prismContext(prismContext)
                             .mappingFactory(mappingFactory)
                             .mappingEvaluator(mappingEvaluator)
+                            .contextLoader(contextLoader)
                             .activationComputer(activationComputer)
                             .now(clock.currentTimeXMLGregorianCalendar())
                             // We do need only authorizations + gui config. Therefore we not need to evaluate

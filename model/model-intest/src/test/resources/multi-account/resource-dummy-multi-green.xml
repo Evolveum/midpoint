@@ -74,7 +74,7 @@
                     <!-- This avoids "kickback" of a name from account to a user. -->
                     <strength>weak</strength>
                     <target>
-                        <path>$c:user/c:name</path>
+                        <path>name</path>
                     </target>
                 </inbound>
             </attribute>

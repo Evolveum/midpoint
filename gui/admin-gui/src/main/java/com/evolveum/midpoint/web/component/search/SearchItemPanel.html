@@ -9,26 +9,40 @@
 <head/>
 <body>
 <wicket:panel>
-    <a wicket:id="mainButton" class="btn btn-sm btn-default" about="searchItemButton">
-        <span wicket:id="label"/>
-        &nbsp;
-        <span class="caret"></span>
-        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
-    </a>
-
-    <div wicket:id="popover" class="popover bottom">
-        <div class="arrow"></div>
-        <div class="popover-content" wicket:id="popoverBody">
-            <div wicket:id="values" class="input-group input-group-sm">
-                <div wicket:id="value"/>
-            </div>
-
-            <p style="margin: 0px; padding-top: 7px;">
-                <a data-type="update" wicket:id="update" class="btn btn-sm btn-success"/>
-                <a data-type="close" wicket:id="close" class="btn btn-sm btn-default"/>
-            </p>
+    <!-- todo replace style attribute to css class -->
+    <div class="search-item" style="display: inline-block; border-color: #ddd; border-radius: 3px; background-color: #f4f4f4;
+    vertical-align: middle; font-size: 12px;" wicket:id="searchItemContainer">
+        <div class="col-sm-3" style="margin-top: 5px; width: fit-content" wicket:id="searchItemLabel" />
+        <div class="col-sm-7" wicket:id="searchItemField" />
+        <div class="col-sm-1">
+            <a wicket:id="removeButton" class="btn btn-xs" style="margin-top: 5px;">
+                <i class="fa fa-times-circle fa-lg" />
+            </a>
         </div>
     </div>
+
+
+
+<!--    <a wicket:id="mainButton" class="btn btn-sm btn-default" about="searchItemButton">-->
+<!--        <span wicket:id="label"/>-->
+<!--        &nbsp;-->
+<!--        <span class="caret"></span>-->
+<!--        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>-->
+<!--    </a>-->
+
+<!--    <div wicket:id="popover" class="popover bottom">-->
+<!--        <div class="arrow"></div>-->
+<!--        <div class="popover-content" wicket:id="popoverBody">-->
+<!--            <div wicket:id="values" class="input-group input-group-sm">-->
+<!--                <div wicket:id="value"/>-->
+<!--            </div>-->
+
+<!--            <p style="margin: 0px; padding-top: 7px;">-->
+<!--                <a data-type="update" wicket:id="update" class="btn btn-sm btn-success"/>-->
+<!--                <a data-type="close" wicket:id="close" class="btn btn-sm btn-default"/>-->
+<!--            </p>-->
+<!--        </div>-->
+<!--    </div>-->
 </wicket:panel>
 </body>
 </html>

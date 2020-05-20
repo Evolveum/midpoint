@@ -6,6 +6,38 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -22,13 +54,16 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
 import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
@@ -108,7 +143,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class MidpointFunctionsImpl implements MidpointFunctions {
@@ -135,7 +169,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaHelper schemaHelper;
-    @Context HttpServletRequest httpServletRequest;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -763,7 +796,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {
+    public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> getMapping() {
         return ModelExpressionThreadLocalHolder.getMapping();
     }
 
@@ -864,7 +897,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (reference == null) {
             return null;
         }
-        QName type = reference.getType();           // TODO what about implicitly specified types, like in resourceRef?
+        QName type = reference.getType(); // TODO what about implicitly specified types, like in resourceRef?
         PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByType(reference.getType());
         if (objectDefinition == null) {
@@ -1474,7 +1507,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (securityPolicy != null && securityPolicy.getAuthentication() != null
                 && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             if (securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
-            && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
+                    && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName();
                 String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
@@ -1518,24 +1551,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
     }
 
-    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences){
-                AuthenticationSequenceType sequenceByName = null;
-                AuthenticationSequenceType defaultSequence = null;
-                for (AuthenticationSequenceType sequenceType : sequences) {
-                    if (sequenceType.getName().equals(nameOfSequence)) {
-                        sequenceByName = sequenceType;
-                        break;
-                    } else if (sequenceType.getChannel().getChannelId().equals(channel)
-                            && Boolean.TRUE.equals(sequenceType.getChannel().isDefault())) {
-                        defaultSequence = sequenceType;
-                    }
-                }
-                AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
-                if (usedSequence != null) {
-                    String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
-                    String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
-                    return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
-                }
+    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences) {
+        AuthenticationSequenceType sequenceByName = null;
+        AuthenticationSequenceType defaultSequence = null;
+        for (AuthenticationSequenceType sequenceType : sequences) {
+            if (sequenceType.getName().equals(nameOfSequence)) {
+                sequenceByName = sequenceType;
+                break;
+            } else if (sequenceType.getChannel().getChannelId().equals(channel)
+                    && Boolean.TRUE.equals(sequenceType.getChannel().isDefault())) {
+                defaultSequence = sequenceType;
+            }
+        }
+        AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
+        if (usedSequence != null) {
+            String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
+            String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
+            return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
+        }
         return null;
     }
 
@@ -1623,7 +1656,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
             return null;
         }
-        if (shadowRef.asReferenceValue().getObject() != null){
+        if (shadowRef.asReferenceValue().getObject() != null) {
             return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
         }
 
@@ -1655,6 +1688,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ConfigurationException, ExpressionEvaluationException {
         return AssignmentPath.collectExtensions(path, startAt, modelService, getCurrentTask(), getCurrentResult());
     }
+
     @Override
     public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
             String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
@@ -1677,7 +1711,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             newTask.setName(PolyStringType.fromOrig("Execute changes"));
             newTask.setRecurrence(TaskRecurrenceType.SINGLE);
         }
-        newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
+        newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
@@ -1745,9 +1779,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Object executeAdHocProvisioningScript(String resourceOid, String language, String code)
-                    throws SchemaException, ObjectNotFoundException,
-                    ExpressionEvaluationException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ObjectAlreadyExistsException {
         OperationProvisioningScriptType script = new OperationProvisioningScriptType();
         script.setCode(code);
         script.setLanguage(language);
@@ -1896,7 +1930,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (!(object instanceof AssignmentHolderType)) {
             return archetypeOid == null;
         }
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
+        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType) object).getArchetypeRef();
         if (archetypeOid == null) {
             return archetypeRefs.isEmpty();
         }
@@ -2022,7 +2056,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ExpressionEvaluationException {
         ObjectQuery query = prismContext.queryFor(type)
                 .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
-                    .ref(getFocusObjectReference().asReferenceValue().clone())
+                .ref(getFocusObjectReference().asReferenceValue().clone())
                 .build();
         return searchObjects(type, query, null);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,6 +19,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -44,7 +46,6 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -173,7 +174,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Source: AssignmentProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
 
     /**
      * Triples for outbound mappings; similar to the above.
@@ -256,7 +257,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-        return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew(), getObjectDefinition());
+        PrismObject<ShadowType> base = getObjectCurrent();
+        ObjectDelta<ShadowType> delta = getDelta();
+        if (base == null && delta != null && delta.isModify()) {
+            RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
+            if (rOCD != null) {
+                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+            }
+        }
+        return new ObjectDeltaObject<>(base, delta, getObjectNew(), getObjectDefinition());
     }
 
     public boolean hasSecondaryDelta() {
@@ -581,13 +590,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getConstructionDeltaSetTriple() {
-        return constructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
+        //noinspection unchecked
+        return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
     }
 
-    public void setConstructionDeltaSetTriple(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
-        this.constructionDeltaSetTriple = constructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
+        this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
     }
 
     public Construction getOutboundConstruction() {
@@ -844,7 +853,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (base == null && accDelta.isModify()) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
-                base = rOCD.createBlankShadow();
+                base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
             }
         }
 
@@ -879,7 +888,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                     throw new IllegalStateException("Definition for account type " + getResourceShadowDiscriminator()
                             + " not found in the context, but it should be there");
                 }
-                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow();
+                PrismObject<ShadowType> newAccount = rObjectClassDef.createBlankShadow(resourceShadowDiscriminator.getTag());
                 addDelta.setObjectToAdd(newAccount);
 
                 if (origDelta != null) {
@@ -1103,19 +1112,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return false;
     }
 
-    private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
-        if (acPpvSet == null) {
-            return false;
-        }
-        for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
-            Construction ac = acPpv.getValue();
-            if (ac.hasValueForAttribute(attributeName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void checkEncrypted() {
         super.checkEncrypted();
@@ -1261,7 +1257,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), evaluatedConstructionDeltaSetTriple, indent + 1);
 
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);

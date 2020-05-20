@@ -68,7 +68,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
@@ -720,8 +722,11 @@ public class ModelRestService {
         Response response;
         try {
             modelService.importFromResource(resourceOid, objClass, task, parentResult);
-            response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
-                    .build(ObjectTypes.TASK.getRestType(), task.getOid())), parentResult);
+            response = RestServiceUtil.createResponse(
+                    Response.Status.SEE_OTHER,
+                    uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
+                            .build(ObjectTypes.TASK.getRestType(), task.getOid()),
+                    parentResult);
         } catch (Exception ex) {
             response = RestServiceUtil.handleException(parentResult, ex);
         }

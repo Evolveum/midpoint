@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -47,6 +48,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -58,6 +60,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  */
 public class SearchPanel extends BasePanel<Search> {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
@@ -86,6 +89,7 @@ public class SearchPanel extends BasePanel<Search> {
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_MORE_GROUP = "moreGroup";
+    private static final String ID_SEARCH_CONFIGURATION = "searchConfiguration";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_ADVANCED_CHECK = "advancedCheck";
     private static final String ID_ADVANCED_ERROR= "advancedError";
@@ -164,6 +168,18 @@ public class SearchPanel extends BasePanel<Search> {
         });
         more.setOutputMarkupId(true);
         moreGroup.add(more);
+
+        AjaxLink<Void> searchConfigurationButton = new AjaxLink<Void>(ID_SEARCH_CONFIGURATION) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                searchConfigurationPerformed(target);
+            }
+        };
+        searchConfigurationButton.add(new VisibleBehaviour(() -> false));
+        searchConfigurationButton.setOutputMarkupId(true);
+        form.add(searchConfigurationButton);
 
         WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_CONTAINER);
         searchContainer.setOutputMarkupId(true);
@@ -753,5 +769,17 @@ public class SearchPanel extends BasePanel<Search> {
 
     private boolean isFullTextSearchEnabled(){
         return getModelObject().isFullTextSearchEnabled();
+    }
+
+    private void searchConfigurationPerformed(AjaxRequestTarget target){
+        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected @NotNull Class getObjectClass() {
+                return SearchPanel.this.getModelObject().getType();
+            }
+        };
+        getPageBase().showMainPopup(configPanel, target);
     }
 }

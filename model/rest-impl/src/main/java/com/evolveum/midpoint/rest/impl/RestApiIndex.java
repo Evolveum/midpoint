@@ -4,15 +4,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.condition.MediaTypeExpression;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Support for simple index page with REST API endpoints (HTML and JSON).
@@ -107,5 +112,32 @@ public class RestApiIndex {
                     .map(Object::toString)
                     .toArray(String[]::new);
         }
+    }
+
+    // DEBUG area
+    @Autowired(required = false)
+    private List<WebMvcConfigurer> configurers;
+
+    @Autowired
+    private List<HttpMessageConverter<?>> converters;
+
+    @Autowired
+    private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
+
+    @GetMapping("/config")
+    public Map<?, ?> config(
+            UriComponentsBuilder uriComponentsBuilder) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("configurers", toStrings(configurers));
+        result.put("converters", toStrings(converters));
+        result.put("requestMappingHandlerAdapter-converters",
+                toStrings(requestMappingHandlerAdapter.getMessageConverters()));
+        return result;
+    }
+
+    private Object toStrings(Collection<?> collection) {
+        return collection != null
+                ? collection.stream().map(Object::toString).collect(Collectors.toList())
+                : "N/A";
     }
 }

@@ -140,9 +140,9 @@ public class Search implements Serializable, DebugDumpable {
                 ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
             }
 
-            item.getValues().add(new SearchValue<>(ref));
+            item.setValue(new SearchValue<>(ref));
         } else {
-            item.getValues().add(new SearchValue<>());
+            item.setValue(new SearchValue<>());
         }
 
         items.add(item);
@@ -200,20 +200,15 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     private ObjectFilter createFilterForSearchItem(SearchItem item, PrismContext ctx) {
-        if (item.getValues().isEmpty()) {
+        if (item.getValue() == null || item.getValue().getValue() == null) {
             return null;
         }
 
+        DisplayableValue value = item.getValue();
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (DisplayableValue value : (List<DisplayableValue>) item.getValues()) {
-            if (value.getValue() == null) {
-                continue;
-            }
-
-            ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
-            if (filter != null) {
-                conditions.add(filter);
-            }
+        ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
+        if (filter != null) {
+            conditions.add(filter);
         }
 
         switch (conditions.size()) {

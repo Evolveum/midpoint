@@ -17,7 +17,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -71,7 +71,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public static final String POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE = "policy-generate-password-execute";
     public static final String POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE = "policy-generate-honorific-prefix-execute";
     public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT = "policy-generate-explicit";
-    public static final String POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT_NO_VALUE_POLICY = "policy-generate-explicit-no-value-policy";
     public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT = "policy-validate-explicit";
     public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY = "policy-validate-explicit-no-value-policy";
     public static final String POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT = "policy-validate-explicit-conflict";
@@ -115,7 +114,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     protected abstract File getRequestFile(String fileBaseName);
 
     private static final String NS_SECURITY_QUESTION_ANSWER = "http://midpoint.evolveum.com/xml/ns/public/security/question-2";
-    public static final String QUESTION_ID = QNameUtil.qNameToUri(new QName(NS_SECURITY_QUESTION_ANSWER, "q001"));
 
     public TestAbstractRestService() {
         super();
@@ -125,8 +123,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test001GetUserAdministrator() {
         WebClient client = prepareClient();
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -146,8 +142,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test002GetNonExistingUser() {
         WebClient client = prepareClient();
         client.path("/users/12345");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -169,8 +163,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(null, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -186,8 +178,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test004GetAuthBadUsernameNullPassword() {
         WebClient client = prepareClient("NoSUCHuser", null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -205,8 +195,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient("NoSUCHuser", "");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -222,8 +210,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test006GetAuthBadUsernameBadPassword() {
         WebClient client = prepareClient("NoSUCHuser", "NoSuchPassword");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -241,8 +227,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -258,8 +242,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test016GetAuthBadPassword() {
         WebClient client = prepareClient(USER_ADMINISTRATOR_USERNAME, "forgot");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -277,8 +259,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_NOBODY_USERNAME, USER_NOBODY_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -295,8 +275,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_CYCLOPS_USERNAME, USER_CYCLOPS_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -312,8 +290,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test019GetUserAdministratorBySomebody() {
         WebClient client = prepareClient(USER_SOMEBODY_USERNAME, USER_SOMEBODY_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.get();
@@ -336,8 +312,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/objectTemplates/");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(USER_TEMPLATE_FILE));
 
@@ -356,8 +330,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test103AddUserBadTargetCollection() {
         WebClient client = prepareClient();
         client.path("/objectTemplates");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
@@ -381,8 +353,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/shadows");
         client.query("options", "raw");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(ACCOUT_CHUCK_FILE));
@@ -419,8 +389,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/roles");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(ROLE_ADDER_FILE));
 
@@ -438,8 +406,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test121AddUserDarthAdder() {
         WebClient client = prepareClient();
         client.path("/users");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(USER_DARTHADDER_FILE));
@@ -459,8 +425,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/roles");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(ROLE_MODIFIER_FILE));
 
@@ -478,8 +442,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test123DarthAdderAssignModifierHimself() throws Exception {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + USER_DARTHADDER_OID);
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
@@ -503,8 +465,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ASSIGN_ROLE_MODIFIER)));
 
@@ -526,8 +486,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test130DarthAdderDisableHimself() throws Exception {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + USER_DARTHADDER_OID);
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_DISABLE)));
@@ -551,8 +509,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -569,8 +525,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test132DarthAdderEnableByAdministrator() throws Exception {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(MiscUtil.readFile(getRequestFile(MODIFICATION_ENABLE)));
@@ -594,8 +548,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -615,8 +567,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_DARTHADDER_USERNAME, USER_DARTHADDER_PASSWORD);
         client.path("/users");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(USER_NOPASSWORD_FILE));
 
@@ -635,8 +585,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, null);
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -654,8 +602,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient(USER_NOPASSWORD_USERNAME, "bad");
         client.path("/users/" + SystemObjectsType.USER_ADMINISTRATOR.value());
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -672,8 +618,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test200searchAllUsers() {
         WebClient client = prepareClient();
         client.path("/users/search");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(new QueryType());
@@ -693,8 +637,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/objectTemplates");
         client.query("options", "overwrite");
-
-        getDummyAuditService().clear();
 
         // WHEN
         when();
@@ -726,8 +668,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         client.path("/functionLibraries");
         client.query("options", "overwrite");
 
-        getDummyAuditService().clear();
-
         // WHEN
         when();
         Response response = client.post(getRepoFile(FUNCTION_LIBRARY_HELLO_FILE));
@@ -754,8 +694,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/functionLibraries/" + FUNCTION_LIBRARY_HELLO_OID);
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -781,8 +719,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE));
 
@@ -803,8 +739,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_BAD_PATH));
 
@@ -822,8 +756,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test503generateValueExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXECUTE));
@@ -848,8 +780,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.get();
 
@@ -866,8 +796,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test505generatePasswordExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_PASSWORD_EXECUTE));
@@ -890,8 +818,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test506generateHonorificPrefixNameExecute() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/generate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_HONORIFIC_PREFIX_EXECUTE));
@@ -954,8 +880,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT));
 
@@ -976,8 +900,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_CONFLICT));
 
@@ -997,8 +919,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_SINGLE));
 
@@ -1016,8 +936,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test513validateValueImplicitMulti() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI));
@@ -1038,8 +956,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_IMPLICIT_MULTI_CONFLICT));
 
@@ -1058,8 +974,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test515validatePasswordHistoryConflict() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_PASSWORD_PASSWORD_HISTORY_CONFLICT));
@@ -1081,8 +995,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/rpc/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_EXPLICIT_NO_VALUE_POLICY));
 
@@ -1102,8 +1014,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test517generateValueExplicit() {
         WebClient client = prepareClient();
         client.path("/rpc/generate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_GENERATE_EXPLICIT));
@@ -1129,7 +1039,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         try {
             WebClient client = prepareClient();
             client.path("/users/" + USER_DARTHADDER_OID + "/validate");
-
             getDummyAuditService().clear();
 
             when();
@@ -1154,8 +1063,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test520GeneratePasswordsUsingScripting() throws Exception {
         WebClient client = prepareClient();
         client.path("/rpc/executeScript");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(SCRIPT_GENERATE_PASSWORDS));
@@ -1206,8 +1113,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test530ModifyValidToUsingScripting() throws Exception {
         WebClient client = prepareClient();
         client.path("/rpc/executeScript");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(SCRIPT_MODIFY_VALID_TO));
@@ -1337,8 +1242,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         // WHEN
         when();
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER_ID_1_VALUE));
@@ -1379,8 +1282,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         // WHEN
         when();
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_TWO_ANSWERS));
@@ -1412,8 +1313,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test604ModifySecurityQuestionReplaceNoAnswer() throws Exception {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
-
-        getDummyAuditService().clear();
 
         // WHEN
         when();
@@ -1447,8 +1346,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         // WHEN
         when();
         Response response = client.post(getRequestFile(MODIFICATION_REPLACE_ANSWER));
@@ -1478,8 +1375,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION_FAIL));
 
@@ -1498,8 +1393,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test608validateSecurityAnswerCheckExpression() {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/validate");
-
-        getDummyAuditService().clear();
 
         when();
         Response response = client.post(getRepoFile(POLICY_ITEM_DEFINITION_VALIDATE_SECURITY_ANSWER_CHECK_EXPRESSION));
@@ -1569,8 +1462,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID);
 
-        getDummyAuditService().clear();
-
         when();
         Response response = client.post(getRequestFile(MODIFICATION_FORCE_PASSWORD_CHANGE));
 
@@ -1605,8 +1496,6 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
     public void test612ResetPassword() throws Exception {
         WebClient client = prepareClient();
         client.path("/users/" + USER_DARTHADDER_OID + "/credential");
-
-        getDummyAuditService().clear();
 
         when();
 //        ExecuteCredentialResetRequestType executeCredentialResetRequest = new ExecuteCredentialResetRequestType();
