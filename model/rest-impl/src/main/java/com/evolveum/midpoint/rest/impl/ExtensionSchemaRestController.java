@@ -72,7 +72,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
                     .body(ex.getMessage()); // TODO handle this somehow better
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -140,7 +140,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             response = handleException(result, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 }
