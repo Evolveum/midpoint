@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum and contributors
+ * Copyright (c) 2017-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,8 +13,13 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedPersonaConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -46,11 +51,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
 /**
  * Runs persona-related changes after the primary operation is all done. Executed directly from clockwork.
@@ -115,7 +115,7 @@ public class PersonaProcessor {
 
         DeltaSetTriple<PersonaKey> activePersonaKeyTriple = context.getPrismContext().deltaFactory().createDeltaSetTriple();
 
-        ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>> consumer = new ComplexConstructionConsumer<PersonaKey,PersonaConstruction<F>>() {
+        ComplexConstructionConsumer<PersonaKey, EvaluatedPersonaConstructionImpl<F>> consumer = new ComplexConstructionConsumer<PersonaKey,EvaluatedPersonaConstructionImpl<F>>() {
 
             @Override
             public boolean before(PersonaKey key) {
@@ -144,19 +144,19 @@ public class PersonaProcessor {
 
             @Override
             public void after(PersonaKey key, String desc,
-                    DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple) {
+                    DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple) {
             }
 
 
         };
 
-        DeltaMapTriple<PersonaKey, ConstructionPack<PersonaConstruction<F>>> constructionMapTriple =
+        DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple =
             constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
                 evaluatedAssignment -> evaluatedAssignment.getPersonaConstructionTriple(),
-                construction -> new PersonaKey(construction.getConstructionType()),
+                evaluatedConstruction -> new PersonaKey(((PersonaConstruction<F>)evaluatedConstruction.getConstruction()).getConstructionType()),
                 consumer);
 
-        LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily());
+        LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily(1));
 
         List<FocusType> existingPersonas = readExistingPersonas(context, task, result);
         LOGGER.trace("existingPersonas:\n{}", existingPersonas);
@@ -165,18 +165,18 @@ public class PersonaProcessor {
             FocusType existingPersona = findPersona(existingPersonas, key);
             LOGGER.trace("existingPersona: {}", existingPersona);
             // TODO: add ability to merge several constructions
-            ConstructionPack<PersonaConstruction<F>> pack = constructionMapTriple.getPlusMap().get(key);
+            EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>> pack = constructionMapTriple.getPlusMap().get(key);
             if (pack == null) {
                 pack = constructionMapTriple.getZeroMap().get(key);
             }
-            Collection<PrismPropertyValue<PersonaConstruction<F>>> constructions = pack.getConstructions();
-            if (constructions.isEmpty()) {
+            Collection<EvaluatedPersonaConstructionImpl<F>> evaluatedConstructions = pack.getEvaluatedConstructions();
+            if (evaluatedConstructions.isEmpty()) {
                 continue;
             }
-            if (constructions.size() > 1) {
+            if (evaluatedConstructions.size() > 1) {
                 throw new UnsupportedOperationException("Merging of multiple persona constructions is not supported yet");
             }
-            PersonaConstruction<F> construction = constructions.iterator().next().getValue();
+            PersonaConstruction<F> construction = evaluatedConstructions.iterator().next().getConstruction();
             LOGGER.trace("construction:\n{}", construction.debugDumpLazily());
             if (existingPersona == null) {
                 personaAdd(context, key, construction, task, result);

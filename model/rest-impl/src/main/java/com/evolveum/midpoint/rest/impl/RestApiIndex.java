@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.condition.MediaTypeExpression;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Support for simple index page with REST API endpoints (HTML and JSON).
@@ -124,7 +125,8 @@ public class RestApiIndex {
     private RequestMappingHandlerAdapter requestMappingHandlerAdapter;
 
     @GetMapping("/config")
-    public Map<?, ?> config() {
+    public Map<?, ?> config(
+            UriComponentsBuilder uriComponentsBuilder) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("configurers", toStrings(configurers));
         result.put("converters", toStrings(converters));

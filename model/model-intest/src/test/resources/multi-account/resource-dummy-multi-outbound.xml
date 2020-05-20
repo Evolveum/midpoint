@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!-- MULTI OUTBOUND dummy resource. This is target resource with multiaccounts enabled. -->
+
+<resource oid="d4da475e-8539-11ea-8343-dfdb4091c1dc"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Dummy Resource Multi Outbound</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>multi-outbound</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <!-- No tag expression, default algorithm will be used. -->
+            </multiplicity>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>$focus/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
+                            $c:user/c:locality
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:loot</ref>
+                <displayName>Loot</displayName>
+                <outbound>
+                    <channel>http://pirates.net/avast</channel>
+                    <expression>
+                        <value>10000</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+                <outbound>
+                    <source>
+                        <path>
+                            $focus/extension/piracy:weapon
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>rum</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Arr!</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+        <objectType>
+            <kind>account</kind>
+            <intent>envoy</intent>
+            <displayName>Envoy Account</displayName>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <multiplicity>
+                <maxOccurs>unbounded</maxOccurs>
+                <tag>
+                    <outbound>
+                        <source>
+                            <path>$focus/organization</path>
+                        </source>
+                    </outbound>
+                </tag>
+            </multiplicity>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <source>
+                        <path>$projection/tag</path>
+                    </source>
+                    <expression>
+                        <script>
+                                <code>'envoy-' + name + '-' + tag.toLowerCase()</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                    <source>
+                        <path>title</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <outbound>
+                    <source>
+                        <path>$projection/tag</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
+            </activation>
+
+            <credentials>
+                <password>
+                    <outbound>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+    </consistency>
+
+
+
+</resource>

@@ -12,10 +12,7 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.HumanReadableDescribable;
-import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
@@ -35,7 +32,7 @@ import org.apache.commons.lang3.ObjectUtils;
  *
  * @author Radovan Semancik
  */
-public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, HumanReadableDescribable {
+public class ResourceShadowDiscriminator implements Serializable, DebugDumpable, ShortDumpable, HumanReadableDescribable {
     private static final long serialVersionUID = 346600684011645741L;
 
     private String resourceOid;
@@ -286,12 +283,11 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     }
 
     @Override
-    public String toHumanReadableDescription() {
-        return toHumanReadableDescription(true);
+    public void shortDump(StringBuilder sb) {
+        shortDump(sb, true);
     }
 
-    public String toHumanReadableDescription(boolean writeOid) {
-        StringBuilder sb = new StringBuilder("RSD(");
+    private void shortDump(StringBuilder sb, boolean writeOid) {
         sb.append(kind==null?"null":kind.value());
         sb.append(" (").append(intent);
         if (tag != null) {
@@ -312,6 +308,16 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         if (tombstone) {
             sb.append(" TOMBSTONE");
         }
+    }
+
+    @Override
+    public String toHumanReadableDescription() {
+        return toHumanReadableDescription(true);
+    }
+
+    public String toHumanReadableDescription(boolean writeOid) {
+        StringBuilder sb = new StringBuilder("RSD(");
+        shortDump(sb, writeOid);
         sb.append(")");
         return sb.toString();
     }

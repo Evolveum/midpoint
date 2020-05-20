@@ -23,6 +23,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 public abstract class MidpointAbstractHttpMessageConverter<T> extends AbstractHttpMessageConverter<T> {
 
@@ -61,35 +64,38 @@ public abstract class MidpointAbstractHttpMessageConverter<T> extends AbstractHt
             throws IOException, HttpMessageNotReadableException {
         PrismParser parser = getParser(inputMessage.getBody());
 
-        T object;
+        Object object;
         try {
             if (PrismObject.class.isAssignableFrom(clazz)) {
-                object = (T) parser.parse();
+                object = parser.parse();
             } else {
-                object = parser.parseRealValue();            // TODO consider prescribing type here (if no converter is specified)
+                object = parser.parseRealValue();
             }
 
-/*
-// TODO treat multivalues here - there is just one @Converter usage and one implementation: ExecuteScriptConverter
-// com.evolveum.midpoint.model.impl.ModelRestService.executeScript - will we need argument resolver for this
- if (object != null && !clazz.isAssignableFrom(object.getClass())) {
-                Optional<Annotation> converterAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Converter).findFirst();
-                if (converterAnnotation.isPresent()) {
-                    Class<? extends ConverterInterface> converterClass = ((Converter) converterAnnotation.get()).value();
-                    ConverterInterface converter;
-                    try {
-                        converter = converterClass.newInstance();
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        throw new SystemException("Couldn't instantiate converter class " + converterClass, e);
-                    }
-                    object = (T) converter.convert(object);
-                }
+            if (object != null && !clazz.isInstance(object)) {
+                // This code covers type migrations, eventually we'd like to drop old type support.
+                object = migrateType(object, clazz);
             }
-*/
-            return object;
+            return clazz.cast(object);
         } catch (SchemaException e) {
             throw new HttpMessageNotReadableException("Failure during read", e, inputMessage);
         }
+    }
+
+    // this better be T after this is executed
+    private Object migrateType(Object object, Class<? extends T> clazz) {
+        if (clazz.equals(ExecuteScriptType.class)) {
+            // TODO: deprecate ScriptingExpressionType in favour of ExecuteScriptType (next LTS? 4.4? 5.0?)
+            if (object instanceof ExecuteScriptType) {
+                return object;
+            } else if (object instanceof ScriptingExpressionType) {
+                return ScriptingExpressionEvaluator.createExecuteScriptCommand((ScriptingExpressionType) object);
+            } else {
+                throw new IllegalArgumentException("Wrong input value for ExecuteScriptType: " + object);
+            }
+        }
+        // no other migrations
+        return object;
     }
 
     @Override

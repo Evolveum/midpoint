@@ -30,6 +30,7 @@ import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
@@ -192,6 +193,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
+    @Autowired private ContextLoader contextLoader;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1454,6 +1456,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .prismContext(prismContext)
                         .mappingFactory(mappingFactory)
                         .mappingEvaluator(mappingEvaluator)
+                        .contextLoader(contextLoader)
                         .activationComputer(activationComputer)
                         .now(clock.currentTimeXMLGregorianCalendar())
                         .loginMode(true)

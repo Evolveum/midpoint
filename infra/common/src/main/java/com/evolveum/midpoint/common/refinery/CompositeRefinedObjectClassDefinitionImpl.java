@@ -602,8 +602,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
-        return structuralObjectClassDefinition.createBlankShadow(definition);
+    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition, String tag) {
+        return structuralObjectClassDefinition.createBlankShadow(definition, tag);
     }
 
     @Override

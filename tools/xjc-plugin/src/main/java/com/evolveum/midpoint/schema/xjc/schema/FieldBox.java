@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.xjc.schema;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 /**
  * @author lazyman
@@ -19,7 +19,7 @@ public class FieldBox<T> implements Comparable<FieldBox> {
 
     public FieldBox(String fieldName, T value) {
         Validate.notEmpty(fieldName, "Field name must not be null or empty.");
-        Validate.notNull("QName must not be null.");
+        Validate.notNull(value);
 
         this.fieldName = fieldName;
         this.value = value;

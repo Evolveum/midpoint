@@ -14,7 +14,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -101,6 +105,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     private final boolean loginMode;        // restricted mode, evaluating only authorizations and gui config (TODO name)
     private final PrismObject<SystemConfigurationType> systemConfiguration;
     private final MappingEvaluator mappingEvaluator;
+    private final ContextLoader contextLoader;
     private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
     private final LifecycleStateModelType focusStateModel;
 
@@ -122,6 +127,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         loginMode = builder.loginMode;
         systemConfiguration = builder.systemConfiguration;
         mappingEvaluator = builder.mappingEvaluator;
+        contextLoader = builder.contextLoader;
         evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
 
         LensFocusContext<AH> focusContext = lensContext.getFocusContext();
@@ -576,7 +582,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), segment.source);
 
-        Construction<AH> construction = new Construction<>(constructionType, segment.source);
+        Construction<AH, EvaluatedConstructionImpl<AH>> construction = new Construction<>(constructionType, segment.source);
         // We have to clone here as the path is constantly changing during evaluation
         construction.setAssignmentPath(ctx.assignmentPath.clone());
         construction.setFocusOdo(focusOdo);
@@ -585,6 +591,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         construction.setPrismContext(prismContext);
         construction.setMappingFactory(mappingFactory);
         construction.setMappingEvaluator(mappingEvaluator);
+        construction.setNow(now);
+        construction.setContextLoader(contextLoader);
         construction.setOriginType(OriginType.ASSIGNMENTS);
         construction.setChannel(channel);
         construction.setOrderOneObject(segment.getOrderOneObject());
@@ -1448,6 +1456,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private boolean loginMode = false;
         private PrismObject<SystemConfigurationType> systemConfiguration;
         private MappingEvaluator mappingEvaluator;
+        private ContextLoader contextLoader;
 
         public Builder() {
         }
@@ -1519,6 +1528,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         public Builder<AH> mappingEvaluator(MappingEvaluator val) {
             mappingEvaluator = val;
+            return this;
+        }
+
+        public Builder<AH> contextLoader(ContextLoader val) {
+            contextLoader = val;
             return this;
         }
 
