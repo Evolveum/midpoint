@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.objecttypeselect.ObjectTypeSelectPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -27,31 +24,21 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -59,7 +46,6 @@ import org.apache.wicket.model.util.ListModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -92,7 +78,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     public SearchItemPanel(String id, IModel<SearchItem<T>> model) {
         super(id, model);
-        initLayout();
     }
 
     @Override
@@ -106,6 +91,12 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
         item.setEditWhenVisible(false);
 
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
@@ -185,12 +176,16 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         IModel<List<DisplayableValue<T>>> choices = null;
         switch (item.getType()) {
             case REFERENCE:
-                List<QName> supportedTargetList = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
-                Class<ObjectType> defaultType = CollectionUtils.isNotEmpty(supportedTargetList) ? (Class<ObjectType>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
-                        supportedTargetList.get(0)) : null;
-                searchItemField = new ObjectBrowserPanel(ID_SEARCH_ITEM_FIELD,
-                        defaultType != null ? defaultType : ObjectType.class,
-                        supportedTargetList, false, getPageBase());
+                //TODO change probably to another component
+                searchItemField = new ValueChoosePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value")){
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public List<QName> getSupportedTypes() {
+                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+                    }
+                };
                 break;
             case BOOLEAN:
                 choices = (IModel) createBooleanChoices();
