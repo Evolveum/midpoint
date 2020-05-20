@@ -36,14 +36,14 @@ import java.util.List;
 public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigurationPanel implements Popupable {
     private static final long serialVersionUID = 1L;
 
-    private static String ID_PROPERTY_CONFIG_CONTAINER = "propertyConfigContainer";
-    private static String ID_PROPERTY_CHOICE = "propertyChoice";
-    private static String ID_PROPERTY_VALUE = "propertyValue";
-    private static String ID_FILTER = "filter";
-    private static String ID_MATCHING_RULE = "matchingRule";
-    private static String ID_NEGATION = "negation";
-    private static String ID_PROPERTIES_TABLE = "propertiesTable";
-    private static String ID_ADD_BUTTON = "addButton";
+    private static final String ID_PROPERTY_CONFIG_CONTAINER = "propertyConfigContainer";
+    private static final String ID_PROPERTY_CHOICE = "propertyChoice";
+    private static final String ID_PROPERTY_VALUE = "propertyValue";
+    private static final String ID_FILTER = "filter";
+    private static final String ID_MATCHING_RULE = "matchingRule";
+    private static final String ID_NEGATION = "negation";
+    private static final String ID_PROPERTIES_TABLE = "propertiesTable";
+    private static final String ID_ADD_BUTTON = "addButton";
 
     public SearchPropertiesConfigPanel(String id){
         super(id, null);

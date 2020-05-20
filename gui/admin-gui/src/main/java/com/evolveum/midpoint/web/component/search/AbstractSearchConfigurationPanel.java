@@ -13,12 +13,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author Kateryna Honchar
@@ -27,8 +24,8 @@ public abstract class AbstractSearchConfigurationPanel<O extends ObjectType> ext
 
     private static final Trace LOG = TraceManager.getTrace(AbstractSearchConfigurationPanel.class);
 
-    private static String ID_CONFIGURATION_PANEL = "configurationPanel";
-    private static String ID_BUTTONS_PANEL = "buttonsPanel";
+    private static final String ID_CONFIGURATION_PANEL = "configurationPanel";
+    private static final String ID_BUTTONS_PANEL = "buttonsPanel";
 
     public AbstractSearchConfigurationPanel(String id, IModel<SearchConfigDto> searchConfigModel){
         super(id, searchConfigModel);
