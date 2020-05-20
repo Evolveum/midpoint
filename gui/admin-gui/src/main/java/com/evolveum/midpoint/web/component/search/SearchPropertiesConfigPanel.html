@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<head/>
+<body>
+<wicket:extend>
+    <div class="row" wicket:id="propertyConfigContainer">
+        <div wicket:id="propertyChoice"></div>
+        <div wicket:id="propertyValue"></div>
+        <div wicket:id="filter"></div>
+        <div wicket:id="matchingRule"></div>
+        <div wicket:id="negation"></div>
+        <a wicket:id="addButton" class="btn btn-default">
+            <span><wicket:message key="SynchronizationStep.button.add" /></span>
+        </a>
+    </div>
+<!--    <div wicket:id="propertiesTable" />-->
+</wicket:extend>
+</body>
+</html>
