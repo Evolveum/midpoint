@@ -85,6 +85,16 @@ public class AxiomBuiltIn {
         }
 
         @Override
+        public int minOccurs() {
+            return 0;
+        }
+
+        @Override
+        public int maxOccurs() {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
         public String toString() {
             return AxiomItemDefinition.toString(this);
         }
@@ -137,7 +147,7 @@ public class AxiomBuiltIn {
                     Item.ITEM_DEFINITION
                 )) {
             @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
+            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
                 return TYPE_IDENTIFIER_DEFINITION.get();
             }
         };
@@ -154,7 +164,7 @@ public class AxiomBuiltIn {
                 )) {
 
             @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
+            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
                 return ITEM_IDENTIFIER_DEFINITION.get();
             }
         };
@@ -163,7 +173,7 @@ public class AxiomBuiltIn {
                 new Type("AxiomRootDefinition", ITEM_DEFINITION, () -> itemDefs()) {
 
             @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
+            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
                 return ROOT_IDENTIFIER_DEFINITION.get();
             }
         };
@@ -232,7 +242,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomIdentifier, AxiomItemDefinition> items() {
+        public Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions() {
             return items.get();
         }
 
@@ -246,7 +256,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Collection<AxiomIdentifierDefinition> identifiers() {
+        public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
             return Collections.emptyList();
         }
 

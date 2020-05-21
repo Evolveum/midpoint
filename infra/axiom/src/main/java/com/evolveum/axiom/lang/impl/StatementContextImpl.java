@@ -64,7 +64,7 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
     }
 
     boolean isChildAllowed(AxiomIdentifier child) {
-        return definition.type().item(child).isPresent();
+        return definition.type().itemDefinition(child).isPresent();
     }
 
 
@@ -88,7 +88,7 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
 
     @Override
     public Optional<AxiomItemDefinition> childDef(AxiomIdentifier child) {
-        return definition.type().item(child);
+        return definition.type().itemDefinition(child);
     }
 
     @Override

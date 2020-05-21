@@ -39,11 +39,11 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
         items = builder.build();
         superType = first(SUPERTYPE_REFERENCE.name(), AxiomTypeDefinition.class);
         argument = firstValue(ARGUMENT.name(), AxiomIdentifier.class)
-                .flatMap((AxiomIdentifier k) -> item(k));
+                .flatMap((AxiomIdentifier k) -> itemDefinition(k));
 
         identifiers = children(Item.IDENTIFIER_DEFINITION.name()).stream().map(idDef -> {
             Set<AxiomItemDefinition> members = idDef.children(Item.ID_MEMBER.name()).stream()
-                    .map(k -> item((AxiomIdentifier) k.value()).get()).collect(Collectors.toSet());
+                    .map(k -> itemDefinition((AxiomIdentifier) k.value()).get()).collect(Collectors.toSet());
             AxiomIdentifier space = idDef.firstValue(ID_SPACE.name(), AxiomIdentifier.class).get();
             AxiomIdentifierDefinition.Scope scope = AxiomIdentifierDefinition.scope(idDef.firstValue(ID_SCOPE.name(), AxiomIdentifier.class).get().getLocalName());
             return AxiomIdentifierDefinition.from(space, scope, members);
@@ -64,12 +64,12 @@ public class AxiomTypeDefinitionImpl extends AbstractAxiomBaseDefinition impleme
     }
 
     @Override
-    public Map<AxiomIdentifier, AxiomItemDefinition> items() {
+    public Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions() {
         return items;
     }
 
     @Override
-    public Collection<AxiomIdentifierDefinition> identifiers() {
+    public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
         return identifiers;
     }
 

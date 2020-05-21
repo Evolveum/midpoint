@@ -8,7 +8,7 @@ package com.evolveum.axiom.lang.api;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 
-public interface AxiomBaseDefinition {
+public interface AxiomNamedDefinition {
 
     AxiomIdentifier name();
     String documentation();

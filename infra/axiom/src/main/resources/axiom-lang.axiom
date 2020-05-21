@@ -49,7 +49,7 @@ model axiom-lang {
         item mixin {
             type AxiomMixinDefinition;
             documentation """
-                Mixin Declaration, declares a new global mixin, aset of reusable item 
+                Mixin Declaration, declares a new global mixin, aset of reusable item
                 definitions, which can be used in type definitions.
             """;
         }

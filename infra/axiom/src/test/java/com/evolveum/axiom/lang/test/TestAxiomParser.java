@@ -54,7 +54,7 @@ public class TestAxiomParser extends AbstractReactorTest {
         //folowupContext.loadModelFromSource(statementSource);
         AxiomSchemaContext selfparsedContext = folowupContext.computeSchemaContext();
         assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
-        assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().item(Item.ID_MEMBER.name()).get().required());
+        assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().itemDefinition(Item.ID_MEMBER.name()).get().required());
     }
 
 

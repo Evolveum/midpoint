@@ -14,26 +14,36 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomBaseDefinition {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomTypeDefinition> {
 
     public final AxiomIdentifier IDENTIFIER_MEMBER = AxiomIdentifier.axiom("name");
     public final AxiomIdentifier IDENTIFIER_SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");
+
+    @Override
+    default AxiomTypeDefinition get() {
+        return this;
+    }
+
+    @Override
+    default Optional<AxiomTypeDefinition> definition() {
+        return Optional.empty();
+    }
 
     Optional<AxiomItemDefinition> argument();
 
     Optional<AxiomTypeDefinition> superType();
 
-    Map<AxiomIdentifier, AxiomItemDefinition> items();
+    Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions();
 
-    Collection<AxiomIdentifierDefinition> identifiers();
+    Collection<AxiomIdentifierDefinition> identifierDefinitions();
 
-    default Optional<AxiomItemDefinition> item(AxiomIdentifier child) {
-        AxiomItemDefinition maybe = items().get(child);
+    default Optional<AxiomItemDefinition> itemDefinition(AxiomIdentifier child) {
+        AxiomItemDefinition maybe = itemDefinitions().get(child);
         if(maybe != null) {
             return Optional.of(maybe);
         }
         if(superType().isPresent()) {
-            return superType().get().item(child);
+            return superType().get().itemDefinition(child);
         }
         return Optional.empty();
     }
@@ -43,7 +53,7 @@ public interface AxiomTypeDefinition extends AxiomBaseDefinition {
     }
 
     default Collection<AxiomItemDefinition> requiredItems() {
-        return items().values().stream().filter(AxiomItemDefinition::required).collect(Collectors.toList());
+        return itemDefinitions().values().stream().filter(AxiomItemDefinition::required).collect(Collectors.toList());
     }
 
 }

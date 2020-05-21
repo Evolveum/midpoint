@@ -9,12 +9,18 @@ package com.evolveum.axiom.lang.api;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.base.MoreObjects;
 
-public interface AxiomItemDefinition extends AxiomBaseDefinition {
+public interface AxiomItemDefinition extends AxiomNamedDefinition {
 
     AxiomIdentifier ROOT_SPACE = AxiomIdentifier.axiom("AxiomRootDefinition");
 
     AxiomTypeDefinition type();
-    boolean required();
+
+    default boolean required() {
+        return minOccurs() > 0;
+    }
+
+    int minOccurs();
+    int maxOccurs();
 
     static String toString(AxiomItemDefinition def) {
         return MoreObjects.toStringHelper(AxiomItemDefinition.class)
@@ -22,4 +28,5 @@ public interface AxiomItemDefinition extends AxiomBaseDefinition {
                 .add("type", def.type())
                 .toString();
     }
+
 }

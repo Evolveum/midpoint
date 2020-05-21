@@ -33,6 +33,17 @@ public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition impleme
     }
 
     @Override
+    public int minOccurs() {
+        return 0;
+    }
+
+    @Override
+    public int maxOccurs() {
+        // FIXME: Return real value
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
     public String toString() {
         return AxiomItemDefinition.toString(this);
     }

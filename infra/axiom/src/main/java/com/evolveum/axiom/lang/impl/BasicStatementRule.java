@@ -78,7 +78,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
         @Override
         public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Collection<AxiomIdentifierDefinition> idDefs = rule.typeDefinition().identifiers();
+            Collection<AxiomIdentifierDefinition> idDefs = rule.typeDefinition().identifierDefinitions();
             if(!idDefs.isEmpty()) {
                 rule.apply(ctx -> {
                     for (AxiomIdentifierDefinition idDef : idDefs) {
