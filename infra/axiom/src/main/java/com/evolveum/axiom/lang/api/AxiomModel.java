@@ -8,4 +8,6 @@ public interface AxiomModel {
     AxiomIdentifier IMPORTED_NAMESPACE = AxiomIdentifier.axiom("ImportedNamespace");
     String BUILTIN_TYPES = "https://ns.evolveum.com/axiom/language";
 
+    String name();
+    String namespace();
 }

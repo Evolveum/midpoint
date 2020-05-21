@@ -11,20 +11,14 @@ import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.RuleNode;
-
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.antlr.AxiomBaseVisitor;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
 import com.evolveum.axiom.lang.spi.SourceLocation;
-import com.google.common.base.Strings;
 
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 

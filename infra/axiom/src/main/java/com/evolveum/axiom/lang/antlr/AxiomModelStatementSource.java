@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.antlr.AxiomParser;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
