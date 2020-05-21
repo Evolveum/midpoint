@@ -7,18 +7,27 @@ import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.impl.ModelRestService;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
@@ -29,6 +38,7 @@ class AbstractRestController {
     protected final Trace logger = TraceManager.getTrace(getClass());
     private final String opNamePrefix = getClass().getName() + ".";
 
+    @Autowired protected AuditService auditService;
     @Autowired protected SecurityHelper securityHelper;
     @Autowired protected TaskManager taskManager;
 
@@ -139,15 +149,34 @@ class AbstractRestController {
         return status(status).body(resultBean);
     }
 
-    protected void finishRequest(Task task) {
-        // TODO what level of auditing do we want anyway?
-//        if (isExperimentalEnabled()) {
-//            auditEvent(request);
-//            SecurityContextHolder.getContext().setAuthentication(null);
-//        } else {
-        task.getResult().computeStatus();
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
-        connEnv.setSessionIdOverride(task.getTaskIdentifier());
-        securityHelper.auditLogout(connEnv, task);
+    protected void finishRequest() {
+        auditEvent();
+        SecurityContextHolder.getContext().setAuthentication(null);
+    }
+
+    private void auditEvent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        String name = null;
+        if (principal instanceof MidPointPrincipal) {
+            name = ((MidPointPrincipal) principal).getUsername();
+        } else if (principal != null) {
+            return;
+        }
+        PrismObject<? extends FocusType> user = principal != null ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
+
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(user);
+        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiator(user);
+        record.setParameter(name);
+
+        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        auditService.audit(record, task);
     }
 }

@@ -65,7 +65,7 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusActivationProcessor" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentHolderProcessor" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.FocusPolicyProcessor" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor" level="DEBUG" />
@@ -105,7 +105,8 @@
      <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyGenerator" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.script" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.controller.ObjectMerger" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
     <logger name="com.evolveum.midpoint.security" level="DEBUG" />
