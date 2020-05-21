@@ -6,7 +6,6 @@
  */
 package com.evolveum.axiom.lang.antlr;
 
-import java.beans.Statement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -14,16 +13,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.TokenStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.antlr.AxiomLexer;
 import com.evolveum.axiom.lang.antlr.AxiomParser;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
@@ -75,7 +70,7 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
     public void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener,
             Optional<Set<AxiomIdentifier>> emitOnly) {
-        stream(resolver, BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
+        stream(resolver.or(this), BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
     }
 
     public static Map<String,String> imports(AxiomParser.StatementContext root) {

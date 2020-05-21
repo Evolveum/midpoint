@@ -30,6 +30,7 @@ import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.RuleReactorContext;
+import com.google.common.base.Strings;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -167,7 +168,10 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
 
     @Override
     public AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
-        return AxiomIdentifier.axiom(localName);
+        if(Strings.isNullOrEmpty(prefix)) {
+            return AxiomIdentifier.axiom(localName);
+        }
+        return null;
     }
 
     private class Root implements AxiomStreamTreeBuilder.NodeBuilder {
