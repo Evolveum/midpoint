@@ -105,7 +105,7 @@ public class GuiProfileCompiler {
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-                if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+                if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
                     List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
                     principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(

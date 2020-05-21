@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.util;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -42,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+
+import static java.util.Collections.*;
 
 /**
  * @author semancik
@@ -780,7 +779,11 @@ public class MiscUtil {
         }
     }
 
-    public static Set<String> singletonOrEmptySet(String value) {
+    public static <T> Set<T> singletonOrEmptySet(T value) {
         return value != null ? singleton(value) : emptySet();
+    }
+
+    public static <T> List<T> singletonOrEmptyList(T value) {
+        return value != null ? singletonList(value) : emptyList();
     }
 }

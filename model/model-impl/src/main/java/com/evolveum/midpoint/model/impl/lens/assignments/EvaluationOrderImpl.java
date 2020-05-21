@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -13,8 +13,14 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiSet;
 import org.jetbrains.annotations.NotNull;
@@ -25,9 +31,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EvaluationOrderImpl implements EvaluationOrder {
 
-    public static final EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluationOrderImpl.class);
 
-    @NotNull private final HashMap<QName, Integer> orderMap;        // see checkConsistence
+    static final EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
+
+    @NotNull private final HashMap<QName, Integer> orderMap; // see checkConsistence
     @NotNull private final RelationRegistry relationRegistry;
 
     public static EvaluationOrder zero(RelationRegistry relationRegistry) {
@@ -43,7 +51,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
                     throw new IllegalStateException("Null relation in " + this);
                 }
                 if (isNotNormalized(r)) {
-                    throw new IllegalStateException("Unnormalized relation " + r + " in " + this);
+                    throw new IllegalStateException("Un-normalized relation " + r + " in " + this);
                 }
                 if (v == null) {
                     throw new IllegalStateException("Null value in for relation " + r + " in " + this);
@@ -230,4 +238,53 @@ public class EvaluationOrderImpl implements EvaluationOrder {
     public boolean isOrderOne() {
         return getSummaryOrder() == 1;
     }
+
+    @Override
+    public boolean matches(Integer assignmentOrder, List<OrderConstraintsType> assignmentOrderConstraint) {
+        boolean rv;
+        List<QName> extraRelations = new ArrayList<>(getExtraRelations());
+        if (assignmentOrder == null && assignmentOrderConstraint.isEmpty()) {
+            // compatibility
+            rv = getSummaryOrder() == 1;
+        } else {
+            rv = true;
+            if (assignmentOrder != null) {
+                if (getSummaryOrder() != assignmentOrder) {
+                    rv = false;
+                }
+            }
+            for (OrderConstraintsType orderConstraint : assignmentOrderConstraint) {
+                if (!isMatchingConstraint(orderConstraint)) {
+                    rv = false;
+                    break;
+                }
+                extraRelations.removeIf(r -> QNameUtil.match(r, orderConstraint.getRelation()));
+            }
+        }
+        // TODO this is to be reconsidered -- why do we consider assignment of relation e.g. approver non-matching?
+        if (!extraRelations.isEmpty()) {
+            rv = false;
+        }
+        LOGGER.trace("computeMatchingOrder => {}, for assignment.order={}, assignment.orderConstraint={}, evaluationOrder={}, remainingExtraRelations={}",
+                rv, assignmentOrder, assignmentOrderConstraint, this, extraRelations);
+        return rv;
+    }
+
+    private boolean isMatchingConstraint(OrderConstraintsType orderConstraint) {
+        int evaluationOrderInt = getMatchingRelationOrder(orderConstraint.getRelation());
+        if (orderConstraint.getOrder() != null) {
+            return orderConstraint.getOrder() == evaluationOrderInt;
+        } else {
+            int orderMin = 1;
+            int orderMax = 1;
+            if (orderConstraint.getOrderMin() != null) {
+                orderMin = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMin());
+            }
+            if (orderConstraint.getOrderMax() != null) {
+                orderMax = XsdTypeMapper.multiplicityToInteger(orderConstraint.getOrderMax());
+            }
+            return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
+        }
+    }
+
 }

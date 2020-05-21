@@ -78,8 +78,8 @@
      <logger name="com.evolveum.midpoint.model.impl.lens.IvwoConsolidator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.MetadataManager" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.PersonaProcessor" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.impl.lens.ClockworkAuthorizationHelper" level="DEBUG" />
@@ -141,6 +141,7 @@
     <logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />
 
+    <!--<logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor" level="TRACE" />-->
     <root level="INFO">
         <appender-ref ref="X" />
         <appender-ref ref="TracingAppender" />

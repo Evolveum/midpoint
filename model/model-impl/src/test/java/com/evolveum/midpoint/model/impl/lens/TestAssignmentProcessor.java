@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 
 import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 

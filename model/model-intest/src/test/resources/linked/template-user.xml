@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="241afdcc-26eb-4417-a4df-a8c1add06e84">
+    <name>template-user</name>
+    <item>
+        <ref>organization</ref>
+        <mapping>
+            <evaluationPhase>afterAssignments</evaluationPhase>
+            <strength>strong</strength>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType
+                        ARCHETYPE_DEVICE_OID = 'd6d90e2c-ad25-4f7f-a0e1-2f5fac03b402'
+
+                        devices = midpoint.findAssignedObjects(ServiceType.class, ARCHETYPE_DEVICE_OID)
+                        log.info('assigned devices = {}', devices)
+
+                        devices.collect { basic.stringify(it.name) + ' users' }
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+        </mapping>
+    </item>
+</objectTemplate>

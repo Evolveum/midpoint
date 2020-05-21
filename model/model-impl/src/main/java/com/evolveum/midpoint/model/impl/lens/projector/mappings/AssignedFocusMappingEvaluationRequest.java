@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
