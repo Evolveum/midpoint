@@ -14,7 +14,6 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.model.impl.ModelRestService;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -36,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 class AbstractRestController {
 
     protected final Trace logger = TraceManager.getTrace(getClass());
+
     private final String opNamePrefix = getClass().getName() + ".";
 
     @Autowired protected AuditService auditService;
@@ -44,7 +44,7 @@ class AbstractRestController {
 
     protected Task initRequest() {
         // No need to audit login. it was already audited during authentication
-        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
+        Task task = taskManager.createTaskInstance(opNamePrefix + "restService");
         task.setChannel(SchemaConstants.CHANNEL_REST_URI);
         return task;
     }
