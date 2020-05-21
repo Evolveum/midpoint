@@ -9,10 +9,14 @@
 <head/>
 <body>
 <wicket:panel>
-    <div wicket:id="configurationPanel" >
-        <wicket:child />
+    <div wicket:id="configurationPanel">
+        <wicket:child/>
     </div>
-    <div wicket:id="buttonsPanel" />
+    <div wicket:id="buttonsPanel" class="box-footer pull-right">
+        <a wicket:id="applyFilterButton" class="btn btn-group btn-sm btn-default"></a>
+        <a wicket:id="saveFilterButton" class="btn btn-group btn-sm btn-default"></a>
+        <a wicket:id="cancelButton" class="btn btn-group btn-sm btn-default"></a>
+    </div>
 </wicket:panel>
 </body>
 </html>

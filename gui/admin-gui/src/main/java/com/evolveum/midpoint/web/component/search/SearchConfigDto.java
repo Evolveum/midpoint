@@ -73,4 +73,10 @@ public class SearchConfigDto implements Serializable {
     public void setValue(Object value) {
         this.value = value;
     }
+
+    public static SearchConfigDto createSearchConfigDto(SearchItem searchItem){
+        SearchConfigDto searchConfigDto = new SearchConfigDto();
+        searchConfigDto.setProperty(new Property(searchItem.getDefinition()));
+        return searchConfigDto;
+    }
 }

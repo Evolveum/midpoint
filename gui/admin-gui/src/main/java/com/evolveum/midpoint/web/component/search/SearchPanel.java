@@ -772,7 +772,7 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private void searchConfigurationPerformed(AjaxRequestTarget target){
-        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId()) {
+        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(), getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
