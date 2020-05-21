@@ -13,8 +13,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.concepts.Lazy.Supplier;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
+import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -51,6 +50,7 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition ID_SCOPE = new Item("scope", Type.STRING, false);
         public static final AxiomItemDefinition ID_SPACE = new Item("space", Type.IDENTIFIER, false);
 
+        public static final AxiomItemDefinition TARGET = new Item("target", Type.TYPE_REFERENCE, true);
 
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition type;
@@ -182,6 +182,8 @@ public class AxiomBuiltIn {
                     Item.ID_SPACE
                 ));
         public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
+        public static final Type EXTENSION_DEFINITION = new Type("AxiomExtensionDefinition");
+
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;

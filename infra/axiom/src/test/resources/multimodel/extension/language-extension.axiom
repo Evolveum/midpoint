@@ -1,0 +1,16 @@
+model language-extension {
+
+    namespace "https://example.org/extension";
+
+    import axiom {
+        namespace "https://ns.evolveum.com/axiom/language";
+    }
+
+    extension Storage {
+        target axiom:AxiomTypeDefinition;
+
+        item type {
+            type string;
+        }
+    }
+}
