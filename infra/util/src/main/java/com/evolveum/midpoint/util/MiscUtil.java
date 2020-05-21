@@ -31,6 +31,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -785,5 +786,16 @@ public class MiscUtil {
 
     public static <T> List<T> singletonOrEmptyList(T value) {
         return value != null ? singletonList(value) : emptyList();
+    }
+
+    public static <T> T cast(Object value, Class<T> expectedClass) throws SchemaException {
+        if (value == null) {
+            return null;
+        } else if (!expectedClass.isAssignableFrom(value.getClass())) {
+            throw new SchemaException("Expected '" + expectedClass.getName() + "' but got '" + value.getClass().getName() + "'");
+        } else {
+            //noinspection unchecked
+            return (T) value;
+        }
     }
 }

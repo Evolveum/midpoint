@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -826,7 +826,7 @@ public class ModelRestService {
             if (input instanceof ExecuteScriptType) {
                 return (ExecuteScriptType) input;
             } else if (input instanceof ScriptingExpressionType) {
-                return ScriptingExpressionEvaluator.createExecuteScriptCommand((ScriptingExpressionType) input);
+                return ScriptingBeansUtil.createExecuteScriptCommand((ScriptingExpressionType) input);
             } else {
                 throw new IllegalArgumentException("Wrong input value: " + input);
             }
