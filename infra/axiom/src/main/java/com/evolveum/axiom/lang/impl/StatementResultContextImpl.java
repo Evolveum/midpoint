@@ -13,7 +13,7 @@ import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-class StatementContextResult<V> implements Dependency<AxiomStatement<V>> {
+class StatementResultContextImpl<V> implements Dependency<AxiomStatement<V>> {
 
     private V value;
     private final List<StatementContextImpl<?>> childrenList = new ArrayList<>();
@@ -22,7 +22,7 @@ class StatementContextResult<V> implements Dependency<AxiomStatement<V>> {
 
     private final List<StatementRuleContextImpl<V>> rules = new ArrayList<>();
 
-    public StatementContextResult(AxiomItemDefinition definition, AxiomStatementBuilder<V> builder) {
+    public StatementResultContextImpl(AxiomItemDefinition definition, AxiomStatementBuilder<V> builder) {
         super();
         this.builder = builder;
     }

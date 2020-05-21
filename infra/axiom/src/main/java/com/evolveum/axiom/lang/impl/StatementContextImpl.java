@@ -44,7 +44,7 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
 
     protected void initResult() {
         AxiomStatementBuilder<V> builder = new AxiomStatementBuilder<>(definition.name(), typeFactory(definition.type()));
-        this.result = new StatementContextResult<>(definition, builder);
+        this.result = new StatementResultContextImpl<>(definition, builder);
     }
 
     protected <T> Factory<T, ? extends AxiomStatement<T>> typeFactory(AxiomTypeDefinition type) {
@@ -56,9 +56,9 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
         mutableResult().setValue((V) value);
     }
 
-    private StatementContextResult<V> mutableResult() {
-        if(result instanceof StatementContextResult) {
-            return (StatementContextResult) result;
+    private StatementResultContextImpl<V> mutableResult() {
+        if(result instanceof StatementResultContextImpl) {
+            return (StatementResultContextImpl) result;
         }
         return null;
     }
@@ -159,7 +159,7 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
     }
 
     public Dependency<AxiomStatement<V>> asRequirement() {
-        if (result instanceof StatementContextResult) {
+        if (result instanceof StatementResultContextImpl) {
             return Dependency.deffered(result);
         }
         return result;
@@ -217,8 +217,8 @@ public abstract class StatementContextImpl<V> implements AxiomStatementContext<V
 
     @Override
     public V requireValue(Class<V> type) {
-        if(result instanceof StatementContextResult) {
-            return type.cast(((StatementContextResult) result).value());
+        if(result instanceof StatementResultContextImpl) {
+            return type.cast(((StatementResultContextImpl) result).value());
         }
         return null;
     }

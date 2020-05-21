@@ -21,8 +21,10 @@ public interface AxiomItemValue<V> extends Supplier<V> {
         return Collections2.filter(items(), value -> name.equals(value.name()));
     }
 
-
     @Override
     V get();
 
+    interface Factory<V,T extends AxiomItemValue<V>> {
+        T create(AxiomTypeDefinition def, V value, Collection<AxiomItem<?>> items);
+    }
 }
