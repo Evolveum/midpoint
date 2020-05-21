@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
@@ -53,5 +55,16 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
     @Override
     public GuiComponentRegistry getRegistry() {
         return registry;
+    }
+
+    @Override
+    protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
+        ItemWrapper<?, ?> child = super.createChildWrapper(def, containerValueWrapper, context);
+        //TODO ugly hack. find out something smarter
+        if (ItemStatus.ADDED == child.getStatus()) {
+            return null;
+        }
+
+        return child;
     }
 }

@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -39,7 +38,7 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
     }
 
     @Override
-    protected Panel createHeaderPanel() {
+    protected Component createHeaderPanel() {
         return new PrismPropertyHeaderPanel<T>(ID_HEADER, getModel()) {
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {

@@ -42,4 +42,6 @@ public interface PrismValueWrapper<T> extends Serializable, DebugDumpable {
     boolean isShowMetadata();
     void setShowMetadata(boolean showMetadata);
 
+    String toShortString();
+
 }

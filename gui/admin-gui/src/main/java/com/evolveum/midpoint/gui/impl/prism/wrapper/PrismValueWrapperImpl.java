@@ -161,10 +161,18 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
 
     @Override
     public boolean isShowMetadata() {
-        return true;
+        return showMetadata;
     }
 
     public void setShowMetadata(boolean showMetadata) {
         this.showMetadata = showMetadata;
+    }
+
+    @Override
+    public String toShortString() {
+        if (getRealValue() == null) {
+            return "";
+        }
+        return getRealValue().toString();
     }
 }

@@ -68,7 +68,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
             getModelObject().revive(getPrismContext());
         }
 
-        Panel headerPanel = createHeaderPanel();
+        Component headerPanel = createHeaderPanel();
         headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
         add(headerPanel);
 
@@ -84,7 +84,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
         return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
     }
 
-    protected abstract Panel createHeaderPanel();
+    protected abstract Component createHeaderPanel();
 
     protected ListView<VW> createValuesPanel() {
 

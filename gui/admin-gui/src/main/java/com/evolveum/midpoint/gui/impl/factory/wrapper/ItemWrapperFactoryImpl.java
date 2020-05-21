@@ -195,7 +195,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     }
 
     protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
-        PrismValue oldValue = valueWrapper.getOldValue();
+        PrismValue oldValue = valueWrapper.getNewValue();
         Optional<ValueMetadata> metadata = oldValue.valueMetadata();
         if (!metadata.isPresent()) {
             LOGGER.trace("Skipping creating metadata");

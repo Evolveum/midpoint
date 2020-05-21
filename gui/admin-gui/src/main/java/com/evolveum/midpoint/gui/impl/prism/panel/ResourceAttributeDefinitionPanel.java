@@ -8,7 +8,8 @@
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ResourceAttributeWrapper;
-import org.apache.wicket.markup.html.panel.Panel;
+
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -34,7 +35,7 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
     }
 
     @Override
-    protected Panel createHeaderPanel() {
+    protected Component createHeaderPanel() {
         return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel());
     }
 

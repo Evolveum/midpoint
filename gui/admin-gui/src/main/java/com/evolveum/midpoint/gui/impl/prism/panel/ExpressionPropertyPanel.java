@@ -19,7 +19,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -53,7 +52,7 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
     }
 
     @Override
-    protected Panel createHeaderPanel() {
+    protected Component createHeaderPanel() {
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
         if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())){
             return new ExpressionPropertyHeaderPanel(ID_HEADER, getModel()) {

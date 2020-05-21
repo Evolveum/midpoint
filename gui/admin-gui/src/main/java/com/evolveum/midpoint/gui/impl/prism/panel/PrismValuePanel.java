@@ -171,7 +171,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected void createMetadataPanel(Form form) {
-        MetadataContainerValuePanel metadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"), new ItemPanelSettingsBuilder().build());
+        MetadataContainerValuePanel metadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"), new ItemPanelSettingsBuilder().editabilityHandler(wrapper -> false).build());
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
         form.add(metadataPanel);
     }

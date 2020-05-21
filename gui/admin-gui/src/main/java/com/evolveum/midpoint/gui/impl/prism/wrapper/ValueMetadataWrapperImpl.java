@@ -27,6 +27,9 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
 
     @Override
     public String getDisplayName() {
+        if (getDefinition() == null) {
+            return "MetadataMock";
+        }
         return getDefinition().getDisplayName();
     }
 
@@ -240,5 +243,8 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
         return null;
     }
 
-
+    @Override
+    public String toShortString() {
+        return "";
+    }
 }
