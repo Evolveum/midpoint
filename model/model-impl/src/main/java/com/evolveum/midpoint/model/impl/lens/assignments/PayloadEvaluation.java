@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,7 +73,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
             LOGGER.trace("Preparing construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
-            Construction<AH> construction = new Construction<>(constructionBean, segment.source);
+            Construction<AH, EvaluatedConstructionImpl<AH>> construction = new Construction<>(constructionBean, segment.source);
             // We have to clone here as the path is constantly changing during evaluation
             construction.setAssignmentPath(ctx.assignmentPath.clone());
             construction.setFocusOdo(ctx.ae.focusOdo);
@@ -79,6 +82,8 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             construction.setPrismContext(ctx.ae.prismContext);
             construction.setMappingFactory(ctx.ae.mappingFactory);
             construction.setMappingEvaluator(ctx.ae.mappingEvaluator);
+            construction.setNow(ctx.ae.now);
+            construction.setContextLoader(ctx.ae.contextLoader);
             construction.setOriginType(OriginType.ASSIGNMENTS);
             construction.setChannel(ctx.ae.channel);
             construction.setOrderOneObject(segment.varThisObject);

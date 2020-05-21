@@ -18,6 +18,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -82,6 +83,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     final MappingFactory mappingFactory;
     final ActivationComputer activationComputer;
     final MappingEvaluator mappingEvaluator;
+    final ContextLoader contextLoader;
 
     // Evaluation state
 
@@ -100,6 +102,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         mappingFactory = builder.mappingFactory;
         activationComputer = builder.activationComputer;
         now = builder.now;
+        contextLoader = builder.contextLoader;
         loginMode = builder.loginMode;
         systemConfiguration = builder.systemConfiguration;
         mappingEvaluator = builder.mappingEvaluator;
@@ -280,6 +283,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         private MappingFactory mappingFactory;
         private ActivationComputer activationComputer;
         private XMLGregorianCalendar now;
+        private ContextLoader contextLoader;
         private boolean loginMode = false;
         private PrismObject<SystemConfigurationType> systemConfiguration;
         private MappingEvaluator mappingEvaluator;
@@ -339,6 +343,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
         public Builder<AH> now(XMLGregorianCalendar val) {
             now = val;
+            return this;
+        }
+
+        public Builder<AH> contextLoader(ContextLoader val) {
+            contextLoader = val;
             return this;
         }
 
