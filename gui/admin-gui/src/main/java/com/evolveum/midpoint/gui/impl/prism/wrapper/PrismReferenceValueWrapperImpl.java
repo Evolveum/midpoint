@@ -7,15 +7,20 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author katka
  *
  */
-public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T, PrismReferenceValue> {
+public class PrismReferenceValueWrapperImpl<T extends Referencable> extends PrismValueWrapperImpl<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -55,5 +60,29 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
     public void setLink(boolean link) {
         isLink = link;
+    }
+
+    @Override
+    public PrismReferenceValue getNewValue() {
+        return super.getNewValue();
+    }
+
+    @Override
+    public String toShortString() {
+        T referencable = getRealValue();
+        if (referencable == null) {
+            return "";
+        }
+
+        return getRefName(referencable) + " (" + getTargetType(referencable) + ")";
+    }
+
+    private String getRefName(T referencable) {
+        return referencable.getTargetName() != null ? WebComponentUtil.getOrigStringFromPoly(referencable.getTargetName()) : referencable.getOid();
+    }
+
+    private String getTargetType(T referencable) {
+        QName type = referencable.getType();
+        return type != null ? type.getLocalPart() : "";
     }
 }

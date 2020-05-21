@@ -349,9 +349,9 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
             return false;
         }
 
-        if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
-            return (getParent() != null && getParent().isShowMetadata());
-        }
+//        if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+//            return (getParent() != null && getParent().isShowMetadata());
+//        }
 
         // pretend that object is always expanded. it is becasue all other containers are children of it
         // and it can influence visibility behavior on different tabs.

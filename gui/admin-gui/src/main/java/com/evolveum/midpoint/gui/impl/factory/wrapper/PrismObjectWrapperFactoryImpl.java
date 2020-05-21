@@ -70,6 +70,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         context.setShowEmpty(ItemStatus.ADDED == status);
         objectWrapper.setExpanded(true);
         PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+        setupMetadata(valueWrapper, context);
         objectWrapper.getValues().add(valueWrapper);
         registerWrapperPanel(objectWrapper);
 
@@ -97,6 +98,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         wrapper.getValue().getItems().clear();
 
         PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(wrapper, wrapper.getObject().getValue(), ItemStatus.ADDED == wrapper.getStatus() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
+        setupMetadata(valueWrapper, context);
         wrapper.getValues().clear();
         wrapper.getValues().add(valueWrapper);
 
