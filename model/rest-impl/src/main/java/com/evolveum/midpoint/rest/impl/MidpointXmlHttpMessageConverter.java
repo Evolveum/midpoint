@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.PrismSerializer;
 public class MidpointXmlHttpMessageConverter extends MidpointAbstractHttpMessageConverter<Object> {
 
     public static final MediaType[] MEDIA_TYPES = {
-            MediaType.APPLICATION_XML, MediaType.TEXT_XML
+            MediaType.APPLICATION_XML, MediaType.TEXT_XML, MediaType.valueOf("application/*+xml")
     };
 
     protected MidpointXmlHttpMessageConverter(
