@@ -87,8 +87,9 @@ public class SecurityUtils {
 
     static {
         Map<String, String> map = new HashMap<>();
-        map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
-        map.put("rest2", SchemaConstants.CHANNEL_REST_URI);
+        map.put("ws", SchemaConstants.CHANNEL_REST_URI);
+        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("api", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
@@ -198,7 +199,7 @@ public class SecurityUtils {
         if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
-                LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
+                LOGGER.debug("Couldn't find sequence by prefix {}, so try default channel", partsOfLocalPath[1]);
                 sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
             }
             return sequence;
@@ -240,7 +241,8 @@ public class SecurityUtils {
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
+        // TODO: what exactly does this do, can't it be channel.equals(SchemaConstants.CHANNEL_REST_URI)?
+        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
@@ -333,7 +335,7 @@ public class SecurityUtils {
             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
+        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
