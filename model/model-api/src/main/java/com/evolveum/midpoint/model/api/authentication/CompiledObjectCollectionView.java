@@ -12,6 +12,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -20,14 +22,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 /**
  * @author semancik
@@ -234,7 +228,29 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "refreshInterval", refreshInterval, indent + 1);
         return sb.toString();
+    }
+
+    public GuiObjectListViewType toGuiObjectListViewType() {
+        GuiObjectListViewType viewType = new GuiObjectListViewType();
+        viewType.setIdentifier(getViewIdentifier());
+        viewType.setType(getObjectType());
+        viewType.setAdditionalPanels(getAdditionalPanels());
+        viewType.setDisplay(getDisplay());
+        for (GuiObjectColumnType column : getColumns()) {
+            viewType.column(column.clone());
+        }
+        for (GuiActionType action : getActions()) {
+            viewType.action(action.clone());
+        }
+        viewType.setDistinct(getDistinct());
+        viewType.setDisableSorting(isDisableSorting());
+        viewType.setDisableCounting(isDisableCounting());
+        viewType.setSearchBoxConfiguration(getSearchBoxConfiguration());
+        viewType.setDisplayOrder(getDisplayOrder());
+        viewType.setRefreshInterval(getRefreshInterval());
+        return viewType;
     }
 
 }

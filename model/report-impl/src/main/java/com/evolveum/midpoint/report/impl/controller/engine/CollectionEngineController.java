@@ -33,16 +33,15 @@ public class CollectionEngineController extends EngineController {
 
     @Override
     public String createReport(ReportType parentReport, ExportController exportController, Task task, OperationResult result) throws Exception {
-        if (parentReport.getObjectCollection() != null && parentReport.getObjectCollection().getCollection() != null
-                && parentReport.getObjectCollection().getCollection().getCollectionRef() != null) {
+        if (parentReport.getObjectCollection() != null && parentReport.getObjectCollection().getCollection() != null) {
             ObjectCollectionReportEngineConfigurationType collectionConfig = parentReport.getObjectCollection();
 
             String reportFilePath = getDestinationFileName(parentReport, exportController);
-            FileUtils.writeByteArrayToFile(new File(reportFilePath), exportController.processCollection(collectionConfig, task, result));
+            FileUtils.writeByteArrayToFile(new File(reportFilePath), exportController.processCollection(parentReport.getName().getOrig(), collectionConfig, task, result));
             return reportFilePath;
         } else {
-            LOGGER.error("Collection or CollectionRef is null");
-            throw new IllegalArgumentException("Collection or CollectionRef is null");
+            LOGGER.error("CollectionRefSpecification is null");
+            throw new IllegalArgumentException("CollectionRefSpecification is null");
         }
     }
 

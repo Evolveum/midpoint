@@ -11,12 +11,15 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.dialog.SelectExportingColumnsPanel;
+import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
+
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -45,21 +48,19 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     private final boolean canCountBeforeExporting;
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
-    private IModel<List<Integer>> exportedColumnsIndex = Model.ofList(new ArrayList<>());
-
-    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
+    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting, LoadableModel<Search> search) {
         super(id);
         this.canCountBeforeExporting = canCountBeforeExporting;
-        initLayout();
+        initLayout(search);
     }
 
     public CsvDownloadButtonPanel(String id) {
-        this(id, true);
+        this(id, true, null);
     }
 
     private static final long serialVersionUID = 1L;
 
-    private void initLayout() {
+    private void initLayout(LoadableModel<Search> search) {
         CSVDataExporter csvDataExporter = new CSVDataExporter() {
             private static final long serialVersionUID = 1L;
 
@@ -143,16 +144,22 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 if (askForSizeLimitConfirmation) {
                     useExportSizeLimit = exportSizeLimit;
                 }
-                SelectExportingColumnsPanel selectExportingColumnsPanel = new SelectExportingColumnsPanel(getPageBase().getMainPopupBodyId(),
-                        getDataTable(), exportableColumnsIndex, useExportSizeLimit) {
+                exportableColumnsIndex.clear();
+                ExportingPanel exportingPanel = new ExportingPanel(getPageBase().getMainPopupBodyId(),
+                        getDataTable(), exportableColumnsIndex, useExportSizeLimit, search) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
                         ajaxDownloadBehavior.initiate(target);
                     }
+
+                    @Override
+                    protected void createReportPerformed(SearchFilterType filter, AjaxRequestTarget target) {
+                        CsvDownloadButtonPanel.this.createReportPerformed(filter, exportableColumnsIndex, target);
+                    }
                 };
-                getPageBase().showMainPopup(selectExportingColumnsPanel, target);
+                getPageBase().showMainPopup(exportingPanel, target);
             }
         };
         add(exportDataLink);
@@ -170,5 +177,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     protected abstract DataTable<?,?> getDataTable();
 
     protected abstract String getFilename();
+
+    protected abstract void createReportPerformed(SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target);
 
 }

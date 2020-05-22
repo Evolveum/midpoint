@@ -344,6 +344,7 @@ public class CollectionProcessor {
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         if (objectListViewType != null) {
+            compileObjectType(existingView, objectListViewType);
             compileActions(existingView, objectListViewType);
             compileAdditionalPanels(existingView, objectListViewType);
             compileColumns(existingView, objectListViewType);
@@ -358,12 +359,18 @@ public class CollectionProcessor {
     }
 
     @Nullable
-    private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+    public ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();      // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
+    }
+
+    private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        if (existingView.getObjectType() == null) {
+            existingView.setObjectType(objectListViewType.getType());
+        }
     }
 
     private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {

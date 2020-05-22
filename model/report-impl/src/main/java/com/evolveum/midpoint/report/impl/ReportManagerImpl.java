@@ -29,6 +29,7 @@ import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -131,6 +132,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
     @Override
     public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        task.getUpdatedTaskObject().asObjectable().getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
+        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
 
         if (!reportService.isAuthorizedToRunReport(object, task, parentResult)) {
             LOGGER.error("User is not authorized to run report {}", object);

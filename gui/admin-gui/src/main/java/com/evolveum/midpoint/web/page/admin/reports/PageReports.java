@@ -195,10 +195,7 @@ public class PageReports extends PageAdmin {
     private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
         OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
         Task task = createSimpleTask(OPERATION_RUN_REPORT);
-        task.getUpdatedTaskObject().asObjectable().getAssignment()
-                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, getPrismContext()));
-        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
-                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+
         try {
             getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
         } catch (Exception ex) {

@@ -17110,14 +17110,40 @@
         <xsd:complexContent>
             <xsd:extension base="tns:CollectionSpecificationType">
                 <xsd:sequence>
-                    <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+                    <xsd:choice>
+                        <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Reference to an object that defines the base of implicit or explicit collection.
+                                    This may be ObjectCollectionType or any subclass of AbstractRoleType.
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:since>4.0</a:since>
+                                    <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Filter for objectType. This filter can be use instead of reference of collection.
+                                </xsd:documentation>
+                                <xsd:appinfo>
+                                    <a:since>4.2</a:since>
+                                    <a:displayName>CollectionSpecificationType.filter</a:displayName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="baseCollectionRef" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Referrence to an object that defines the base of implicit or explicit collection.
+                                Reference to an object that defines the base of implicit or explicit collection.
                                 This may be ObjectCollectionType or any subclass of AbstractRoleType.
+                                This collection is merge with filter.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.0</a:since>
+                                <a:since>4.2</a:since>
                                 <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -23362,7 +23388,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO: other elements to configure the report -->
+            <xsd:element name="useOnlyReportView" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies that during creating of report will be used only view in report without merging with other view.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

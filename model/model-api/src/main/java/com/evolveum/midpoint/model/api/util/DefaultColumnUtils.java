@@ -205,7 +205,7 @@ public class DefaultColumnUtils {
         return defaultAuditColumnsDef;
     }
 
-    public static <O extends ObjectType> GuiObjectListViewType getDefaultColumns(Class<? extends O> type) {
+    public static <O extends ObjectType> GuiObjectListViewType getDefaultView(Class<? extends O> type) {
         if (type == null) {
             return getDefaultObjectView();
         }

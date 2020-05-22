@@ -14,37 +14,26 @@ import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.DefinitionUtil;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import j2html.TagCreator;
-import j2html.tags.ContainerTag;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.QuoteMode;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
-import javax.xml.namespace.QName;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -122,15 +111,27 @@ public class CsvExporterController extends ExportController {
     }
 
     @Override
-    public byte[] processCollection(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
-        ObjectReferenceType ref = collectionConfig.getCollection().getCollectionRef();
-        Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-        ObjectCollectionType collection = (ObjectCollectionType) getReportService().getModelService()
-                .getObject(type, ref.getOid(), null, task, result)
-                .asObjectable();
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
+        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
+        ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
+        ObjectCollectionType collection = null;
+        if (ref != null) {
+            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
+            collection = (ObjectCollectionType) getReportService().getModelService()
+                    .getObject(type, ref.getOid(), null, task, result)
+                    .asObjectable();
+        }
 
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+        if (!collectionConfig.isUseOnlyReportView()) {
+            if (collection != null) {
+                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+            } else if (collectionRefSpecification.getBaseCollectionRef() != null
+                    && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
+                ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+                getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
+            }
+        }
 
         GuiObjectListViewType reportView = collectionConfig.getView();
         if (reportView != null) {
@@ -138,9 +139,9 @@ public class CsvExporterController extends ExportController {
         }
 
         byte[] csvFile;
-        boolean isAuditCollection = collection.getAuditSearch() != null ? true : false;
+        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null ? true : false;
         if (!isAuditCollection) {
-            csvFile = createTableBoxForObjectView(collection, compiledCollection, task, result);
+            csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection, task, result);
         } else {
             csvFile = createTableBoxForAuditView(collection, compiledCollection, task, result);
         }
@@ -220,13 +221,12 @@ public class CsvExporterController extends ExportController {
         return null;
     }
 
-    private byte[] createTableBoxForObjectView(ObjectCollectionType collection, CompiledObjectCollectionView compiledCollection, Task task, OperationResult result)
+    private byte[] createTableBoxForObjectView(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        Class<ObjectType> type = (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
-                .getCompileTimeClassForObjectType(collection.getType());
+        Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
-        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, true, options, task, result);
+        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
         if (values.isEmpty()) {
             values = new ArrayList<>();
         }
@@ -235,7 +235,7 @@ public class CsvExporterController extends ExportController {
         PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionsByCompileTimeClass(type, PrismObjectDefinition.class).get(0);
 
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultColumns(type));
+            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
         }
         List<String> headers = new ArrayList<>();
         List<List<String>> records = new ArrayList<>();

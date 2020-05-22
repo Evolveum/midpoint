@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.report.impl.controller.export;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +81,7 @@ public abstract class ExportController {
 
     public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception;
 
-    public abstract byte[] processCollection(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception;
+    public abstract byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception;
 
     protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
         try {
@@ -125,6 +127,9 @@ public abstract class ExportController {
                     name = ((NameItemPathSegment) segment).getName();
                 } else {
                     continue;
+                }
+                if (valueObject == null) {
+                    break;
                 }
                 valueObject = (Item) valueObject.find(ItemPath.create(name));
                 if (valueObject instanceof PrismProperty && iterator.hasNext()) {
@@ -282,7 +287,7 @@ public abstract class ExportController {
         return name;
     }
 
-    private PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
+    protected PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
         Task task = getReportService().getTaskManager().createTaskInstance("Get object");
         Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
 
@@ -382,5 +387,33 @@ public abstract class ExportController {
                     throw new IllegalArgumentException("Unknown name of column for AuditReport " + path);
                 }
         }
+    }
+
+    protected QName resolveTypeQname(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
+        QName type;
+        if (collectionRef.getCollectionRef() != null) {
+            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getCollectionRef()).asObjectable();
+            if (collection.getAuditSearch() != null) {
+                type = AuditEventRecordType.COMPLEX_TYPE;
+            } else {
+                type = collection.getType();
+            }
+        } else if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null) {
+            ObjectCollectionType collection = (ObjectCollectionType) getObjectFromReference(collectionRef.getBaseCollectionRef().getCollectionRef()).asObjectable();
+            type = collection.getType();
+        } else {
+            type = compiledCollection.getObjectType();
+        }
+        if (type == null) {
+            LOGGER.error("Couldn't define type for objects");
+            throw new IllegalArgumentException("Couldn't define type for objects");
+        }
+        return type;
+    }
+
+    protected Class<ObjectType> resolveType(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
+        QName type = resolveTypeQname(collectionRef, compiledCollection);
+        return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
+                .getCompileTimeClassForObjectType(type);
     }
 }

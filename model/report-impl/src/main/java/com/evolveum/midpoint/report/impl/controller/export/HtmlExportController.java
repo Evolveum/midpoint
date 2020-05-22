@@ -97,15 +97,23 @@ public class HtmlExportController extends ExportController {
                 if (sourceType == null) {
                     throw new IllegalStateException("No source type specified in " + widget);
                 }
+                CollectionRefSpecificationType collectionRefSpecification = getReportService().getDashboardService().getCollectionRefSpecificationType(widget, task, result);
                 ObjectCollectionType collection = getReportService().getDashboardService().getObjectCollectionType(widget, task, result);
+
                 CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+                if (collection != null) {
+                    getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+                } else if (collectionRefSpecification.getBaseCollectionRef() != null
+                        && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
+                    ObjectCollectionType baseCollection = (ObjectCollectionType)getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+                    getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
+                }
 
                 if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
                     getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
                 }
 
-                QName collectionType = collection.getAuditSearch() != null ? AuditEventRecordType.COMPLEX_TYPE : collection.getType();
+                QName collectionType = resolveTypeQname(collectionRefSpecification, compiledCollection);
                 GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
                 if (reportView != null) {
                     getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
@@ -113,9 +121,13 @@ public class HtmlExportController extends ExportController {
 
                 switch (sourceType) {
                     case OBJECT_COLLECTION:
-                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collection, compiledCollection, false, task, result);
+                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, false, task, result);
                         break;
                     case AUDIT_SEARCH:
+                        if (collection == null) {
+                            LOGGER.error("CollectionRef is null for report of audit records");
+                            throw new IllegalArgumentException("CollectionRef is null for report of audit records");
+                        }
                         tableBox = createTableBoxForAuditView(widgetData.getLabel(), collection, compiledCollection, false, task, result);
                         break;
                 }
@@ -150,12 +162,16 @@ public class HtmlExportController extends ExportController {
     }
 
     @Override
-    public byte[] processCollection(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
-        ObjectReferenceType ref = collectionConfig.getCollection().getCollectionRef();
-        Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
-        ObjectCollectionType collection = (ObjectCollectionType) getReportService().getModelService()
-                .getObject(type, ref.getOid(), null, task, result)
-                .asObjectable();
+    public byte[] processCollection(String nameOfReport, ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws Exception {
+        CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
+        ObjectReferenceType ref = collectionRefSpecification.getCollectionRef();
+        ObjectCollectionType collection = null;
+        if (ref != null) {
+            Class<ObjectType> type = getReportService().getPrismContext().getSchemaRegistry().determineClassForType(ref.getType());
+            collection = (ObjectCollectionType) getReportService().getModelService()
+                    .getObject(type, ref.getOid(), null, task, result)
+                    .asObjectable();
+        }
 
         ClassLoader classLoader = getClass().getClassLoader();
         InputStream in = classLoader.getResourceAsStream(REPORT_CSS_STYLE_FILE_NAME);
@@ -168,9 +184,21 @@ public class HtmlExportController extends ExportController {
         StringBuilder body = new StringBuilder();
         body.append("<div> <style> ").append(cssStyle).append(" </style>");
 
-
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+        String defaultName = nameOfReport;
+        if (collection != null) {
+            if (!collectionConfig.isUseOnlyReportView()) {
+                getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+            }
+            defaultName = collection.getName().getOrig();
+        } else if (collectionRefSpecification.getBaseCollectionRef() != null
+                && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
+            ObjectCollectionType baseCollection = (ObjectCollectionType)getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+            if (!collectionConfig.isUseOnlyReportView()) {
+                getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
+            }
+            defaultName = baseCollection.getName().getOrig();
+        }
 
         GuiObjectListViewType reportView = collectionConfig.getView();
         if (reportView != null) {
@@ -181,13 +209,13 @@ public class HtmlExportController extends ExportController {
         if (compiledCollection.getDisplay() != null && StringUtils.isEmpty(compiledCollection.getDisplay().getLabel().getOrig())) {
             label = compiledCollection.getDisplay().getLabel().getOrig();
         } else {
-            label = collection.getName().getOrig();
+            label = defaultName;
         }
 
         ContainerTag tableBox;
-        boolean isAuditCollection = collection.getAuditSearch() != null ? true : false;
+        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null ? true : false;
         if (!isAuditCollection) {
-            tableBox = createTableBoxForObjectView(label, collection, compiledCollection, true, task, result);
+            tableBox = createTableBoxForObjectView(label, collectionConfig.getCollection(), compiledCollection, true, task, result);
         } else {
             tableBox = createTableBoxForAuditView(label, collection, compiledCollection, true, task, result);
         }
@@ -336,14 +364,14 @@ public class HtmlExportController extends ExportController {
         return TagCreator.div().withClasses("box", "boxed-table", classes).withStyle(style).with(div);
     }
 
-    private ContainerTag createTableBoxForObjectView(String label, ObjectCollectionType collection, @NotNull CompiledObjectCollectionView compiledCollection,
+    private ContainerTag createTableBoxForObjectView(String label, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
             boolean recordProgress, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        Class<ObjectType> type = (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
-                .getCompileTimeClassForObjectType(collection.getType());
+        Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
-        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, true, options, task, result);
+        List<PrismObject<ObjectType>> values = getReportService().getDashboardService()
+                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
         if (values == null || values.isEmpty()) {
             if (recordProgress) {
                 values = new ArrayList<>();
@@ -354,7 +382,7 @@ public class HtmlExportController extends ExportController {
         PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionsByCompileTimeClass(type, PrismObjectDefinition.class).get(0);
 
         if (compiledCollection.getColumns().isEmpty()) {
-            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultColumns(type));
+            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
         }
 
         ContainerTag table = createTable(compiledCollection, values, def, type, recordProgress, task, result);
