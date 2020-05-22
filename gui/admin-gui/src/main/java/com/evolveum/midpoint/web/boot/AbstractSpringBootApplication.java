@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.DispatcherType;
 
-import org.apache.cxf.transport.servlet.CXFServlet;
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +20,7 @@ import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAuto
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.HeapDumpWebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.ThreadDumpEndpointAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsEndpointAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.*;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
@@ -41,25 +36,20 @@ import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguratio
 import org.springframework.boot.web.server.ErrorPageRegistrar;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
+import ro.isdc.wro.http.WroFilter;
 
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
-
-import ro.isdc.wro.http.WroFilter;
 
 /**
  * @author katka
- *
  */
 @ImportAutoConfiguration(classes = {
         EmbeddedTomcatAutoConfiguration.class,
@@ -91,11 +81,8 @@ import ro.isdc.wro.http.WroFilter;
 })
 public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
-
     @Autowired StartupConfiguration startupConfiguration;
     @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
-
 
     @Bean
     public ServletListenerRegistrationBean<RequestContextListener> requestContextListener() {
@@ -106,7 +93,6 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
     public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
         FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
-        //            registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         registration.addUrlPatterns("/*");
         return registration;
     }
@@ -141,17 +127,6 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
         FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(wroFilter);
         registration.addUrlPatterns("/wro/*");
-        return registration;
-    }
-
-    @Bean
-    public ServletRegistrationBean<CXFServlet> cxfServlet() {
-        ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
-        registration.setServlet(new CXFServlet());
-        registration.addInitParameter("service-list-path", "midpointservices");
-        registration.setLoadOnStartup(1);
-        registration.addUrlMappings("/model/*", "/ws/*");
-
         return registration;
     }
 
