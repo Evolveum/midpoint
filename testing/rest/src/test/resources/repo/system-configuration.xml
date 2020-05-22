@@ -32,7 +32,7 @@
             <level>TRACE</level>
         </classLogger>
         <classLogger>
-            <package>com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler</package>
+            <package>com.evolveum.midpoint.rest.impl</package>
             <level>TRACE</level>
         </classLogger>
         <classLogger>
