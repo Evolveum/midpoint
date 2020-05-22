@@ -23,6 +23,7 @@ import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
+import com.evolveum.midpoint.model.impl.ClusterServiceConsts;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -46,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformation
  * However, for diagnostic purposes we might allow also administrator access sometimes in the future.
  */
 @RestController
-@RequestMapping("/cluster") // TODO: /ws/cluster
+@RequestMapping({"/ws/cluster", "/rest/cluster", "/api/cluster"})
 public class ClusterRestController extends AbstractRestController {
 
     public static final String CLASS_DOT = ClusterRestController.class.getName() + ".";
@@ -63,10 +64,6 @@ public class ClusterRestController extends AbstractRestController {
 
     private static final String EXPORT_DIR = "export/";
 
-    public static final String EVENT_INVALIDATION = "/event/invalidation/";
-    public static final String EVENT_TERMINATE_SESSION = "/event/terminateSession/";
-    public static final String EVENT_LIST_USER_SESSION = "/event/listUserSession";
-
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
@@ -76,13 +73,13 @@ public class ClusterRestController extends AbstractRestController {
         // nothing to do
     }
 
-    @PostMapping(EVENT_INVALIDATION + "{type}")
+    @PostMapping(ClusterServiceConsts.EVENT_INVALIDATION + "{type}")
     public ResponseEntity<?> executeClusterCacheInvalidationEvent(
             @PathVariable("type") String type) {
         return executeClusterCacheInvalidationEvent(type, null);
     }
 
-    @PostMapping(EVENT_INVALIDATION + "{type}/{oid}")
+    @PostMapping(ClusterServiceConsts.EVENT_INVALIDATION + "{type}/{oid}")
     public ResponseEntity<?> executeClusterCacheInvalidationEvent(
             @PathVariable("type") String type,
             @PathVariable("oid") String oid) {
@@ -107,7 +104,7 @@ public class ClusterRestController extends AbstractRestController {
         return response;
     }
 
-    @PostMapping(EVENT_TERMINATE_SESSION)
+    @PostMapping(ClusterServiceConsts.EVENT_TERMINATE_SESSION)
     public ResponseEntity<?> executeClusterTerminateSessionEvent(
             @RequestBody TerminateSessionEventType event) {
         Task task = initRequest();
@@ -128,7 +125,7 @@ public class ClusterRestController extends AbstractRestController {
         return response;
     }
 
-    @GetMapping(EVENT_LIST_USER_SESSION)
+    @GetMapping(ClusterServiceConsts.EVENT_LIST_USER_SESSION)
     public ResponseEntity<?> listUserSession() {
         Task task = initRequest();
         OperationResult result = createSubresult(task, OPERATION_GET_LOCAL_SCHEDULER_INFORMATION);

@@ -3,12 +3,17 @@ package com.evolveum.midpoint.rest.impl;
 import static org.springframework.http.ResponseEntity.status;
 
 import java.net.URI;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -178,5 +183,27 @@ class AbstractRestController {
         record.setOutcome(OperationResultStatus.SUCCESS);
 
         auditService.audit(record, task);
+    }
+
+    private final String[] requestMappingPaths =
+            getClass().getAnnotation(RequestMapping.class).value();
+
+    /**
+     * Returns base path (without servlet context) reflecting currently used request.
+     * This solves the problem of base path being one of multiple possible mappings.
+     */
+    protected String controllerBasePath() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+            String servletPath = request.getServletPath();
+            for (String requestMappingPath : requestMappingPaths) {
+                if (servletPath.startsWith(requestMappingPath)) {
+                    return requestMappingPath;
+                }
+            }
+        }
+
+        throw new NullPointerException("Base controller URL could not be determined.");
     }
 }

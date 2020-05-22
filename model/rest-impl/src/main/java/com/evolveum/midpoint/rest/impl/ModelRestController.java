@@ -45,10 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @RestController
-@RequestMapping(value = ModelRestController.BASE_PATH)
+@RequestMapping({ "/ws/rest", "/rest/model", "/api/model" })
 public class ModelRestController extends AbstractRestController {
 
-    public static final String BASE_PATH = "/rest2";
     public static final String GET_OBJECT_PATH = "/{type}/{id}";
 
     private static final String CURRENT = "current";
@@ -345,7 +344,7 @@ public class ModelRestController extends AbstractRestController {
     @NotNull
     public URI uriGetObject(@PathVariable("type") String type, String oid) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path(BASE_PATH + GET_OBJECT_PATH)
+                .path(controllerBasePath() + GET_OBJECT_PATH)
                 .build(type, oid);
     }
 
