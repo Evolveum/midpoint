@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -273,6 +274,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @Override
     public LensFocusContext<F> getFocusContext() {
         return focusContext;
+    }
+
+    @Override
+    @NotNull
+    public LensFocusContext<F> getFocusContextRequired() {
+        return Objects.requireNonNull(focusContext, "No focus context");
     }
 
     public void setFocusContext(LensFocusContext<F> focusContext) {

@@ -8,10 +8,6 @@ package com.evolveum.midpoint.model.intest;
 
 import java.io.File;
 
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.bcel.generic.RETURN;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,7 +18,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Various tests related to navigation the links between objects.
@@ -44,6 +42,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_DEVICE = new TestResource<>(TEST_DIR, "archetype-device.xml", "d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402");
 
     private static final TestResource<ServiceType> SERVICE_MEDALLION = new TestResource<>(TEST_DIR, "service-medallion.xml", "8734f795-f6b4-4cc5-843b-6307aaf88f9d");
+    private static final TestResource<ServiceType> SERVICE_WHISTLE = new TestResource<>(TEST_DIR, "service-whistle.xml", "40c18026-ca88-4bda-ab0b-f1a2a9c94818");
     private static final TestResource<ServiceType> SERVICE_SWORD = new TestResource<>(TEST_DIR, "service-sword.xml", "c64ee819-6dcd-4ad2-a91a-303fb0aed29e");
     private static final TestResource<ServiceType> SERVICE_AXE = new TestResource<>(TEST_DIR, "service-axe.xml", "90a3a6a0-07ea-4b2d-b800-ccdf4e7dea78");
 
@@ -65,6 +64,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(ARCHETYPE_DEVICE, initTask, initResult);
 
         addObject(SERVICE_MEDALLION, initTask, initResult);
+        addObject(SERVICE_WHISTLE, initTask, initResult);
         addObject(SERVICE_SWORD, initTask, initResult);
         addObject(SERVICE_AXE, initTask, initResult);
 
@@ -88,6 +88,9 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
                 .assertOrganizationalUnits()
                 .display();
         assertService(SERVICE_MEDALLION.oid, "after init")
+                .assertDescription("Not held")
+                .display();
+        assertService(SERVICE_WHISTLE.oid, "after init")
                 .assertDescription("Not held")
                 .display();
         assertService(SERVICE_SWORD.oid, "after init")
@@ -236,7 +239,6 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertUserAfter(USER_GRUFFY.oid)
                 .assertOrganizations("axe users");
 
-        recomputeFocus(ServiceType.class, SERVICE_AXE.oid, task, result); // todo eliminate
         assertServiceAfter(SERVICE_AXE.oid)
                 .assertDescription("Used by gruffy (Gruffy Gummi)");
     }
@@ -335,5 +337,47 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
 
         assertServiceAfter(SERVICE_SWORD.oid)
                 .assertDescription("Used by cubby (Little Cubby Gummi)");
+    }
+
+    /**
+     * Whistle is held by test user since creation - to check on the ordering of assignments.
+     * (Whistle first, User second). TEMPORARY
+     */
+    @Test
+    public void test300CreateNewWhistleHolder() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        UserType testUser = new UserType(prismContext)
+                .name(getTestNameShort())
+                .fullName("Test User")
+                .organizationalUnit("castle holders")
+                .beginAssignment()
+                    .targetRef(SERVICE_WHISTLE.oid, ServiceType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_USER.oid, ArchetypeType.COMPLEX_TYPE)
+                .end();
+        addObject(testUser.asPrismObject(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(testUser.getOid())
+                .assertOrganizationalUnits("whistle holders");
+
+        assertServiceAfter(SERVICE_WHISTLE.oid)
+                .assertDescription("Held by " + testUser.getName().getOrig() + " (Test User)");
+
+        recomputeUser(testUser.getOid(), task, result);
+
+        assertUserAfter(testUser.getOid())
+                .assertOrganizationalUnits("whistle holders");
+
+        assertServiceAfter(SERVICE_WHISTLE.oid)
+                .assertDescription("Held by " + testUser.getName().getOrig() + " (Test User)");
+
     }
 }

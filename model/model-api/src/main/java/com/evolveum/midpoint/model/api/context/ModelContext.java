@@ -41,6 +41,9 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     ModelElementContext<F> getFocusContext();
 
+    @NotNull
+    ModelElementContext<F> getFocusContextRequired();
+
     Collection<? extends ModelProjectionContext> getProjectionContexts();
 
     ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);

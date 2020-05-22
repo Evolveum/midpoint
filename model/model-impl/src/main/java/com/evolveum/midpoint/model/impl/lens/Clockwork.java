@@ -574,10 +574,7 @@ public class Clockwork {
         }
 
         // check preconditions
-        if (context.getFocusContext() == null) {
-            throw new IllegalStateException("No focus context when expected it");
-        }
-        PrismObject<F> role = context.getFocusContext().getObjectAny();
+        PrismObject<F> role = context.getFocusContextRequired().getObjectAny();
         if (role == null) {
             throw new IllegalStateException("No focus object when expected it");
         }

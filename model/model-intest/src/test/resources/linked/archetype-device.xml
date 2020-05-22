@@ -9,7 +9,7 @@
            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
            oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402">
     <name>device</name>
-    <documentation>A device  has some special characteristics:
+    <documentation>A device has some special characteristics:
 
         1. It is held by at most single user at given time.
 
