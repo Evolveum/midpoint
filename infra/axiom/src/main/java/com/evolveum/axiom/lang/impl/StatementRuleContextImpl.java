@@ -155,6 +155,7 @@ public class StatementRuleContextImpl<V> implements AxiomStatementRule.Lookup<V>
         return (Dependency.retriableDelegate(() -> {
             ValueContext<?> maybe = context.lookup(space, key);
             if(maybe != null) {
+                maybe.addDependency(StatementRuleContextImpl.this);
                 return Dependency.immediate(maybe);
             }
             return null;
