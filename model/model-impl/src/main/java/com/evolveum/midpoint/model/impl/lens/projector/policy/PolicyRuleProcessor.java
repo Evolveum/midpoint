@@ -297,7 +297,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         if (evaluatedAssignmentTriple == null) {
             return;
         }
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        // We intentionally evaluate rules also from negative (deleted) assignments.
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
             rules.addAll(evaluatedAssignment.getFocusPolicyRules());
         }
     }

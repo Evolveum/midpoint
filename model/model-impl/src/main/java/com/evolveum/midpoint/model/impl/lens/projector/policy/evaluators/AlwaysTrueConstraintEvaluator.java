@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,11 @@ public class AlwaysTrueConstraintEvaluator implements PolicyConstraintEvaluator<
                 .setMinor()
                 .build();
         try {
-            return evaluateForObject(constraint, rctx, result);
+            if (rctx instanceof ObjectPolicyRuleEvaluationContext<?>) {
+                return evaluateForObject(constraint, rctx, result);
+            } else {
+                return null;
+            }
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;

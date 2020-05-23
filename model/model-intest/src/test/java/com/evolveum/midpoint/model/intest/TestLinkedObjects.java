@@ -340,6 +340,31 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Unassign sword from cubby.
+     */
+    @Test
+    public void test240UnassignSwordFromCubby() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        refresh(USER_CUBBY, task, result);
+
+        when();
+        unassignIfSingle(USER_CUBBY, SERVICE_SWORD, SchemaConstants.ORG_DEFAULT, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_CUBBY.oid)
+                .assertFullName("Little Cubby Gummi")
+                .assertOrganizations();
+
+        assertServiceAfter(SERVICE_SWORD.oid)
+                .assertDescription("Not used");
+    }
+
+    /**
      * Whistle is held by test user since creation - to check on the ordering of assignments.
      * (Whistle first, User second). TEMPORARY
      */

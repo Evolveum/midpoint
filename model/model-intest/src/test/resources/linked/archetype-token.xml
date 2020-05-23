@@ -83,6 +83,7 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-holder-on-token-name-change</name>
             <documentation>
                 Recomputes a user when token name is changed. (Note that user is recomputed
                 automatically when token is assigned or unassigned.)
@@ -110,6 +111,7 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-token-on-membership-change</name>
             <documentation>
                 Recomputes all tokens whose membership has changed.
             </documentation>
@@ -131,11 +133,12 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to token object, so executes when assignment to it is added/modified (i.e. on the user) -->
+        <order>2</order> <!-- assigned to the user -->
     </inducement>
 
     <inducement>
         <policyRule>
+            <name>recompute-token-on-holder-name-change</name>
             <documentation>Recomputes a token when user's name or fullName changes.</documentation>
             <policyConstraints>
                 <or>
