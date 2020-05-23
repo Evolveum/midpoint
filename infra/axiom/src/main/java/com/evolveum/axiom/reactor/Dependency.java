@@ -1,9 +1,10 @@
 package com.evolveum.axiom.reactor;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.lang.impl.RuleErrorMessage;
 import com.google.common.base.Preconditions;
 
 
@@ -15,7 +16,7 @@ public interface Dependency<T> {
     boolean isSatisfied();
     public T get();
 
-    public RuleErrorMessage errorMessage();
+    public Exception errorMessage();
 
     public static <T> Dependency<T> unsatisfied() {
         return new Unsatified<>();
@@ -37,13 +38,13 @@ public interface Dependency<T> {
         return new Deffered<>(original);
     }
 
-    default Dependency<T> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+    default Dependency<T> unsatisfied(Supplier<? extends Exception> unsatisfiedMessage) {
         return this;
     }
 
     interface Search<T> extends Dependency<T> {
 
-        default Dependency.Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        default Dependency.Search<T> notFound(Supplier<? extends Exception> unsatisfiedMessage) {
             return this;
         }
 
@@ -52,17 +53,17 @@ public interface Dependency<T> {
     public static abstract class Abstract<V> implements Dependency<V> {
 
 
-        private Supplier<RuleErrorMessage> errorMessage;
+        private Supplier<? extends Exception> errorMessage;
 
         @Override
-        public Dependency<V> unsatisfiedMessage(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        public Dependency<V> unsatisfied(Supplier<? extends Exception> unsatisfiedMessage) {
             errorMessage = unsatisfiedMessage;
             return this;
         }
 
 
         @Override
-        public RuleErrorMessage errorMessage() {
+        public Exception errorMessage() {
             if(errorMessage != null) {
                 return errorMessage.get();
             }
@@ -171,7 +172,7 @@ public interface Dependency<T> {
     public final class RetriableDelegate<T> extends Delegated<T> implements Search<T> {
 
         private Object maybeDelegate;
-        private Supplier<RuleErrorMessage> notFound;
+        private Supplier<? extends Exception> notFound;
 
         public RetriableDelegate(Supplier<Dependency<T>> lookup) {
             maybeDelegate = lookup;
@@ -190,21 +191,25 @@ public interface Dependency<T> {
                 }
 
             }
-            return unsatisfied();
+            return Dependency.unsatisfied();
         }
 
         @Override
-        public Search<T> notFound(Supplier<RuleErrorMessage> unsatisfiedMessage) {
+        public Search<T> notFound(Supplier<? extends Exception> unsatisfiedMessage) {
             notFound = unsatisfiedMessage;
             return this;
         }
 
         @Override
-        public RuleErrorMessage errorMessage() {
+        public Exception errorMessage() {
             if(maybeDelegate instanceof Supplier && notFound != null) {
                 return notFound.get();
             }
-            return super.errorMessage();
+            Exception maybeFound = super.errorMessage();
+            if(maybeFound == null && maybeDelegate instanceof Dependency<?>) {
+                maybeFound = ((Dependency<?>)maybeDelegate).errorMessage();
+            }
+            return maybeFound;
         }
 
     }
@@ -224,6 +229,32 @@ public interface Dependency<T> {
             return immediate(value);
         }
         return null;
+    }
+    static boolean allSatisfied(Collection<? extends Dependency<?>> outstanding) {
+        for (Dependency<?> dependency : outstanding) {
+            if(!dependency.isSatisfied()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    default <R> Dependency<R> map(Function<T,R> map) {
+        return new Suppliable<R>(() -> {
+            if(isSatisfied()) {
+                return map.apply(get());
+            }
+            return null;
+        });
+    }
+
+    default <R> Dependency<R> flatMap(Function<T,Dependency<R>> map) {
+        return new RetriableDelegate<R>(() -> {
+            if(isSatisfied()) {
+                return map.apply(get());
+            }
+            return null;
+        });
     }
 
 }

@@ -14,21 +14,21 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomTypeDefinition> {
 
     public final AxiomIdentifier IDENTIFIER_MEMBER = AxiomIdentifier.axiom("name");
     public final AxiomIdentifier IDENTIFIER_SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");
 
-    /*
+
     @Override
     default AxiomTypeDefinition get() {
         return this;
     }
 
     @Override
-    default Optional<AxiomTypeDefinition> definition() {
+    default Optional<AxiomTypeDefinition> type() {
         return Optional.empty();
-    }*/
+    }
 
     Optional<AxiomItemDefinition> argument();
 

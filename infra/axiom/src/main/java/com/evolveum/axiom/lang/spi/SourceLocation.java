@@ -33,4 +33,8 @@ public class SourceLocation {
         return character;
     }
 
+    public static SourceLocation runtime() {
+        return SourceLocation.from("IN-MEMORY", 0, 0);
+    }
+
 }

@@ -14,27 +14,29 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.lang.spi.AxiomIdentifierDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
-import com.evolveum.axiom.lang.spi.AxiomStatementImpl;
-import com.evolveum.axiom.lang.spi.AxiomStreamTreeBuilder;
+import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
-import com.evolveum.axiom.lang.spi.SourceLocation;
-import com.evolveum.axiom.lang.spi.AxiomStatementImpl.Factory;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.RuleReactorContext;
 import com.google.common.base.Strings;
 
 import org.jetbrains.annotations.Nullable;
 
-public class ModelReactorContext extends RuleReactorContext<AxiomSemanticException, StatementContextImpl<?>, StatementRuleContextImpl<?>, RuleContextImpl> implements AxiomIdentifierResolver {
+public class ModelReactorContext extends
+        RuleReactorContext<AxiomSemanticException, ValueContext<?>, StatementRuleContextImpl<?>, RuleContextImpl>
+        implements AxiomIdentifierResolver {
 
     private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root", "root");
 
@@ -85,6 +87,8 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         reactorContext.addRules(BasicStatementRule.values());
         reactorContext.addStatementFactory(Type.TYPE_DEFINITION.name(), AxiomTypeDefinitionImpl.FACTORY);
         reactorContext.addStatementFactory(Type.ITEM_DEFINITION.name(), AxiomItemDefinitionImpl.FACTORY);
+        reactorContext.addStatementFactory(Type.IDENTIFIER_DEFINITION.name(), AxiomIdentifierDefinitionImpl.FACTORY);
+
         reactorContext.loadModelFromSource(BASE_LANGUAGE_SOURCE.get());
         reactorContext.loadModelFromSource(BASE_TYPES_SOURCE.get());
 
@@ -95,14 +99,12 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     private final AxiomSchemaContext boostrapContext;
     private final Map<IdentifierSpaceKey, CompositeIdentifierSpace> exported = new HashMap<>();
 
-
-
-    Map<Object, StatementContextImpl<?>> globalItems = new HashMap<>();
+    Map<Object, AxiomValueContext<?>> globalItems = new HashMap<>();
 
     IdentifierSpaceHolderImpl globalSpace = new IdentifierSpaceHolderImpl(Scope.GLOBAL);
 
-    Map<AxiomIdentifier, Factory<?, ?>> typeFactories = new HashMap<>();
-    List<StatementContextImpl<?>> roots = new ArrayList<>();
+    Map<AxiomIdentifier, AxiomItemValueFactory<?, ?>> typeFactories = new HashMap<>();
+    List<AxiomValueContext<?>> roots = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
         this.boostrapContext = boostrapContext;
@@ -117,13 +119,14 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     protected void failOutstanding(Collection<StatementRuleContextImpl<?>> outstanding) throws AxiomSemanticException {
         StringBuilder messages = new StringBuilder("Can not complete models, following errors occured:\n");
         for (StatementRuleContextImpl<?> rule : outstanding) {
-            RuleErrorMessage exception = rule.errorMessage();
+            Exception exception = rule.errorMessage();
+            messages.append("Rule: ").append(rule.name()).append("\n");
             if (exception != null) {
-                messages.append(exception.toString()).append("\n");
+                messages.append(exception.getMessage()).append("\n");
             }
             for (Dependency<?> req : rule.dependencies()) {
-                if(!req.isSatisfied()) {
-                    messages.append(req.errorMessage()).append("\n");
+                if (!req.isSatisfied() && req.errorMessage() != null) {
+                    messages.append(req.errorMessage().getMessage()).append("\n");
                 }
             }
         }
@@ -135,20 +138,8 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
         return new AxiomSchemaContextImpl(globalSpace.build());
     }
 
-
     public IdentifierSpaceHolderImpl space() {
         return globalSpace;
-    }
-
-    public void registerGlobal(AxiomIdentifier space, IdentifierSpaceKey key, StatementContextImpl<?> item) {
-
-    }
-
-    void endStatement(StatementContextImpl<?> cur, SourceLocation loc) throws AxiomSemanticException {
-        if (cur instanceof StatementContextImpl) {
-            StatementContextImpl<?> current = cur;
-            addActionsFor(current);
-        }
     }
 
     @Override
@@ -163,65 +154,34 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     }
 
     public void loadModelFromSource(AxiomModelStatementSource statementSource) {
-        statementSource.stream(this, new AxiomStreamTreeBuilder(new Root()));
+        SourceContext sourceCtx = new SourceContext(this, statementSource, new CompositeIdentifierSpace());
+        statementSource.stream(this, new AxiomItemStreamTreeBuilder(sourceCtx));
     }
 
     @Override
     public AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
-        if(Strings.isNullOrEmpty(prefix)) {
+        if (Strings.isNullOrEmpty(prefix)) {
             return AxiomIdentifier.axiom(localName);
         }
         return null;
     }
 
-    private class Root implements AxiomStreamTreeBuilder.NodeBuilder {
-
-        @Override
-        public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
-            return boostrapContext.getRoot(statement);
-        }
-
-        @Override
-        public StatementContextImpl<?> startChildNode(AxiomIdentifier identifier, SourceLocation loc) {
-            StatementContextImpl<?> ret = new StatementContextImpl.Root<>(ModelReactorContext.this,
-                    childDef(identifier).get(), loc);
-            roots.add(ret);
-            return ret;
-        }
-
-        @Override
-        public AxiomIdentifier identifier() {
-            return ROOT;
-        }
-
-        @Override
-        public void setValue(Object value, SourceLocation loc) {
-
-        }
-
-        @Override
-        public void endNode(SourceLocation loc) {
-            // TODO Auto-generated method stub
-
-        }
-    }
-
-    public void addStatementFactory(AxiomIdentifier statementType, Factory<?, ?> factory) {
+    public void addStatementFactory(AxiomIdentifier statementType, AxiomItemValueFactory<?, ?> factory) {
         typeFactories.put(statementType, factory);
     }
 
-    public <V> Factory<V, ?> typeFactory(AxiomTypeDefinition statementType) {
+    public <V> AxiomItemValueFactory<V, AxiomItemValue<V>> typeFactory(AxiomTypeDefinition statementType) {
         Optional<AxiomTypeDefinition> current = Optional.of(statementType);
         do {
             @SuppressWarnings("unchecked")
-            Factory<V,?> maybe = (Factory<V,?>) typeFactories.get(current.get().name());
+            AxiomItemValueFactory<V, ?> maybe = (AxiomItemValueFactory<V, ?>) typeFactories.get(current.get().name());
             if (maybe != null) {
-                return maybe;
+                return (AxiomItemValueFactory) maybe;
             }
             current = current.get().superType();
         } while (current.isPresent());
 
-        return AxiomStatementImpl.factory();
+        return ItemValueImpl.factory();
     }
 
     public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {
@@ -242,10 +202,21 @@ public class ModelReactorContext extends RuleReactorContext<AxiomSemanticExcepti
     }
 
     @Override
-    protected Collection<RuleContextImpl> rulesFor(StatementContextImpl<?> context) {
+    protected Collection<RuleContextImpl> rulesFor(ValueContext<?> context) {
         // TODO: Add smart filters if neccessary
         return rules;
     }
 
+    public Optional<AxiomItemDefinition> rootDefinition(AxiomIdentifier statement) {
+        return boostrapContext.getRoot(statement);
+    }
+
+    public void applyRuleDefinitions(ValueContext<?> valueContext) {
+        addActionsFor(valueContext);
+    }
+
+    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+        globalSpace.register(space, scope, key, context);
+    }
 
 }

@@ -1,13 +1,17 @@
 package com.evolveum.axiom.lang.api;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.collect.ImmutableSet;
 
-public interface AxiomIdentifierDefinition {
+public interface AxiomIdentifierDefinition extends AxiomItemValue<AxiomIdentifierDefinition> {
+
+    @Override
+    default AxiomIdentifierDefinition get() {
+        return this;
+    }
 
     Collection<AxiomItemDefinition> components();
 
@@ -17,6 +21,7 @@ public interface AxiomIdentifierDefinition {
 
     enum Scope {
         GLOBAL,
+        PARENT,
         LOCAL
     }
 
@@ -32,6 +37,9 @@ public interface AxiomIdentifierDefinition {
         if(Scope.GLOBAL.name().equalsIgnoreCase(scope)) {
             return Scope.GLOBAL;
         }
+        if(Scope.PARENT.name().equalsIgnoreCase(scope)) {
+            return Scope.PARENT;
+        }
         if(Scope.LOCAL.name().equalsIgnoreCase(scope)) {
             return Scope.LOCAL;
         }
@@ -40,6 +48,10 @@ public interface AxiomIdentifierDefinition {
 
     static AxiomIdentifierDefinition from(AxiomIdentifier space, Scope scope, Set<AxiomItemDefinition> members) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(members), space, scope);
+    }
+
+    static AxiomIdentifierDefinition parent(AxiomIdentifier name, AxiomItemDefinition... components) {
+        return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.PARENT);
     }
 
 }

@@ -12,7 +12,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
@@ -22,8 +21,8 @@ import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
+import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class TestAxiomExtension extends AbstractReactorTest {
@@ -94,8 +93,9 @@ public class TestAxiomExtension extends AbstractReactorTest {
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());
-        Collection<AxiomStatement<?>> extension = ((AxiomStatement<?>) personDef.get()).children(STORAGE);
-        assertFalse(extension.isEmpty(), "Extension statements should be available.");
+
+        AxiomItem<Object> extension = personDef.get().item(STORAGE).get();
+        assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
 
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());
     }

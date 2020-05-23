@@ -8,12 +8,20 @@ package com.evolveum.axiom.lang.api;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomItemDefinition> {
 
     AxiomIdentifier ROOT_SPACE = AxiomIdentifier.axiom("AxiomRootDefinition");
+    AxiomIdentifier SPACE = AxiomIdentifier.axiom("AxiomItemDefinition");
+    AxiomIdentifier NAME = AxiomIdentifier.axiom("name");
 
-    AxiomTypeDefinition type();
+    @Override
+    default AxiomItemDefinition get() {
+        return this;
+    }
+
+    AxiomTypeDefinition typeDefinition();
 
     default boolean required() {
         return minOccurs() > 0;
@@ -27,6 +35,10 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition {
                 .add("name", def.name())
                 .add("type", def.type())
                 .toString();
+    }
+
+    static IdentifierSpaceKey identifier(AxiomIdentifier name) {
+        return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
     }
 
 }

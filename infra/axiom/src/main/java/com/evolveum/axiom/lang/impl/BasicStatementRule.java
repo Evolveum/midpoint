@@ -1,150 +1,189 @@
 package com.evolveum.axiom.lang.impl;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
+import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomItemValue;
 import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.reactor.Dependency;
+import com.evolveum.axiom.reactor.Dependency.Search;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 
 public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
-
+/*
     REQUIRE_REQUIRED_ITEMS(all(),all()) {
         @Override
         public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            AxiomTypeDefinition typeDef = rule.typeDefinition();
+            AxiomTypeDefinition typeDef = action.typeDefinition();
             for(AxiomItemDefinition required : typeDef.requiredItems()) {
-                //rule.requireChild(required).unsatisfiedMessage(() -> rule.error("%s does not have required statement %s", rule.itemDefinition().name() ,required.name()));
-                rule.apply((ctx) -> {});
+                //action.requireChild(required).unsatisfiedMessage(() -> action.error("%s does not have required statement %s", action.itemDefinition().name() ,required.name()));
+                action.apply((ctx) -> {});
+            }
+        }
+    },*/
+
+    MOVE_ARGUMENT_VALUE(all(),all()) {
+        @Override
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            if(context.isMutable()) {
+                Optional<AxiomItemDefinition> argument = context.typeDefinition().argument();
+                if(argument.isPresent() && context.currentValue() != null) {
+                   action.apply(ctx -> {
+                       ctx.childItem(argument.get()).addValue(ctx.currentValue());
+                       ctx.replaceValue(null);
+                   });
+                }
             }
         }
     },
 
-    COPY_ARGUMENT_VALUE(all(),all()) {
+    REGISTER_TO_IDENTIFIER_SPACE(all(),all()){
 
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Optional<AxiomItemDefinition> argument = rule.typeDefinition().argument();
-            if(argument.isPresent() && rule.optionalValue().isPresent()) {
-               rule.apply(ctx -> ctx.createEffectiveChild(argument.get().name(), ctx.requireValue()));
-            }
+        public boolean isApplicableTo(AxiomItemDefinition definition) {
+            return !definition.typeDefinition().identifierDefinitions().isEmpty();
         }
-    },
 
-    EXPAND_TYPE_REFERENCE(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            AxiomIdentifier type = rule.requireValue();
-            Dependency.Search<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
-            typeDef.notFound(() ->  rule.error("type '%s' was not found.", type));
-            typeDef.unsatisfiedMessage(() -> rule.error("Referenced type %s is not complete.", type));
-            rule.apply(ctx -> {
-                ctx.replace(typeDef);
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Collection<AxiomIdentifierDefinition> idDefs = context.typeDefinition().identifierDefinitions();
+            Map<AxiomIdentifierDefinition, Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>>> identReq = new HashMap<>();
+            for(AxiomIdentifierDefinition idDef : idDefs) {
+                Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>> components = new HashMap<>();
+                for(AxiomItemDefinition cmp : idDef.components()) {
+                    components.put(cmp.name(), action.require(context.child(cmp, Object.class))
+                            .map(v -> v.onlyValue())
+                            .unsatisfied(()-> action.error("Item '%s' is required by identifier, but not defined.", cmp.name())));
+                }
+                identReq.put(idDef, components);
+            }
+            action.apply(ctx -> {
+                for (AxiomIdentifierDefinition idDef : idDefs) {
+                    IdentifierSpaceKey key = keyFrom(identReq.get(idDef));
+                    ctx.register(idDef.space(), idDef.scope(), key);
+                }
             });
         }
+
+    },
+    EXPAND_TYPE_REFERENCE(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
+        @Override
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            AxiomIdentifier type = context.currentValue();
+            Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
+            typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
+            typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
+            action.apply(ctx -> {
+                ctx.replace(typeDef.get());
+            });
+        }
+    },
+    EXPAND_IDENTIFIER_ITEM(items(Item.ID_MEMBER), all()) {
+
+        @Override
+        public boolean isApplicableTo(AxiomItemDefinition definition) {
+            return Item.ID_MEMBER.name().equals(definition.name());
+        }
+
+        @Override
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            AxiomIdentifier itemName = context.currentValue();
+            Search<AxiomItemValue<?>> itemDef = action.require(context.namespaceValue(AxiomItemDefinition.SPACE, AxiomItemDefinition.identifier(itemName)))
+                    .notFound(() -> action.error("item '%s' was not found", itemName));
+            action.apply((val) -> {
+                val.replace(itemDef.get());
+            });
+        }
+
     },
     MATERIALIZE_FROM_SUPERTYPE(items(Item.SUPERTYPE_REFERENCE),types(Type.TYPE_REFERENCE)) {
 
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            AxiomIdentifier type = rule.requireValue();
-            Dependency.Search<AxiomStatement<?>> typeDef = rule.requireGlobalItem(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type));
-            typeDef.notFound(() ->  rule.error("type '%s' was not found.", type));
-            typeDef.unsatisfiedMessage(() -> rule.error("Referenced type %s is not complete.", type));
-            rule.apply(ctx -> {
-                ctx.replace(typeDef);
-                AxiomStatement<?> superType = typeDef.get();
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            AxiomIdentifier type = context.currentValue();
+            Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
+            typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
+            typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
+            action.apply(ctx -> {
+                ctx.replace(typeDef.get());
+                AxiomItemValue<?> superType = typeDef.get();
                 // Copy Identifiers
-                ctx.parent().addChildren(superType.children(Item.IDENTIFIER_DEFINITION.name()));
-                // Copy Items
-                });
+                Optional<AxiomItem<?>> identifiers = superType.item(Item.IDENTIFIER_DEFINITION);
+                if(identifiers.isPresent()) {
+                    ctx.parentValue().mergeItem(identifiers.get());
+                }// Copy Items
+                Optional<AxiomItem<?>> items = superType.item(Item.ITEM_DEFINITION);
+                if(items.isPresent()) {
+                    ctx.parentValue().mergeItem(items.get());
+                }
+            });
         }
 
     },
 
-    REGISTER_TO_IDENTIFIER_SPACE(all(),all()) {
-
-        @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Collection<AxiomIdentifierDefinition> idDefs = rule.typeDefinition().identifierDefinitions();
-            if(!idDefs.isEmpty()) {
-                rule.apply(ctx -> {
-                    for (AxiomIdentifierDefinition idDef : idDefs) {
-                        IdentifierSpaceKey key = keyFrom(idDef, rule);
-                        ctx.register(idDef.space(), idDef.scope(), key);
-                    }
-
-                });
-            }
-        }
-    },
     IMPORT_DEFAULT_TYPES(all(), types(Type.MODEL)) {
 
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Dependency<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES));
-            req.unsatisfiedMessage(() -> rule.error("Default types not found."));
-            rule.apply((ctx) -> {
-                ctx.parent().importIdentifierSpace(req.get());
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Dependency<NamespaceContext> req = action.require(context.namespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES)));
+            req.unsatisfied(() -> action.error("Default types not found."));
+            action.apply((ctx) -> {
+                ctx.root().importIdentifierSpace(req.get());
             });
         }
     },
     EXPORT_GLOBALS_FROM_MODEL(all(), types(Type.MODEL)) {
 
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            String namespace = rule.requiredChildValue(Item.NAMESPACE, String.class);
-            rule.apply(ctx -> {
-                ctx.exportIdentifierSpace(namespaceId(namespace));
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Dependency<String> namespace = action.require(context.child(Item.NAMESPACE, String.class).map(v -> v.onlyValue().get()));
+            action.apply(ctx -> {
+                ctx.root().exportIdentifierSpace(namespaceId(namespace.get()));
             });
         }
     },
     IMPORT_MODEL(all(),types(Type.IMPORT_DEFINITION)) {
 
         @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            String child = rule.requiredChildValue(Item.NAMESPACE, String.class);
-            Dependency<NamespaceContext> req = rule.requireNamespace(Item.NAMESPACE.name(), namespaceId(child));
-            req.unsatisfiedMessage(() -> rule.error("Namespace %s not found.", child));
-            rule.apply((ctx) -> {
-                ctx.parent().importIdentifierSpace(req.get());
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Dependency<NamespaceContext> namespace = action.require(context.child(Item.NAMESPACE, String.class)
+                    .map(item -> item.onlyValue())
+                    .flatMap(uri -> context.namespace(Item.NAMESPACE.name(), namespaceId(uri.get()))
+                    .unsatisfied(() -> action.error("Namespace %s not found.", uri.get()))
+                    ));
+            action.apply((ctx) -> {
+                ctx.root().importIdentifierSpace(namespace.get());
             });
         }
     },
     APPLY_EXTENSION(all(), types(Type.EXTENSION_DEFINITION)) {
 
         @Override
-        public void apply(Context<AxiomIdentifier> ctx) throws AxiomSemanticException {
-            AxiomIdentifier targetName = ctx.requiredChildValue(Item.TARGET, AxiomIdentifier.class);
-            Dependency<AxiomStatementContext<?>> targetRef = ctx.modify(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(targetName));
-
-            ctx.apply(ext -> {
-                Context<?> copyItems = ext.modify(targetRef.get(), "Extension: Adding items to target");
-                Dependency<AxiomStatement<?>> extDef = copyItems.require(ext);
-                copyItems.apply(target -> {
-                    // Copy items to target
-                    target.addEffectiveChildren(extDef.get().children(Item.ITEM_DEFINITION.name()));
-                });
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Dependency<AxiomValueContext<?>> targetRef = action.require(context.child(Item.TARGET, AxiomIdentifier.class)
+                    .flatMap(item ->
+                        context.modify(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(item.onlyValue().get()))
+                        .unsatisfied(() -> action.error("Target %s not found.",item.onlyValue().get()))
+                    ));
+            Dependency<AxiomItem<Object>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, Object.class));
+            action.apply(ext -> {
+                targetRef.get().mergeItem(itemDef.get());
             });
-
-            /*ctx.apply(ext -> {
-                Context<AxiomIdentifier> targetAction = ext.newAction();
-                targetAction.
-            });*/
         }
-
     },
     /*
      * Not needed - registration is handled by identifier statement
@@ -152,8 +191,8 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
         @Override
         public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            AxiomIdentifier typeName = rule.requireValue();
-            rule.apply(ctx -> ctx.registerAsGlobalItem(typeName));
+            AxiomIdentifier typeName = action.requireValue();
+            action.apply(ctx -> ctx.registerAsGlobalItem(typeName));
         }
     },
      */
@@ -163,15 +202,15 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
         @Override
         public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Optional<AxiomIdentifier> superType = rule.optionalChildValue(Item.SUPERTYPE_REFERENCE, AxiomIdentifier.class);
+            Optional<AxiomIdentifier> superType = action.optionalChildValue(Item.SUPERTYPE_REFERENCE, AxiomIdentifier.class);
             if(superType.isPresent()) {
-                Requirement<AxiomStatement<?>> req = rule.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
-                rule.apply((ctx) -> {
+                Requirement<AxiomStatement<?>> req = action.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
+                action.apply((ctx) -> {
                     //ctx.builder().add(Item.SUPERTYPE_REFERENCE, req.get());
                 });
-                rule.errorMessage(() -> {
+                action.errorMessage(() -> {
                     if(!req.isSatisfied()) {
-                        return rule.error("Supertype %s is not defined", superType.get());
+                        return action.error("Supertype %s is not defined", superType.get());
                     }
                     return null;
                 });
@@ -188,10 +227,10 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         this.types = ImmutableSet.copyOf(types);
     }
 
-    static IdentifierSpaceKey keyFrom(AxiomIdentifierDefinition idDef, Context<AxiomIdentifier> ctx) {
+    static IdentifierSpaceKey keyFrom(Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>> ctx) {
         ImmutableMap.Builder<AxiomIdentifier, Object> components = ImmutableMap.builder();
-        for(AxiomItemDefinition cmp : idDef.components()) {
-            components.put(cmp.name(), ctx.requiredChildValue(cmp, Object.class));
+        for(Entry<AxiomIdentifier, Dependency<AxiomItemValue<Object>>> entry : ctx.entrySet()) {
+            components.put(entry.getKey(), entry.getValue().get().get());
         }
         return IdentifierSpaceKey.from(components.build());
     }
@@ -199,7 +238,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
     @Override
     public boolean isApplicableTo(AxiomItemDefinition definition) {
         return (items.isEmpty() || items.contains(definition.name()))
-                && (types.isEmpty() || types.contains(definition.type().name()));
+                && (types.isEmpty() || types.contains(definition.typeDefinition().name()));
     }
 
     private static ImmutableSet<AxiomIdentifier> types(AxiomTypeDefinition... types) {

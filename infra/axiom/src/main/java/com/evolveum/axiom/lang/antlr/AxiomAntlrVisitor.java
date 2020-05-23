@@ -16,19 +16,19 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
+import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
-import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private final AxiomIdentifierResolver statements;
     private final AxiomIdentifierResolver arguments;
-    private final AxiomStatementStreamListener delegate;
+    private final AxiomItemStream.Listener delegate;
     private final Optional<Set<AxiomIdentifier>> limit;
     private final String sourceName;
 
-    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomStatementStreamListener delegate,
+    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomItemStream.Listener delegate,
             Set<AxiomIdentifier> limit) {
         this.sourceName = name;
         this.statements = statements;
@@ -51,12 +51,34 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     public T visitStatement(StatementContext ctx) {
         AxiomIdentifier identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
-            delegate.startStatement(identifier, sourceLocation(ctx.identifier().start));
+            SourceLocation start = sourceLocation(ctx.identifier().start);
+            delegate.startItem(identifier, start);
+
+            ArgumentContext argument = ctx.argument();
+            final Object value;
+            final SourceLocation valueStart;
+            if(argument != null) {
+                value = convert(argument);
+                valueStart = sourceLocation(argument.start);
+            } else {
+                value = null;
+                valueStart = start;
+            }
+            delegate.startValue(value, valueStart);
             T ret = super.visitStatement(ctx);
-            delegate.endStatement(sourceLocation(ctx.stop));
+            delegate.endValue(sourceLocation(ctx.stop));
+            delegate.endItem(sourceLocation(ctx.stop));
             return ret;
         }
         return defaultResult();
+    }
+
+    private Object convert(ArgumentContext ctx) {
+        if (ctx.identifier() != null) {
+            return (convert(ctx.identifier()));
+        } else {
+            return (convert(ctx.string()));
+        }
     }
 
     private boolean canEmit(AxiomIdentifier identifier) {
@@ -68,11 +90,7 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     @Override
     public T visitArgument(ArgumentContext ctx) {
-        if (ctx.identifier() != null) {
-            delegate.argument(convert(ctx.identifier()), sourceLocation(ctx.start));
-        } else {
-            delegate.argument(convert(ctx.string()), sourceLocation(ctx.start));
-        }
+
         return defaultResult();
     }
 
@@ -84,12 +102,6 @@ public class AxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
         return arguments.resolveIdentifier(prefix, localName);
-    }
-
-
-
-    private int sourceLine(ParserRuleContext node) {
-        return node.start.getLine();
     }
 
     private SourceLocation sourceLocation(Token start) {

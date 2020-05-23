@@ -20,8 +20,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
+import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
-import com.evolveum.axiom.lang.spi.AxiomStatementStreamListener;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class AxiomModelStatementSource extends AxiomAntlrStatementSource implements AxiomIdentifierResolver {
@@ -63,11 +63,11 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
         return namespace;
     }
 
-    public void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener) {
+    public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Listener listener) {
         stream(resolver, listener, Optional.empty());
     }
 
-    public void stream(AxiomIdentifierResolver resolver, AxiomStatementStreamListener listener,
+    public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Listener listener,
             Optional<Set<AxiomIdentifier>> emitOnly) {
         stream(resolver.or(this), BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
     }

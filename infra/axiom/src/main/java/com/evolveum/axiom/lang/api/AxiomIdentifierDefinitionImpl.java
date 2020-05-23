@@ -1,6 +1,6 @@
 package com.evolveum.axiom.lang.api;
 
-import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
@@ -34,6 +34,12 @@ class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {
     @Override
     public AxiomIdentifier space() {
         return space;
+    }
+
+    @Override
+    public Optional<AxiomTypeDefinition> type() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

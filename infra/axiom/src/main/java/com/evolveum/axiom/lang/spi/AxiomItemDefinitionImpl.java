@@ -1,40 +1,45 @@
 package com.evolveum.axiom.lang.spi;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
+import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.google.common.collect.Multimap;
 
-public class AxiomItemDefinitionImpl extends AbstractAxiomBaseDefinition implements AxiomItemDefinition {
+public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDefinition> implements AxiomItemDefinition {
 
-    public static final Factory<AxiomIdentifier,AxiomItemDefinitionImpl> FACTORY = AxiomItemDefinitionImpl::new ;
+    public static final AxiomItemValueFactory<AxiomItemDefinition,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
     private final AxiomTypeDefinition type;
-    private int minOccurs;
+    private final Optional<AxiomItem<String>> minOccurs;
 
-    public AxiomItemDefinitionImpl(AxiomIdentifier keyword, AxiomIdentifier value, List<AxiomStatement<?>> children,
-            Multimap<AxiomIdentifier, AxiomStatement<?>> keywordMap) {
-        super(keyword, value, children, keywordMap);
-        type = first(AxiomBuiltIn.Item.TYPE_DEFINITION.name(), AxiomTypeDefinition.class)
-                .orElseThrow(() -> new IllegalStateException("No 'type' declaration in " + super.toString()));
-        minOccurs = firstValue(AxiomBuiltIn.Item.MIN_OCCURS.name(), String.class).map(Integer::parseInt).orElse(0);
+    public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomItemDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
+        super(axiomItemDefinition, value, items);
+        this.type = this.<AxiomTypeDefinition>item(Item.TYPE_REFERENCE.name()).get().onlyValue().get();
+        minOccurs = this.<String>item(Item.MIN_OCCURS.name());
     }
 
     @Override
-    public AxiomTypeDefinition type() {
+    public AxiomItemDefinition get() {
+        return this;
+    }
+
+    @Override
+    public AxiomTypeDefinition typeDefinition() {
         return type;
     }
 
     @Override
     public boolean required() {
-        return minOccurs > 0;
+        return minOccurs() > 0;
     }
 
     @Override
     public int minOccurs() {
-        return 0;
+        return minOccurs.map(i -> Integer.parseInt(i.onlyValue().get())).orElse(0);
     }
 
     @Override

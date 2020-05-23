@@ -1,16 +1,13 @@
 package com.evolveum.axiom.lang.impl;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomItemValue;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.evolveum.axiom.reactor.Dependency;
-import com.evolveum.axiom.reactor.Dependency.Search;
 
 public interface AxiomStatementRule<V> {
 
@@ -18,43 +15,77 @@ public interface AxiomStatementRule<V> {
 
     boolean isApplicableTo(AxiomItemDefinition definition);
 
-    void apply(Context<V> rule) throws AxiomSemanticException;
+    void apply(Lookup<V> context, ActionBuilder<V> action) throws AxiomSemanticException;
 
 
-    interface Context<V> {
-        <V> Optional<V> optionalChildValue(AxiomItemDefinition supertypeReference, Class<V> type);
+    interface Lookup<V> {
+        default AxiomTypeDefinition typeDefinition() {
+            return itemDefinition().typeDefinition();
+        }
+
+        AxiomItemDefinition itemDefinition();
+
+        Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
+
+        <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition namespace, Class<T> valueType);
+
+        Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+
+        Dependency.Search<AxiomItemValue<?>> global(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+
+        Dependency.Search<AxiomItemValue<?>> namespaceValue(AxiomIdentifier space, IdentifierSpaceKey itemName);
+
+        Dependency<V> finalValue();
+
+        V currentValue();
+
+        boolean isMutable();
+
+
+    }
+
+    interface ActionBuilder<V> {
+
+
+        AxiomSemanticException error(String message, Object... arguments);
+
+        ActionBuilder<V> apply(Action<V> action);
+
+        Dependency<AxiomItemValue<?>> require(AxiomValueContext<?> ext);
+
+
+
+        <V,X extends Dependency<V>> X require(X req);
+
+        /*<V> Optional<V> optionalChildValue(AxiomItemDefinition supertypeReference, Class<V> type);
 
         <V> V requiredChildValue(AxiomItemDefinition supertypeReference, Class<V> type) throws AxiomSemanticException;
 
         V requireValue() throws AxiomSemanticException;
 
-        Context<V> apply(Action<V> action);
+
 
         Context<V> errorMessage(Supplier<RuleErrorMessage> errorFactory);
 
         RuleErrorMessage error(String format, Object... arguments);
 
-        AxiomTypeDefinition typeDefinition();
 
-        AxiomItemDefinition itemDefinition();
 
         Optional<V> optionalValue();
 
-        Search<AxiomStatement<?>> requireGlobalItem(AxiomIdentifier space, IdentifierSpaceKey key);
+        Search<AxiomItemValue<?>> requireGlobal(AxiomIdentifier space, IdentifierSpaceKey key);
 
-        Dependency<AxiomStatement<?>> requireChild(AxiomItemDefinition required);
+        Dependency<AxiomItemValue<?>> requireChild(AxiomItemDefinition required);
 
         Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
 
-        Dependency<AxiomStatementContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
 
-        Context<V> newAction();
-
-        Dependency<AxiomStatement<?>> require(AxiomStatementContext<?> ext);
+        Dependency<AxiomItemValue<?>> require(AxiomValueContext<?> ext);*/
     }
 
     public interface Action<V> {
 
-        void apply(AxiomStatementContext<V> context) throws AxiomSemanticException;
+        void apply(AxiomValueContext<V> context) throws AxiomSemanticException;
     }
 }

@@ -194,7 +194,7 @@ model axiom-lang {
 
         identifier name {
             space AxiomItemDefinition;
-            scope local;
+            scope parent;
         }
 
         item type {

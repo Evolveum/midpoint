@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import com.evolveum.axiom.reactor.Rule;
 
-public class RuleContextImpl implements Rule<StatementContextImpl<?>, StatementRuleContextImpl<?>> {
+public class RuleContextImpl implements Rule<ValueContext<?>, StatementRuleContextImpl<?>> {
 
     private final AxiomStatementRule delegate;
 
@@ -14,14 +14,14 @@ public class RuleContextImpl implements Rule<StatementContextImpl<?>, StatementR
     }
 
     @Override
-    public boolean applicableTo(StatementContextImpl<?> context) {
-        return delegate.isApplicableTo(context.definition());
+    public boolean applicableTo(ValueContext<?> context) {
+        return delegate.isApplicableTo(context.parent().definition());
     }
 
     @Override
-    public Collection<StatementRuleContextImpl<?>> applyTo(StatementContextImpl<?> context) {
+    public Collection<StatementRuleContextImpl<?>> applyTo(ValueContext<?> context) {
         StatementRuleContextImpl<?> actionBuilder = context.addAction(delegate.name());
-        delegate.apply(actionBuilder);
+        delegate.apply(actionBuilder, actionBuilder);
         return actionBuilder.build();
     }
 

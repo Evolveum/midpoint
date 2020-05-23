@@ -2,9 +2,19 @@ package com.evolveum.axiom.reactor;
 
 import java.util.Optional;
 
-public interface Action<E extends Exception> {
+public interface Action<E extends Exception> extends Dependency<Void> {
 
     void apply();
+
+    @Override
+    default boolean isSatisfied() {
+        return successful();
+    }
+
+    @Override
+    default Void get() {
+        return null;
+    }
 
     boolean successful();
 

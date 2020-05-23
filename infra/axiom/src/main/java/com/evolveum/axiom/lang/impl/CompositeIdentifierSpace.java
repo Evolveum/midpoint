@@ -11,11 +11,22 @@ import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContext {
 
     private final Set<IdentifierSpaceHolder> delegates = new HashSet<>();
+    private final IdentifierSpaceHolderImpl export = new IdentifierSpaceHolderImpl(Scope.GLOBAL);
+
+
+
+    public IdentifierSpaceHolderImpl getExport() {
+        return export;
+    }
+
+    public CompositeIdentifierSpace() {
+        delegates.add(export);
+    }
 
     @Override
-    public StatementContextImpl<?> lookup(AxiomIdentifier space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomIdentifier space, IdentifierSpaceKey key) {
         for (IdentifierSpaceHolder delegate : delegates) {
-            StatementContextImpl<?>  maybe = delegate.lookup(space, key);
+            ValueContext<?>  maybe = delegate.lookup(space, key);
             if(maybe != null) {
                 return maybe;
             }
@@ -24,12 +35,12 @@ class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContex
     }
 
     @Override
-    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, StatementContextImpl<?> context) {
-        throw new UnsupportedOperationException();
+    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+        export.register(space, scope, key, context);
     }
 
     @Override
-    public Map<IdentifierSpaceKey, StatementContextImpl<?>> space(AxiomIdentifier space) {
+    public Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomIdentifier space) {
         throw new UnsupportedOperationException();
     }
 

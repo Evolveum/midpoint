@@ -6,25 +6,31 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.google.common.collect.Collections2;
 
 
 public interface AxiomItemValue<V> extends Supplier<V> {
 
-    Optional<AxiomTypeDefinition> definition();
+    Optional<AxiomTypeDefinition> type();
 
     default Collection<AxiomItem<?>> items() {
         return Collections.emptyList();
     }
 
-    default Collection<AxiomItem<?>> items(AxiomIdentifier name) {
-        return Collections2.filter(items(), value -> name.equals(value.name()));
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    default Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
+        return (Optional) item(def.name());
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> Optional<AxiomItem<T>> item(AxiomIdentifier name) {
+        return items().stream().filter(value -> name.equals(value.name())).findFirst().map(v -> (AxiomItem<T>) v);
     }
 
     @Override
     V get();
 
-    interface Factory<V,T extends AxiomItemValue<V>> {
-        T create(AxiomTypeDefinition def, V value, Collection<AxiomItem<?>> items);
+    static <V> AxiomItemValue<V> from(AxiomTypeDefinition typeDefinition, V value) {
+        return new SimpleItemValue<V>(typeDefinition, value);
     }
+
 }

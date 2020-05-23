@@ -13,7 +13,6 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.lang.spi.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +27,7 @@ public class AxiomBuiltIn {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static class Item implements AxiomItemDefinition, AxiomStatement<AxiomIdentifier> {
+    public static class Item implements AxiomItemDefinition {
         public static final Item NAME = new Item("name", Type.IDENTIFIER, true);
         public static final Item ARGUMENT = new Item("argument", Type.IDENTIFIER, false);
         public static final AxiomItemDefinition DOCUMENTATION = new Item("documentation", Type.STRING, true);
@@ -64,6 +63,11 @@ public class AxiomBuiltIn {
         }
 
         @Override
+        public Optional<AxiomTypeDefinition> type() {
+            return Optional.of(type);
+        }
+
+        @Override
         public AxiomIdentifier name() {
             return identifier;
         }
@@ -75,7 +79,7 @@ public class AxiomBuiltIn {
 
 
         @Override
-        public AxiomTypeDefinition type() {
+        public AxiomTypeDefinition typeDefinition() {
             return type;
         }
 
@@ -100,22 +104,8 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Collection<AxiomStatement<?>> children() {
-            return null;
-        }
-
-        @Override
-        public Collection<AxiomStatement<?>> children(AxiomIdentifier name) {
-            return null;
-        }
-
-        @Override
-        public AxiomIdentifier keyword() {
-            return null;
-        }
-        @Override
-        public AxiomIdentifier value() {
-            return identifier;
+        public AxiomItemDefinition get() {
+            return this;
         }
     }
 
@@ -179,7 +169,7 @@ public class AxiomBuiltIn {
         };
 
         protected static final Lazy<Collection<AxiomIdentifierDefinition>> ITEM_IDENTIFIER_DEFINITION = Lazy.from(()->
-        ImmutableSet.of(AxiomIdentifierDefinition.local(ITEM_DEFINITION.name(), Item.NAME)));
+        ImmutableSet.of(AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME)));
 
         protected static final Lazy<Collection<AxiomIdentifierDefinition>> ROOT_IDENTIFIER_DEFINITION = Lazy.from(()->
         ImmutableSet.of(AxiomIdentifierDefinition.global(AxiomItemDefinition.ROOT_SPACE, Item.NAME)));

@@ -8,12 +8,7 @@ public interface DependantAction<E extends Exception> extends Action<E> {
 
     @Override
     default boolean canApply() {
-        for (Dependency<?> dependency : dependencies()) {
-            if(!dependency.isSatisfied()) {
-                return false;
-            }
-        }
-        return true;
+        return Dependency.allSatisfied(dependencies());
     }
 
 
