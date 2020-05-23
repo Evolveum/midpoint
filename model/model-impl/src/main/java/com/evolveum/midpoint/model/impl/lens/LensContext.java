@@ -781,13 +781,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rottenExecutedDeltas;
     }
 
-    public void recompute() throws SchemaException, ConfigurationException {
+    public void recompute() throws SchemaException {
         recomputeFocus();
         recomputeProjections();
     }
 
     // mainly computes new state based on old state and delta(s)
-    public void recomputeFocus() throws SchemaException, ConfigurationException {
+    public void recomputeFocus() throws SchemaException {
         if (focusContext != null) {
             focusContext.recompute();
         }
@@ -1107,14 +1107,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         evaluatedAssignmentTriple.debugDumpSets(sb, assignment -> {
             DebugUtil.indentDebugDump(sb, indent);
             sb.append(assignment.toHumanReadableString());
-            @SuppressWarnings("unchecked")
-            Collection<EvaluatedPolicyRule> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
+            Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = assignment.getThisTargetPolicyRules();
             dumpPolicyRulesCollection("thisTargetPolicyRules", indent + 1, sb, thisTargetPolicyRules, alsoMessages);
-            @SuppressWarnings({ "unchecked", "raw" })
-            Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
+            @SuppressWarnings({ "raw" })
+            Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = assignment.getOtherTargetsPolicyRules();
             dumpPolicyRulesCollection("otherTargetsPolicyRules", indent + 1, sb, otherTargetsPolicyRules, alsoMessages);
-            @SuppressWarnings({ "unchecked", "raw" })
-            Collection<EvaluatedPolicyRule> focusPolicyRules = assignment.getFocusPolicyRules();
+            @SuppressWarnings({ "raw" })
+            Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = assignment.getFocusPolicyRules();
             dumpPolicyRulesCollection("focusPolicyRules", indent + 1, sb, focusPolicyRules, alsoMessages);
         }, 1);
         return sb.toString();
@@ -1129,7 +1128,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return sb.toString();
     }
 
-    private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<EvaluatedPolicyRule> rules,
+    private void dumpPolicyRulesCollection(String label, int indent, StringBuilder sb, Collection<? extends EvaluatedPolicyRule> rules,
             boolean alsoMessages) {
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent);
@@ -1204,13 +1203,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    static void dumpRulesIfNotEmpty(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+    private static void dumpRulesIfNotEmpty(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedPolicyRule> policyRules) {
         if (!policyRules.isEmpty()) {
             dumpRules(sb, label, indent, policyRules);
         }
     }
 
-    static void dumpRules(StringBuilder sb, String label, int indent, Collection<EvaluatedPolicyRule> policyRules) {
+    static void dumpRules(StringBuilder sb, String label, int indent, Collection<? extends EvaluatedPolicyRule> policyRules) {
         sb.append("\n");
         int triggered = getTriggeredRulesCount(policyRules);
         DebugUtil.debugDumpLabel(sb, label + " (total " + policyRules.size() + ", triggered " + triggered + ")", indent);
@@ -1241,7 +1240,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    public static int getTriggeredRulesCount(Collection<EvaluatedPolicyRule> policyRules) {
+    public static int getTriggeredRulesCount(Collection<? extends EvaluatedPolicyRule> policyRules) {
         return (int) policyRules.stream().filter(EvaluatedPolicyRule::isTriggered).count();
     }
 

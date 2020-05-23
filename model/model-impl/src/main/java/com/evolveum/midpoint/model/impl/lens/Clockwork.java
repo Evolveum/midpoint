@@ -543,7 +543,7 @@ public class Clockwork {
         medic.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
     }
 
-    private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) {
+    private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
         switchState(context, ModelState.FINAL);
         policyRuleScriptExecutor.execute(context, task, result);
     }

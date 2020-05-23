@@ -32,9 +32,6 @@ import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType.*;
 
-/**
- * @author mederly
- */
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType> {
 

@@ -111,17 +111,19 @@
     <inducement>
         <policyRule>
             <documentation>
-                Recomputes a token when it is assigned to (or unassigned from) the user or when the assignment
-                is modified. But what we would need, actually, is triggering token recompute when the effective membership
-                is changed.
+                Recomputes all tokens whose membership has changed.
             </documentation>
             <policyConstraints>
-                <assignment/>
+                <alwaysTrue/>
             </policyConstraints>
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -148,7 +150,10 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>

@@ -6,17 +6,27 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import java.util.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,15 +39,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Executes scripts defined in scriptExecution policy action.
@@ -53,21 +54,24 @@ public class PolicyRuleScriptExecutor {
     private static final String OP_EXECUTE_SCRIPT = PolicyRuleScriptExecutor.class.getName() + ".executeScript";
 
     @Autowired private ModelService modelService;
-    @Autowired private PrismContext prismContext;
+    @Autowired PrismContext prismContext;
+    @Autowired RelationRegistry relationRegistry;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
 
-    public <O extends ObjectType> void execute(@NotNull LensContext<O> context, Task task, OperationResult result) {
+    public <O extends ObjectType> void execute(@NotNull LensContext<O> context, Task task, OperationResult result)
+            throws SchemaException {
         LensFocusContext<?> focusContext = context.getFocusContext();
         if (focusContext != null) {
-            for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
+            context.recomputeFocus(); // Maybe not needed but we want to be sure (when computing linked objects)
+            for (EvaluatedPolicyRuleImpl rule : focusContext.getPolicyRules()) {
                 executeRuleScriptingActions(rule, context, task, result);
             }
             DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = context.getEvaluatedAssignmentTriple();
             if (triple != null) {
                 // We need to apply rules from all the assignments - even those that were deleted.
-                for (EvaluatedAssignment<?> assignment : triple.getAllValues()) {
-                    for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+                for (EvaluatedAssignmentImpl<?> assignment : triple.getAllValues()) {
+                    for (EvaluatedPolicyRuleImpl rule : assignment.getAllTargetsPolicyRules()) {
                         executeRuleScriptingActions(rule, context, task, result);
                     }
                 }
@@ -75,7 +79,7 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private void executeRuleScriptingActions(EvaluatedPolicyRule rule, LensContext<?> context, Task task, OperationResult result) {
+    private void executeRuleScriptingActions(EvaluatedPolicyRuleImpl rule, LensContext<?> context, Task task, OperationResult result) {
         if (rule.isTriggered()) {
             for (ScriptExecutionPolicyActionType action : rule.getEnabledActions(ScriptExecutionPolicyActionType.class)) {
                 executeScriptingAction(action, rule, context, task, result);
@@ -83,7 +87,7 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private void executeScriptingAction(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, LensContext<?> context, Task task, OperationResult parentResult) {
+    private void executeScriptingAction(ScriptExecutionPolicyActionType action, EvaluatedPolicyRuleImpl rule, LensContext<?> context, Task task, OperationResult parentResult) {
         LOGGER.debug("Executing policy action scripts ({}) in action: {}\non rule:{}",
                 action.getExecuteScript().size(), action, rule.debugDumpLazily());
         List<ExecuteScriptType> executeScript = action.getExecuteScript();
@@ -92,7 +96,7 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private void executeScript(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule, LensContext<?> context,
+    private void executeScript(ScriptExecutionPolicyActionType action, EvaluatedPolicyRuleImpl rule, LensContext<?> context,
             Task task, OperationResult parentResult, ExecuteScriptType specifiedExecuteScriptBean) {
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPT);
         try {
@@ -114,7 +118,7 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private ValueListType createScriptInput(ScriptExecutionPolicyActionType action, EvaluatedPolicyRule rule,
+    private ValueListType createScriptInput(ScriptExecutionPolicyActionType action, EvaluatedPolicyRuleImpl rule,
             LensContext<?> context, LensFocusContext<?> focusContext, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -123,31 +127,16 @@ public class PolicyRuleScriptExecutor {
             return createInput(MiscUtil.singletonOrEmptyList(focusContext.getObjectAny()));
         } else {
             Map<String, PrismObject<?>> objectsMap = new HashMap<>(); // use OID-keyed map to avoid duplicates
-            if (!object.getAssigned().isEmpty()) {
-                List<PrismObject<?>> assigned = getAssigned(context);
-                LOGGER.trace("Assigned objects (all): {}", assigned);
-                List<PrismObject<?>> filtered = filterObjects(assigned, object.getAssigned());
-                LOGGER.trace("Assigned objects (filtered on selectors): {}", filtered);
-                addObjects(objectsMap, filtered);
-            }
-            if (!object.getAssignedMatchingPolicyConstraints().isEmpty()) {
-                List<PrismObject<?>> assignedMatchingConstraints = getAssignedMatchingConstraints(rule);
-                LOGGER.trace("Assigned objects matching policy constraints (all): {}", assignedMatchingConstraints);
-                List<PrismObject<?>> filtered = filterObjects(assignedMatchingConstraints, object.getAssignedMatchingPolicyConstraints());
-                LOGGER.trace("Assigned objects matching policy constraints (filtered on selectors): {}", filtered);
-                addObjects(objectsMap, filtered);
-            }
-            if (!object.getAssignedOnPath().isEmpty()) {
-                List<PrismObject<?>> assignedOnPath = getAssignedOnPath(rule);
-                LOGGER.trace("Assigned objects on respective assignment path (all): {}", assignedOnPath);
-                List<PrismObject<?>> filtered = filterObjects(assignedOnPath, object.getAssignedOnPath());
-                LOGGER.trace("Assigned objects on respective assignment path (filtered on selectors): {}", filtered);
-                addObjects(objectsMap, filtered);
+            if (!object.getLinkTarget().isEmpty()) {
+                LinkTargetMatcher targetMatcher = new LinkTargetMatcher(this, context, rule, result);
+                for (LinkTargetObjectSelectorType linkTargetSelector : object.getLinkTarget()) {
+                    addObjects(objectsMap, targetMatcher.getMatchingTargets(linkTargetSelector));
+                }
             }
             if (!object.getAssignee().isEmpty()) {
-                List<PrismObject<?>> assignees = getAssignees(focusContext.getOid(), task, result);
+                List<PrismObject<? extends ObjectType>> assignees = getAssignees(focusContext.getOid(), task, result);
                 LOGGER.trace("Assignee objects (all): {}", assignees);
-                List<PrismObject<?>> filtered = filterObjects(assignees, object.getAssignee());
+                List<PrismObject<? extends ObjectType>> filtered = filterObjects(assignees, object.getAssignee());
                 LOGGER.trace("Assignee objects (filtered on selectors): {}", filtered);
                 addObjects(objectsMap, filtered);
             }
@@ -155,7 +144,7 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private List<PrismObject<?>> getAssignees(String focusOid, Task task, OperationResult result)
+    private List<PrismObject<? extends ObjectType>> getAssignees(String focusOid, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (focusOid == null) {
@@ -170,65 +159,31 @@ public class PolicyRuleScriptExecutor {
         }
     }
 
-    private void addObjects(Map<String, PrismObject<?>> objectsMap, List<PrismObject<?>> objects) {
+    private void addObjects(Map<String, PrismObject<?>> objectsMap, List<PrismObject<? extends ObjectType>> objects) {
         objects.forEach(o -> objectsMap.put(o.getOid(), o));
     }
 
-    private List<PrismObject<?>> filterObjects(List<PrismObject<?>> objects, List<ObjectSelectorType> selectors)
+    private List<PrismObject<? extends ObjectType>> filterObjects(List<PrismObject<? extends ObjectType>> objects, List<ObjectSelectorType> selectors)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<?>> all = new ArrayList<>();
+        List<PrismObject<? extends ObjectType>> all = new ArrayList<>();
         for (ObjectSelectorType selector : selectors) {
             all.addAll(filterObjects(objects, selector));
         }
         return all;
     }
 
-    private List<PrismObject<?>> filterObjects(List<PrismObject<?>> objects, ObjectSelectorType selector)
+    private List<PrismObject<? extends ObjectType>> filterObjects(List<PrismObject<? extends ObjectType>> objects, ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<?>> matching = new ArrayList<>();
-        for (PrismObject<?> object : objects) {
-            //noinspection unchecked
-            if (repositoryService.selectorMatches(selector, (PrismObject<? extends ObjectType>) object,
+        List<PrismObject<? extends ObjectType>> matching = new ArrayList<>();
+        for (PrismObject<? extends ObjectType> object : objects) {
+            if (repositoryService.selectorMatches(selector, object,
                     null, LOGGER, "script object evaluation")) {
                 matching.add(object);
             }
         }
         return matching;
-    }
-
-    private List<PrismObject<?>> getAssignedOnPath(EvaluatedPolicyRule rule) {
-        AssignmentPath assignmentPath = rule.getAssignmentPath();
-        if (assignmentPath != null) {
-            return assignmentPath.getFirstOrderChain().stream()
-                    .map(ObjectType::asPrismObject)
-                    .collect(Collectors.toList());
-        } else {
-            LOGGER.warn("No assignment path for {} (but assignedOnPath object specification is present)", rule);
-            return Collections.emptyList();
-        }
-    }
-
-    private List<PrismObject<?>> getAssignedMatchingConstraints(EvaluatedPolicyRule rule) {
-        List<PrismObject<?>> rv = new ArrayList<>();
-        addFromTriggers(rv, rule.getAllTriggers());
-        return rv;
-    }
-
-    private void addFromTriggers(List<PrismObject<?>> rv, @NotNull Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-            rv.addAll(trigger.getTargetObjects());
-            addFromTriggers(rv, trigger.getInnerTriggers());
-        }
-    }
-
-    private List<PrismObject<?>> getAssigned(LensContext<?> context) {
-        List<PrismObject<?>> rv = new ArrayList<>();
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getEvaluatedAssignmentTriple().getAllValues()) {
-            CollectionUtils.addIgnoreNull(rv, evaluatedAssignment.getTarget());
-        }
-        return rv;
     }
 
     private ValueListType createInput(Collection<PrismObject<?>> objects) {
