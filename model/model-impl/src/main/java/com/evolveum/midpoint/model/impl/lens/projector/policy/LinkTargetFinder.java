@@ -37,27 +37,38 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Selects link targets based on a collection of selectors.
+ * Finds link targets based on a collection of selectors.
  */
-class LinkTargetMatcher {
+class LinkTargetFinder implements AutoCloseable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(LinkTargetMatcher.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LinkTargetFinder.class);
+
+    private static final String OP_GET_TARGETS = LinkTargetFinder.class.getName() + ".getTargets";
 
     @NotNull private final PolicyRuleScriptExecutor beans;
     @NotNull private final LensContext<?> context;
     @NotNull private final EvaluatedPolicyRuleImpl rule;
     @NotNull private final OperationResult result;
 
-    LinkTargetMatcher(@NotNull PolicyRuleScriptExecutor policyRuleScriptExecutor,
+    LinkTargetFinder(@NotNull PolicyRuleScriptExecutor policyRuleScriptExecutor,
             @NotNull LensContext<?> context, @NotNull EvaluatedPolicyRuleImpl rule,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult parentResult) {
         this.beans = policyRuleScriptExecutor;
         this.context = context;
         this.rule = rule;
-        this.result = result;
+        this.result = parentResult.createMinorSubresult(OP_GET_TARGETS);
     }
 
-    List<PrismObject<? extends ObjectType>> getMatchingTargets(LinkTargetObjectSelectorType selector) {
+    List<PrismObject<? extends ObjectType>> getTargets(LinkTargetObjectSelectorType selector) {
+        try {
+            return getTargetsInternal(selector);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
+    }
+
+    private List<PrismObject<? extends ObjectType>> getTargetsInternal(LinkTargetObjectSelectorType selector) {
         LOGGER.trace("Selecting matching link targets for {} with rule={}", selector, rule);
 
         // We must create new set because we will remove links from it later.
@@ -202,5 +213,10 @@ class LinkTargetMatcher {
         return objectNew instanceof AssignmentHolderType ?
                 new HashSet<>(objectReferenceListToPrismReferenceValues(((AssignmentHolderType) objectNew).getRoleMembershipRef())) :
                 emptySet();
+    }
+
+    @Override
+    public void close() {
+        result.computeStatusIfUnknown();
     }
 }

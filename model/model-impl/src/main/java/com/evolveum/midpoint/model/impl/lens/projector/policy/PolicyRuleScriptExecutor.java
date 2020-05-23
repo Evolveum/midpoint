@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -53,7 +51,6 @@ public class PolicyRuleScriptExecutor {
 
     private static final String OP_EXECUTE_SCRIPT = PolicyRuleScriptExecutor.class.getName() + ".executeScript";
 
-    @Autowired private ModelService modelService;
     @Autowired PrismContext prismContext;
     @Autowired RelationRegistry relationRegistry;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -102,7 +99,7 @@ public class PolicyRuleScriptExecutor {
         try {
             ExecuteScriptType realExecuteScriptBean;
             if (specifiedExecuteScriptBean.getInput() == null && context.getFocusContext() != null) {
-                ValueListType input = createScriptInput(action, rule, context, context.getFocusContext(), task, result);
+                ValueListType input = createScriptInput(action, rule, context, context.getFocusContext(), result);
                 realExecuteScriptBean = specifiedExecuteScriptBean.clone().input(input);
             } else {
                 realExecuteScriptBean = specifiedExecuteScriptBean;
@@ -119,71 +116,32 @@ public class PolicyRuleScriptExecutor {
     }
 
     private ValueListType createScriptInput(ScriptExecutionPolicyActionType action, EvaluatedPolicyRuleImpl rule,
-            LensContext<?> context, LensFocusContext<?> focusContext, Task task, OperationResult result)
+            LensContext<?> context, LensFocusContext<?> focusContext, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         ScriptExecutionObjectType object = action.getObject();
         if (object == null) {
             return createInput(MiscUtil.singletonOrEmptyList(focusContext.getObjectAny()));
         } else {
-            Map<String, PrismObject<?>> objectsMap = new HashMap<>(); // use OID-keyed map to avoid duplicates
+            Map<String, PrismObject<?>> objectsMap = new HashMap<>(); // using OID-keyed map to avoid duplicates
             if (!object.getLinkTarget().isEmpty()) {
-                LinkTargetMatcher targetMatcher = new LinkTargetMatcher(this, context, rule, result);
-                for (LinkTargetObjectSelectorType linkTargetSelector : object.getLinkTarget()) {
-                    addObjects(objectsMap, targetMatcher.getMatchingTargets(linkTargetSelector));
+                try (LinkTargetFinder targetFinder = new LinkTargetFinder(this, context, rule, result)) {
+                    for (LinkTargetObjectSelectorType linkTargetSelector : object.getLinkTarget()) {
+                        addObjects(objectsMap, targetFinder.getTargets(linkTargetSelector));
+                    }
                 }
             }
-            if (!object.getAssignee().isEmpty()) {
-                List<PrismObject<? extends ObjectType>> assignees = getAssignees(focusContext.getOid(), task, result);
-                LOGGER.trace("Assignee objects (all): {}", assignees);
-                List<PrismObject<? extends ObjectType>> filtered = filterObjects(assignees, object.getAssignee());
-                LOGGER.trace("Assignee objects (filtered on selectors): {}", filtered);
-                addObjects(objectsMap, filtered);
+            if (!object.getLinkSource().isEmpty()) {
+                try (LinkSourceFinder sourceFinder = new LinkSourceFinder(this, context, result)) {
+                    addObjects(objectsMap, sourceFinder.getSources(object.getLinkSource()));
+                }
             }
             return createInput(objectsMap.values());
         }
     }
 
-    private List<PrismObject<? extends ObjectType>> getAssignees(String focusOid, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        if (focusOid == null) {
-            LOGGER.warn("No focus object OID, no assignees can be found");
-            return Collections.emptyList();
-        } else {
-            ObjectQuery query = prismContext.queryFor(AssignmentHolderType.class)
-                    .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(focusOid)
-                    .build();
-            //noinspection unchecked
-            return (List) modelService.searchObjects(AssignmentHolderType.class, query, null, task, result);
-        }
-    }
-
     private void addObjects(Map<String, PrismObject<?>> objectsMap, List<PrismObject<? extends ObjectType>> objects) {
         objects.forEach(o -> objectsMap.put(o.getOid(), o));
-    }
-
-    private List<PrismObject<? extends ObjectType>> filterObjects(List<PrismObject<? extends ObjectType>> objects, List<ObjectSelectorType> selectors)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends ObjectType>> all = new ArrayList<>();
-        for (ObjectSelectorType selector : selectors) {
-            all.addAll(filterObjects(objects, selector));
-        }
-        return all;
-    }
-
-    private List<PrismObject<? extends ObjectType>> filterObjects(List<PrismObject<? extends ObjectType>> objects, ObjectSelectorType selector)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends ObjectType>> matching = new ArrayList<>();
-        for (PrismObject<? extends ObjectType> object : objects) {
-            if (repositoryService.selectorMatches(selector, object,
-                    null, LOGGER, "script object evaluation")) {
-                matching.add(object);
-            }
-        }
-        return matching;
     }
 
     private ValueListType createInput(Collection<PrismObject<?>> objects) {

@@ -2598,11 +2598,12 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assignee" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="linkSource" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Assignee object(s) matching given selector(s).
+                            Objects linked to this one, matching given selector(s).
+                            TODO find better name.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>

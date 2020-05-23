@@ -95,7 +95,7 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignee/>
+                        <linkSource/>
                     </object>
                     <executeScript>
                         <s:recompute/>
