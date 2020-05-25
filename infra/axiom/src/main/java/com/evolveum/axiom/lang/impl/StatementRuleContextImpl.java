@@ -192,4 +192,8 @@ public class StatementRuleContextImpl<V> implements AxiomStatementRule.Lookup<V>
         return rule;
     }
 
+    @Override
+    public V originalValue() {
+        return context.originalValue;
+    }
 }

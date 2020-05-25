@@ -41,7 +41,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             if(context.isMutable()) {
                 Optional<AxiomItemDefinition> argument = context.typeDefinition().argument();
-                if(argument.isPresent() && context.currentValue() != null) {
+                if(argument.isPresent() && context.originalValue() != null) {
                    action.apply(ctx -> {
                        ctx.childItem(argument.get()).addValue(ctx.currentValue());
                        ctx.replaceValue(null);
@@ -83,7 +83,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
     EXPAND_TYPE_REFERENCE(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
-            AxiomIdentifier type = context.currentValue();
+            AxiomIdentifier type = context.originalValue();
             Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
@@ -108,13 +108,12 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
                 val.replace(itemDef.get());
             });
         }
-
     },
     MATERIALIZE_FROM_SUPERTYPE(items(Item.SUPERTYPE_REFERENCE),types(Type.TYPE_REFERENCE)) {
 
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
-            AxiomIdentifier type = context.currentValue();
+            AxiomIdentifier type = context.originalValue();
             Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));

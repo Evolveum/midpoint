@@ -39,6 +39,8 @@ public interface AxiomStatementRule<V> {
 
         V currentValue();
 
+        V originalValue();
+
         boolean isMutable();
 
 
