@@ -1192,7 +1192,7 @@ model common-core {
     type ReferentialIntegrity;
 
     // ???
-    type Extension;
+    // type Extension;
 
     // common-3
     type OperationResult;
@@ -1205,7 +1205,8 @@ model common-core {
     type Activation;
 
     // should exist because of "container XXX"
-    type Trigger;
-    type Assignment;
+    // Already defined
+    // type Trigger;
+    // type Assignment;
 
 }

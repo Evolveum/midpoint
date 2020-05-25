@@ -12,7 +12,6 @@ import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
 import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -24,6 +23,7 @@ import com.evolveum.axiom.lang.spi.SourceLocation;
 public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements AxiomValueContext<V>, ValueBuilder, Dependency<AxiomItemValue<V>> {
 
     private Dependency<AxiomItemValue<V>> result;
+    V originalValue;
     Collection<Dependency<?>> dependencies = new HashSet<>();
 
     public ValueContext(SourceLocation loc, IdentifierSpaceHolder space) {
@@ -33,6 +33,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     public ValueContext(ItemContext<V> itemContext, V value, SourceLocation loc) {
         super(itemContext, loc, AxiomIdentifierDefinition.Scope.LOCAL);
+        originalValue = value;
         result = new Result(parent().type(), value);
     }
 
@@ -220,8 +221,10 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     @Override
     public String toString() {
-        return "value("+ parent().name() +";" + result +")";
+        return new StringBuffer().append(parent().definition().name().getLocalName())
+                .append(" ")
+                .append(originalValue != null ? originalValue : "")
+                .toString();
     }
-
 
 }
