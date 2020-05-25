@@ -143,7 +143,7 @@ public class SearchPanel extends BasePanel<Search> {
         form.add(items);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
+        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isShowMoreDialog()));
         form.add(moreGroup);
 
         AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
