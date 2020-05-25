@@ -1,0 +1,79 @@
+model prism {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
+
+    import axiom {
+        namespace "https://ns.evolveum.com/axiom/language";
+    }
+
+    root model {
+        documentation """
+            Axiom Model
+
+            Declares a new axiom model.
+            """;
+        type PrismModel;
+    }
+
+    type PrismModel {
+      extends axiom:AxiomModel;
+
+
+    }
+
+    extension PrismDefinition {
+      target axiom:AxiomModel;
+      // TODO move to prism schema; consider renaming to objectType?
+      item object {
+          type PrismObjectDefinition;
+      }
+
+      // TODO move to prism schema; consider renaming to containerType?
+      item container {
+          type PrismContainerDefinition;
+      }
+
+      // TODO move to prism schema; consider renaming to referenceType?
+      item reference {
+          type PrismReferenceDefinition;
+      }
+    }
+
+    extension PrismTypeDefinitionAnnotation {
+        target axiom:AxiomTypeDefinition;
+        // TODO move to prism schema
+        item object {
+            type boolean;
+        }
+
+        // TODO move to prism schema
+        item container {
+            type boolean;
+        }
+        // TODO move to prism schema
+        item objectReference {
+            type boolean;
+        }
+    }
+
+    type PrismTypeDefinition {
+      extends axiom:AxiomTypeDefinition;
+    }
+
+    type PrismObjectDefinition {
+        extends PrismTypeDefinition;
+    }
+
+    type PrismContainerDefinition {
+        extends PrismTypeDefinition;
+    }
+
+    type PrismReferenceDefinition {
+        extends PrismTypeDefinition;
+    }
+
+    type PrismItemDefinition {
+        extends PrismTypeDefinition;
+    }
+
+}

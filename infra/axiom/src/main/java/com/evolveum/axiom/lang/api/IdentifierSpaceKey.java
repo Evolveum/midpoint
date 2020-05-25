@@ -56,4 +56,5 @@ public class IdentifierSpaceKey {
     public static IdentifierSpaceKey of(AxiomIdentifier key, Object value) {
         return from(ImmutableMap.of(key, value));
     }
+
 }

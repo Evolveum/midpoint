@@ -57,26 +57,6 @@ model axiom-lang {
         item extension {
             type AxiomExtensionDefinition;
         }
-
-        // TODO move to prism schema; consider renaming to objectType?
-        item object {
-            type PrismObjectDefinition;
-        }
-
-        // TODO move to prism schema; consider renaming to containerType?
-        item container {
-            type PrismContainerDefinition;
-        }
-
-        // TODO move to prism schema; consider renaming to referenceType?
-        item reference {
-            type PrismReferenceDefinition;
-        }
-
-        // TODO move to prism schema
-        item item {
-            type PrismItemDefinition;
-        }
     }
 
     type AxiomImportDeclaration {
@@ -161,21 +141,6 @@ model axiom-lang {
             type AxiomIdentifierDefinition;
         }
 
-        // TODO move to prism schema
-        item object {
-            type boolean;
-        }
-
-        // TODO move to prism schema
-        item container {
-            type boolean;
-        }
-
-        // TODO move to prism schema
-        item objectReference {
-            type boolean;
-        }
-
         // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
         item itemName {
             type AxiomIdentifier;
@@ -242,23 +207,4 @@ model axiom-lang {
         extends string;
     }
 
-    // TODO move to prism schema; probably should be prism:ObjectDefinition
-    type PrismObjectDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ContainerDefinition
-    type PrismContainerDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ReferenceDefinition
-    type PrismReferenceDefinition {
-        extends AxiomTypeDefinition;
-    }
-
-    // TODO move to prism schema; probably should be prism:ItemDefinition
-    type PrismItemDefinition {
-        extends AxiomItemDefinition;
-    }
 }

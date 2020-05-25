@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableSet;
 
 
 public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
-/*
+    /*
     REQUIRE_REQUIRED_ITEMS(all(),all()) {
         @Override
         public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
@@ -117,20 +117,12 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
-            action.apply(ctx -> {
-                ctx.replace(typeDef.get());
-                AxiomItemValue<?> superType = typeDef.get();
-                // Copy Identifiers
-                Optional<AxiomItem<?>> identifiers = superType.item(Item.IDENTIFIER_DEFINITION);
-                if(identifiers.isPresent()) {
-                    ctx.parentValue().mergeItem(identifiers.get());
-                }// Copy Items
-                Optional<AxiomItem<?>> items = superType.item(Item.ITEM_DEFINITION);
-                if(items.isPresent()) {
-                    ctx.parentValue().mergeItem(items.get());
-                }
+            action.apply(superTypeValue -> {
+                superTypeValue.replace(typeDef.get());
+                addFromType(typeDef.get(), superTypeValue.parentValue());
             });
         }
+
 
     },
 
@@ -169,6 +161,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             });
         }
     },
+
     APPLY_EXTENSION(all(), types(Type.EXTENSION_DEFINITION)) {
 
         @Override
@@ -196,26 +189,6 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
     },
      */
     ;
-/*
-    ADD_SUPERTYPE(items(), types(Type.TYPE_DEFINITION)) {
-
-        @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            Optional<AxiomIdentifier> superType = action.optionalChildValue(Item.SUPERTYPE_REFERENCE, AxiomIdentifier.class);
-            if(superType.isPresent()) {
-                Requirement<AxiomStatement<?>> req = action.requireGlobalItem(Item.TYPE_DEFINITION, superType.get());
-                action.apply((ctx) -> {
-                    //ctx.builder().add(Item.SUPERTYPE_REFERENCE, req.get());
-                });
-                action.errorMessage(() -> {
-                    if(!req.isSatisfied()) {
-                        return action.error("Supertype %s is not defined", superType.get());
-                    }
-                    return null;
-                });
-            }
-        }
-    };*/
 
     private final Set<AxiomIdentifier> items;
     private final Set<AxiomIdentifier> types;
@@ -263,5 +236,19 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
     private static IdentifierSpaceKey namespaceId(String uri) {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
+    }
+
+    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target) {
+        AxiomItemValue<?> superType = source;
+        // FIXME: Add namespace change if necessary
+        // Copy Identifiers
+        Optional<AxiomItem<?>> identifiers = superType.item(Item.IDENTIFIER_DEFINITION);
+        if(identifiers.isPresent()) {
+            target.mergeItem(identifiers.get());
+        }// Copy Items
+        Optional<AxiomItem<?>> items = superType.item(Item.ITEM_DEFINITION);
+        if(items.isPresent()) {
+            target.mergeItem(items.get());
+        }
     }
 }
