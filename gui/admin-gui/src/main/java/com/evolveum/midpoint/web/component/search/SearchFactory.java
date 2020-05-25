@@ -13,23 +13,22 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.cxf.common.util.CollectionUtils;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -172,31 +171,48 @@ public class SearchFactory {
 //        return search;
 //    }
 
-        public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
+    public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator, true);
     }
 
     public static <T extends ObjectType> Search createSearch(
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
+        return createSearch(type, null, discriminator,  modelServiceLocator, useDefsFromSuperclass);
+    }
+
+    public static <T extends ObjectType> Search createSearch(
+            Class<T> type, String collectionViewName, ResourceShadowDiscriminator discriminator,
+            ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
 
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
-
-        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
+        List<SearchItemDefinition> availableDefs =  getAvailableDefinitions(objectDef, useDefsFromSuperclass);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
-                getDefaultSearchType(modelServiceLocator, type));
+                getDefaultSearchType(modelServiceLocator, type, collectionViewName));
 
         SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
 
-        SearchItem item = search.addItem(def);
-        if (item != null) {
-            item.setFixed(true);
+        PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
+        SearchItemsType searchItemsConfig = getConfiguredSearchItems(modelServiceLocator, type, collectionViewName);
+        List<SearchItemDefinition> configuredSearchItemDefs = getConfiguredSearchItemDefinitions(objectDef, useDefsFromSuperclass, searchItemsConfig);
+        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)){
+            configuredSearchItemDefs.forEach(searchItemDef -> {
+                PrismPropertyDefinition def = objDef.findPropertyDefinition(searchItemDef.getPath());
+                SearchItem item = search.addItem(def);
+                if (item != null) {
+                    item.setFixed(true);
+                }
+            });
+        } else {
+            PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
+            SearchItem item = search.addItem(def);
+            if (item != null) {
+                item.setFixed(true);
+            }
         }
-
+        search.setShowMoreDialog(isAllowToConfigureSearchItems(modelServiceLocator, type, collectionViewName));
         return search;
     }
 
@@ -224,6 +240,25 @@ public class SearchFactory {
             result.recordFatalError(ex.getMessage());
             throw new SystemException(ex);
         }
+    }
+
+    private static <C extends Containerable> List<SearchItemDefinition> getConfiguredSearchItemDefinitions(PrismContainerDefinition<C> objectDef,
+            boolean useDefsFromSuperclass, SearchItemsType configuredSearchItems){
+        List<SearchItemDefinition> availableDefinitions = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
+        if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())){
+            return null;
+        }
+        List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
+        configuredSearchItems.getSearchItem().forEach(searchItem -> {
+            availableDefinitions.forEach(def -> {
+                ItemPathType searchItemPath = new ItemPathType(def.getPath());
+                if (searchItem.getPath().equivalent(searchItemPath)){
+                    configuredSearchItemList.add(def);
+                    return;
+                }
+            });
+        });
+        return configuredSearchItemList;
     }
 
     public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
@@ -270,17 +305,39 @@ public class SearchFactory {
         }
     }
 
-    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type) {
+    private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName) {
+        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
+        if (searchConfig == null){
+            return null;
+        }
+        return searchConfig.getDefaultMode();
+    }
+
+    private static <T extends ObjectType> SearchItemsType getConfiguredSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName){
+        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
+        if (searchConfig == null){
+            return null;
+        }
+        return searchConfig.getSearchItems();
+    }
+
+    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName){
+        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
+        if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null){
+            return false;
+        }
+        return searchConfig.isAllowToConfigureSearchItems();
+    }
+
+    private static <T extends ObjectType> SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
+            Class<T> type, String collectionViewName) {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
             CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
-            // TODO: improve: use proper view name
-            List<CompiledObjectCollectionView> objectLists = guiConfig.findAllApplicableObjectCollectionViews(type);
-            for (CompiledObjectCollectionView objectList : objectLists){
-                if (objectList.getSearchBoxConfiguration() != null) {
-                    SearchBoxConfigurationType searchBoxConfig = objectList.getSearchBoxConfiguration();
-                    return searchBoxConfig.getDefaultMode();
-                }
+            CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(
+                    WebComponentUtil.classToQName(modelServiceLocator.getPrismContext(), type), collectionViewName);
+            if (view != null) {
+                return view.getSearchBoxConfiguration();
             }
             return null;
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
