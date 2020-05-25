@@ -24027,7 +24027,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="searchItem" type="tns:SearchItemType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="searchItem" type="tns:SearchItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:displayName>SearchItemsType.searchItem</a:displayName>
