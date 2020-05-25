@@ -9,26 +9,32 @@ import com.evolveum.axiom.lang.api.AxiomItemValueBuilder;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
+import com.evolveum.axiom.lang.impl.AxiomStatementRule.Lookup;
 import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements AxiomValueContext<V>, ValueBuilder, Dependency<AxiomItemValue<V>> {
 
     private Dependency<AxiomItemValue<V>> result;
-    V originalValue;
-    Collection<Dependency<?>> dependencies = new HashSet<>();
+    private final LookupImpl lookup = new LookupImpl();
+    private final V originalValue;
+    private final Collection<Dependency<?>> dependencies = new HashSet<>();
 
     public ValueContext(SourceLocation loc, IdentifierSpaceHolder space) {
         super(null, loc, space);
         result = new Result(null,null);
+        originalValue = null;
     }
 
     public ValueContext(ItemContext<V> itemContext, V value, SourceLocation loc) {
@@ -40,6 +46,10 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     @Override
     public AxiomIdentifier name() {
         return parent().name();
+    }
+
+    public LookupImpl getLookup() {
+        return lookup;
     }
 
     @Override
@@ -86,8 +96,8 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         return parent().definition();
     }
 
-    public StatementRuleContextImpl<V> addAction(String name) {
-        return new StatementRuleContextImpl<>(this, name);
+    public ValueActionImpl<V> addAction(String name) {
+        return new ValueActionImpl<>(this, name);
     }
 
     protected ItemContext<?> createItem(AxiomIdentifier id, SourceLocation loc) {
@@ -188,7 +198,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     @Override
     public ActionBuilder<?> newAction(String name) {
-        return new StatementRuleContextImpl(this, name);
+        return new ValueActionImpl(this, name);
     }
 
     @Override
@@ -196,7 +206,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         return parent().rootImpl();
     }
 
-    public void dependsOnAction(StatementRuleContextImpl<V> action) {
+    public void dependsOnAction(ValueActionImpl<V> action) {
         addDependency(action);
     }
 
@@ -221,10 +231,95 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     @Override
     public String toString() {
-        return new StringBuffer().append(parent().definition().name().getLocalName())
+        return new StringBuffer().append(parent().definition().name().localName())
                 .append(" ")
                 .append(originalValue != null ? originalValue : "")
                 .toString();
+    }
+
+    private class LookupImpl implements Lookup<V> {
+
+        @Override
+        public AxiomItemDefinition itemDefinition() {
+            return parent().definition();
+        }
+
+        @Override
+        public Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+            return rootImpl().requireNamespace(name, namespaceId);
+        }
+
+        @Override
+        public <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition name, Class<T> valueType) {
+            return requireChild(name.name());
+        }
+
+        @Override
+        public Dependency<AxiomValueContext<?>> modify(AxiomIdentifier space, IdentifierSpaceKey key) {
+            return (Dependency.retriableDelegate(() -> {
+                ValueContext<?> maybe = lookup(space, key);
+                if(maybe != null) {
+                    //maybe.addDependency(this);
+                    return Dependency.immediate(maybe);
+                }
+                return null;
+            }));
+        }
+
+        @Override
+        public Dependency.Search<AxiomItemValue<?>> global(AxiomIdentifier space,
+                IdentifierSpaceKey key) {
+            return Dependency.retriableDelegate(() -> {
+                ValueContext<?> maybe = lookup(space, key);
+                if(maybe != null) {
+                    return (Dependency) maybe;
+                }
+                return null;
+            });
+        }
+
+
+        @Override
+        public Dependency.Search<AxiomItemValue<?>> namespaceValue(AxiomIdentifier space,
+                IdentifierSpaceKey key) {
+            return Dependency.retriableDelegate(() -> {
+                ValueContext<?> maybe = lookup(space, key);
+                if(maybe != null) {
+                    return (Dependency) maybe;
+                }
+                return null;
+            });
+        }
+
+        @Override
+        public Dependency<V> finalValue() {
+            return map(v -> v.get());
+        }
+
+        @Override
+        public V currentValue() {
+            return ValueContext.this.currentValue();
+        }
+
+        @Override
+        public V originalValue() {
+            return originalValue;
+        }
+
+        @Override
+        public boolean isMutable() {
+            return ValueContext.this.isMutable();
+        }
+
+        @Override
+        public Lookup<?> parentValue() {
+            return parent().parent().getLookup();
+        }
+
+        @Override
+        public AxiomSemanticException error(String message, Object... arguments) {
+            return new AxiomSemanticException(startLocation() + " " + Strings.lenientFormat(message, arguments));
+        }
     }
 
 }

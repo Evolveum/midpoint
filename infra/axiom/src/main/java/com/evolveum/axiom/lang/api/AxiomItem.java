@@ -1,6 +1,7 @@
 package com.evolveum.axiom.lang.api;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
@@ -23,6 +24,10 @@ public interface AxiomItem<V> {
 
     static <V> AxiomItem<V> from(AxiomItemDefinition def, Collection<? extends AxiomItemValue<V>> values) {
         return AxiomItemImpl.from(def, values);
+    }
+
+    static <V> AxiomItem<V> from(AxiomItemDefinition def, AxiomItemValue<V> value) {
+        return AxiomItemImpl.from(def, Collections.singleton(value));
     }
 
 }

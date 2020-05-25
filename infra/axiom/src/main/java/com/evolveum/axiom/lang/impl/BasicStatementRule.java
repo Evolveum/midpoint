@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
@@ -19,6 +20,8 @@ import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.Dependency.Search;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -66,8 +69,8 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
                 Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>> components = new HashMap<>();
                 for(AxiomItemDefinition cmp : idDef.components()) {
                     components.put(cmp.name(), action.require(context.child(cmp, Object.class))
-                            .map(v -> v.onlyValue())
-                            .unsatisfied(()-> action.error("Item '%s' is required by identifier, but not defined.", cmp.name())));
+                            .unsatisfied(()-> context.error("Item '%s' is required by identifier, but not defined.", cmp.name()))
+                            .map(v -> v.onlyValue()));
                 }
                 identReq.put(idDef, components);
             }
@@ -109,17 +112,20 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             });
         }
     },
-    MATERIALIZE_FROM_SUPERTYPE(items(Item.SUPERTYPE_REFERENCE),types(Type.TYPE_REFERENCE)) {
+    ITEMS_FROM_SUPERTYPE(items(Item.SUPERTYPE_REFERENCE),types(Type.TYPE_REFERENCE)) {
 
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             AxiomIdentifier type = context.originalValue();
+            Dependency<AxiomItem<AxiomIdentifier>> typeName = action.require(context.parentValue().child(Item.NAME, AxiomIdentifier.class))
+                    .unsatisfied(() -> action.error("type does not have name defined"));
             Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
+
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
             action.apply(superTypeValue -> {
                 superTypeValue.replace(typeDef.get());
-                addFromType(typeDef.get(), superTypeValue.parentValue());
+                addFromType(typeDef.get(), superTypeValue.parentValue(), typeName.get().onlyValue().get().namespace());
             });
         }
 
@@ -238,17 +244,26 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target) {
-        AxiomItemValue<?> superType = source;
+    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target, String targetNamespace) {
+        AxiomTypeDefinition superType = (AxiomTypeDefinition) source.get();
+        Preconditions.checkState(!(superType instanceof AxiomBuiltIn.Type));
         // FIXME: Add namespace change if necessary
         // Copy Identifiers
         Optional<AxiomItem<?>> identifiers = superType.item(Item.IDENTIFIER_DEFINITION);
         if(identifiers.isPresent()) {
             target.mergeItem(identifiers.get());
         }// Copy Items
-        Optional<AxiomItem<?>> items = superType.item(Item.ITEM_DEFINITION);
-        if(items.isPresent()) {
-            target.mergeItem(items.get());
+        Collection<AxiomItemDefinition> itemDefs = ImmutableList.copyOf(superType.itemDefinitions().values());
+
+        for (AxiomItemDefinition item : superType.itemDefinitions().values()) {
+            final AxiomIdentifier derivedName;
+            if (!item.name().namespace().equals(targetNamespace) && item.name().sameNamespace(superType.name())) {
+                derivedName = AxiomIdentifier.from(targetNamespace, item.name().localName());
+            } else {
+                derivedName = item.name();
+            }
+            AxiomItemDefinition derived = item.derived(derivedName);
+            target.mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, derived));
         }
     }
 }

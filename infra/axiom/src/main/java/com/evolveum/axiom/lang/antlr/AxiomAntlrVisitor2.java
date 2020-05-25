@@ -11,35 +11,29 @@ import java.util.Set;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.evolveum.axiom.lang.api.AxiomItemStream.Target;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 
-public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
+public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 
-    private final AxiomIdentifierResolver statements;
-    private final AxiomIdentifierResolver arguments;
-    private final AxiomItemStream.Target delegate;
+    private final AxiomItemStream.TargetWithResolver delegate;
 
-    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomItemStream.Target delegate,
+    public AxiomAntlrVisitor2(String name, AxiomItemStream.TargetWithResolver delegate,
             Set<AxiomIdentifier> limit) {
         super(name, limit);
-        this.statements = statements;
-        this.arguments = arguments;
         this.delegate = delegate;
     }
 
     @Override
     protected AxiomIdentifier resolveArgument(String prefix, String localName) {
-        return arguments.resolveIdentifier(prefix, localName);
+        return delegate.valueResolver().resolveIdentifier(prefix, localName);
     }
 
     @Override
     protected AxiomIdentifier resolveItemName(String prefix, String localName) {
-        return statements.resolveIdentifier(prefix, localName);
+        return delegate.itemResolver().resolveIdentifier(prefix, localName);
     }
 
     @Override
     protected Target delegate() {
         return delegate;
     }
-
 }

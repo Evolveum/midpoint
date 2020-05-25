@@ -35,7 +35,7 @@ import com.google.common.base.Strings;
 import org.jetbrains.annotations.Nullable;
 
 public class ModelReactorContext extends
-        RuleReactorContext<AxiomSemanticException, ValueContext<?>, StatementRuleContextImpl<?>, RuleContextImpl>
+        RuleReactorContext<AxiomSemanticException, ValueContext<?>, ValueActionImpl<?>, RuleContextImpl>
         implements AxiomIdentifierResolver {
 
     private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root", "root");
@@ -116,9 +116,9 @@ public class ModelReactorContext extends
     }
 
     @Override
-    protected void failOutstanding(Collection<StatementRuleContextImpl<?>> outstanding) throws AxiomSemanticException {
+    protected void failOutstanding(Collection<ValueActionImpl<?>> outstanding) throws AxiomSemanticException {
         StringBuilder messages = new StringBuilder("Can not complete models, following errors occured:\n");
-        for (StatementRuleContextImpl<?> rule : outstanding) {
+        for (ValueActionImpl<?> rule : outstanding) {
             Exception exception = rule.errorMessage();
             messages.append("Rule: ").append(rule.name()).append("\n");
             if (exception != null) {
@@ -143,7 +143,7 @@ public class ModelReactorContext extends
     }
 
     @Override
-    protected void addOutstanding(StatementRuleContextImpl<?> action) {
+    protected void addOutstanding(ValueActionImpl<?> action) {
         super.addOutstanding(action);
     }
 

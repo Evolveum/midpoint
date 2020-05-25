@@ -1,0 +1,19 @@
+model derived-person {
+
+    namespace "https://example.org/derived";
+    
+    import base {
+        namespace "https://example.org/base";
+    }
+
+    type Person {
+        extends base:Person;
+        
+        item firstName {
+            type string;
+        }
+        item lastName {
+            type string;
+        }
+    }
+}

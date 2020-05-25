@@ -25,7 +25,7 @@ public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifier
 
     public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomIdentifierDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
-        this.scope = AxiomIdentifierDefinition.scope(this.<AxiomIdentifier>item(Item.ID_SCOPE.name()).get().onlyValue().get().getLocalName());
+        this.scope = AxiomIdentifierDefinition.scope(this.<AxiomIdentifier>item(Item.ID_SCOPE.name()).get().onlyValue().get().localName());
         this.space = this.<AxiomIdentifier>item(Item.ID_SPACE.name()).get().onlyValue().get();
 
         ImmutableList.Builder<AxiomItemDefinition> components = ImmutableList.builder();

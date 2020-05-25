@@ -6,8 +6,6 @@
  */
 package com.evolveum.axiom.api;
 
-import java.util.Objects;
-
 import com.google.common.base.Preconditions;
 
 public class AxiomIdentifier {
@@ -21,11 +19,11 @@ public class AxiomIdentifier {
         this.localName = Preconditions.checkNotNull(localName, "localName");
     }
 
-    public String getNamespace() {
+    public String namespace() {
         return namespace;
     }
 
-    public String getLocalName() {
+    public String localName() {
         return localName;
     }
 
@@ -69,6 +67,10 @@ public class AxiomIdentifier {
 
     public static AxiomIdentifier from(String namespace, String localName) {
         return new AxiomIdentifier(namespace, localName);
+    }
+
+    public boolean sameNamespace(AxiomIdentifier other) {
+        return this.namespace().equals(other.namespace());
     }
 
 }

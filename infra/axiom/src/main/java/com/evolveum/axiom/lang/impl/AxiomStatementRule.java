@@ -43,7 +43,9 @@ public interface AxiomStatementRule<V> {
 
         boolean isMutable();
 
+        Lookup<?> parentValue();
 
+        AxiomSemanticException error(String message, Object... arguments);
     }
 
     interface ActionBuilder<V> {

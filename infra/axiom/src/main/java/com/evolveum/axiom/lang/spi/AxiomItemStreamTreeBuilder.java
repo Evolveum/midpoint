@@ -10,14 +10,12 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemStream;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
 import com.google.common.base.Preconditions;
 
 
-public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Listener {
+public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Target {
 
     private final Deque<Builder> queue = new LinkedList<>();
 
@@ -84,24 +82,6 @@ public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Listener {
         Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement);
         ItemBuilder startItem(AxiomIdentifier identifier, SourceLocation loc);
         void endValue(SourceLocation loc);
-    }
-
-    public void stream(AxiomItem<?> itemDef) {
-        for(AxiomItemValue<?> value : itemDef.values()) {
-            startItem(itemDef.name(), null);
-                stream(value);
-            endItem(null);
-
-        }
-    }
-
-    private void stream(AxiomItemValue<?> value) {
-        Object valueMapped = value.get();
-        startValue(valueMapped, null);
-        for(AxiomItem<?> item : value.items()) {
-            stream(item);
-        }
-        endValue(null);
     }
 
 }

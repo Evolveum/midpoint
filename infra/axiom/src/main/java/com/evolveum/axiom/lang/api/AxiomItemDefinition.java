@@ -37,8 +37,32 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValu
                 .toString();
     }
 
+    static AxiomItemDefinition derived(AxiomIdentifier name , AxiomItemDefinition source) {
+        return new DelegatedItemDefinition() {
+
+            @Override
+            protected AxiomItemDefinition delegate() {
+                return source;
+            }
+
+            @Override
+            public AxiomIdentifier name() {
+                return name;
+            }
+        };
+    }
+
     static IdentifierSpaceKey identifier(AxiomIdentifier name) {
         return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
     }
 
+    interface Derived extends AxiomItemDefinition {
+
+        AxiomItemDefinition original();
+
+    }
+
+    default AxiomItemDefinition derived(AxiomIdentifier name) {
+        return derived(name, this);
+    }
 }

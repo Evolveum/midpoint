@@ -261,6 +261,12 @@ public class AxiomBuiltIn {
             return Optional.empty();
         }
 
+        @Override
+        public String toString() {
+            // TODO Auto-generated method stub
+            return "typedef " + name();
+        }
+
     }
 
 

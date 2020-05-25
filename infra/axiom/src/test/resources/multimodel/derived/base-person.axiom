@@ -1,0 +1,10 @@
+model base-person {
+
+    namespace "https://example.org/base";
+
+    type Person {
+        item name {
+            type string;
+        }
+    }
+}
