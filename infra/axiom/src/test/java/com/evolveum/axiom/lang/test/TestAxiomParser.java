@@ -10,19 +10,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
 
-import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
@@ -30,7 +23,6 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
-import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 
 public class TestAxiomParser extends AbstractReactorTest {
 
@@ -68,24 +60,5 @@ public class TestAxiomParser extends AbstractReactorTest {
     private void assertInstanceOf(Class<?> clz, Object value) {
         assertTrue(clz.isInstance(value));
     }
-
-    @Test
-    public void moduleHeaderTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(BASE_EXAMPLE);
-        assertNotNull(context.getType(AxiomIdentifier.from("https://ns.evolveum.com/example/axiom/model-header", "Example")).get());
-    }
-
-    @Test
-    public void commonCoreTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(COMMON_CORE);
-    }
-
-    @Test
-    public void scriptingTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(SCRIPTING);
-    }
-
-
-
 
 }
