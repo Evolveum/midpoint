@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.util;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -34,6 +31,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+
+import static java.util.Collections.*;
 
 /**
  * @author semancik
@@ -780,7 +780,22 @@ public class MiscUtil {
         }
     }
 
-    public static Set<String> singletonOrEmptySet(String value) {
+    public static <T> Set<T> singletonOrEmptySet(T value) {
         return value != null ? singleton(value) : emptySet();
+    }
+
+    public static <T> List<T> singletonOrEmptyList(T value) {
+        return value != null ? singletonList(value) : emptyList();
+    }
+
+    public static <T> T cast(Object value, Class<T> expectedClass) throws SchemaException {
+        if (value == null) {
+            return null;
+        } else if (!expectedClass.isAssignableFrom(value.getClass())) {
+            throw new SchemaException("Expected '" + expectedClass.getName() + "' but got '" + value.getClass().getName() + "'");
+        } else {
+            //noinspection unchecked
+            return (T) value;
+        }
     }
 }

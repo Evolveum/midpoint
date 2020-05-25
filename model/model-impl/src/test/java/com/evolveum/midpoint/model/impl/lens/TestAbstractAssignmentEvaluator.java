@@ -17,6 +17,9 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;

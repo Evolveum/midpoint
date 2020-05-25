@@ -206,20 +206,21 @@ public class OperationsHelper {
         }
     }
 
-    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor) {
-        OperationResult result = new OperationResult(executor.getClass().getName() + "." + "execute");
+    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, OperationResult globalResult) {
+        OperationResult result = globalResult.createMinorSubresult(executor.getClass().getName() + "." + "execute");
         if (item != null) {
             result.addParam("value", String.valueOf(item.getValue()));
-            item.getResult().addSubresult(result);
         }
         return result;
     }
 
-    public void trimAndCloneResult(OperationResult result, OperationResult globalResult) {
+    public void trimAndCloneResult(OperationResult result, OperationResult itemResultParent) {
         result.computeStatusIfUnknown();
         // TODO make this configurable
         result.getSubresults().forEach(OperationResult::setMinor);
         result.cleanupResult();
-        globalResult.addSubresult(result.clone());
+        if (itemResultParent != null) {
+            itemResultParent.addSubresult(result.clone());
+        }
     }
 }

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 @RestController
-@RequestMapping(value = "/rest2/schema")
+@RequestMapping({ "/ws/schema", "/rest/schema", "/api/schema" })
 public class ExtensionSchemaRestController extends AbstractRestController {
 
     @Autowired private PrismContext prismContext;

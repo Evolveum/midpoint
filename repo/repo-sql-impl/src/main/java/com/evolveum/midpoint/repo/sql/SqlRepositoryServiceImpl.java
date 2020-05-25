@@ -1064,6 +1064,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
+        // Archetype
+        List<ObjectReferenceType> specArchetypeRefs = objectSelector.getArchetypeRef();
+        if (!specArchetypeRefs.isEmpty()) {
+            if (object.canRepresent(AssignmentHolderType.class)) {
+                boolean match = false;
+                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+                for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
+                    for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
+                        if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!match) {
+                    logger.trace("{} archetype mismatch, expected {}, was {}", logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
+                    return false;
+                }
+            } else {
+                logger.trace("{} archetype mismatch, expected {} but object has none (it is not of AssignmentHolderType)",
+                        logMessagePrefix, specArchetypeRefs);
+                return false;
+            }
+        }
+
         // Filter
         if (specFilterType != null) {
             ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);

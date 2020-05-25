@@ -592,12 +592,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         OrgRelationObjectSpecificationType specOrgRelation = objectSelector.getOrgRelation();
         RoleRelationObjectSpecificationType specRoleRelation = objectSelector.getRoleRelation();
-        List<ObjectReferenceType> autzArchetypeRefs = objectSelector.getArchetypeRef();
 
         // Special
         List<SpecialObjectSpecificationType> specSpecial = objectSelector.getSpecial();
         if (specSpecial != null && !specSpecial.isEmpty()) {
-            if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null || specRoleRelation != null || !autzArchetypeRefs.isEmpty()) {
+            if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null || specRoleRelation != null) {
                 throw new SchemaException("Both filter/org/role/archetype and special "+desc+" specification specified in "+autzHumanReadableDesc);
             }
             for (SpecialObjectSpecificationType special: specSpecial) {
@@ -628,31 +627,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             return false;
         } else {
             LOGGER.trace("    {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
-        }
-
-        // archetype
-        if (!autzArchetypeRefs.isEmpty()) {
-            boolean match = false;
-            if (object.canRepresent(AssignmentHolderType.class)) {
-                List<ObjectReferenceType> objectArchetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
-                if (objectArchetypeRefs != null && !objectArchetypeRefs.isEmpty()) {
-                    for (ObjectReferenceType autzArchetypeRef: autzArchetypeRefs) {
-                        for (ObjectReferenceType objectArchetypeRef : objectArchetypeRefs) {
-                            if (objectArchetypeRef.getOid().equals(autzArchetypeRef.getOid())) {
-                                LOGGER.trace("    archetype {} applicable for {}, object OID {} because archetype {} matches",
-                                        autzHumanReadableDesc, desc, object.getOid(), objectArchetypeRef.getOid());
-                                match = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            if (!match) {
-                LOGGER.trace("    archetypes {} not applicable for {}, object OID {} because archetypes do not match",
-                        autzHumanReadableDesc, desc, object.getOid());
-                return false;
-            }
         }
 
         // orgRelation
@@ -1352,11 +1326,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
     /**
      * @return additional security filter. This filter is supposed to be added (operation "AND") to the original filter.
      */
-    private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterPhase(MidPointPrincipal principal, String[] operationUrls,
-            AuthorizationPhaseType phase, boolean includeNullPhase,
-            Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
-                                                                                         FilterGizmo<F> gizmo,
-                                                                                         String desc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterPhase(MidPointPrincipal principal,
+            String[] operationUrls, AuthorizationPhaseType phase, boolean includeNullPhase,
+            Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter origFilter,
+            String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints,
+            FilterGizmo<F> gizmo, String desc, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         Collection<Authorization> authorities = getAuthorities(principal);
 
@@ -1365,9 +1341,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
         QueryAutzItemPaths queryItemsSpec = new QueryAutzItemPaths();
         queryItemsSpec.addRequiredItems(origFilter); // MID-3916
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("  phase={}, initial query items spec {}", phase, queryItemsSpec.shortDump());
-        }
+        LOGGER.trace("  phase={}, initial query items spec {}", phase, queryItemsSpec.shortDumpLazily());
 
         if (authorities != null) {
             for (GrantedAuthority authority: authorities) {
@@ -1732,10 +1706,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         traceFilter("securityFilterAllow", null, securityFilterAllow, gizmo);
         traceFilter("securityFilterDeny", null, securityFilterDeny, gizmo);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("  final items: {}", queryItemsSpec.shortDump());
-        }
-        List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfierItems();
+        LOGGER.trace("  final items: {}", queryItemsSpec.shortDumpLazily());
+        List<ItemPath> unsatisfiedItems = queryItemsSpec.evaluateUnsatisfiedItems();
         if (!unsatisfiedItems.isEmpty()) {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("  phase={} done: principal={}, operation={}, {}: deny because items {} are not allowed",
@@ -1852,10 +1824,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             autzOrderMax = 0;
         } else {
             if (autzOrderConstraints.getRelation() != null) {
-                throw new UnsupportedOperationException("Complex order constaints with relation not supported in authorizations");
+                throw new UnsupportedOperationException("Complex order constraints with relation not supported in authorizations");
             }
             if (autzOrderConstraints.getResetOrder() != null) {
-                throw new UnsupportedOperationException("Complex order constaints with resetOrder not supported in authorizations");
+                throw new UnsupportedOperationException("Complex order constraints with resetOrder not supported in authorizations");
             }
 
             Integer autzOrder = autzOrderConstraints.getOrder();

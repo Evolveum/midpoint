@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;

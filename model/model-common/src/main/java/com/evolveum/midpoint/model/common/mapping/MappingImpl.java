@@ -46,6 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Mapping is non-recyclable single-use object. Once evaluated it should not be evaluated again. It will retain its original
  * inputs and outputs that can be read again and again. But these should not be changed after evaluation.
@@ -1841,7 +1843,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             return addVariableDefinition(name, value, definition);
         }
 
-        public Builder<V, D> addAliasRegistration(String alias, String mainVariable) {
+        // mainVariable of "null" means the default source
+        public Builder<V, D> addAliasRegistration(String alias, @Nullable String mainVariable) {
             variables.registerAlias(alias, mainVariable);
             return this;
         }

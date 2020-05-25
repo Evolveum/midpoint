@@ -7,10 +7,20 @@
 
 package com.evolveum.midpoint.model.impl.security;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.ws.rs.core.Response;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.ClusterwideUserSessionManager;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
-import com.evolveum.midpoint.model.impl.ClusterRestService;
+import com.evolveum.midpoint.model.impl.ClusterServiceConsts;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.ClusterExecutionOptions;
@@ -20,15 +30,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Takes care for clusterwide user session management.
@@ -49,7 +50,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // We try to invoke this call also on nodes that are in transition. It is quite important
         // that terminate session is executed on as wide scale as realistically possible.
         clusterExecutionHelper.execute((client, node, result1) -> {
-            client.path(ClusterRestService.EVENT_TERMINATE_SESSION);
+            client.path(ClusterServiceConsts.EVENT_TERMINATE_SESSION);
             Response response = client.post(terminateSessionEvent.toEventType());
             LOGGER.info("Remote-node user session termination finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());
@@ -69,7 +70,7 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
         // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
         clusterExecutionHelper.execute((client, node, result1) -> {
-            client.path(ClusterRestService.EVENT_LIST_USER_SESSION);
+            client.path(ClusterServiceConsts.EVENT_LIST_USER_SESSION);
             Response response = client.get();
             LOGGER.info("Remote-node retrieval of user sessions finished on {} with status {}, {}", node.getNodeIdentifier(),
                     response.getStatusInfo().getStatusCode(), response.getStatusInfo().getReasonPhrase());

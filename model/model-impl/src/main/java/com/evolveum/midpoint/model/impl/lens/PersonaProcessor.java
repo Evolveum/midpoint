@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedPersonaConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

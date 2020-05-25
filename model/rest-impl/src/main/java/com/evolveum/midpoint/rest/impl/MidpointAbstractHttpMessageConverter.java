@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -23,7 +24,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -89,7 +89,7 @@ public abstract class MidpointAbstractHttpMessageConverter<T> extends AbstractHt
             if (object instanceof ExecuteScriptType) {
                 return object;
             } else if (object instanceof ScriptingExpressionType) {
-                return ScriptingExpressionEvaluator.createExecuteScriptCommand((ScriptingExpressionType) object);
+                return ScriptingBeansUtil.createExecuteScriptCommand((ScriptingExpressionType) object);
             } else {
                 throw new IllegalArgumentException("Wrong input value for ExecuteScriptType: " + object);
             }

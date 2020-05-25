@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.scripting.helpers;
+package com.evolveum.midpoint.schema.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.MiscUtil;
+
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 import org.apache.commons.beanutils.MethodUtils;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -65,7 +69,7 @@ public class ScriptingBeansUtil {
      * Sometimes we have to convert "bare" ScriptingExpressionType instance to the JAXBElement version,
      * with the correct element name.
      */
-    public static <T extends ScriptingExpressionType> JAXBElement<T> toJaxbElement(T expression) {
+    private static <T extends ScriptingExpressionType> JAXBElement<T> toJaxbElement(T expression) {
         QName qname = ELEMENTS.get(expression.getClass());
         if (qname != null) {
             //noinspection unchecked
@@ -83,11 +87,11 @@ public class ScriptingBeansUtil {
         }
     }
 
-    static <T> T getBeanPropertyValue(ActionExpressionType action, String propertyName, Class<T> clazz) throws SchemaException {
+    public static <T> T getBeanPropertyValue(ActionExpressionType action, String propertyName, Class<T> clazz) throws SchemaException {
         try {
             try {
                 Object rawValue = PropertyUtils.getSimpleProperty(action, propertyName);
-                return ScriptingDataUtil.cast(rawValue, clazz);
+                return MiscUtil.cast(rawValue, clazz);
             } catch (NoSuchMethodException e) {
                 if (Boolean.class.equals(clazz)) {
                     // Note that getSimpleProperty looks for "getX" instead of our "isX" getter for Boolean (not boolean) props.
@@ -108,10 +112,16 @@ public class ScriptingBeansUtil {
         try {
             String methodName = "is" + StringUtils.capitalize(propertyName);
             Object rawValue = MethodUtils.invokeExactMethod(action, methodName, new Object[0]);
-            return ScriptingDataUtil.cast(rawValue, Boolean.class);
+            return MiscUtil.cast(rawValue, Boolean.class);
         } catch (NoSuchMethodException e) {
             // This can occur when dynamic parameters are used: the action is of generic type, not the specific one.
             return null;
         }
+    }
+
+    public static ExecuteScriptType createExecuteScriptCommand(ScriptingExpressionType expression) {
+        ExecuteScriptType executeScriptCommand = new ExecuteScriptType();
+        executeScriptCommand.setScriptingExpression(toJaxbElement(expression));
+        return executeScriptCommand;
     }
 }

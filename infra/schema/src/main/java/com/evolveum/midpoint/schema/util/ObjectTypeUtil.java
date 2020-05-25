@@ -471,7 +471,7 @@ public class ObjectTypeUtil {
         return (PrismObject) parent3;
     }
 
-    public static List<PrismReferenceValue> objectReferenceListToPrismReferenceValues(Collection<ObjectReferenceType> refList) throws SchemaException {
+    public static List<PrismReferenceValue> objectReferenceListToPrismReferenceValues(Collection<ObjectReferenceType> refList) {
         List<PrismReferenceValue> rv = new ArrayList<>();
         for (ObjectReferenceType ref : refList) {
             rv.add(ref.asReferenceValue());
@@ -683,12 +683,6 @@ public class ObjectTypeUtil {
             }
         }
         return true;
-    }
-
-    public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
-        return CollectionUtils.emptyIfNull(constraints).stream()
-                .filter(c -> QNameUtil.match(c.getRelation(), relation))        // intentionally not using default/null equivalence here
-                .findFirst().orElse(null);
     }
 
     public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {

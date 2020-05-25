@@ -6,33 +6,19 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.MidpointRequestAttributeAuthenticationFilter;
-import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
-import org.jasig.cas.client.session.SingleSignOutFilter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
-import org.springframework.security.cas.web.CasAuthenticationFilter;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -42,18 +28,16 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.AntPathMatcher;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
+import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
 
 /**
  * @author skublik
@@ -63,19 +47,11 @@ import java.util.UUID;
 @EnableWebSecurity
 public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BasicWebSecurityConfig.class);
-
     @Autowired
     private AuthModuleRegistryImpl authRegistry;
 
     @Autowired
     AuthChannelRegistryImpl authChannelRegistry;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private SystemObjectCache systemObjectCache;
 
     @Autowired
     private SessionRegistry sessionRegistry;
@@ -94,8 +70,8 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
-                                                                   SecurityContextManager securityContextManager,
-                                                                   TaskManager taskManager) {
+            SecurityContextManager securityContextManager,
+            TaskManager taskManager) {
         return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
     }
 
@@ -132,30 +108,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         // Web (SOAP) services
         web.ignoring().antMatchers("/model/**");
 
-        // REST service
-        web.ignoring().requestMatchers(new RequestMatcher() {
-            @Override
-            public boolean matches(HttpServletRequest httpServletRequest) {
-                AntPathMatcher mather = new AntPathMatcher();
-                boolean isExperimentalEnabled = false;
-                try {
-                    isExperimentalEnabled = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(
-                            systemObjectCache.getSystemConfiguration(new OperationResult("Load System Config")).asObjectable());
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't load system configuration", e);
-                }
-                if (isExperimentalEnabled
-                        && mather.match("/ws/rest/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
-                    return false;
-                }
-                if (mather.match("/ws/**", httpServletRequest.getRequestURI().substring(httpServletRequest.getContextPath().length()))) {
-                    return true;
-                }
-                return false;
-            }
-        });
-        web.ignoring().antMatchers("/rest/**");
-
         // Special intra-cluster service to download and delete report outputs
         web.ignoring().antMatchers("/report");
 
@@ -175,7 +127,6 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
         AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 

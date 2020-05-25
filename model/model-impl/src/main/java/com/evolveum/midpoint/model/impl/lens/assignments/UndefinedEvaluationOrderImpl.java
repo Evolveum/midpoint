@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
+
 import org.apache.commons.collections4.MultiSet;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author semancik
@@ -106,5 +105,10 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
     @Override
     public boolean isOrderOne() {
         return false; // TODO
+    }
+
+    @Override
+    public boolean matches(Integer assignmentOrder, List<OrderConstraintsType> assignmentOrderConstraint) {
+        return false;
     }
 }

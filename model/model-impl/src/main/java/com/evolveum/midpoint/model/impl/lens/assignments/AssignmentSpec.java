@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -16,13 +16,11 @@ import java.util.Objects;
 
 /**
  * A key for assignment:mode => modifications map (for policy state).
- *
- * @author mederly
  */
 public class AssignmentSpec implements Serializable {
 
     @NotNull public final AssignmentType assignment;
-    @NotNull public final PlusMinusZero mode;               // regarding the current object state (not the old one)
+    @NotNull public final PlusMinusZero mode; // regarding the current object state (not the old one)
 
     public AssignmentSpec(@NotNull AssignmentType assignment, @NotNull PlusMinusZero mode) {
         this.assignment = assignment;

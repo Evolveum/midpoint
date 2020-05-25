@@ -13645,6 +13645,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of object with respect to its archetype.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                        <a:since>4.0</a:since>
+                        <!-- Since 4.2 it is moved from SubjectedObjectSelectorType to ObjectSelectorType. -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13695,7 +13709,7 @@
                             <xsd:documentation>
                                 <p>
                                     Definition of object with respect to subject membership in organizational hierarchy.
-                                    Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                                    Used to specify authorizations for all objects that belong to an org where the subject is a manager, etc.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -13716,19 +13730,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.6</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                  Definition of object with respect to its archetype.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
-                                <a:since>4.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -13780,7 +13781,7 @@
                                 The "owner" means a focus that has a link to the object.
 
                                 LIMITATION: for search pre-processing this option is supported in a very limited way
-                                (only for TaskType.ownerRef and AbstractRoleType.ownerRef and only for "self" owners).
+                                (only for TaskType.ownerRef and only for "self" owners).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -13995,7 +13996,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Definition of object with respect to subject membership in organizational hierarchy.
-                Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                Used to specify authorizations for all objects that belong to an org where the subject is a manager, etc.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -21212,6 +21213,14 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OBJECT_STATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="alwaysTrue">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS_TRUE"/>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

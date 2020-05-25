@@ -43,8 +43,8 @@
     <logger name="com.evolveum.midpoint.model.impl.lens.projector" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetCache" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
     <logger name="com.evolveum.midpoint.model.impl.lens.ShadowConstraintsChecker" level="DEBUG" />
     <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="DEBUG" />

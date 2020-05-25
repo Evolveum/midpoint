@@ -16,11 +16,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * @author semancik
  */
-public class AutzItemPaths extends PositiveNegativeItemPaths {
+class AutzItemPaths extends PositiveNegativeItemPaths {
 
     private static final Trace LOGGER = TraceManager.getTrace(AutzItemPaths.class);
 
-    public void collectItems(Authorization autz) {
+    void collectItems(Authorization autz) {
         collectItemPaths(autz.getItems(), autz.getExceptItems());
     }
 
