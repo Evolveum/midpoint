@@ -84,7 +84,7 @@ public class ObjectPolicyAspectPart {
             PrismObject<T> object = focusContext.getObjectOld() != null ?
                     focusContext.getObjectOld() : focusContext.getObjectNew();
 
-            List<EvaluatedPolicyRule> triggeredApprovalActionRules = main
+            List<? extends EvaluatedPolicyRule> triggeredApprovalActionRules = main
                     .selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
             LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
                     debugDumpLazily(triggeredApprovalActionRules));

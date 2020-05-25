@@ -1484,9 +1484,15 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             return false;
         }
         Class<?> superClass = determineClassForType(superType);
+        // TODO consider implementing "strict mode" that would throw an exception in the case of nullness
+        return superClass != null && isAssignableFrom(superClass, subType);
+    }
+
+    @Override
+    public boolean isAssignableFrom(@NotNull Class<?> superClass, @NotNull QName subType) {
         Class<?> subClass = determineClassForType(subType);
         // TODO consider implementing "strict mode" that would throw an exception in the case of nullness
-        return superClass != null && subClass != null && superClass.isAssignableFrom(subClass);
+        return subClass != null && superClass.isAssignableFrom(subClass);
     }
 
     @Override

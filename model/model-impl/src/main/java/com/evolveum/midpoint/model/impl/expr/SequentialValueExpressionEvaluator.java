@@ -63,10 +63,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-        if (ctx == null) {
-            throw new IllegalStateException("No lens context");
-        }
+        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
 
         Long counter = ctx.getSequenceCounter(sequenceOid);
         if (counter == null) {

@@ -11,7 +11,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
 
@@ -57,8 +56,6 @@ import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalS
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
@@ -124,6 +121,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private transient Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
+    @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
     @Autowired private WorkflowService workflowService;
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
@@ -290,14 +288,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
-        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-        if (ctx == null) {
-            throw new IllegalStateException("No lens context");
-        }
-        ModelElementContext<F> focusContext = ctx.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus in lens context");
-        }
+        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelElementContext<F> focusContext = ctx.getFocusContextRequired();
 
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 
@@ -373,14 +365,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
-        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-        if (ctx == null) {
-            throw new IllegalStateException("No lens context");
-        }
-        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus in lens context");
-        }
+        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContextRequired();
 
         PrismObject<? extends FocusType> focus;
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
@@ -414,10 +400,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @SuppressWarnings("unused")
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext == null) {
-            throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
-        }
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
@@ -854,7 +837,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return resolveReferenceInternal(reference, false);
     }
 
-    private <T extends ObjectType> T resolveReferenceInternal(ObjectReferenceType reference, boolean allowNotFound)
+    <T extends ObjectType> T resolveReferenceInternal(ObjectReferenceType reference, boolean allowNotFound)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -1766,10 +1749,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext == null) {
-            throw new IllegalStateException("No lensContext");
-        }
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return emptySet();
@@ -2011,57 +1991,36 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Experimental
     public <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return MiscUtil.extractSingleton(findAssignees(type), () -> new IllegalStateException("More than one assignee found"));
+        return linkedObjectsFunctions.findAssignee(type);
     }
 
     @Experimental
     public <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ObjectQuery query = prismContext.queryFor(type)
-                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
-                .ref(getFocusObjectReference().asReferenceValue().clone())
-                .build();
-        return searchObjects(type, query, null);
+        return linkedObjectsFunctions.findAssignees(type);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid) {
-        return MiscUtil.extractSingleton(findAssignedObjects(type, archetypeOid),
-                () -> new IllegalStateException("More than one assigned object found"));
+    public <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findAssignedObject(type, archetypeOid);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
     @NotNull
-    public <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid) {
-        LensContext<?> lensContext = (LensContext<?>) getModelContext();
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> assignmentTriple = lensContext.getEvaluatedAssignmentTriple();
-        if (assignmentTriple == null) {
-            return emptyList();
-        }
-        Map<String, PrismObject<T>> assignedMap = new HashMap<>();
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : assignmentTriple.getNonNegativeValues()) {
-            for (EvaluatedAssignmentTargetImpl target : evaluatedAssignment.getNonNegativeTargets()) {
-                if (!assignedMap.containsKey(target.getOid()) && matches(target, type, archetypeOid)) {
-                    //noinspection unchecked
-                    assignedMap.put(target.getOid(), (PrismObject<T>) target.getTarget());
-                }
-            }
-        }
-        return asObjectables(assignedMap.values());
-    }
-
-    private <T extends AssignmentHolderType> boolean matches(EvaluatedAssignmentTargetImpl target, Class<T> type, String archetypeOid) {
-        AssignmentHolderType targetObject = target.getTarget().asObjectable();
-        return type.isAssignableFrom(targetObject.getClass())
-                && (archetypeOid == null || hasArchetype(targetObject, archetypeOid));
+    public <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findAssignedObjects(type, archetypeOid);
     }
 
     @Experimental
     @NotNull
-    private ObjectReferenceType getFocusObjectReference() {
+    public ObjectReferenceType getFocusObjectReference() {
         ObjectType focusObject = getFocusObjectAny();
         String oid = focusObject.getOid();
         if (oid == null) {
@@ -2077,10 +2036,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (lensContext == null) {
             throw new IllegalStateException("No model context present. Are you calling this method within model operation?");
         }
-        LensFocusContext<T> focusContext = lensContext.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus context present");
-        }
+        LensFocusContext<T> focusContext = lensContext.getFocusContextRequired();
         PrismObject<T> object = focusContext.getObjectAny();
         if (object == null) {
             throw new IllegalStateException("No old, current, nor new object in focus context");

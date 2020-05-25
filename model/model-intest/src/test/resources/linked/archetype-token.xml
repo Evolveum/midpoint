@@ -83,6 +83,7 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-holder-on-token-name-change</name>
             <documentation>
                 Recomputes a user when token name is changed. (Note that user is recomputed
                 automatically when token is assigned or unassigned.)
@@ -95,7 +96,7 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignee/>
+                        <linkSource/>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -110,18 +111,21 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-token-on-membership-change</name>
             <documentation>
-                Recomputes a token when it is assigned to (or unassigned from) the user or when the assignment
-                is modified. But what we would need, actually, is triggering token recompute when the effective membership
-                is changed.
+                Recomputes all tokens whose membership has changed.
             </documentation>
             <policyConstraints>
-                <assignment/>
+                <alwaysTrue/>
             </policyConstraints>
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -129,11 +133,12 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to token object, so executes when assignment to it is added/modified (i.e. on the user) -->
+        <order>2</order> <!-- assigned to the user -->
     </inducement>
 
     <inducement>
         <policyRule>
+            <name>recompute-token-on-holder-name-change</name>
             <documentation>Recomputes a token when user's name or fullName changes.</documentation>
             <policyConstraints>
                 <or>
@@ -148,7 +153,10 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>

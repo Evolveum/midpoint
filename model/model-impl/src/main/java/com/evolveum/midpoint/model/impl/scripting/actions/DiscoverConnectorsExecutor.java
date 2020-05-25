@@ -66,7 +66,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -98,7 +98,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult);
+            operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;      // TODO configurable output (either connector hosts or discovered connectors)
     }

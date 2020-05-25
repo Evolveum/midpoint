@@ -21,7 +21,7 @@ public class MidpointYamlHttpMessageConverter extends MidpointAbstractHttpMessag
     public static final MediaType[] MEDIA_TYPES = {
             MediaType.valueOf("application/yaml"), MediaType.valueOf("text/yaml"),
             MediaType.valueOf("application/yml"), MediaType.valueOf("text/yml"),
-            MediaType.valueOf("application/*-yaml"), MediaType.valueOf("text/*-yaml"),
+            MediaType.valueOf("application/*+yaml"), MediaType.valueOf("text/*+yaml"),
             MediaType.valueOf("application/*.yaml"), MediaType.valueOf("text/*.yaml")
     };
 

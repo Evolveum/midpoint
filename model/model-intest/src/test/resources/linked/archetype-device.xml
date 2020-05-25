@@ -9,7 +9,7 @@
            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
            oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402">
     <name>device</name>
-    <documentation>A device  has some special characteristics:
+    <documentation>A device has some special characteristics:
 
         1. It is held by at most single user at given time.
 
@@ -34,6 +34,7 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-user-on-device-name-change</name>
             <documentation>
                 Recomputes a user when device name is changed. (Note that user is recomputed
                 automatically when device is assigned or unassigned.)
@@ -46,7 +47,7 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignee/>
+                        <linkSource/>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -61,18 +62,21 @@
 
     <inducement>
         <policyRule>
+            <name>recompute-device-on-membership-change</name>
             <documentation>
-                Recomputes a device when it is assigned to (or unassigned from) the user or when the assignment
-                is modified. But what we would need, actually, is triggering device recompute when the effective membership
-                is changed.
+                Recomputes all devices whose membership has changed.
             </documentation>
             <policyConstraints>
-                <assignment/>
+                <alwaysTrue/>
             </policyConstraints>
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -80,11 +84,12 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to device object, so executes when assignment to it is added/modified (i.e. on the user) -->
+        <order>2</order> <!-- assigned the user -->
     </inducement>
 
     <inducement>
         <policyRule>
+            <name>recompute-device-on-user-name-change</name>
             <documentation>Recomputes a device when user's name or fullName changes.</documentation>
             <policyConstraints>
                 <or>
@@ -99,7 +104,10 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <assignedOnPath/> <!-- i.e. all objects that brought this policy rule to the focus -->
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
                     </object>
                     <executeScript>
                         <s:recompute/>

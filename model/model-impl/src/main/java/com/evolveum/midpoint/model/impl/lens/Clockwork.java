@@ -543,7 +543,7 @@ public class Clockwork {
         medic.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
     }
 
-    private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) {
+    private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
         switchState(context, ModelState.FINAL);
         policyRuleScriptExecutor.execute(context, task, result);
     }
@@ -574,10 +574,7 @@ public class Clockwork {
         }
 
         // check preconditions
-        if (context.getFocusContext() == null) {
-            throw new IllegalStateException("No focus context when expected it");
-        }
-        PrismObject<F> role = context.getFocusContext().getObjectAny();
+        PrismObject<F> role = context.getFocusContextRequired().getObjectAny();
         if (role == null) {
             throw new IllegalStateException("No focus object when expected it");
         }

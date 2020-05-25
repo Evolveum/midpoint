@@ -165,6 +165,8 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
             throws SchemaException;
 
+    boolean isAssignableFrom(@NotNull Class<?> superType, @NotNull QName subType);
+
     boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
 
     /**

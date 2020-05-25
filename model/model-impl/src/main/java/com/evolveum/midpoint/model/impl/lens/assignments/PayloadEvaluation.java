@@ -157,7 +157,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     @NotNull
     private EvaluatedPolicyRuleImpl createEvaluatedPolicyRule(PolicyRuleType policyRuleBean) {
-        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ctx.assignmentPath.clone(), ctx.ae.prismContext);
+        return new EvaluatedPolicyRuleImpl(policyRuleBean.clone(), ctx.assignmentPath.clone(), ctx.evalAssignment, ctx.ae.prismContext);
     }
 
     private boolean appliesDirectly(AssignmentPathImpl assignmentPath) {

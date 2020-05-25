@@ -118,7 +118,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 
     private <AH extends AssignmentHolderType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
             PolicyRuleEvaluationContext<AH> rctx, List<String> situations) {
-        Collection<EvaluatedPolicyRule> rules;
+        Collection<? extends EvaluatedPolicyRule> rules;
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<AH>) rctx).evaluatedAssignment;
             // We consider all rules here, i.e. also those that are triggered on targets induced by this one.

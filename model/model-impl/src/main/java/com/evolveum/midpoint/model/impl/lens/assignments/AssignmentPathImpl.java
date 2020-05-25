@@ -62,8 +62,6 @@ public class AssignmentPathImpl implements AssignmentPath {
         AssignmentPathSegmentImpl last = last();
         if (last == null) {
             throw new IllegalStateException("Attempt to remove segment from empty path: " + this + "; segment=" + segment);
-        } else if (!last.equalsExceptForTarget(segment)) {
-            throw new IllegalStateException("Attempt to remove wrong segment from the end of path: " + this + "; segment=" + segment);
         } else {
             segments.remove(segments.size() - 1);
         }

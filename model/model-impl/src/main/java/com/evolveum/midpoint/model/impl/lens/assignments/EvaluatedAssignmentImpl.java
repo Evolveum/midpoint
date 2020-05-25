@@ -84,13 +84,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
     // rules related to the focal object (typically e.g. "forbid modifications")
-    @NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = new ArrayList<>();
     // rules related to the target of this assignment (typically e.g. "approve the assignment")
-    @NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = new ArrayList<>();
     // rules related to other targets provided by this assignment (e.g. induced or obtained by delegation)
     // usually, these rules do not cause direct action (e.g. in the case of approvals);
     // however, there are situations in which they are used (e.g. for exclusion rules)
-    @NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
+    @NotNull private final Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = new ArrayList<>();
     private String tenantOid;
 
     private PrismObject<?> target;
@@ -375,34 +375,34 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
+    public Collection<EvaluatedPolicyRuleImpl> getFocusPolicyRules() {
         return focusPolicyRules;
     }
 
-    void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
+    void addFocusPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         focusPolicyRules.add(policyRule);
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
+    public Collection<EvaluatedPolicyRuleImpl> getThisTargetPolicyRules() {
         return thisTargetPolicyRules;
     }
 
-    public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+    public void addThisTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         thisTargetPolicyRules.add(policyRule);
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
+    public Collection<EvaluatedPolicyRuleImpl> getOtherTargetsPolicyRules() {
         return otherTargetsPolicyRules;
     }
 
-    public void addOtherTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+    public void addOtherTargetPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         otherTargetsPolicyRules.add(policyRule);
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules() {
+    public Collection<EvaluatedPolicyRuleImpl> getAllTargetsPolicyRules() {
         return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
     }
 
@@ -517,7 +517,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         return sb.toString();
     }
 
-    private String ruleCountInfo(Collection<EvaluatedPolicyRule> rules) {
+    private String ruleCountInfo(Collection<EvaluatedPolicyRuleImpl> rules) {
         return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
     }
 
