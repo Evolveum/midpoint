@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -21,11 +22,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
@@ -175,11 +173,10 @@ public class OpResult implements Serializable, Visitable {
 
     private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
         try {
-            OperationResultType resultType = result.createOperationResultType();
-            ObjectFactory of = new ObjectFactory();
             return new ReadOnlyModel<String>(() -> {
                 try {
-                    return page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
+                    OperationResultType resultType = result.createOperationResultType();
+                    return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
                 } catch (SchemaException e) {
                     throw new TunnelException(e);
                 }
