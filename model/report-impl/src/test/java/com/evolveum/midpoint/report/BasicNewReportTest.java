@@ -6,20 +6,15 @@
  */
 package com.evolveum.midpoint.report;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -30,7 +25,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.testng.AssertJUnit.*;
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
@@ -91,26 +85,90 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public void test001CreateDashboardReportWithDefaultColumn() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithDefaultColumnOid());
         runReport(report, false);
-        checkHtmlOutputFile(report);
+        basicCheckOutputFile(report);
     }
 
     @Test
     public void test002CreateDashboardReportWithView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithViewOid());
         runReport(report, false);
-        checkHtmlOutputFile(report);
+        basicCheckOutputFile(report);
     }
 
     @Test
     public void test003CreateDashboardReportWithTripleView() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithTripleViewOid());
         runReport(report, false);
-        checkHtmlOutputFile(report);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test010CreateObjectCollectionReportWithDefaultColumn() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithDefaultColumnOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test011CreateObjectCollectionReportWithView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithViewOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test012CreateObjectCollectionReportWithDoubleView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithDoubleViewOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test013CreateAuditCollectionReportWithDefaultColumn() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithDefaultColumnOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test014CreateAuditCollectionReportWithView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithViewOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test015CreateAuditCollectionReportWithDoubleView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithDoubleViewOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test016CreateObjectCollectionReportWithFilter() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithFilterOid());
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test017CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
+//        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithFilterAndBasicCollectionOid());
+//        runReport(report, false);
+//        basicCheckOutputFile(report);
     }
 
     protected abstract String getDashboardReportWithTripleViewOid();
     protected abstract String getDashboardReportWithViewOid();
     protected abstract String getDashboardReportWithDefaultColumnOid();
+    protected abstract String getObjectCollectionReportWithDefaultColumnOid();
+    protected abstract String getObjectCollectionReportWithViewOid();
+    protected abstract String getObjectCollectionReportWithDoubleViewOid();
+    protected abstract String getAuditCollectionReportWithDefaultColumnOid();
+    protected abstract String getAuditCollectionReportWithViewOid();
+    protected abstract String getAuditCollectionReportWithDoubleViewOid();
+    protected abstract String getObjectCollectionReportWithFilterOid();
+    protected abstract String getObjectCollectionReportWithFilterAndBasicCollectionOid();
 
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
         Task task = getTestTask();
@@ -134,17 +192,14 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         return finishedTask;
     }
 
-    protected void checkHtmlOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         File outputFile = findOutputFile(report);
         displayValue("Found report file", outputFile);
         assertNotNull("No output file for "+report, outputFile);
         List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
         displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
-
-        if (lines.size() < 10) {
-            fail("Html report CSV too short ("+lines.size()+" lines)");
-        }
+        return lines;
     }
 
     protected File findOutputFile(PrismObject<ReportType> report) {

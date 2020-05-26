@@ -88,4 +88,7 @@
             </column>
         </view>
     </dashboard>
+    <export>
+        <type>html</type>
+    </export>
 </report>

@@ -52,7 +52,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -108,7 +108,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -164,7 +164,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -220,7 +220,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -276,7 +276,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -332,7 +332,7 @@
                     <name>nameColumn2</name>
                     <path>name</path>
                     <display>
-                        <label>Name</label>
+                        <label>Name2</label>
                     </display>
                     <previousColumn>nameColumn</previousColumn>
                     <expression>
@@ -388,7 +388,7 @@
                     <name>timeColumn2</name>
                     <path>time</path>
                     <display>
-                        <label>Time</label>
+                        <label>Time2</label>
                     </display>
                     <previousColumn>timeColumn</previousColumn>
                     <expression>
