@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.meta.Inheritance;
 import com.google.common.collect.ImmutableMap;
 
 public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomTypeDefinition> {
@@ -40,13 +41,13 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValu
 
     default Optional<AxiomItemDefinition> itemDefinition(AxiomIdentifier child) {
         AxiomItemDefinition maybe = itemDefinitions().get(child);
-        if(maybe != null) {
-            return Optional.of(maybe);
+        if(maybe == null) {
+            maybe = itemDefinitions().get(Inheritance.adapt(name(), child));
         }
-        if(superType().isPresent()) {
-            return superType().get().itemDefinition(child);
+        if(maybe == null && child.namespace().isEmpty()) {
+            maybe = itemDefinitions().get(name().localName(child.localName()));
         }
-        return Optional.empty();
+        return Optional.ofNullable(maybe).or(() -> superType().flatMap(s -> s.itemDefinition(child)));
     }
 
     static IdentifierSpaceKey identifier(AxiomIdentifier name) {
@@ -55,6 +56,29 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValu
 
     default Collection<AxiomItemDefinition> requiredItems() {
         return itemDefinitions().values().stream().filter(AxiomItemDefinition::required).collect(Collectors.toList());
+    }
+
+    default Optional<AxiomItemDefinition> itemDefinition(AxiomIdentifier parentItem, AxiomIdentifier name) {
+        return itemDefinition(Inheritance.adapt(parentItem, name));
+    }
+
+    default boolean isSubtypeOf(AxiomTypeDefinition type) {
+        return isSubtypeOf(type.name());
+    }
+
+    default boolean isSupertypeOf(AxiomTypeDefinition other) {
+        return other.isSubtypeOf(this);
+    }
+
+    default boolean isSubtypeOf(AxiomIdentifier other) {
+        Optional<AxiomTypeDefinition> current = Optional.of(this);
+        while(current.isPresent()) {
+            if(current.get().name().equals(other)) {
+                return true;
+            }
+            current = current.get().superType();
+        }
+        return false;
     }
 
 }

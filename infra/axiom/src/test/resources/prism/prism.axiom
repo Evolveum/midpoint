@@ -7,36 +7,27 @@ model prism {
     }
 
     root model {
-        documentation """
-            Axiom Model
-
-            Declares a new axiom model.
-            """;
         type PrismModel;
     }
 
-    type PrismModel {
-      extends axiom:AxiomModel;
-
-
-    }
-
-    extension PrismDefinition {
+    extension PrismModelExtension {
       target axiom:AxiomModel;
-      // TODO move to prism schema; consider renaming to objectType?
+      
       item object {
           type PrismObjectDefinition;
       }
 
-      // TODO move to prism schema; consider renaming to containerType?
       item container {
           type PrismContainerDefinition;
       }
 
-      // TODO move to prism schema; consider renaming to referenceType?
       item reference {
           type PrismReferenceDefinition;
       }
+    }
+
+    type PrismModel {
+        extends axiom:AxiomModel;
     }
 
     extension PrismTypeDefinitionAnnotation {

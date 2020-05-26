@@ -26,6 +26,7 @@ public class TestAxiomPrism extends AbstractReactorTest {
     private static final String DIR = "prism/";
     private static final String PRISM = DIR + "prism.axiom";
     private static final String COMMON_CORE = DIR + "common-core.axiom";
+    private static final String COMMON_CORE_PRISM = DIR + "common-core.prism";
 
     private ModelReactorContext prismReactor() throws AxiomSyntaxException, IOException {
         ModelReactorContext context = ModelReactorContext.defaultReactor();
@@ -42,6 +43,16 @@ public class TestAxiomPrism extends AbstractReactorTest {
 
         ModelReactorContext extendedLanguage = prismReactor();
         extendedLanguage.loadModelFromSource(source(COMMON_CORE));
+        AxiomSchemaContext schemaContext = extendedLanguage.computeSchemaContext();
+
+        assertNotNull(schemaContext);
+    }
+
+    @Test
+    public void axiomTestPrismInPrism() throws IOException, AxiomSyntaxException {
+
+        ModelReactorContext extendedLanguage = prismReactor();
+        extendedLanguage.loadModelFromSource(source(COMMON_CORE_PRISM));
         AxiomSchemaContext schemaContext = extendedLanguage.computeSchemaContext();
 
         assertNotNull(schemaContext);

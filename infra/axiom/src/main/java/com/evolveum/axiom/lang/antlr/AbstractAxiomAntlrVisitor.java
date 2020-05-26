@@ -41,7 +41,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     protected abstract AxiomIdentifier resolveArgument(String prefix, String localName);
 
     private String nullableText(ParserRuleContext prefix) {
-        return prefix != null ? prefix.getText() : null;
+        return prefix != null ? prefix.getText() : "";
     }
 
     @Override

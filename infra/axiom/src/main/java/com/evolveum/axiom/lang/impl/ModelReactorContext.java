@@ -26,7 +26,6 @@ import com.evolveum.axiom.lang.spi.AxiomIdentifierDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
-import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder;
 import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.RuleReactorContext;
@@ -153,9 +152,9 @@ public class ModelReactorContext extends
         }
     }
 
-    public void loadModelFromSource(AxiomModelStatementSource statementSource) {
-        SourceContext sourceCtx = new SourceContext(this, statementSource, new CompositeIdentifierSpace());
-        statementSource.stream(this, new AxiomItemStreamTreeBuilder(sourceCtx));
+    public void loadModelFromSource(AxiomModelStatementSource source) {
+        SourceContext sourceCtx = new SourceContext(this, source, source.imports(), new CompositeIdentifierSpace());
+        source.stream(new ItemStreamContextBuilder(sourceCtx), Optional.empty());
     }
 
     @Override

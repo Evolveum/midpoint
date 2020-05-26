@@ -10,6 +10,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
@@ -18,6 +19,7 @@ import org.testng.annotations.Test;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
@@ -31,7 +33,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
     private static final String DERIVED = DIR + "derived-person.axiom";
 
     @Test
-    public void axiomTestExtension() throws IOException, AxiomSyntaxException {
+    public void axiomTestInheritance() throws IOException, AxiomSyntaxException {
         ModelReactorContext context = ModelReactorContext.defaultReactor();
         context.loadModelFromSource(source(BASE));
         context.loadModelFromSource(source(DERIVED));
@@ -42,9 +44,9 @@ public class TestTypeDerivation extends AbstractReactorTest {
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(DERIVED_PERSON);
         assertTrue(personDef.isPresent());
-
-        for (AxiomItemDefinition idDef : personDef.get().itemDefinitions().values()) {
-            assertEquals(idDef.name().namespace(), DERIVED_PERSON.namespace(), idDef.name().localName() + " should have namespace example.org/derived");
+        for (Entry<AxiomIdentifier, AxiomItemDefinition> idDef : personDef.get().itemDefinitions().entrySet()) {
+            AxiomItemDefinition item = idDef.getValue();
+            assertEquals(idDef.getKey(), Inheritance.adapt(DERIVED_PERSON, item), " should have different namespace");
         }
     }
 }

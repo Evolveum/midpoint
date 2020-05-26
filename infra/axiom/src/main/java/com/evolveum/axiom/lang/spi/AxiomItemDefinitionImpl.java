@@ -13,13 +13,23 @@ import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDefinition> implements AxiomItemDefinition {
 
     public static final AxiomItemValueFactory<AxiomItemDefinition,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
-    private final AxiomTypeDefinition type;
+    private final AxiomTypeDefinition valueType;
     private final Optional<AxiomItem<String>> minOccurs;
 
     public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomItemDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
-        this.type = this.<AxiomTypeDefinition>item(Item.TYPE_REFERENCE.name()).get().onlyValue().get();
+        this.valueType = this.<AxiomTypeDefinition>item(Item.TYPE_REFERENCE.name()).get().onlyValue().get();
         minOccurs = this.<String>item(Item.MIN_OCCURS.name());
+    }
+
+    @Override
+    public AxiomTypeDefinition definingType() {
+        return null;
+    }
+
+    @Override
+    public boolean operational() {
+        return false;
     }
 
     @Override
@@ -29,7 +39,7 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDef
 
     @Override
     public AxiomTypeDefinition typeDefinition() {
-        return type;
+        return valueType;
     }
 
     @Override

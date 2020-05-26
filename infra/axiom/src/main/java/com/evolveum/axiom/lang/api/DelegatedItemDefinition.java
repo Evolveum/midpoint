@@ -10,6 +10,11 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     protected abstract AxiomItemDefinition delegate();
 
     @Override
+    public boolean operational() {
+        return false;
+    }
+
+    @Override
     public Optional<AxiomTypeDefinition> type() {
         return delegate().type();
     }
@@ -69,4 +74,8 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
         return AxiomItemDefinition.toString(this);
     }
 
+    @Override
+    public AxiomTypeDefinition definingType() {
+        return delegate().definingType();
+    }
 }

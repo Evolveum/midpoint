@@ -171,6 +171,16 @@ model axiom-lang {
         item maxOccurs {
             type string;
         }
+        
+        item operational {
+            type boolean;
+            operational true;
+        }
+        
+        item inherited {
+            type boolean;
+            operational true;
+        }
     }
 
     type AxiomReference {

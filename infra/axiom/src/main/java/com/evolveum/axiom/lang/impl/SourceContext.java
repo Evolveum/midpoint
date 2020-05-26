@@ -12,12 +12,14 @@ import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder;
+import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ValueBuilder;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
-class SourceContext extends ValueContext<Void> implements AxiomRootContext, AxiomItemStreamTreeBuilder.ValueBuilder {
+class SourceContext extends ValueContext<Void> implements AxiomRootContext, ValueBuilder {
 
     private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root", "root");
 
@@ -25,12 +27,14 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Axio
     private final AxiomModelStatementSource source;
     private final Map<AxiomIdentifier, ItemContext> items = new HashMap();
     private final CompositeIdentifierSpace globalSpace;
+    private Map<String, String> imports;
 
-    public SourceContext(ModelReactorContext context, AxiomModelStatementSource source, CompositeIdentifierSpace space) {
+    public SourceContext(ModelReactorContext context, AxiomModelStatementSource source, Map<String, String> imports, CompositeIdentifierSpace space) {
         super(SourceLocation.runtime(), space);
         this.context = context;
         this.source = source;
         this.globalSpace = space;
+        this.imports = imports;
     }
 
     @Override
@@ -92,5 +96,27 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Axio
     @Override
     public void exportIdentifierSpace(IdentifierSpaceKey namespaceId) {
         context.exportIdentifierSpace(namespaceId, globalSpace.getExport());
+    }
+
+    @Override
+    public AxiomIdentifierResolver itemResolver() {
+        return (prefix, localName) -> {
+            if(Strings.isNullOrEmpty(prefix)) {
+                AxiomIdentifier axiomNs = AxiomIdentifier.axiom(localName);
+                if(childDef(axiomNs).isPresent()) {
+                    return axiomNs;
+                }
+            }
+            String namespace = imports.get(prefix);
+            return AxiomIdentifier.from(namespace, localName);
+        };
+    }
+
+    @Override
+    public AxiomIdentifierResolver valueResolver() {
+        return AxiomIdentifierResolver.BUILTIN_TYPES.or((prefix, localName) -> {
+            String namespace = imports.get(prefix);
+            return AxiomIdentifier.from(namespace, localName);
+        });
     }
 }

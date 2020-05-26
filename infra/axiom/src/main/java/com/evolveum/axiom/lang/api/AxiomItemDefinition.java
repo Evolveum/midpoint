@@ -23,9 +23,17 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValu
 
     AxiomTypeDefinition typeDefinition();
 
+    boolean operational();
+
+    default boolean inherited() {
+        return true;
+    }
+
     default boolean required() {
         return minOccurs() > 0;
     }
+
+    AxiomTypeDefinition definingType();
 
     int minOccurs();
     int maxOccurs();
@@ -56,7 +64,13 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValu
         return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
     }
 
-    interface Derived extends AxiomItemDefinition {
+    interface Inherited extends AxiomItemDefinition {
+
+        AxiomItemDefinition original();
+
+    }
+
+    interface Extended extends AxiomItemDefinition {
 
         AxiomItemDefinition original();
 
@@ -64,5 +78,25 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValu
 
     default AxiomItemDefinition derived(AxiomIdentifier name) {
         return derived(name, this);
+    }
+
+    default AxiomItemDefinition notInherited() {
+        return new DelegatedItemDefinition() {
+
+            @Override
+            public boolean operational() {
+                return false;
+            }
+
+            @Override
+            public boolean inherited() {
+                return false;
+            }
+
+            @Override
+            protected AxiomItemDefinition delegate() {
+                return AxiomItemDefinition.this;
+            }
+        };
     }
 }

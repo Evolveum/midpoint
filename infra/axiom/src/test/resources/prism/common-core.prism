@@ -840,43 +840,47 @@ prism:model common-core {
         //  as they are also defined in PrismReferenceValue.
     }
 
-    item description {
-        type string;
-        documentation """
-            Free-form textual description of the object. It is supposed to describe
-            the object or a construct that it is attached to.
+    mixin Description {
+        item description {
+            type string;
+            documentation """
+                Free-form textual description of the object. It is supposed to describe
+                the object or a construct that it is attached to.
 
-            This information may be presented to midPoint users, even to ordinary end users.
-            For example role description may be presented to users when they are selecting
-            roles to request. Therefore the description should be written in a language that
-            the users can understand.
+                This information may be presented to midPoint users, even to ordinary end users.
+                For example role description may be presented to users when they are selecting
+                roles to request. Therefore the description should be written in a language that
+                the users can understand.
 
-            Description is assumed to be a plan, non-formatted text.
-            Amount of white space is considered insignificant. E.g. leading and trailing
-            white space may be skipped, multiple spaces can be collapsed to one and so on.
-        """;
-        // <a:displayName>ObjectType.description</a:displayName>
-        // <a:displayOrder>10</a:displayOrder>
+                Description is assumed to be a plan, non-formatted text.
+                Amount of white space is considered insignificant. E.g. leading and trailing
+                white space may be skipped, multiple spaces can be collapsed to one and so on.
+            """;
+            // <a:displayName>ObjectType.description</a:displayName>
+            // <a:displayOrder>10</a:displayOrder>
+        }
     }
 
-    item documentation {
-        type string;
-        documentation """
-            Technical documentation for a particular object or construct.
+    mixin Documentation { 
+        item documentation {
+            type string;
+            documentation """
+                Technical documentation for a particular object or construct.
 
-            The purpose of this element is to document system configuration and behavior.
-            The documentation will not be presented to end users. In fact, it will probably
-            not be presented at all in midPoint user interface. This documentation element
-            is supposed to be a part of the technical documentation of midPoint deployment.
-            The tools than generate deployment configuration will look for these elements
-            and combine them to compiled documentation document.
+                The purpose of this element is to document system configuration and behavior.
+                The documentation will not be presented to end users. In fact, it will probably
+                not be presented at all in midPoint user interface. This documentation element
+                is supposed to be a part of the technical documentation of midPoint deployment.
+                The tools than generate deployment configuration will look for these elements
+                and combine them to compiled documentation document.
 
-            AsciiDoc formatting is assumed for this element. Any leading or trailing
-            whitespace is skipped. Indentation equivalent to he indentation of the first
-            non-blank line of text is also skipped.
-        """;
-        // <a:displayName>ObjectType.documentation</a:displayName>
-        // <a:displayOrder>11</a:displayOrder>
+                AsciiDoc formatting is assumed for this element. Any leading or trailing
+                whitespace is skipped. Indentation equivalent to he indentation of the first
+                non-blank line of text is also skipped.
+            """;
+            // <a:displayName>ObjectType.documentation</a:displayName>
+            // <a:displayOrder>11</a:displayOrder>
+        }
     }
 
     // Example of short version of container definition.

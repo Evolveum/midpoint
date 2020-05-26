@@ -42,6 +42,7 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
         public static final AxiomItemDefinition TARGET_TYPE = new Item("targetType", Type.IDENTIFIER, true);
+        public static final AxiomItemDefinition OPERATIONAL = new Item("operational", Type.IDENTIFIER, true);
 
         public static final AxiomItemDefinition IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
 
@@ -94,6 +95,11 @@ public class AxiomBuiltIn {
         }
 
         @Override
+        public boolean operational() {
+            return false;
+        }
+
+        @Override
         public int maxOccurs() {
             return Integer.MAX_VALUE;
         }
@@ -106,6 +112,12 @@ public class AxiomBuiltIn {
         @Override
         public AxiomItemDefinition get() {
             return this;
+        }
+
+        @Override
+        public AxiomTypeDefinition definingType() {
+            // TODO Auto-generated method stub
+            return null;
         }
     }
 
@@ -150,7 +162,8 @@ public class AxiomBuiltIn {
                 new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.TYPE_REFERENCE,
                     Item.MIN_OCCURS,
-                    Item.MAX_OCCURS
+                    Item.MAX_OCCURS,
+                    Item.OPERATIONAL
                 )) {
 
             @Override

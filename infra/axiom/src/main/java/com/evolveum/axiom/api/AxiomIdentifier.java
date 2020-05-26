@@ -6,7 +6,10 @@
  */
 package com.evolveum.axiom.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 public class AxiomIdentifier {
 
@@ -58,6 +61,9 @@ public class AxiomIdentifier {
 
     @Override
     public String toString() {
+        if(Strings.isNullOrEmpty(namespace)) {
+            return localName;
+        }
         return "(" + namespace + ")" +localName;
     }
 
@@ -71,6 +77,22 @@ public class AxiomIdentifier {
 
     public boolean sameNamespace(AxiomIdentifier other) {
         return this.namespace().equals(other.namespace());
+    }
+
+    public AxiomIdentifier localName(String name) {
+        return AxiomIdentifier.from(namespace, name);
+    }
+
+    public AxiomIdentifier namespace(String targetNamespace) {
+        return AxiomIdentifier.from(targetNamespace, localName);
+    }
+
+    public AxiomIdentifier defaultNamespace() {
+        return AxiomIdentifier.from("", localName);
+    }
+
+    public static AxiomIdentifier local(@NotNull String localName) {
+        return from("", localName);
     }
 
 }

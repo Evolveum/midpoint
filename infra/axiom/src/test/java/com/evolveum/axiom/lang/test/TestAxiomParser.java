@@ -56,7 +56,6 @@ public class TestAxiomParser extends AbstractReactorTest {
         assertEquals(typeDef.superType().get().name(), Type.BASE_DEFINITION.name());
     }
 
-
     private void assertInstanceOf(Class<?> clz, Object value) {
         assertTrue(clz.isInstance(value));
     }

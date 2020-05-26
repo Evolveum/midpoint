@@ -63,13 +63,14 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
         return namespace;
     }
 
-    public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Target listener) {
-        stream(resolver, listener, Optional.empty());
-    }
 
     public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Target listener,
             Optional<Set<AxiomIdentifier>> emitOnly) {
         stream(resolver.or(this), BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
+    }
+
+    public Map<String, String> imports() {
+        return imports;
     }
 
     public static Map<String,String> imports(AxiomParser.StatementContext root) {

@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
@@ -125,7 +126,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
             action.apply(superTypeValue -> {
                 superTypeValue.replace(typeDef.get());
-                addFromType(typeDef.get(), superTypeValue.parentValue(), typeName.get().onlyValue().get().namespace());
+                addFromType(typeDef.get(), superTypeValue.parentValue(), typeName.get().onlyValue().get());
             });
         }
 
@@ -177,9 +178,11 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
                         context.modify(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(item.onlyValue().get()))
                         .unsatisfied(() -> action.error("Target %s not found.",item.onlyValue().get()))
                     ));
-            Dependency<AxiomItem<Object>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, Object.class));
+            Dependency<AxiomItem<AxiomItemDefinition>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, AxiomItemDefinition.class));
             action.apply(ext -> {
-                targetRef.get().mergeItem(itemDef.get());
+                for(AxiomItemValue<AxiomItemDefinition> item : itemDef.get().values()) {
+                    targetRef.get().mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item.get().notInherited()));
+                }
             });
         }
     },
@@ -215,8 +218,18 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
     @Override
     public boolean isApplicableTo(AxiomItemDefinition definition) {
-        return (items.isEmpty() || items.contains(definition.name()))
-                && (types.isEmpty() || types.contains(definition.typeDefinition().name()));
+        if (items.isEmpty() || items.contains(definition.name())) {
+            if(types.isEmpty()) {
+                return true;
+            }
+            for(AxiomIdentifier type : types) {
+                if(definition.typeDefinition().isSubtypeOf(type)) {
+                    return true;
+                }
+            }
+
+        }
+        return false;
     }
 
     private static ImmutableSet<AxiomIdentifier> types(AxiomTypeDefinition... types) {
@@ -244,7 +257,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target, String targetNamespace) {
+    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target, AxiomIdentifier targetName) {
         AxiomTypeDefinition superType = (AxiomTypeDefinition) source.get();
         Preconditions.checkState(!(superType instanceof AxiomBuiltIn.Type));
         // FIXME: Add namespace change if necessary
@@ -254,16 +267,13 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             target.mergeItem(identifiers.get());
         }// Copy Items
         Collection<AxiomItemDefinition> itemDefs = ImmutableList.copyOf(superType.itemDefinitions().values());
-
         for (AxiomItemDefinition item : superType.itemDefinitions().values()) {
-            final AxiomIdentifier derivedName;
-            if (!item.name().namespace().equals(targetNamespace) && item.name().sameNamespace(superType.name())) {
-                derivedName = AxiomIdentifier.from(targetNamespace, item.name().localName());
-            } else {
-                derivedName = item.name();
+            if(item.inherited()) {
+                final AxiomIdentifier derivedName = Inheritance.adapt(targetName, item);
+                item = item.derived(derivedName);
             }
-            AxiomItemDefinition derived = item.derived(derivedName);
-            target.mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, derived));
+            target.mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item));
         }
     }
+
 }

@@ -11,13 +11,14 @@ import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemValue;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.spi.AxiomItemStreamTreeBuilder;
+import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ItemBuilder;
+import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 
-public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements AxiomItemContext<V>, Supplier<AxiomItem<V>>, Dependency<AxiomItem<V>>, AxiomItemStreamTreeBuilder.ItemBuilder {
+public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements AxiomItemContext<V>, Supplier<AxiomItem<V>>, Dependency<AxiomItem<V>>, ItemBuilder {
 
     private final AxiomIdentifier name;
     Collection<Dependency<AxiomItemValue<V>>> values = new ArrayList<>();
@@ -86,6 +87,16 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     public V onlyValue() {
         Preconditions.checkState(values.size() == 1);
         return values.iterator().next().get().get();
+    }
+
+    @Override
+    public AxiomIdentifierResolver itemResolver() {
+        return rootImpl().itemResolver();
+    }
+
+    @Override
+    public AxiomIdentifierResolver valueResolver() {
+        return rootImpl().valueResolver();
     }
 
 }

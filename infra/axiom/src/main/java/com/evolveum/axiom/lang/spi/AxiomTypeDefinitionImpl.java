@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
@@ -32,7 +33,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
         ImmutableMap.Builder<AxiomIdentifier, AxiomItemDefinition> builder =  ImmutableMap.builder();
         Optional<AxiomItem<AxiomItemDefinition>> itemDef = item(Item.ITEM_DEFINITION.name());
         if(itemDef.isPresent()) {
-            supplyAll(builder, itemDef.get().values());
+            supplyAll(name(),builder, itemDef.get().values());
         }
         itemDefinitions = builder.build();
 
@@ -79,11 +80,12 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
         return identifiers;
     }
 
-    private void supplyAll(Builder<AxiomIdentifier, AxiomItemDefinition> builder,
+    private void supplyAll(AxiomIdentifier type, Builder<AxiomIdentifier, AxiomItemDefinition> builder,
             Collection<AxiomItemValue<AxiomItemDefinition>> values) {
         for(AxiomItemValue<AxiomItemDefinition> v : values) {
             AxiomItemDefinition val = v.get();
-            builder.put(val.name(), val);
+            AxiomIdentifier name = Inheritance.adapt(type, val.name());
+            builder.put(name, val);
         }
     }
 
