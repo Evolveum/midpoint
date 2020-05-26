@@ -66,7 +66,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             String output = StringUtils.join(names, "\n");
             response = ResponseEntity.ok(output);
         } catch (Exception ex) {
-            // we avoid RestServiceUtil.handleException because we cannot serialize OperationResultType into text/plain
+            // we can't use handleException because we cannot serialize OperationResultType into text/plain
             LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request: {}", ex, result.getOperation());
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ex.getMessage()); // TODO handle this somehow better

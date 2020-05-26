@@ -229,7 +229,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 //    }
 
     protected Search createSearch() {
-        return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
+        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanel() ? getCollectionNameParameterValue().toString() : null,
+                null, getPageBase(), true);
     }
 
     private BoxedTablePanel<SelectableBean<O>> createTable() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.rest;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -137,9 +137,6 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
         addObject(systemConfig, executeOptions().overwrite(), initTask, result);
 
-        // TODO remove in 2021 - this should be covered in super.super.initSystem(...)
-//        dummyAuditService = DummyAuditService.getInstance();
-
         InternalMonitor.reset();
 
         getModelService().postInit(result);
@@ -148,8 +145,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     }
 
     protected WebClient prepareClient(String username, String password) {
-
-        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
+        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Collections.singletonList(getProvider()));
         ClientConfiguration clientConfig = WebClient.getConfig(client);
 
         clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
@@ -159,7 +155,6 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
 
         createAuthorizationHeader(client, username, password);
         return client;
-
     }
 
     protected void createAuthorizationHeader(WebClient client, String username, String password) {
@@ -194,17 +189,4 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     public DummyAuditService getDummyAuditService() {
         return dummyAuditService;
     }
-
-    public MidpointXmlProvider getXmlProvider() {
-        return xmlProvider;
-    }
-
-    public MidpointJsonProvider getJsonProvider() {
-        return jsonProvider;
-    }
-
-    public MidpointYamlProvider getYamlProvider() {
-        return yamlProvider;
-    }
-
 }
