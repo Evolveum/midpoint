@@ -6,8 +6,10 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -85,6 +87,16 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         }
         Boolean value = (Boolean) options.content.asPrismContainerValue().getPropertyRealValue(itemName, Boolean.class);
         return value != null ? value : defaultValue;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public <T> T getExtensionOptionValue(ItemName name, Class<T> clazz) {
+        Item<?, ?> item = content.asPrismContainerValue().findItem(ItemPath.create(F_EXTENSION, name));
+        return item != null ? item.getRealValue(clazz) : null;
+    }
+
+    public static <T> T getExtensionOptionValue(ModelExecuteOptions options, ItemName name, Class<T> clazz) {
+        return options != null ? options.getExtensionOptionValue(name, clazz) : null;
     }
 
     //region Specific methods

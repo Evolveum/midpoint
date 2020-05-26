@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--
+     Configuration to be used for tests derived from AbstractEmptyModelIntegrationTest.
+
+     If we'll find something that must be in really _all_ the tests, we will put it here.
+     But currently it seems we can go with really empty configuration. (No configuration would
+     be OK as well but in any running midPoint there is a system configuration object, so let's
+     keep the situation close to the reality.)
+-->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="7d6bf307-58c2-4ea9-8599-19586623b41a" />
+    </defaultObjectPolicyConfiguration>
+
+</systemConfiguration>

@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="08a8fe26-e8b6-4005-b23d-e7dc1472b209">
+    <name>cc</name>
+    <assignment>
+        <targetRef oid="b685545e-995f-45e0-8d32-92cd3781ef54" type="ArchetypeType" /> <!-- department -->
+    </assignment>
+    <costCenter>07330</costCenter>
+    <displayName>Computing Center</displayName>
+</org>

@@ -30,8 +30,11 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -2054,5 +2057,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
         repositoryService.modifyObject(type, oid, itemDeltas, result);
+    }
+
+    public boolean extensionOptionIsNotFalse(String localName) {
+        return BooleanUtils.isNotFalse(getBooleanExtensionOption(localName));
+    }
+
+    public Boolean getBooleanExtensionOption(String localName) {
+        return ModelExecuteOptions.getExtensionOptionValue(getModelContext().getOptions(), new ItemName(localName), Boolean.class);
     }
 }

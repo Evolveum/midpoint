@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="b685545e-995f-45e0-8d32-92cd3781ef54">
+    <name>department</name>
+
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <modification>
+                    <item>costCenter</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <condition>
+            <expression>
+                <script>
+                    <code>midpoint.extensionOptionIsNotFalse('recomputeMembers')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</archetype>
