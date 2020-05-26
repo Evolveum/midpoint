@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 Evolveum and contributors
+ * Copyright (c) 2013-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -48,7 +48,6 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 public abstract class TestAbstractRestService extends RestServiceInitializer {
 
-    //    protected static final File BASE_DIR = new File("src/test/resources");
     protected static final File BASE_REQ_DIR = new File("src/test/resources/req/");
 
     // REST, reader and adder authorization
