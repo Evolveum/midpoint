@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * Various tests related to recomputation (or other treatment) of members of changed abstract roles.
  * See also https://wiki.evolveum.com/display/midPoint/Linked+objects.
@@ -52,6 +54,8 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<OrgType> ORG_CC = new TestResource<>(TEST_DIR, "org-cc.xml", "08a8fe26-e8b6-4005-b23d-e7dc1472b209");
     private static final TestResource<OrgType> ORG_IT_STAFF = new TestResource<>(TEST_DIR, "org-it-staff.xml", "51726874-de60-42f1-aab4-a4afb0702833");
 
+    private static final TestResource<TaskType> TASK_TEMPLATE_RECOMPUTE_MEMBERS = new TestResource<>(TEST_DIR, "task-template-recompute-members.xml", "9c50ac7e-73c0-45cf-85e7-9a94959242f9");
+
     @SuppressWarnings("FieldCanBeLocal") private final int DCS_USERS = 20;
     @SuppressWarnings("FieldCanBeLocal") private final int CC_USERS = 10;
 
@@ -59,8 +63,11 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        addObject(TASK_TEMPLATE_RECOMPUTE_MEMBERS, initTask, initResult);
+
         addObject(TEMPLATE_USER, initTask, initResult);
         addObject(ARCHETYPE_DEPARTMENT, initTask, initResult);
+
         addObject(ORG_DCS, initTask, initResult);
         addObject(ORG_CC, initTask, initResult);
         addObject(ORG_IT_STAFF, initTask, initResult);
@@ -112,6 +119,16 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
 
         then();
         assertSuccess(result);
+
+        String taskOid = result.findAsynchronousOperationReference();
+        assertThat(taskOid).as("background task OID").isNotNull();
+
+        Task recomputeTask = waitForTaskFinish(taskOid, false);
+        assertTask(recomputeTask, "recompute task after")
+                .display()
+                .assertSuccess()
+                .assertClosed();
+
         assertUserAfterByUsername("user-dcs-0000")
                 .assertCostCenter("07999");
         assertUserAfterByUsername("user-cc-0000")
@@ -130,6 +147,9 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(ORG_DCS.oid);
 
         executeChanges(delta, doNotRecompute(), task, result);
+
+        String taskOid = result.findAsynchronousOperationReference();
+        assertThat(taskOid).as("background task OID").isNull();
 
         then();
         assertSuccess(result);

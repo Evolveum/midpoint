@@ -7,19 +7,11 @@
 
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-           oid="b685545e-995f-45e0-8d32-92cd3781ef54">
-    <name>department</name>
-    <documentation>
-        It is expected that any user has zero or single department. Cost center for department
-        members is copied from the cost center of the department.
-    </documentation>
+           oid="fefa9261-b897-439c-ad79-15f10d547bba">
+    <name>club</name>
 
     <inducement>
         <policyRule>
-            <documentation>
-                When department cost center changes, members must be recomputed
-                (unless explicitly disabled in execution options).
-            </documentation>
             <policyConstraints>
                 <modification>
                     <item>costCenter</item>
@@ -33,19 +25,6 @@
                     <executeScript>
                         <s:recompute/>
                     </executeScript>
-                    <asynchronous>
-                        <executionMode>iterative</executionMode>
-                        <taskTemplateRef oid="9c50ac7e-73c0-45cf-85e7-9a94959242f9"/>
-                        <taskCustomizer>
-                            <script>
-                                <code>
-                                    log.info('Input task = {}', task.asPrismObject().debugDump())
-                                    task.description = 'Hello there'
-                                    task
-                                </code>
-                            </script>
-                        </taskCustomizer>
-                    </asynchronous>
                 </scriptExecution>
             </policyActions>
         </policyRule>

@@ -2067,6 +2067,13 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="asynchronous" type="c:AsynchronousScriptExecutionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options for asynchronous script execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2729,6 +2736,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2804,6 +2812,99 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-
     </xsd:simpleType>
+
+    <xsd:complexType name="AsynchronousScriptExecutionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options for asynchronous script execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="executionMode" type="c:AsynchronousScriptExecutionModeType" minOccurs="0" default="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mode of execution.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element><xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task template to use.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskCustomizer" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task customizer: an expression that takes a task and customizes its content.
+                        Input variable: task (of TaskType).
+                        Output: TaskType that should be used.
+                        This is the final step in task preparation. So the task is executed in the form
+                        that is prepared by this expression.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asynchronousScriptExecution" type="c:AsynchronousScriptExecutionType" />
+
+    <xsd:simpleType name="AsynchronousScriptExecutionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mode of asynchronous script execution.
+                EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses iterative scripting handler. This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITERATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRun">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action. Input for this action contains
+                        references to objects that should serve as bulk action inputs.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRunNoInput">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action without any explicit input.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN_NO_INPUT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 </xsd:schema>
