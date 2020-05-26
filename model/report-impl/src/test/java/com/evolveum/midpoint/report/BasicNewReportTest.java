@@ -34,8 +34,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
-    public static final File ARCHETYPE_TASK_FILE = new File(COMMON_DIR, "archetype-task-report.xml");
-
     protected final static File USER_WILL_FILE = new File(TEST_DIR_COMMON, "user-will.xml");
     protected final static String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 
@@ -100,7 +98,6 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, initTask, initResult);
         importObjectFromFile(COLLECTION_BASIC, initResult);
         importObjectFromFile(USER_WILL_FILE, initResult);
-        importObjectFromFile(ARCHETYPE_TASK_FILE, initResult);
         importObjectFromFile(COLLECTION_ROLE_FILE, initResult);
         importObjectFromFile(COLLECTION_USER_FILE, initResult);
         importObjectFromFile(COLLECTION_RESOURCE_FILE, initResult);

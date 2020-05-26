@@ -24,7 +24,7 @@
       <virtualizerKickOn>300</virtualizerKickOn>
      <maxPages>10000</maxPages>
       <timeout>300000</timeout>
-    <jasper>
+    </jasper>
       <defaultScriptConfiguration>
          <objectVariableMode>prismReference</objectVariableMode>
        </defaultScriptConfiguration>

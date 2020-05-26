@@ -80,6 +80,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
     protected final static String USER_READER_RUNNER_USERNAME = "reader-runner";
     protected final static File ROLE_READER_FILE = new File(TEST_DIR_COMMON, "role-reader.xml");
     protected final static File ROLE_RUNNER_FILE = new File(TEST_DIR_COMMON, "role-runner.xml");
+    public static final File ARCHETYPE_TASK_FILE = new File(COMMON_DIR, "archetype-task-report.xml");
 
     @Autowired protected ReportManager reportManager;
     @Autowired
@@ -109,6 +110,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
         login(userAdministrator);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        importObjectFromFile(ARCHETYPE_TASK_FILE, initResult);
     }
 
     protected File getSystemConfigurationFile() {

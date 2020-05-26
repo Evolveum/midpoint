@@ -34,6 +34,7 @@
    <virtualizerKickOn>300</virtualizerKickOn>
    <maxPages>10000</maxPages>
    <timeout>300000</timeout>
+    </jasper>
    <postReportScript>
         <macro>
             <name>file</name>
@@ -50,5 +51,4 @@
         <executionMethod>shell</executionMethod>
         <code>cp %file% "target/%name%.pdf"</code>
     </postReportScript>
-    </jasper>
 </report>
