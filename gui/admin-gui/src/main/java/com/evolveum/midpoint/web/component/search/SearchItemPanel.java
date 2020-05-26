@@ -458,10 +458,10 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem<T> item = getModelObject();
-
-        Search search = item.getSearch();
-        search.delete(item);
-
+        ((SearchValue)item.getValue()).setValue(null);
+//        Search search = item.getSearch();
+//        search.delete(item);
+//
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
