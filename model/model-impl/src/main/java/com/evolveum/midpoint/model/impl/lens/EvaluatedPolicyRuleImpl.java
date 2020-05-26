@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
@@ -72,21 +73,30 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      *
      * For global policy rules, assignmentPath is the path to the target object that matched global policy rule.
      *
-     * TODO When it can be null?
+     * It can null for artificially-created policy rules e.g. in task validity cases. To be reviewed.
      */
     @Nullable private final AssignmentPath assignmentPath;
     @Nullable private final ObjectType directOwner;
     private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
 
-    private String policyRuleId;
+    /**
+     * Evaluated assignment that brought this policy rule to the focus or target.
+     * May be missing for artificially-crafted policy rules (to be reviewed!)
+     */
+    private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
+
+    private final String policyRuleId;
 
     private boolean enabledActionsComputed;
     @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
-    public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
+    public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType,
+            @Nullable AssignmentPath assignmentPath,
+            @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment,
             PrismContext prismContext) {
         this.policyRuleType = policyRuleType;
         this.assignmentPath = assignmentPath;
+        this.evaluatedAssignment = evaluatedAssignment;
         this.prismContextForDebugDump = prismContext;
         this.directOwner = computeDirectOwner();
         this.policyRuleId = computePolicyRuleId();
@@ -101,7 +111,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     }
 
     public EvaluatedPolicyRuleImpl clone() {
-        return new EvaluatedPolicyRuleImpl(CloneUtil.clone(policyRuleType), CloneUtil.clone(assignmentPath), prismContextForDebugDump);
+        return new EvaluatedPolicyRuleImpl(CloneUtil.clone(policyRuleType), CloneUtil.clone(assignmentPath), evaluatedAssignment,
+                prismContextForDebugDump);
     }
 
     private ObjectType computeDirectOwner() {
@@ -126,6 +137,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public AssignmentPath getAssignmentPath() {
         return assignmentPath;
+    }
+
+    public EvaluatedAssignmentImpl<?> getEvaluatedAssignment() {
+        return evaluatedAssignment;
     }
 
     @Nullable

@@ -58,6 +58,7 @@ public class PolicyRuleTypeUtil {
     private static final String SYMBOL_ASSIGNMENT_TIME_VALIDITY = "atime";
     private static final String SYMBOL_SITUATION = "sit";
     private static final String SYMBOL_TRANSITION = "trans";
+    private static final String SYMBOL_ALWAYS_TRUE = "true";
 
     static {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_MIN_ASSIGNEES.getLocalPart(), SYMBOL_MIN);
@@ -73,6 +74,7 @@ public class PolicyRuleTypeUtil {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY.getLocalPart(), SYMBOL_ASSIGNMENT_TIME_VALIDITY);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
+        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ALWAYS_TRUE.getLocalPart(), SYMBOL_ALWAYS_TRUE);
     }
 
     public static String toShortString(PolicyConstraintsType constraints) {
@@ -314,6 +316,7 @@ public class PolicyRuleTypeUtil {
                 && visit(pc.getObjectState(), F_OBJECT_STATE, visitor)
                 && visit(pc.getSituation(), F_SITUATION, visitor)
                 && visit(pc.getTransition(), F_TRANSITION, visitor)
+                && visit(pc.getAlwaysTrue(), F_ALWAYS_TRUE, visitor)
                 && visit(pc.getAnd(), F_AND, visitor)
                 && visit(pc.getOr(), F_OR, visitor)
                 && visit(pc.getNot(), F_NOT, visitor);
@@ -413,7 +416,7 @@ public class PolicyRuleTypeUtil {
     }
 
     private static final Set<Class<? extends AbstractPolicyConstraintType>> OBJECT_RELATED_CONSTRAINTS_CLASSES =
-            new HashSet<>(Arrays.asList(HasAssignmentPolicyConstraintType.class));
+            new HashSet<>(Collections.singletonList(HasAssignmentPolicyConstraintType.class));
 
     private static boolean isNotObjectRelated(QName name, AbstractPolicyConstraintType c) {
         boolean objectRelated = OBJECT_RELATED_CONSTRAINTS_CLASSES.contains(c.getClass())
@@ -442,7 +445,7 @@ public class PolicyRuleTypeUtil {
         private int usedSuppliers = 0;
 
         @SafeVarargs
-        public LazyMapConstraintsResolver(
+        private LazyMapConstraintsResolver(
                 @NotNull PrismContext prismContext,
                 @NotNull Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>... constraintsSuppliers) {
             this.prismContext = prismContext;
@@ -483,8 +486,7 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    public static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver)
-            throws ObjectNotFoundException, SchemaException {
+    private static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver) {
         // This works even on chained rules because on any PolicyConstraintsType the visitor is called on a root
         // (thus resolving the references) before it is called on children. And those children are already resolved;
         // so, any references contained within them get also resolved.
@@ -536,7 +538,7 @@ public class PolicyRuleTypeUtil {
             PrismContainer<? extends AbstractPolicyConstraintType> container =
                     (PrismContainer<? extends AbstractPolicyConstraintType>) pc.getParent();
             PrismValue containerParentValue = container.getParent();
-            if (containerParentValue instanceof PrismContainerValue &&
+            if (containerParentValue != null &&
                     ((PrismContainerValue) containerParentValue).asContainerable() instanceof AbstractPolicyConstraintType) {
                 computePathToRoot(path, ((PrismContainerValue) container.getParent()));
             }
@@ -544,7 +546,7 @@ public class PolicyRuleTypeUtil {
     }
 
     public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules,
-            PrismContext prismContext) throws SchemaException, ObjectNotFoundException {
+            PrismContext prismContext) {
         LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(prismContext, createConstraintsSupplier(rules),
                 createConstraintsSupplier(otherRules));
         for (PolicyRuleType rule : rules) {

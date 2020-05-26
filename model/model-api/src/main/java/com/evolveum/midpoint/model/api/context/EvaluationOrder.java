@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.ShortDumpable;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.MultiSet;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 /**
  * @author semancik
@@ -50,4 +52,6 @@ public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable
     boolean isValid();
 
     boolean isOrderOne();
+
+    boolean matches(Integer assignmentOrder, List<OrderConstraintsType> assignmentOrderConstraint);
 }

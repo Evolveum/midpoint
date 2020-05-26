@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import java.util.Collection;
 
 /**
- * @author mederly
+ * Note: When dealing with PolyStrings, the real values should be of PolyString, not of PolyStringType type.
  */
 public interface S_ValuesEntry {
 

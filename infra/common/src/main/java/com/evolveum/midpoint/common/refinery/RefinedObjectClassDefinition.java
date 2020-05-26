@@ -130,11 +130,11 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
     //region Generating and matching artifacts ========================================================
     PrismObjectDefinition<ShadowType> getObjectDefinition();
 
-    default PrismObject<ShadowType> createBlankShadow() {
-        return createBlankShadow(this);
+    default PrismObject<ShadowType> createBlankShadow(String tag) {
+        return createBlankShadow(this, tag);
     }
 
-    PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition);
+    PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition, String tag);
 
     ResourceShadowDiscriminator getShadowDiscriminator();
 

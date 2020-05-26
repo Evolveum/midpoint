@@ -189,7 +189,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 if (searchByName != null) {
                     for (SearchItem item : search.getItems()) {
                         if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                            item.setValue(new SearchValue(searchByName));
                         }
                     }
                 }
@@ -229,7 +229,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 //    }
 
     protected Search createSearch() {
-        return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
+        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanel() ? getCollectionNameParameterValue().toString() : null,
+                null, getPageBase(), true);
     }
 
     private BoxedTablePanel<SelectableBean<O>> createTable() {

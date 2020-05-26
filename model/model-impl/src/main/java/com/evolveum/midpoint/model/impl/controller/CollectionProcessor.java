@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -32,10 +33,10 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluationOrderImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluationOrderImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -103,13 +104,22 @@ public class CollectionProcessor {
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, @NotNull AssignmentType assignmentType, @NotNull PolicyRuleType policyRuleType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
-        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(
-                collection.asObjectable(), "object collection "+collection, assignmentType, true, relationRegistry, prismContext);
-        assignmentPathSegment.setEvaluationOrder(EvaluationOrderImpl.zero(relationRegistry));
-        assignmentPathSegment.setEvaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry));
+        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
+                .source(collection.asObjectable())
+                .sourceDescription("object collection "+collection)
+                .assignment(assignmentType)
+                .isAssignment(true)
+                .relationRegistry(relationRegistry)
+                .prismContext(prismContext)
+                .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
+                .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
+                .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
+                .pathToSourceValid(true)
+                .sourceRelativityMode(PlusMinusZero.ZERO)
+                .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, prismContext);
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null, prismContext);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {

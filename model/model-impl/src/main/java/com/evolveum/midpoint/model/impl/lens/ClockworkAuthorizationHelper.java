@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -343,7 +342,7 @@ public class ClockworkAuthorizationHelper {
             if (relation == null) {
                 relation = prismContext.getDefaultRelation();
             }
-            List<OrderConstraintsType> orderConstraints = deterimneOrderConstraints(assignmentElementQName, changedAssignment);
+            List<OrderConstraintsType> orderConstraints = determineOrderConstraints(assignmentElementQName, changedAssignment);
 
             AuthorizationParameters<O,ObjectType> autzParams = new AuthorizationParameters.Builder<O,ObjectType>()
                     .oldObject(object)
@@ -389,7 +388,7 @@ public class ClockworkAuthorizationHelper {
         }
     }
 
-    private List<OrderConstraintsType> deterimneOrderConstraints(QName assignmentElementQName, AssignmentType changedAssignment) {
+    private List<OrderConstraintsType> determineOrderConstraints(QName assignmentElementQName, AssignmentType changedAssignment) {
         OrderConstraintsType orderConstraints = new OrderConstraintsType();
         if (FocusType.F_ASSIGNMENT.equals(assignmentElementQName)) {
             orderConstraints.setOrder(0);

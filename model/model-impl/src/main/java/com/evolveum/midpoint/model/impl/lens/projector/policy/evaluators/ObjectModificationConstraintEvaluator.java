@@ -72,7 +72,7 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
                 LocalizableMessage message = createMessage(constraint, rctx, result);
                 LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
                 return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
-                        message, shortMessage);
+                        null, message, shortMessage);
             } else {
                 LOGGER.trace("No operation matches.");
                 return null;
@@ -130,17 +130,20 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             return false;
         }
         if (!ctx.focusContext.hasAnyDelta()) {
+            LOGGER.trace("Focus context has no delta (primary nor secondary)");
             return false;
         }
         if (!constraint.getItem().isEmpty()) {
             //noinspection unchecked
             ObjectDelta<?> summaryDelta = ObjectDeltaCollectionsUtil.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
             if (summaryDelta == null) {
+                LOGGER.trace("Summary delta is null");
                 return false;
             }
             boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
             for (ItemPathType path : constraint.getItem()) {
                 if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toPath(path), exactPathMatch)) {
+                    LOGGER.trace("Path {} does not match the constraint", path);
                     return false;
                 }
             }

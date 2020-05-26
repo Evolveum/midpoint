@@ -240,6 +240,7 @@ public class ArchetypeManager {
         return null;
     }
 
+    // TODO take object's archetype into account
     public static <O extends ObjectType> LifecycleStateModelType determineLifecycleModel(PrismObject<O> object, PrismObject<SystemConfigurationType> systemConfiguration) throws ConfigurationException {
         if (systemConfiguration == null) {
             return null;

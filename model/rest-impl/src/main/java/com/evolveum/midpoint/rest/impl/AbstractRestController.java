@@ -2,21 +2,36 @@ package com.evolveum.midpoint.rest.impl;
 
 import static org.springframework.http.ResponseEntity.status;
 
+import java.net.URI;
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.evolveum.midpoint.model.impl.ModelRestService;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 /**
@@ -25,14 +40,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 class AbstractRestController {
 
     protected final Trace logger = TraceManager.getTrace(getClass());
+
     private final String opNamePrefix = getClass().getName() + ".";
 
+    @Autowired protected AuditService auditService;
     @Autowired protected SecurityHelper securityHelper;
     @Autowired protected TaskManager taskManager;
 
     protected Task initRequest() {
         // No need to audit login. it was already audited during authentication
-        Task task = taskManager.createTaskInstance(ModelRestService.OPERATION_REST_SERVICE);
+        Task task = taskManager.createTaskInstance(opNamePrefix + "restService");
         task.setChannel(SchemaConstants.CHANNEL_REST_URI);
         return task;
     }
@@ -61,6 +78,20 @@ class AbstractRestController {
         }
 
         return status(httpStatus).body(body);
+    }
+
+    protected ResponseEntity<?> createResponseWithLocation(
+            HttpStatus httpStatus, URI location, OperationResult result) {
+        result.computeStatusIfUnknown();
+
+        if (result.isPartialError()) {
+            return ResponseEntity.status(250).location(location).body(result);
+        } else if (result.isHandledError()) {
+            return ResponseEntity.status(240).location(location).body(result);
+        }
+
+        return location == null ? ResponseEntity.status(httpStatus).build()
+                : ResponseEntity.status(httpStatus).location(location).build();
     }
 
     protected <T> ResponseEntity<?> createBody(ResponseEntity.BodyBuilder builder,
@@ -123,15 +154,56 @@ class AbstractRestController {
         return status(status).body(resultBean);
     }
 
-    protected void finishRequest(Task task) {
-        // TODO what level of auditing do we want anyway?
-//        if (isExperimentalEnabled()) {
-//            auditEvent(request);
-//            SecurityContextHolder.getContext().setAuthentication(null);
-//        } else {
-        task.getResult().computeStatus();
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
-        connEnv.setSessionIdOverride(task.getTaskIdentifier());
-        securityHelper.auditLogout(connEnv, task);
+    protected void finishRequest() {
+        auditEvent();
+        SecurityContextHolder.getContext().setAuthentication(null);
+    }
+
+    private void auditEvent() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        String name = null;
+        if (principal instanceof MidPointPrincipal) {
+            name = ((MidPointPrincipal) principal).getUsername();
+        } else if (principal != null) {
+            return;
+        }
+        PrismObject<? extends FocusType> user = principal != null ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
+
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(user);
+        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+
+        AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
+        record.setInitiator(user);
+        record.setParameter(name);
+
+        record.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        record.setTimestamp(System.currentTimeMillis());
+        record.setOutcome(OperationResultStatus.SUCCESS);
+
+        auditService.audit(record, task);
+    }
+
+    private final String[] requestMappingPaths =
+            getClass().getAnnotation(RequestMapping.class).value();
+
+    /**
+     * Returns base path (without servlet context) reflecting currently used request.
+     * This solves the problem of base path being one of multiple possible mappings.
+     */
+    protected String controllerBasePath() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        if (requestAttributes instanceof ServletRequestAttributes) {
+            HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+            String servletPath = request.getServletPath();
+            for (String requestMappingPath : requestMappingPaths) {
+                if (servletPath.startsWith(requestMappingPath)) {
+                    return requestMappingPath;
+                }
+            }
+        }
+
+        throw new NullPointerException("Base controller URL could not be determined.");
     }
 }

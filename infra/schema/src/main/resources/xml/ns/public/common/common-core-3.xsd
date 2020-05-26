@@ -8742,6 +8742,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="outbound" type="tns:MappingType" minOccurs="0">
+                 <xsd:annotation>
+                     <xsd:documentation>
+                         TODO
+                     </xsd:documentation>
+                 </xsd:annotation>
+             </xsd:element>
          </xsd:sequence>
      </xsd:complexType>
 
@@ -13639,6 +13646,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definition of object with respect to its archetype.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                        <a:since>4.0</a:since>
+                        <!-- Since 4.2 it is moved from SubjectedObjectSelectorType to ObjectSelectorType. -->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -13689,7 +13710,7 @@
                             <xsd:documentation>
                                 <p>
                                     Definition of object with respect to subject membership in organizational hierarchy.
-                                    Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                                    Used to specify authorizations for all objects that belong to an org where the subject is a manager, etc.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -13710,19 +13731,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.6</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="archetypeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                  Definition of object with respect to its archetype.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
-                                <a:since>4.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -13774,7 +13782,7 @@
                                 The "owner" means a focus that has a link to the object.
 
                                 LIMITATION: for search pre-processing this option is supported in a very limited way
-                                (only for TaskType.ownerRef and AbstractRoleType.ownerRef and only for "self" owners).
+                                (only for TaskType.ownerRef and only for "self" owners).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -13989,7 +13997,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Definition of object with respect to subject membership in organizational hierarchy.
-                Used to specify authorizations for all objects that belong to an org where the subject a manager, etc.
+                Used to specify authorizations for all objects that belong to an org where the subject is a manager, etc.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -21259,6 +21267,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="alwaysTrue">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS_TRUE"/>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="assignmentState">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -24058,9 +24074,95 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
-                   <!-- TODO: default items to display for basic search -->
+                   <xsd:element name="searchItems" type="tns:SearchItemsType" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The list of searchable properties which should be displayed on the search panel.
+                        </xsd:documentation>
+                           <xsd:appinfo>
+                            <a:displayName>SearchBoxConfigurationType.searchItems</a:displayName>
+                            <a:since>4.2</a:since>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="allowToConfigureSearchItems" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                       <xsd:annotation>
+                           <xsd:documentation>
+                               The flag to display/hide configuration button on the search panel.
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>SearchBoxConfigurationType.allowToConfigureSearchItems</a:displayName>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
                    <!-- TODO: default relation (e.g. defalt, manager, all relations) -->
                </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SearchItemsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The list of the search properties to be configured for the search panel.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="searchItem" type="tns:SearchItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemsType.searchItem</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SearchItemType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Search item
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the searchable item (property) in the object over which the search is executed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free-form description. It is not displayed to the user. It is supposed to be used by system
+                        administrators to explain the purpose of the configuration.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.description</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="t:PolyStringType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User friendly display name of the search item (property)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SearchItemType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:simpleType name="SearchBoxModeType">

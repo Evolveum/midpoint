@@ -45,10 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @RestController
-@RequestMapping(value = ModelRestController.BASE_PATH)
+@RequestMapping({ "/ws/rest", "/rest/model", "/api/model" })
 public class ModelRestController extends AbstractRestController {
 
-    public static final String BASE_PATH = "/rest2";
     public static final String GET_OBJECT_PATH = "/{type}/{id}";
 
     private static final String CURRENT = "current";
@@ -82,7 +81,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -93,7 +92,7 @@ public class ModelRestController extends AbstractRestController {
         OperationResult parentResult = task.getResult().createSubresult("generateValueRpc");
 
         ResponseEntity<?> response = generateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest(task);
+        finishRequest();
 
         return response;
     }
@@ -142,7 +141,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -153,7 +152,7 @@ public class ModelRestController extends AbstractRestController {
         OperationResult parentResult = task.getResult().createSubresult("validateValue");
 
         ResponseEntity<?> response = validateValue(null, policyItemsDefinition, task, parentResult);
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -163,13 +162,13 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         if (policyItemsDefinition == null) {
             response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
-            finishRequest(task);
+            finishRequest();
             return response;
         }
 
         if (CollectionUtils.isEmpty(policyItemsDefinition.getPolicyItemDefinition())) {
             response = createBadPolicyItemsDefinitionResponse("No definitions for items", parentResult);
-            finishRequest(task);
+            finishRequest();
             return response;
         }
 
@@ -220,7 +219,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
 
         logger.debug("getValuePolicyForUser finish");
         return response;
@@ -271,7 +270,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -294,7 +293,7 @@ public class ModelRestController extends AbstractRestController {
             response = status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -310,7 +309,7 @@ public class ModelRestController extends AbstractRestController {
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
         if (!object.getCompileTimeClass().equals(clazz)) {
-            finishRequest(task);
+            finishRequest();
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName() + " to the collection of " + type);
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, parentResult);
@@ -325,10 +324,10 @@ public class ModelRestController extends AbstractRestController {
             logger.debug("returned oid: {}", oid);
 
             if (oid != null) {
-                URI resourceURI = uriGetObject(type, oid);
-                response = clazz.isAssignableFrom(TaskType.class)
-                        ? createResponse(HttpStatus.ACCEPTED, resourceURI, parentResult)
-                        : createResponse(HttpStatus.CREATED, resourceURI, parentResult);
+                response = createResponseWithLocation(
+                        clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
+                        uriGetObject(type, oid),
+                        parentResult);
             } else {
                 // OID might be null e.g. if the object creation is a subject of workflow approval
                 response = createResponse(HttpStatus.ACCEPTED, parentResult);
@@ -338,14 +337,14 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
     @NotNull
     public URI uriGetObject(@PathVariable("type") String type, String oid) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path(BASE_PATH + GET_OBJECT_PATH)
+                .path(controllerBasePath() + GET_OBJECT_PATH)
                 .build(type, oid);
     }
 
@@ -379,7 +378,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -396,7 +395,7 @@ public class ModelRestController extends AbstractRestController {
 
         Class<?> clazz = ObjectTypes.getClassFromRestType(type);
         if (!object.getCompileTimeClass().equals(clazz)) {
-            finishRequest(task);
+            finishRequest();
             parentResult.recordFatalError("Request to add object of type "
                     + object.getCompileTimeClass().getSimpleName()
                     + " to the collection of " + type);
@@ -416,16 +415,16 @@ public class ModelRestController extends AbstractRestController {
             oid = model.addObject(object, modelExecuteOptions, task, parentResult);
             logger.debug("returned oid : {}", oid);
 
-            URI resourceURI = uriGetObject(type, oid);
-            response = clazz.isAssignableFrom(TaskType.class)
-                    ? createResponse(HttpStatus.ACCEPTED, resourceURI, parentResult)
-                    : createResponse(HttpStatus.CREATED, resourceURI, parentResult);
+            response = createResponseWithLocation(
+                    clazz.isAssignableFrom(TaskType.class) ? HttpStatus.ACCEPTED : HttpStatus.CREATED,
+                    uriGetObject(type, oid),
+                    parentResult);
         } catch (Exception ex) {
             response = handleException(parentResult, ex);
         }
         parentResult.computeStatus();
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -446,7 +445,7 @@ public class ModelRestController extends AbstractRestController {
             if (clazz.isAssignableFrom(TaskType.class)) {
                 taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
                 parentResult.computeStatus();
-                finishRequest(task);
+                finishRequest();
                 if (parentResult.isSuccess()) {
                     return ResponseEntity.noContent().build();
                 }
@@ -463,7 +462,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -501,7 +500,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -523,7 +522,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -543,7 +542,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -565,7 +564,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -602,7 +601,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -625,7 +624,7 @@ public class ModelRestController extends AbstractRestController {
         ResponseEntity<?> response;
         try {
             modelService.importFromResource(resourceOid, objClass, task, parentResult);
-            response = createResponse(
+            response = createResponseWithLocation(
                     HttpStatus.SEE_OTHER,
                     uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
                     parentResult);
@@ -634,7 +633,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         parentResult.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -659,7 +658,7 @@ public class ModelRestController extends AbstractRestController {
             parentResult.getSubresults().add(testResult);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -679,7 +678,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -699,7 +698,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -718,7 +717,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleException(parentResult, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -733,8 +732,10 @@ public class ModelRestController extends AbstractRestController {
         try {
             if (Boolean.TRUE.equals(asynchronous)) {
                 scriptingService.evaluateExpressionInBackground(command, task, result);
-                URI resourceUri = uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid());
-                response = createResponse(HttpStatus.CREATED, resourceUri, result);
+                response = createResponseWithLocation(
+                        HttpStatus.CREATED,
+                        uriGetObject(ObjectTypes.TASK.getRestType(), task.getOid()),
+                        result);
             } else {
                 ScriptExecutionResult executionResult = scriptingService.evaluateExpression(
                         command, VariablesMap.emptyMap(), false, task, result);
@@ -750,7 +751,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -780,7 +781,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -799,7 +800,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -826,7 +827,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -848,7 +849,7 @@ public class ModelRestController extends AbstractRestController {
         }
 
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
 
     }
@@ -867,7 +868,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -886,7 +887,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -905,7 +906,7 @@ public class ModelRestController extends AbstractRestController {
             response = handleExceptionNoLog(result, ex);
         }
         result.computeStatus();
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 }

@@ -36,7 +36,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
     DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
-    DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    @NotNull DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     PrismObject<?> getTarget();
 
@@ -47,6 +47,10 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
     QName getNormalizedRelation(RelationRegistry relationRegistry);
 
+    /**
+     * TODO Define this concept. It looks like it mixes ideas of validity (activation, lifecycle state)
+     *  and relativity mode (condition).
+     */
     boolean isValid();
 
     boolean isPresentInCurrentObject();
@@ -59,7 +63,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
      * sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<EvaluatedPolicyRule> getFocusPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getFocusPolicyRules();
 
     /**
      * Returns all policy rules that directly apply to the target object of this assignment
@@ -67,7 +71,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<EvaluatedPolicyRule> getThisTargetPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getThisTargetPolicyRules();
 
     /**
      * Returns all policy rules that apply to some other target object of this assignment
@@ -75,7 +79,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
      * are compiled from all the applicable sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getOtherTargetsPolicyRules();
 
     /**
      * Returns all policy rules that apply to any of the target objects provided by this assignment
@@ -89,7 +93,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
      *  - getOtherTargetsPolicyRules will show rules that are attached to Sailor
      */
     @NotNull
-    Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
     /**
      * How many target policy rules are there. This is more efficient than getAllTargetsPolicyRules().size(), as the

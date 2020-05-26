@@ -771,8 +771,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             return new SearchResultList<>(new ArrayList<>());
         }
 
+        boolean exceptionInSearch = false;
+
         enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
-        SearchResultList<PrismObject<T>> list;
+        @NotNull SearchResultList<PrismObject<T>> list;
         try {
             logQuery(processedQuery);
 
@@ -793,25 +795,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     default:
                         throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-                result.computeStatus();
-                result.cleanupResult();
             } catch (CommunicationException | ConfigurationException | SchemaException | SecurityViolationException | RuntimeException | ObjectNotFoundException e) {
-                processSearchException(e, rootOptions, searchProvider, result);
+                exceptionInSearch = true;
                 throw e;
             } finally {
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(result.dump(false));
-                }
             }
 
-            if (list == null) {
-                list = new SearchResultList<>(new ArrayList<PrismObject<T>>());
-            }
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
-            }
+            LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
 
             for (PrismObject<T> object : list) {
                 if (hookRegistry != null) {
@@ -835,13 +826,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             // better to use cache here (MID-4059)
             schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
 
+        } catch (Throwable e) {
+            if (exceptionInSearch) {
+                processSearchException(e, rootOptions, searchProvider, result);
+            } else {
+                result.recordFatalError(e);
+            }
+            throw e;
         } finally {
             exitModelMethod();
+            result.computeStatusIfUnknown();
+            result.cleanupResult();
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
-        }
+        LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
 
         // TODO: log errors
 

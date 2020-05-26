@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.common.expression;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
@@ -68,6 +71,11 @@ public class ModelExpressionThreadLocalHolder {
             return null;
         }
         return (ModelContext<F>) env.getLensContext();
+    }
+
+    @NotNull
+    public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> ModelContext<F> getLensContextRequired() {
+        return Objects.requireNonNull(getLensContext(), "No lens context");
     }
 
     public static <F extends ObjectType,V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 @RestController
-@RequestMapping(value = "/rest2/schema")
+@RequestMapping({ "/ws/schema", "/rest/schema", "/api/schema" })
 public class ExtensionSchemaRestController extends AbstractRestController {
 
     @Autowired private PrismContext prismContext;
@@ -66,13 +66,13 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             String output = StringUtils.join(names, "\n");
             response = ResponseEntity.ok(output);
         } catch (Exception ex) {
-            // we avoid RestServiceUtil.handleException because we cannot serialize OperationResultType into text/plain
+            // we can't use handleException because we cannot serialize OperationResultType into text/plain
             LoggingUtils.logUnexpectedException(logger, "Got exception while servicing REST request: {}", ex, result.getOperation());
             response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ex.getMessage()); // TODO handle this somehow better
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 
@@ -140,7 +140,7 @@ public class ExtensionSchemaRestController extends AbstractRestController {
             response = handleException(result, ex);
         }
 
-        finishRequest(task);
+        finishRequest();
         return response;
     }
 }

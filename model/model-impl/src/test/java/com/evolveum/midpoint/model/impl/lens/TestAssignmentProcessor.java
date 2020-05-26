@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,6 +14,12 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+
+import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -38,11 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class TestAssignmentProcessor extends AbstractLensTest {
 
-    @Autowired
-    private AssignmentProcessor assignmentProcessor;
-
-    @Autowired
-    private Clock clock;
+    @Autowired private AssignmentProcessor assignmentProcessor;
+    @Autowired private Clock clock;
 
     public TestAssignmentProcessor() {
         super();
@@ -121,21 +124,21 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
         displayDumpable("accountConstructionDeltaSetTriple", accountConstructionDeltaSetTriple);
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
 
-        Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
+        EvaluatedConstructionImpl<UserType> zeroEvaluatedAccountConstruction = getZeroEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, "Brethren account construction");
 
-        assertNoZeroAttributeValues(zeroAccountConstruction,
+        assertNoZeroAttributeValues(zeroEvaluatedAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
-        assertPlusAttributeValues(zeroAccountConstruction,
+        assertPlusAttributeValues(zeroEvaluatedAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Tortuga");
-        assertMinusAttributeValues(zeroAccountConstruction,
+        assertMinusAttributeValues(zeroEvaluatedAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
 
     }
@@ -221,14 +224,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
         assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
 
-        Construction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple);
+        EvaluatedConstructionImpl<UserType> plusAccountConstruction = getPlusEvaluatedAccountConstruction(accountConstructionDeltaSetTriple);
 
         assertZeroAttributeValues(plusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
@@ -288,13 +291,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
 
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 2);
-        Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple,
+        EvaluatedConstructionImpl<UserType> zeroAccountConstruction = getZeroEvaluatedAccountConstruction(accountConstructionDeltaSetTriple,
                 "Brethren account construction");
 
         assertZeroAttributeValues(zeroAccountConstruction,
@@ -320,7 +323,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
 
         assertSetSize("plus", accountConstructionDeltaSetTriple.getPlusSet(), 1);
-        Construction plusAccountConstruction = getPlusAccountConstruction(accountConstructionDeltaSetTriple, "Monkey account construction");
+        EvaluatedConstructionImpl<UserType> plusAccountConstruction = getPlusEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, "Monkey account construction");
 
         assertZeroAttributeValues(plusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME), "Rum");
@@ -389,13 +392,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
 
         assertSetSize("zero", accountConstructionDeltaSetTriple.getZeroSet(), 1);
-        Construction zeroAccountConstruction = getZeroAccountConstruction(accountConstructionDeltaSetTriple);
+        EvaluatedConstructionImpl<UserType> zeroAccountConstruction = getZeroEvaluatedAccountConstruction(accountConstructionDeltaSetTriple);
 
         assertZeroAttributeValues(zeroAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME), "Caribbean");
@@ -413,7 +416,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME));
 
         assertSetSize("minus", accountConstructionDeltaSetTriple.getMinusSet(), 1);
-        Construction minusAccountConstruction = getMinusAccountConstruction(accountConstructionDeltaSetTriple);
+        EvaluatedConstructionImpl<UserType> minusAccountConstruction = getMinusEvaluatedAccountConstruction(accountConstructionDeltaSetTriple);
 
         assertZeroAttributeValues(minusAccountConstruction,
                 getDummyResourceController().getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME),
@@ -511,8 +514,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
@@ -579,8 +582,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-                accContext.getConstructionDeltaSetTriple();
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple =
+                accContext.getEvaluatedConstructionDeltaSetTriple();
 
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
 
@@ -715,15 +718,15 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertEquals("Wrong # of target policy rules", 5, policyRules.size());
     }
 
-    private <T> void assertAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
+    private <T> void assertAttributeValues(Collection<EvaluatedConstructionImpl<UserType>> accountConstructions, QName attrName, PlusMinusZero attrSet, T... expectedValue) {
         Set<T> realValues = getAttributeValues(accountConstructions, attrName, attrSet);
         assertEquals("Unexpected attributes", new HashSet<>(Arrays.asList(expectedValue)), realValues);
     }
 
-    private <T> Set<T> getAttributeValues(Collection<PrismPropertyValue<Construction>> accountConstructions, QName attrName, PlusMinusZero attributeSet) {
+    private <T> Set<T> getAttributeValues(Collection<EvaluatedConstructionImpl<UserType>> accountEvaluatedConstructions, QName attrName, PlusMinusZero attributeSet) {
         Set<T> retval = new HashSet<>();
-        for (PrismPropertyValue<Construction> constructionPropVal : accountConstructions) {
-            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = constructionPropVal.getValue().getAttributeMapping(attrName);
+        for (EvaluatedConstructionImpl<UserType> evaluatedConstruction : accountEvaluatedConstructions) {
+            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = evaluatedConstruction.getAttributeMapping(attrName);
             if (mapping != null && mapping.getOutputTriple() != null) {
                 Collection<PrismPropertyValue<T>> values = (Collection) mapping.getOutputTriple().getSet(attributeSet);
                 if (values != null) {
@@ -736,44 +739,69 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         return retval;
     }
 
-    private <T> void assertPlusAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+//    private <T> Set<T> getAttributeValues(Collection<EvaluatedConstructionImpl<UserType>> accountConstructions, QName attrName, PlusMinusZero attributeSet) {
+//        Set<T> retval = new HashSet<>();
+//        for (PrismPropertyValue<Construction<AssignmentHolderType, EvaluatedConstructionImpl<AssignmentHolderType>>> constructionPropVal : accountConstructions) {
+//            constructionPropVal.getValue().getEvaluatedConstructionTriple().foreach( evaluatedConstruction -> {
+//                MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping = evaluatedConstruction.getAttributeMapping(attrName);
+//                if (mapping != null && mapping.getOutputTriple() != null) {
+//                    Collection<PrismPropertyValue<T>> values = (Collection) mapping.getOutputTriple().getSet(attributeSet);
+//                    if (values != null) {
+//                        for (PrismPropertyValue<T> value : values) {
+//                            retval.add(value.getValue());
+//                        }
+//                    }
+//                }
+//            });
+//        }
+//        return retval;
+//    }
+
+
+    private EvaluatedConstructionImpl<UserType> getSingleEvaluatedConstruction(Construction<UserType,EvaluatedConstructionImpl<UserType>> construction) {
+        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        assertEquals("Unexpected evaluatedConstructionTriple size", 1, evaluatedConstructionTriple.size());
+        return evaluatedConstructionTriple.getZeroSet().iterator().next();
+    }
+
+    private <T> void assertPlusAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in plus set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getPlusSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in plus set", actual, expectedValue);
     }
 
-    private <T> void assertZeroAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+    private <T> void assertZeroAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in zero set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getZeroSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in zero set", actual, expectedValue);
     }
 
-    private <T> void assertMinusAttributeValues(Construction accountConstruction, QName attrName, T... expectedValue) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+    private <T> void assertMinusAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName, T... expectedValue) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         assertNotNull("No value construction for attribute " + attrName + " in minus set", vc);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         Collection<T> actual = getMultiValueFromDeltaSetTriple(triple.getMinusSet());
         TestUtil.assertSetEquals("Attribute " + attrName + " value in minus set", actual, expectedValue);
     }
 
-    private void assertNoPlusAttributeValues(Construction accountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+    private void assertNoPlusAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoPlus(triple);
     }
 
-    private void assertNoZeroAttributeValues(Construction accountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+    private void assertNoZeroAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoZero(triple);
     }
 
-    private void assertNoMinusAttributeValues(Construction accountConstruction, QName attrName) {
-        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = accountConstruction.getAttributeMapping(attrName);
+    private void assertNoMinusAttributeValues(EvaluatedConstructionImpl<UserType> evaluatedAccountConstruction, QName attrName) {
+        PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> vc = evaluatedAccountConstruction.getAttributeMapping(attrName);
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> triple = vc.getOutputTriple();
         PrismAsserts.assertTripleNoMinus(triple);
     }
@@ -788,53 +816,52 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     private void assertSetSize(
-            String setName, Collection<PrismPropertyValue<Construction>> set, int expectedSize) {
-        assertEquals("Unexpected number of value in " + setName + " set", expectedSize, set.size());
+            String setName, Collection<EvaluatedConstructionImpl<UserType>> set, int expectedSize) {
+        assertEquals("Unexpected number of value in " + setName + " construction set", expectedSize, set.size());
     }
 
-    private Construction getZeroAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
-        return getZeroAccountConstruction(accountConstructionDeltaSetTriple, null);
+    private EvaluatedConstructionImpl<UserType> getZeroEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple) {
+        return getZeroEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, null);
     }
 
-    private Construction getZeroAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
+    private EvaluatedConstructionImpl<UserType> getZeroEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple,
             String description) {
-        Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getZeroSet();
-        return getAccountConstruction(description, set, "zero");
+        @NotNull Collection<EvaluatedConstructionImpl<UserType>> set = accountConstructionDeltaSetTriple.getZeroSet();
+        return getEvaluatedAccountConstruction(description, set, "zero");
     }
 
-    private Construction getPlusAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
-        return getPlusAccountConstruction(accountConstructionDeltaSetTriple, null);
+    private EvaluatedConstructionImpl<UserType> getPlusEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple) {
+        return getPlusEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, null);
     }
 
-    private Construction getPlusAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
+    private EvaluatedConstructionImpl<UserType> getPlusEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple,
             String description) {
-        Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getPlusSet();
-        return getAccountConstruction(description, set, "plus");
+        @NotNull Collection<EvaluatedConstructionImpl<UserType>> set = accountConstructionDeltaSetTriple.getPlusSet();
+        return getEvaluatedAccountConstruction(description, set, "plus");
     }
 
-    private Construction getMinusAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
-        return getMinusAccountConstruction(accountConstructionDeltaSetTriple, null);
+    private EvaluatedConstructionImpl<UserType> getMinusEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple) {
+        return getMinusEvaluatedAccountConstruction(accountConstructionDeltaSetTriple, null);
     }
 
-    private Construction getMinusAccountConstruction(
-            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple,
+    private EvaluatedConstructionImpl<UserType> getMinusEvaluatedAccountConstruction(
+            DeltaSetTriple<EvaluatedConstructionImpl<UserType>> accountConstructionDeltaSetTriple,
             String description) {
-        Collection<PrismPropertyValue<Construction>> set = accountConstructionDeltaSetTriple.getMinusSet();
-        return getAccountConstruction(description, set, "minus");
+        @NotNull Collection<EvaluatedConstructionImpl<UserType>> set = accountConstructionDeltaSetTriple.getMinusSet();
+        return getEvaluatedAccountConstruction(description, set, "minus");
     }
 
-    private Construction getAccountConstruction(
-            String description, Collection<PrismPropertyValue<Construction>> set, String setName) {
-        for (PrismPropertyValue<Construction> constructionPVal : set) {
-            Construction accountConstruction = constructionPVal.getValue();
-            if (description == null || description.equals(accountConstruction.getDescription())) {
-                assertNotNull("Null accountConstruction in " + setName + " set (description: '" + description + "')", accountConstruction);
-                return accountConstruction;
+    private EvaluatedConstructionImpl<UserType> getEvaluatedAccountConstruction(
+            String description, Collection<EvaluatedConstructionImpl<UserType>> set, String setName) {
+        for (EvaluatedConstructionImpl<UserType> evaluatedConstruction : set) {
+            if (description == null || description.equals(evaluatedConstruction.getConstruction().getDescription())) {
+                assertNotNull("Null accountConstruction in " + setName + " set (description: '" + description + "')", evaluatedConstruction);
+                return evaluatedConstruction;
             }
         }
         return null;
