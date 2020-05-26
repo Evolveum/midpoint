@@ -2588,6 +2588,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="currentObject" type="c:ObjectSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Current object. This is the default if nothing is specified.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="linkTarget" type="c:LinkTargetObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2598,7 +2607,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="linkSource" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="linkSource" type="c:LinkSourceObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2612,10 +2621,10 @@
     </xsd:complexType>
     <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
 
-    <xsd:complexType name="LinkTargetObjectSelectorType">
+    <xsd:complexType name="LinkedObjectSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Selects objects among link targets (for this object).
+                Selects objects among linked ones (for this object).
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
@@ -2635,6 +2644,44 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
+
+    <xsd:complexType name="LinkSourceObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked sources (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkTargetObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among link targets (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType">
+                <xsd:sequence>
                     <xsd:element name="changeSituation" type="tns:LinkChangeSituationType" minOccurs="0" default="always">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2729,7 +2776,7 @@
             <xsd:enumeration value="inOld">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Link matches if it exists in the "old" state  (i.e. it existence went from true to any).
+                        Link matches if it exists in the "old" state (i.e. it existence went from true to any).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IN_OLD"/>

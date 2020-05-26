@@ -89,7 +89,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -1989,33 +1988,33 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
+    public <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignee(type);
+        return linkedObjectsFunctions.findLinkedSource(type);
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
+    public <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignees(type);
+        return linkedObjectsFunctions.findLinkedSources(type);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid)
+    public <T extends AssignmentHolderType> T findLinkedTarget(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignedObject(type, archetypeOid);
+        return linkedObjectsFunctions.findLinkedTarget(type, archetypeOid);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
     @NotNull
-    public <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid)
+    public <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignedObjects(type, archetypeOid);
+        return linkedObjectsFunctions.findLinkedTargets(type, archetypeOid);
     }
 
     @Experimental

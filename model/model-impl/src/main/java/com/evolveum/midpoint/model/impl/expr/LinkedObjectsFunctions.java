@@ -48,12 +48,12 @@ public class LinkedObjectsFunctions {
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private MidpointFunctionsImpl midpointFunctions;
 
-    <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
+    <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return MiscUtil.extractSingleton(findAssignees(type), () -> new IllegalStateException("More than one assignee found"));
+        return MiscUtil.extractSingleton(findLinkedSources(type), () -> new IllegalStateException("More than one assignee found"));
     }
 
-    <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
+    <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ObjectQuery query = prismContext.queryFor(type)
@@ -64,17 +64,17 @@ public class LinkedObjectsFunctions {
     }
 
     // Should be used after assignment evaluation!
-    <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid) throws CommunicationException,
+    <T extends AssignmentHolderType> T findLinkedTarget(Class<T> type, String archetypeOid) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        return MiscUtil.extractSingleton(findAssignedObjects(type, archetypeOid),
+        return MiscUtil.extractSingleton(findLinkedTargets(type, archetypeOid),
                 () -> new IllegalStateException("More than one assigned object found"));
     }
 
     // Should be used after assignment evaluation!
     @Experimental
     @NotNull
-    <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid)
+    <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         Set<PrismReferenceValue> membership = getMembership();

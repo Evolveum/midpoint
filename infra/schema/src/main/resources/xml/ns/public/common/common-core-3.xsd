@@ -13649,7 +13649,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Definition of object with respect to its archetype.
+                            Archetype of the object to select.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

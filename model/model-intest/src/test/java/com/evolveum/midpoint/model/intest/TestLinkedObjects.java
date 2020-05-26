@@ -365,6 +365,74 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Assign sword to cubby again.
+     */
+    @Test
+    public void test250AssignSwordToCubbyAgain() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        assign(USER_CUBBY, SERVICE_SWORD, SchemaConstants.ORG_DEFAULT, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_CUBBY.oid)
+                .assertFullName("Little Cubby Gummi")
+                .assertOrganizations("wooden-sword users");
+
+        assertServiceAfter(SERVICE_SWORD.oid)
+                .assertDescription("Used by cubby (Little Cubby Gummi)");
+    }
+
+    /**
+     * Delete cubby (sigh).
+     */
+    @Test
+    public void test260DeleteCubby() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        deleteObject(UserType.class, USER_CUBBY.oid, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertServiceAfter(SERVICE_SWORD.oid)
+                .assertDescription("Not used");
+    }
+
+    /**
+     * Add cubby but with sword.
+     */
+    @Test
+    public void test270AddCubbyWithSword() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_CUBBY.file, task, result, cubby ->
+                ((UserType) cubby.asObjectable())
+                        .beginAssignment().targetRef(SERVICE_SWORD.oid, ServiceType.COMPLEX_TYPE)
+        );
+
+        then();
+        assertSuccess(result);
+
+        assertUserAfter(USER_CUBBY.oid)
+                .assertFullName("Cubby Gummi")
+                .assertOrganizations("wooden-sword users");
+
+        assertServiceAfter(SERVICE_SWORD.oid)
+                .assertDescription("Used by cubby (Cubby Gummi)");
+    }
+
+    /**
      * Whistle is held by test user since creation - to check on the ordering of assignments.
      * (Whistle first, User second). TEMPORARY
      */

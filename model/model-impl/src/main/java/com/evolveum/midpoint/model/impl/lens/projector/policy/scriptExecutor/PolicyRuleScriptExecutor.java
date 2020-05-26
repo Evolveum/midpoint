@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector.policy;
+package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import java.util.*;
 
@@ -124,6 +124,12 @@ public class PolicyRuleScriptExecutor {
             return createInput(MiscUtil.singletonOrEmptyList(focusContext.getObjectAny()));
         } else {
             Map<String, PrismObject<?>> objectsMap = new HashMap<>(); // using OID-keyed map to avoid duplicates
+            if (object.getCurrentObject() != null) {
+                PrismObject<?> current = focusContext.getObjectAny();
+                if (matches(current, object.getCurrentObject())) {
+                    objectsMap.put(current.getOid(), current);
+                }
+            }
             if (!object.getLinkTarget().isEmpty()) {
                 try (LinkTargetFinder targetFinder = new LinkTargetFinder(this, context, rule, result)) {
                     for (LinkTargetObjectSelectorType linkTargetSelector : object.getLinkTarget()) {
@@ -138,6 +144,13 @@ public class PolicyRuleScriptExecutor {
             }
             return createInput(objectsMap.values());
         }
+    }
+
+    private boolean matches(PrismObject<?> object, ObjectSelectorType selector) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        //noinspection unchecked
+        return repositoryService.selectorMatches(selector, (PrismObject) object, null, LOGGER, "current object");
     }
 
     private void addObjects(Map<String, PrismObject<?>> objectsMap, List<PrismObject<? extends ObjectType>> objects) {
