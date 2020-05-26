@@ -565,19 +565,12 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) throws SchemaException {
-        PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
-        if (item == null || item.isEmpty()) {
+    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
+        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
+        if (options == null) {
             return null;
-        } else if (item.getValues().size() > 1) {
-            throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
         } else {
-            ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
-            if (modelExecuteOptionsType != null) {
-                return ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-            } else {
-                return null;
-            }
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options);
         }
     }
 

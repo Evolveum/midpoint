@@ -194,7 +194,7 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
         when();
         display("recompute role " + ROLE_IT_HR_NAME);
 
-        modelService.recompute(RoleType.class, ROLE_IT_HR_OID, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.recompute(RoleType.class, ROLE_IT_HR_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

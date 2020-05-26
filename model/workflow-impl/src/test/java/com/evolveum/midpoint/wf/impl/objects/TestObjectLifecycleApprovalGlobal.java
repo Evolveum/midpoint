@@ -88,7 +88,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
                 addFocusDeltaToContext(lensContext, addObjectDelta);
-                lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 return lensContext;
             }
 
@@ -181,7 +181,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
                 addFocusDeltaToContext(lensContext, judgeDelta);
-                lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 return lensContext;
             }
 
@@ -273,7 +273,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
                 addFocusDeltaToContext(lensContext, deleteDelta);
-                lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 return lensContext;
             }
 
@@ -337,7 +337,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
                 addFocusDeltaToContext(lensContext, addObjectDelta);
-                lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 return lensContext;
             }
 
@@ -437,7 +437,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
             protected LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<RoleType> lensContext = createLensContext(RoleType.class);
                 addFocusDeltaToContext(lensContext, captainDelta);
-                lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 return lensContext;
             }
 

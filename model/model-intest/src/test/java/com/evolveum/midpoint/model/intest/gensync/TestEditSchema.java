@@ -826,8 +826,8 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
         // WHEN
         when();
-        ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
-        options.setRaw(true);
+        ModelExecuteOptions options = executeOptions().overwrite();
+        options.raw(true);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
 
         // THEN

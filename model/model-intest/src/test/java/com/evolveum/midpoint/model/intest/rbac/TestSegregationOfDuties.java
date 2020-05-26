@@ -1606,7 +1606,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         try {
             // This should die
-            ModelExecuteOptions options = new ModelExecuteOptions();
+            ModelExecuteOptions options = executeOptions();
 //            options.setEvaluateAllAssignmentRelationsOnRecompute(true);
             assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_OWNER, options, task, result);
 

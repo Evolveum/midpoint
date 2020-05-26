@@ -1678,12 +1678,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
         newTask.asPrismObject().addExtensionItem(deltasProperty);
         if (options != null) {
-            //noinspection unchecked
-            PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-            PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
-            optionsProperty.setRealValue(options.toModelExecutionOptionsType());
-            newTask.asPrismObject().addExtensionItem(optionsProperty);
+            PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
+                    .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+            PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
+            optionsContainer.setRealValue(options.toModelExecutionOptionsType());
+            newTask.asPrismObject().addExtensionItem(optionsContainer);
         }
         ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService

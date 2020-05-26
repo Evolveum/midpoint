@@ -247,7 +247,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         OperationResult result = new OperationResult(OPERATION_DELETE_CASE_OBJECT);
         casesToDelete.forEach(caseObject -> {
             WebModelServiceUtils.deleteObject(CaseType.class, caseObject.getOid(),
-                    ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(),
+                    ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(getPrismContext()),
                     result, PageCases.this);
         });
         result.computeStatusComposite();

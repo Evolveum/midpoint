@@ -315,7 +315,7 @@ public class ModelRestController extends AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, parentResult);
         }
 
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
 
         String oid;
         ResponseEntity<?> response;
@@ -402,11 +402,11 @@ public class ModelRestController extends AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, parentResult);
         }
 
-        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+        ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
         if (modelExecuteOptions == null) {
-            modelExecuteOptions = ModelExecuteOptions.createOverwrite();
+            modelExecuteOptions = ModelExecuteOptions.create(prismContext).overwrite();
         } else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)) {
-            modelExecuteOptions.setOverwrite(Boolean.TRUE);
+            modelExecuteOptions.overwrite(Boolean.TRUE);
         }
 
         String oid;
@@ -453,7 +453,7 @@ public class ModelRestController extends AbstractRestController {
                         .body(parentResult.getMessage());
             }
 
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
 
             model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
             response = createResponse(HttpStatus.NO_CONTENT, parentResult);
@@ -490,7 +490,7 @@ public class ModelRestController extends AbstractRestController {
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
         ResponseEntity<?> response;
         try {
-            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+            ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
             Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
             model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
             response = createResponse(HttpStatus.NO_CONTENT, parentResult);

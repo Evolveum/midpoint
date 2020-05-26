@@ -337,7 +337,7 @@ public class PageImportObject extends PageAdminConfiguration {
             stream = inputDescription.inputStream;
             ImportOptionsType options = optionsModel.getObject();
             if (isTrue(fullProcessingModel.getObject())) {
-                options.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+                options.setModelExecutionOptions(new ModelExecuteOptionsType(getPrismContext()).raw(false));
             } else {
                 options.setModelExecutionOptions(null);
             }

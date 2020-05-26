@@ -1035,7 +1035,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<SecurityPolicyType> secPolicyNoHistory = parseObject(SECURITY_POLICY_NO_HISTORY);
-        addObject(secPolicyNoHistory, ModelExecuteOptions.createOverwrite(), task, result);
+        addObject(secPolicyNoHistory, executeOptions().overwrite(), task, result);
         try {
             WebClient client = prepareClient();
             client.path("/users/" + USER_DARTHADDER_OID + "/validate");
@@ -1055,7 +1055,7 @@ public abstract class TestAbstractRestService extends RestServiceInitializer {
             getDummyAuditService().assertLoginLogout(SchemaConstants.CHANNEL_REST_URI);
         } finally {
             PrismObject<SecurityPolicyType> secPolicy = parseObject(SECURITY_POLICY);
-            addObject(secPolicy, ModelExecuteOptions.createOverwrite(), task, result);
+            addObject(secPolicy, executeOptions().overwrite(), task, result);
         }
     }
 

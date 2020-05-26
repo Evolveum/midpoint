@@ -721,7 +721,7 @@ public class Clockwork {
                 DebugUtil.indentDebugDump(sb, 1);
                 sb.append(projectionContext.getHumanReadableName());
                 if (projectionContext.isTombstone()) {
-                    sb.append(" THOMBSTONE");
+                    sb.append(" TOMBSTONE");
                 }
                 sb.append(": ");
                 sb.append(projectionContext.getSynchronizationPolicyDecision());

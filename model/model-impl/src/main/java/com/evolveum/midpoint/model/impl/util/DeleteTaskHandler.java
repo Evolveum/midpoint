@@ -157,7 +157,7 @@ public class DeleteTaskHandler implements TaskHandler {
         ModelExecuteOptions execOptions;
         if (optionRaw) {
             searchOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            execOptions = ModelExecuteOptions.createRaw();
+            execOptions = ModelExecuteOptions.create(prismContext).raw();
         } else {
             searchOptions = null;
             execOptions = null;

@@ -189,7 +189,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         jackPirateValidTo = getTimestamp("PT10M");
         activationType.setValidTo(jackPirateValidTo);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         when();
@@ -437,7 +437,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         jackPirateValidTo = getTimestamp("PT10M");
         activationType.setValidTo(jackPirateValidTo);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         when();
@@ -576,7 +576,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         jackPirateValidTo = getTimestamp("PT10M");
         activationType.setValidTo(jackPirateValidTo);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         when();
@@ -849,7 +849,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         jackPirateValidTo = getTimestamp("PT10M");
         activationType.setValidTo(jackPirateValidTo);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         when();
@@ -1140,7 +1140,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         // WHEN
         when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
-                task, null, activationType, true, ModelExecuteOptions.createRaw(), result);
+                task, null, activationType, true, executeOptions().raw(), result);
 
         // THEN
         then();
@@ -1170,7 +1170,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         // WHEN
         when();
         modifyUserAssignment(USER_JACK_OID, ROLE_STRONG_SAILOR_OID, RoleType.COMPLEX_TYPE, null,
-                task, null, null, true, ModelExecuteOptions.createRaw(), result);
+                task, null, null, true, executeOptions().raw(), result);
 
         // THEN
         then();

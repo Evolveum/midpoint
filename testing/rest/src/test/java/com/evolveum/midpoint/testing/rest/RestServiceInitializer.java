@@ -118,13 +118,13 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         InternalsConfig.encryptionChecks = false;
 
         PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
-        addObject(superRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(superRole, executeOptions().overwrite(), initTask, result);
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
-        addObject(endRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
         PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
-        addObject(adminUser, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(adminUser, executeOptions().overwrite(), initTask, result);
         addObject(USER_NOBODY_FILE, initTask, result);
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);
@@ -135,7 +135,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         addObject(VALUE_POLICY_SECURITY_ANSWER, initTask, result);
         addObject(SECURITY_POLICY, initTask, result);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
-        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(systemConfig, executeOptions().overwrite(), initTask, result);
 
         // TODO remove in 2021 - this should be covered in super.super.initSystem(...)
 //        dummyAuditService = DummyAuditService.getInstance();

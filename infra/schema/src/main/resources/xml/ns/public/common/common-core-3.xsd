@@ -22065,8 +22065,25 @@
                 Options for execution of Model operations. These options influence the way how the operations are executed.
                 The options are not mandatory. All options have reasonable default values. They may not be specified at all.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element ref="tns:extension" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Extension container used to provide deployment-specific execution options.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="force" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -22125,7 +22142,13 @@
 
                         Also, because of time complexity, the reconciliation may be executed in
                         a separate background task.
+
+                        Support was removed in 4.2. It is replaced by new "Linked objects" functionality.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0">
@@ -22177,6 +22200,21 @@
                         Options that control selective execution of model logic.
                         Use with extreme care. Some combinations may be dangerous.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="initialPartialProcessing" type="tns:PartialProcessingOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Partial processing for initial clockwork stage. Used primarily for eliminating overhead when starting
+                        operations that are expected to result in (background) approval processing.
+
+                        Note that if this option is used and if the clockwork proceeds to PRIMARY phase (e.g. because there are
+                        no approvals), the context will be rotten after INITIAL phase. This presents some overhead. So please use
+                        this option only if there is reasonable assumption that the request will stop after INITIAL phase.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since> <!-- was present in ModelExecuteOptions earlier but got into bean in 4.2 -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="focusConflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
@@ -22235,6 +22273,9 @@
             <xsd:documentation>
                 Options that allows to select only some of the projector/clockwork parts to process.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="load" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>

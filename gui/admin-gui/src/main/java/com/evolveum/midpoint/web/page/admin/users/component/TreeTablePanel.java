@@ -625,8 +625,8 @@ public class TreeTablePanel extends BasePanel<String> {
         try {
             ObjectDelta emptyDelta = getPageBase().getPrismContext().deltaFactory().object().createEmptyModifyDelta(OrgType.class,
                     orgToRecompute.getValue().getOid());
-            ModelExecuteOptions options = new ModelExecuteOptions();
-            options.setReconcile(true);
+            ModelExecuteOptions options = new ModelExecuteOptions(getPrismContext());
+            options.reconcile(true);
             getPageBase().getModelService().executeChanges(MiscUtil.createCollection(emptyDelta),
                     options, task, result);
 

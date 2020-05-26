@@ -2757,4 +2757,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private SideBarMenuPanel getSideBarMenuPanel(){
         return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
     }
+
+    public ModelExecuteOptions executeOptions() {
+        return ModelExecuteOptions.create(getPrismContext());
+    }
 }

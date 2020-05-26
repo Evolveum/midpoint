@@ -417,7 +417,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 delta.setOid(user.getOid());
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
-                ModelExecuteOptions options = executeOptions.createOptions();
+                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
                 LOGGER.debug("Using options {}.", new Object[] { executeOptions });
                 getModelService().executeChanges(MiscUtil.createCollection(delta), options, task,
                         subResult);
@@ -511,7 +511,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                 ObjectDelta delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class, user.getOid()
                 );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
-                getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task,
+                getModelService().executeChanges(deltas, executeOptions().reconcile(), task,
                         opResult);
                 opResult.computeStatusIfUnknown();
             } catch (Exception ex) {
@@ -573,7 +573,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
                         UserType.class, user.getOid(), enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
-                ModelExecuteOptions options = executeOptions.createOptions();
+                ModelExecuteOptions options = executeOptions.createOptions(getPrismContext());
                 LOGGER.debug("Using options {}.", new Object[] { executeOptions });
                 getModelService().executeChanges(MiscUtil.createCollection(objectDelta), options,
                         task, subResult);

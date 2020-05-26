@@ -108,10 +108,10 @@ public class ObjectMerger {
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 
         LOGGER.trace("Executing right link delta (raw): {}", deltas.getRightLinkDelta());
-        executeDelta(deltas.getRightLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+        executeDelta(deltas.getRightLinkDelta(), ModelExecuteOptions.create(prismContext).raw(), executedDeltas, task, result);
 
         LOGGER.trace("Executing left link delta (raw): {}", deltas.getLeftLinkDelta());
-        executeDelta(deltas.getLeftLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+        executeDelta(deltas.getLeftLinkDelta(), ModelExecuteOptions.create(prismContext).raw(), executedDeltas, task, result);
 
         LOGGER.trace("Executing left object delta: {}", deltas.getLeftObjectDelta());
         executeDelta(deltas.getLeftObjectDelta(), null, executedDeltas, task, result);

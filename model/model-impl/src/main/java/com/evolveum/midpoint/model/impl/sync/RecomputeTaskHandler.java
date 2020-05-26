@@ -102,7 +102,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
             return optionsFromTask;
         } else {
             // Make reconcile the default (for compatibility).
-            return ModelExecuteOptions.createReconcile();
+            return ModelExecuteOptions.create(prismContext).reconcile();
         }
     }
 
