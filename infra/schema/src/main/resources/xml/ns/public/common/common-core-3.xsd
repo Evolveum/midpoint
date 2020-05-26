@@ -23096,7 +23096,7 @@
                     <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=";"/>
                     <xsd:element name="escape" type="xsd:string" minOccurs="0" maxOccurs="1" default="\"/>
                     <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="1" default="&quot;"/>
-                    <xsd:element name="quoteMode" type="xsd:string" minOccurs="0" maxOccurs="1" default="MINIMAL"/>
+                    <xsd:element name="quoteMode" type="tns:QuoteModeType" minOccurs="0" maxOccurs="1" default="nonNumeric"/>
                     <xsd:element name="recordSeparator" type="xsd:string" minOccurs="0" maxOccurs="1" default="&#13;&#10;"/>
                     <xsd:element name="trailingDelimiter" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
                     <xsd:element name="trim" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
@@ -23106,6 +23106,81 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:simpleType name="QuoteModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies type of quote.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Quotes all fields.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="allNonNull">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Quotes all non-null fields.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL_NON_NULL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="minimal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Quotes fields which contain special characters such as a the field delimiter,
+                            quote character or any of the characters in the line separator string.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="nonNumeric">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Quotes all non-numeric fields.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NON_NUMERIC"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Never quotes fields. When the delimiter occurs in data, the printer prefixes it with the escape character.
+                            If the escape character is not set, format validation throws an exception.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="HtmlExportType">
         <xsd:annotation>

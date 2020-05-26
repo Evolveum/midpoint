@@ -37,7 +37,4 @@
             </column>
         </view>
     </objectCollection>
-    <export>
-        <type>html</type>
-    </export>
 </report>

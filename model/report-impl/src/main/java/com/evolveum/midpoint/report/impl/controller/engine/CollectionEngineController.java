@@ -46,21 +46,7 @@ public class CollectionEngineController extends EngineController {
     }
 
     @Override
-    public ExportConfigurationType getDefaultExport() {
-        ExportConfigurationType export = new ExportConfigurationType();
-        export.setType(ExportType.CSV);
-        CsvExportType csv = new CsvExportType();
-        csv.setFieldDelimiter(";");
-        csv.setEncoding("utf-8");
-        csv.setMultivalueDelimiter(",");
-        csv.setCreateHeader(true);
-        csv.setEscape("\\");
-        csv.setQuote("\"");
-        csv.setQuoteMode(QuoteMode.MINIMAL.name());
-        csv.setRecordSeparator("\r\n");
-        csv.setTrailingDelimiter(false);
-        csv.setTrim(false);
-        export.setCsv(csv);
-        return export;
+    public ExportType getDefaultExport() {
+        return ExportType.CSV;
     }
 }

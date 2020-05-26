@@ -52,10 +52,7 @@ public class DashboardEngineController extends EngineController {
     }
 
     @Override
-    public ExportConfigurationType getDefaultExport() {
-        ExportConfigurationType export = new ExportConfigurationType();
-        export.setType(ExportType.HTML);
-        export.setHtml(new HtmlExportType());
-        return export;
+    public ExportType getDefaultExport() {
+        return ExportType.HTML;
     }
 }

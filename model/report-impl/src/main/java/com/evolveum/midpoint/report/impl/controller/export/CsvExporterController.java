@@ -123,7 +123,7 @@ public class CsvExporterController extends ExportController {
         }
 
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-        if (!collectionConfig.isUseOnlyReportView()) {
+        if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
             if (collection != null) {
                 getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
             } else if (collectionRefSpecification.getBaseCollectionRef() != null
@@ -333,7 +333,7 @@ public class CsvExporterController extends ExportController {
                 .withIgnoreHeaderCase(false)
                 .withIgnoreSurroundingSpaces(true)
                 .withQuote(toCharacter(getQuote()))
-                .withQuoteMode(QuoteMode.valueOf(getQuoteMode().toUpperCase()))
+                .withQuoteMode(QuoteMode.valueOf(getQuoteMode().name()))
                 .withRecordSeparator(getRecordSeparator())
                 .withTrailingDelimiter(isTrailingDelimiter())
                 .withTrim(isTrim());
@@ -359,8 +359,8 @@ public class CsvExporterController extends ExportController {
         return getCsvConfiguration().getRecordSeparator() == null ? "\r\n" : getCsvConfiguration().getRecordSeparator();
     }
 
-    private String getQuoteMode() {
-        return getCsvConfiguration().getQuoteMode() == null ? "MINIMAL" : getCsvConfiguration().getQuoteMode();
+    private QuoteModeType getQuoteMode() {
+        return getCsvConfiguration().getQuoteMode() == null ? QuoteModeType.NON_NUMERIC : getCsvConfiguration().getQuoteMode();
     }
 
     private String getQuote() {
@@ -376,6 +376,9 @@ public class CsvExporterController extends ExportController {
     }
 
     private CsvExportType getCsvConfiguration() {
+        if (getExportConfiguration().getCsv() == null) {
+            return new CsvExportType();
+        }
         return getExportConfiguration().getCsv();
     }
 

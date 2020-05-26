@@ -6,14 +6,15 @@
  */
 package com.evolveum.midpoint.report;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
@@ -33,6 +34,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
+    public static final File ARCHETYPE_TASK_FILE = new File(COMMON_DIR, "archetype-task-report.xml");
+
+    protected final static File USER_WILL_FILE = new File(TEST_DIR_COMMON, "user-will.xml");
+    protected final static String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
+
     public static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     public static final File COLLECTION_ROLE_FILE = new File(COMMON_DIR, "object-collection-all-role.xml");
     public static final File COLLECTION_RESOURCE_FILE = new File(COMMON_DIR, "object-collection-all-resource.xml");
@@ -51,17 +57,50 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File COLLECTION_ASSIGNMENT_HOLDER_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-all-assignment-holder-with-view.xml");
     public static final File COLLECTION_SHADOW_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-shadow-of-resource-with-view.xml");
     public static final File DASHBOARD_TRIPLE_VIEW_FILE = new File(COMMON_DIR, "dashboard-with-triple-view.xml");
+    public static final File COLLECTION_BASIC = new File(COMMON_DIR, "object-collection-basic-filter.xml");
+
+    public static final File REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-default-column.xml");
+    public static final File REPORT_DASHBOARD_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-view.xml");
+    public static final File REPORT_DASHBOARD_WITH_TRIPLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-triple-view.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-default-column.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-view.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-double-view.xml");
+    public static final File REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-default-column.xml");
+    public static final File REPORT_AUDIT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-view.xml");
+    public static final File REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-audit-collection-with-double-view.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter.xml");
+    public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter-and-basic-collection.xml");
+
+    public static final String REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8582";
+    public static final String REPORT_DASHBOARD_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8533";
+    public static final String REPORT_DASHBOARD_WITH_TRIPLE_VIEW_OID = "2b87aa2e-dd86-4842-bcf5-76200a9a8533";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ab";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85de";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ef";
+    public static final String REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85bc";
+    public static final String REPORT_AUDIT_COLLECTION_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85cd";
+    public static final String REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85fg";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85gh";
+    public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85hi";
 
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        CleanupPolicyType policy = new CleanupPolicyType();
+        policy.setMaxRecords(0);
+        modelAuditService.cleanupAudit(policy, initTask, initResult);
+
         DummyResourceContoller dummyResourceCtl = DummyResourceContoller.create(null);
         dummyResourceCtl.extendSchemaPirate();
         PrismObject<ResourceType> resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
         dummyResourceCtl.setResource(resourceDummy);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, initTask, initResult);
+        importObjectFromFile(COLLECTION_BASIC, initResult);
+        importObjectFromFile(USER_WILL_FILE, initResult);
+        importObjectFromFile(ARCHETYPE_TASK_FILE, initResult);
         importObjectFromFile(COLLECTION_ROLE_FILE, initResult);
         importObjectFromFile(COLLECTION_USER_FILE, initResult);
         importObjectFromFile(COLLECTION_RESOURCE_FILE, initResult);
@@ -79,100 +118,104 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(COLLECTION_ASSIGNMENT_HOLDER_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_SHADOW_WITH_VIEW_FILE, initResult);
         importObjectFromFile(DASHBOARD_TRIPLE_VIEW_FILE, initResult);
+
+        importObjectFromFile(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE, initResult);
+        importObjectFromFile(REPORT_DASHBOARD_WITH_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_DASHBOARD_WITH_TRIPLE_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_FILE, initResult);
+        importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE, initResult);
     }
 
     @Test
     public void test001CreateDashboardReportWithDefaultColumn() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithDefaultColumnOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test002CreateDashboardReportWithView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test003CreateDashboardReportWithTripleView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getDashboardReportWithTripleViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_DASHBOARD_WITH_TRIPLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test010CreateObjectCollectionReportWithDefaultColumn() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithDefaultColumnOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test011CreateObjectCollectionReportWithView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test012CreateObjectCollectionReportWithDoubleView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithDoubleViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test013CreateAuditCollectionReportWithDefaultColumn() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithDefaultColumnOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test014CreateAuditCollectionReportWithView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test015CreateAuditCollectionReportWithDoubleView() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getAuditCollectionReportWithDoubleViewOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test016CreateObjectCollectionReportWithFilter() throws Exception {
-        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithFilterOid());
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_FILTER_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }
 
     @Test
     public void test017CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
-//        PrismObject<ReportType> report = getObject(ReportType.class, getObjectCollectionReportWithFilterAndBasicCollectionOid());
-//        runReport(report, false);
-//        basicCheckOutputFile(report);
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
     }
-
-    protected abstract String getDashboardReportWithTripleViewOid();
-    protected abstract String getDashboardReportWithViewOid();
-    protected abstract String getDashboardReportWithDefaultColumnOid();
-    protected abstract String getObjectCollectionReportWithDefaultColumnOid();
-    protected abstract String getObjectCollectionReportWithViewOid();
-    protected abstract String getObjectCollectionReportWithDoubleViewOid();
-    protected abstract String getAuditCollectionReportWithDefaultColumnOid();
-    protected abstract String getAuditCollectionReportWithViewOid();
-    protected abstract String getAuditCollectionReportWithDoubleViewOid();
-    protected abstract String getObjectCollectionReportWithFilterOid();
-    protected abstract String getObjectCollectionReportWithFilterAndBasicCollectionOid();
 
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        PrismObject<ReportType> reportBefore = report.clone();
+        report.asObjectable().setExport(getExportConfiguration());
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         // WHEN
         when();
@@ -191,6 +234,8 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
         return finishedTask;
     }
+
+    protected abstract ExportConfigurationType getExportConfiguration();
 
     protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         File outputFile = findOutputFile(report);

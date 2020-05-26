@@ -37,7 +37,7 @@ public abstract class EngineController {
 
     public abstract String createReport(ReportType parentReport, ExportController exportController, Task task, OperationResult result) throws Exception;
 
-    public abstract ExportConfigurationType getDefaultExport();
+    public abstract ExportType getDefaultExport();
 
     String getDestinationFileName(ReportType reportType, ExportController exportController) {
         File exportDir = getExportDir();

@@ -13,7 +13,4 @@
             <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
         </collection>
     </objectCollection>
-    <export>
-        <type>html</type>
-    </export>
 </report>

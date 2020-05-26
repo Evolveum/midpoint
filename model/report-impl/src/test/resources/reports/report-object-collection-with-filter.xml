@@ -10,17 +10,25 @@
     <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-            <!--<collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb255" relation="org:default" type="c:ObjectCollectionType"/>-->
             <filter>
-                <substring>
-                    <matching>polyStringNorm</matching>
-                    <path>name</path>
-                    <value>a</value>
-                    <anchorStart>true</anchorStart>
-                </substring>
+                <or>
+                    <substring>
+                        <matching>polyStringNorm</matching>
+                        <path>name</path>
+                        <value>j</value>
+                        <anchorStart>true</anchorStart>
+                    </substring>
+                    <substring>
+                        <matching>polyStringNorm</matching>
+                        <path>name</path>
+                        <value>w</value>
+                        <anchorStart>true</anchorStart>
+                    </substring>
+                </or>
             </filter>
         </collection>
         <view>
+            <type>UserType</type>
             <column>
                 <name>nameColumn</name>
                 <path>name</path>
@@ -46,7 +54,4 @@
         </view>
         <useOnlyReportView>true</useOnlyReportView>
     </objectCollection>
-    <export>
-        <type>html</type>
-    </export>
 </report>

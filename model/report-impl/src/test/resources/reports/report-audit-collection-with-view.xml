@@ -5,12 +5,12 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85fg">
-    <name>Audit Collection report with double view</name>
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85cd">
+    <name>Audit Collection report with view</name>
     <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-            <collectionRef oid="11000000-0000-0000-0001-000000001234" type="ObjectCollectionType"/>
+            <collectionRef oid="00000000-0000-0000-0001-000000001234" type="ObjectCollectionType"/>
         </collection>
         <view>
             <column>
@@ -37,7 +37,4 @@
             </column>
         </view>
     </objectCollection>
-    <export>
-        <type>html</type>
-    </export>
 </report>

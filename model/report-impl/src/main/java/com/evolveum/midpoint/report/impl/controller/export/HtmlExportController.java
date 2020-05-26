@@ -187,14 +187,14 @@ public class HtmlExportController extends ExportController {
         CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
         String defaultName = nameOfReport;
         if (collection != null) {
-            if (!collectionConfig.isUseOnlyReportView()) {
+            if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
             }
             defaultName = collection.getName().getOrig();
         } else if (collectionRefSpecification.getBaseCollectionRef() != null
                 && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
             ObjectCollectionType baseCollection = (ObjectCollectionType)getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-            if (!collectionConfig.isUseOnlyReportView()) {
+            if (!Boolean.TRUE.equals(collectionConfig.isUseOnlyReportView())) {
                 getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
             }
             defaultName = baseCollection.getName().getOrig();

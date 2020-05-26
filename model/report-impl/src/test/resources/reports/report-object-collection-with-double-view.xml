@@ -5,28 +5,28 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85cd">
-    <name>Audit Collection report with view</name>
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85ef">
+    <name>Object Collection report with double view</name>
     <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-            <collectionRef oid="00000000-0000-0000-0001-000000001234" type="ObjectCollectionType"/>
+            <collectionRef oid="11b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
         </collection>
         <view>
             <column>
-                <name>timeColumn</name>
-                <path>time</path>
+                <name>nameColumn</name>
+                <path>name</path>
                 <display>
-                    <label>Time</label>
+                    <label>Name</label>
                 </display>
             </column>
             <column>
-                <name>timeColumn2</name>
-                <path>time</path>
+                <name>nameColumn2</name>
+                <path>name</path>
                 <display>
-                    <label>Time2</label>
+                    <label>Name2</label>
                 </display>
-                <previousColumn>timeColumn</previousColumn>
+                <previousColumn>nameColumn</previousColumn>
                 <expression>
                     <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
                         <code>
@@ -37,7 +37,4 @@
             </column>
         </view>
     </objectCollection>
-    <export>
-        <type>html</type>
-    </export>
 </report>

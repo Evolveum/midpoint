@@ -157,8 +157,9 @@ public class ReportTaskHandler implements TaskHandler {
 
     private ExportController resolveExport(ReportType parentReport, EngineController engine) {
         ExportConfigurationType export;
-        if (parentReport.getExport() == null || isEmpty(parentReport.getExport())) {
-            export = engine.getDefaultExport();
+        if (parentReport.getExport() == null || parentReport.getExport().getType() == null) {
+            export = new ExportConfigurationType();
+            export.setType(engine.getDefaultExport());
         } else {
             export = parentReport.getExport();
         }
@@ -171,16 +172,6 @@ public class ReportTaskHandler implements TaskHandler {
                 LOGGER.error("Unsupported ExportType " + export);
                 throw new IllegalArgumentException("Unsupported ExportType " + export);
         }
-    }
-
-    private boolean isEmpty(ExportConfigurationType export) {
-        if (export.getCsv() != null) {
-            return false;
-        }
-        if (export.getHtml() != null) {
-            return false;
-        }
-        return true;
     }
 
     @Override
