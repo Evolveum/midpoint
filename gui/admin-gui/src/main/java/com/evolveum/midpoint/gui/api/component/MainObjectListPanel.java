@@ -298,7 +298,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     objectCollection.setView(resolveSelectedColumn(indexOfColumns, view.toGuiObjectListViewType()));
                 }
                 CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
-                collection.setBaseCollectionRef(view.getCollection());
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                    if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                        collection.setBaseCollectionRef(view.getCollection());
+                    } else {
+                        CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
+                        try {
+                            baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
+                            collection.setBaseCollectionRef(baseCollection);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't create filter for archetype");
+                            getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
+                            target.add(getPageBase().getFeedbackPanel());
+                        }
+                    }
+                }
                 if (filter != null) {
                     collection.setFilter(filter);
                 } else if (view.getCollection() == null) {
@@ -393,8 +407,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private GuiObjectListViewType resolveSelectedColumn(List<Integer> indexOfColumns, GuiObjectListViewType view){
         List<GuiObjectColumnType> newColumns = new ArrayList<>();
+        List<GuiObjectColumnType> oldColumns;
+        if (view.getColumn().isEmpty()) {
+            oldColumns = getDefaultView().getColumn();
+        } else {
+            oldColumns = view.getColumn();
+        }
         for (Integer index : indexOfColumns) {
-            newColumns.add(view.getColumn().get(index-2));
+            newColumns.add(oldColumns.get(index-2).clone());
         }
         view.getColumn().clear();
         view.getColumn().addAll(newColumns);

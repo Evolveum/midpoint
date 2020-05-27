@@ -272,6 +272,7 @@ public abstract class InfoBoxPanel extends Panel{
                         if (!isViewOfWidgetNull(model)) {
                             getPageBase().getModelInteractionService().applyView(compiledView, model.getObject().getPresentation().getView());
                         }
+                        compiledView.setCollection(model.getObject().getData().getCollection());
                         compiledView.setViewIdentifier(model.getObject().getIdentifier());
                         getPageBase().getCompiledGuiProfile().getObjectCollectionViews().add(compiledView);
                     } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
