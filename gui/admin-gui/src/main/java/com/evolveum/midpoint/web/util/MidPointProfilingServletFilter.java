@@ -8,14 +8,7 @@
 package com.evolveum.midpoint.web.util;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.catalina.connector.ClientAbortException;
@@ -26,25 +19,26 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- *  //TODO - After upgrading to javax.servlet version API 3.0, add response status code logging
- *
- *  In this filter, all incoming requests are captured and we measure server response times (using System.nanoTime() for now),
- *  this may be later adjusted using Java SIMON API (but this API is based on System.nanoTime() as well).
- *
- *  Right now, we are logging this request/response information
- *      Requested URL
- *      Request method (GET/POST)
- *      Request session id
- *
- *  Requests for .css or various image files are filtered and not recorded.
- *
- *  @author lazyman
- *  @author shood
+ * In this filter, all incoming requests are captured and we measure server response times
+ * using {@link System#nanoTime()}.
+ * ight now we are logging this request/response information:
+ * <ul>
+ * <li>Requested URL</li>
+ * <li>Request method (GET/POST)</li>
+ * <li>Request session id</li>
+ * </ul>
+ * <p>
+ * Requests for .css or various image files are filtered and not recorded.
+ * <p>
+ * @author lazyman
+ * @author shood
  */
+// TODO - After upgrading to javax.servlet version API 3.0, add response status code logging
+// 2020: we are on API>3 now, but what was the original idea? Was it meant for exception logging?
+// Also, elapsedTime should be calculated also for exception scenario and perhaps put into different statistics?
 public class MidPointProfilingServletFilter implements Filter {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointProfilingServletFilter.class);
-    private static DecimalFormat df = new DecimalFormat("0.00");
 
     protected FilterConfig config;
 
@@ -53,7 +47,7 @@ public class MidPointProfilingServletFilter implements Filter {
     }
 
     @Override
-    public void init(FilterConfig config) throws ServletException {
+    public void init(FilterConfig config) {
         this.config = config;
     }
 
@@ -73,10 +67,10 @@ public class MidPointProfilingServletFilter implements Filter {
 
             long elapsedTime = System.nanoTime() - startTime;
 
-            if(request instanceof HttpServletRequest){
-                String uri = ((HttpServletRequest)request).getRequestURI();
+            if (request instanceof HttpServletRequest) {
+                String uri = ((HttpServletRequest) request).getRequestURI();
 
-                if(uri.startsWith("/midpoint/admin")){
+                if (uri.startsWith("/midpoint/admin")) {
                     prepareRequestProfilingEvent(request, elapsedTime, uri);
                 }
             }
@@ -87,18 +81,18 @@ public class MidPointProfilingServletFilter implements Filter {
                 logException(e);
                 throw e;
             }
-         }
+        }
     }
 
-    private void prepareRequestProfilingEvent(ServletRequest request, long elapsed, String uri){
-        String info = ((HttpServletRequest)request).getMethod();
-        String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
+    private void prepareRequestProfilingEvent(ServletRequest request, long elapsed, String uri) {
+        String info = ((HttpServletRequest) request).getMethod();
+        String sessionId = ((HttpServletRequest) request).getRequestedSessionId();
 
         ProfilingDataLog event = new ProfilingDataLog(info, uri, sessionId, elapsed, System.currentTimeMillis());
         ProfilingDataManager.getInstance().prepareRequestProfilingEvent(event);
     }
 
-    private void logException(Throwable t) throws IOException, ServletException {
+    private void logException(Throwable t) {
         if (t instanceof ClientAbortException) {
             if (LOGGER.isDebugEnabled()) {
                 // client abort exceptions are quite OK as they are not an application/server problem
