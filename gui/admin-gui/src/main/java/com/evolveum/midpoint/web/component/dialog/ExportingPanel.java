@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
@@ -193,7 +194,12 @@ public class ExportingPanel extends BasePanel implements Popupable {
         tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.filter")) {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new ExportingFilterTabPanel(panelId, search, feedbackList);
+                return new ExportingFilterTabPanel(panelId, search, feedbackList){
+                    @Override
+                    public PageBase getPageBase() {
+                        return ExportingPanel.this.getPageBase();
+                    }
+                };
             }
         });
         return tabs;
@@ -238,7 +244,18 @@ public class ExportingPanel extends BasePanel implements Popupable {
         columns.add(nameColumn);
 
         SelectableListDataProvider<SelectableBean<Integer>, Integer> provider =
-                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex));
+                new SelectableListDataProvider<SelectableBean<Integer>, Integer>(getPageBase(), Model.ofList(exportableColumnIndex)){
+
+                    @Override
+                    public Iterator<SelectableBean<Integer>> internalIterator(long first, long count) {
+
+                        if (getAvailableData().isEmpty()) {
+                            return super.internalIterator(first, count);
+                        } else {
+                            return getAvailableData().iterator();
+                        }
+                    }
+                };
 
         BoxedTablePanel<SelectableBean<Integer>> table =
                 new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, null, 20) {

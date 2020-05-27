@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -128,7 +129,11 @@ public class ExportingFilterTabPanel extends BasePanel {
 
     public SearchFilterType getFilter() {
         if (check.getObject()) {
-            ObjectFilter filter = search.getObject().createObjectQuery(getPageBase().getPrismContext()).getFilter();
+            ObjectQuery query = search.getObject().createObjectQuery(getPageBase().getPrismContext());
+            if (query == null) {
+                return null;
+            }
+            ObjectFilter filter = query.getFilter();
             SearchFilterType origSearchFilter = null;
             try {
                 origSearchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
