@@ -2,14 +2,14 @@ package com.evolveum.axiom.lang.api;
 
 import java.util.Optional;
 
-class SimpleItemValue<T> implements AxiomItemValue<T> {
+class SimpleValue<T> implements AxiomValue<T> {
 
     private final AxiomTypeDefinition type;
     private final T value;
 
 
 
-    SimpleItemValue(AxiomTypeDefinition type, T value) {
+    SimpleValue(AxiomTypeDefinition type, T value) {
         super();
         this.type = type;
         this.value = value;

@@ -13,21 +13,21 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
-public class AxiomItemValueBuilder<V,T extends AxiomItemValue<V>> implements Lazy.Supplier<T> {
+public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Supplier<T> {
 
     private final AxiomTypeDefinition type;
 
-    private AxiomItemValueFactory<V,T> factory;
+    private AxiomValueFactory<V,T> factory;
     private Map<AxiomIdentifier, Supplier<? extends AxiomItem<?>>> children = new LinkedHashMap<>();
     private V value;
 
-    public AxiomItemValueBuilder(AxiomTypeDefinition type, AxiomItemValueFactory<V,T> factory) {
+    public AxiomValueBuilder(AxiomTypeDefinition type, AxiomValueFactory<V,T> factory) {
         this.type = type;
         this.factory = factory;
     }
 
-    public static <V> AxiomItemValueBuilder<V, AxiomItemValue<V>> from(AxiomTypeDefinition type) {
-        return new AxiomItemValueBuilder(type, ItemValueImpl.factory());
+    public static <V> AxiomValueBuilder<V, AxiomValue<V>> from(AxiomTypeDefinition type) {
+        return new AxiomValueBuilder(type, ItemValueImpl.factory());
     }
 
     public V getValue() {
@@ -59,11 +59,11 @@ public class AxiomItemValueBuilder<V,T extends AxiomItemValue<V>> implements Laz
         return factory.create(type, value, builder.build());
     }
 
-    public static <T,V extends AxiomItemValue<T>> AxiomItemValueBuilder<T,V> create(AxiomTypeDefinition type, AxiomItemValueFactory<T, V> factory) {
-        return new AxiomItemValueBuilder<>(type, factory);
+    public static <T,V extends AxiomValue<T>> AxiomValueBuilder<T,V> create(AxiomTypeDefinition type, AxiomValueFactory<T, V> factory) {
+        return new AxiomValueBuilder<>(type, factory);
     }
 
-    public void setFactory(AxiomItemValueFactory<V,T> factoryFor) {
+    public void setFactory(AxiomValueFactory<V,T> factoryFor) {
         this.factory = factoryFor;
     }
 

@@ -6,7 +6,7 @@ import java.util.Set;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.collect.ImmutableSet;
 
-public interface AxiomIdentifierDefinition extends AxiomItemValue<AxiomIdentifierDefinition> {
+public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDefinition> {
 
     @Override
     default AxiomIdentifierDefinition get() {

@@ -9,8 +9,8 @@ import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.google.common.collect.ImmutableMap;
@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDefinition> implements AxiomTypeDefinition {
 
-    public static final AxiomItemValueFactory<AxiomTypeDefinition, AxiomTypeDefinition> FACTORY =AxiomTypeDefinitionImpl::new;
+    public static final AxiomValueFactory<AxiomTypeDefinition, AxiomTypeDefinition> FACTORY =AxiomTypeDefinitionImpl::new;
 
     private final Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions;
     private final Optional<AxiomTypeDefinition> superType;
@@ -48,7 +48,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
         return this;
     }
 
-    private <V extends AxiomItemValue<V>> Collection<V> upcast(Collection<AxiomItemValue<V>> itemValue) {
+    private <V extends AxiomValue<V>> Collection<V> upcast(Collection<AxiomValue<V>> itemValue) {
         return (Collection) itemValue;
     }
 
@@ -81,8 +81,8 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
     }
 
     private void supplyAll(AxiomIdentifier type, Builder<AxiomIdentifier, AxiomItemDefinition> builder,
-            Collection<AxiomItemValue<AxiomItemDefinition>> values) {
-        for(AxiomItemValue<AxiomItemDefinition> v : values) {
+            Collection<AxiomValue<AxiomItemDefinition>> values) {
+        for(AxiomValue<AxiomItemDefinition> v : values) {
             AxiomItemDefinition val = v.get();
             AxiomIdentifier name = Inheritance.adapt(type, val.name());
             builder.put(name, val);

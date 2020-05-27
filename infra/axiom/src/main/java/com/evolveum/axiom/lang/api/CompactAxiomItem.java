@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableSet;
 
-class CompactAxiomItem<V> extends AbstractAxiomItem<V> implements AxiomItemValue<V> {
+class CompactAxiomItem<V> extends AbstractAxiomItem<V> implements AxiomValue<V> {
 
     private final V value;
 
@@ -29,12 +29,12 @@ class CompactAxiomItem<V> extends AbstractAxiomItem<V> implements AxiomItemValue
     }
 
     @Override
-    public Collection<AxiomItemValue<V>> values() {
+    public Collection<AxiomValue<V>> values() {
         return ImmutableSet.of(this);
     }
 
     @Override
-    public AxiomItemValue<V> onlyValue() {
+    public AxiomValue<V> onlyValue() {
         return this;
     }
 

@@ -12,9 +12,9 @@ public interface AxiomItem<V> {
     AxiomIdentifier name();
     Optional<AxiomItemDefinition> definition();
 
-    Collection<AxiomItemValue<V>> values();
+    Collection<AxiomValue<V>> values();
 
-    default AxiomItemValue<V> onlyValue() {
+    default AxiomValue<V> onlyValue() {
         return Iterables.getOnlyElement(values());
     }
 
@@ -22,11 +22,11 @@ public interface AxiomItem<V> {
         return CompactAxiomItem.of(def, value);
     }
 
-    static <V> AxiomItem<V> from(AxiomItemDefinition def, Collection<? extends AxiomItemValue<V>> values) {
+    static <V> AxiomItem<V> from(AxiomItemDefinition def, Collection<? extends AxiomValue<V>> values) {
         return AxiomItemImpl.from(def, values);
     }
 
-    static <V> AxiomItem<V> from(AxiomItemDefinition def, AxiomItemValue<V> value) {
+    static <V> AxiomItem<V> from(AxiomItemDefinition def, AxiomValue<V> value) {
         return AxiomItemImpl.from(def, Collections.singleton(value));
     }
 

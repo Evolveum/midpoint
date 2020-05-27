@@ -7,12 +7,12 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDefinition> implements AxiomItemDefinition {
 
-    public static final AxiomItemValueFactory<AxiomItemDefinition,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
+    public static final AxiomValueFactory<AxiomItemDefinition,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
     private final AxiomTypeDefinition valueType;
     private final Optional<AxiomItem<String>> minOccurs;
 

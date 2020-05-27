@@ -7,8 +7,8 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
@@ -73,7 +73,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
         return globalSpace.lookup(space, key);
     }
 
-    public <V> AxiomItemValueFactory<V, AxiomItemValue<V>> factoryFor(AxiomTypeDefinition type) {
+    public <V> AxiomValueFactory<V, AxiomValue<V>> factoryFor(AxiomTypeDefinition type) {
         return context.typeFactory(type);
     }
 

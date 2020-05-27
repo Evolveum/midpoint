@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableList.Builder;
 
 public class AxiomItemBuilder<V> implements Supplier<AxiomItem<V>> {
 
-    Collection<Supplier<? extends AxiomItemValue<V>>> values = new ArrayList<>();
+    Collection<Supplier<? extends AxiomValue<V>>> values = new ArrayList<>();
     private AxiomItemDefinition definition;
 
     public AxiomItemBuilder(AxiomItemDefinition definition) {
@@ -20,14 +20,14 @@ public class AxiomItemBuilder<V> implements Supplier<AxiomItem<V>> {
         return definition;
     }
 
-    public void addValue(Supplier<? extends AxiomItemValue<V>> value) {
+    public void addValue(Supplier<? extends AxiomValue<V>> value) {
         values.add(value);
     }
 
     @Override
     public AxiomItem<V> get() {
-        Builder<AxiomItemValue<V>> result = ImmutableList.builder();
-        for(Supplier<? extends AxiomItemValue<V>> value : values) {
+        Builder<AxiomValue<V>> result = ImmutableList.builder();
+        for(Supplier<? extends AxiomValue<V>> value : values) {
             result.add(value.get());
         }
         return AxiomItem.from(definition, result.build());

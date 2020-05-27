@@ -10,7 +10,7 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomItemDefinition> {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<AxiomItemDefinition> {
 
     AxiomIdentifier ROOT_SPACE = AxiomIdentifier.axiom("AxiomRootDefinition");
     AxiomIdentifier SPACE = AxiomIdentifier.axiom("AxiomItemDefinition");

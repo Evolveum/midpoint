@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ItemBuilder;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
@@ -21,7 +21,7 @@ import com.google.common.collect.Collections2;
 public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements AxiomItemContext<V>, Supplier<AxiomItem<V>>, Dependency<AxiomItem<V>>, ItemBuilder {
 
     private final AxiomIdentifier name;
-    Collection<Dependency<AxiomItemValue<V>>> values = new ArrayList<>();
+    Collection<Dependency<AxiomValue<V>>> values = new ArrayList<>();
     private final AxiomItemDefinition definition;
 
     public ItemContext(ValueContext<?> sourceContext, AxiomIdentifier name, AxiomItemDefinition definition, SourceLocation loc) {

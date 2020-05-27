@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 
 
-public interface AxiomItemValue<V> extends Supplier<V> {
+public interface AxiomValue<V> extends Supplier<V> {
 
     Optional<AxiomTypeDefinition> type();
 
@@ -29,8 +29,8 @@ public interface AxiomItemValue<V> extends Supplier<V> {
     @Override
     V get();
 
-    static <V> AxiomItemValue<V> from(AxiomTypeDefinition typeDefinition, V value) {
-        return new SimpleItemValue<V>(typeDefinition, value);
+    static <V> AxiomValue<V> from(AxiomTypeDefinition typeDefinition, V value) {
+        return new SimpleValue<V>(typeDefinition, value);
     }
 
 }

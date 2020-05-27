@@ -26,7 +26,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemTarget;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
@@ -72,7 +72,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
         stream.stream(target);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
-        AxiomItemValue<?> person = root.onlyValue();
+        AxiomValue<?> person = root.onlyValue();
         assertEquals(person.item(NAME).get().onlyValue().get(), "John Doe");
         assertEquals(person.item(FIRST_NAME).get().onlyValue().get(), "John");
 

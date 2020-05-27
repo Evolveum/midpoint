@@ -102,12 +102,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
     }
 
-    private final class Value<V> implements ValueBuilder, Supplier<AxiomItemValue<V>> {
+    private final class Value<V> implements ValueBuilder, Supplier<AxiomValue<V>> {
 
-        private final AxiomItemValueBuilder<V, ?> builder;
+        private final AxiomValueBuilder<V, ?> builder;
 
         public Value(V value, AxiomTypeDefinition type) {
-            builder = AxiomItemValueBuilder.from(type);
+            builder = AxiomValueBuilder.from(type);
             builder.setValue(value);
             if(value != null && type.argument().isPresent()) {
                 AxiomItemDefinition argument = type.argument().get();
@@ -151,7 +151,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomItemValue<V> get() {
+        public AxiomValue<V> get() {
             return builder.get();
         }
 

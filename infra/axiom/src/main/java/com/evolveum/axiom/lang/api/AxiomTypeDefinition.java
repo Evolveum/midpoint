@@ -15,7 +15,7 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomItemValue<AxiomTypeDefinition> {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<AxiomTypeDefinition> {
 
     public final AxiomIdentifier IDENTIFIER_MEMBER = AxiomIdentifier.axiom("name");
     public final AxiomIdentifier IDENTIFIER_SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");

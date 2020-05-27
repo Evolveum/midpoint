@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.DependantAction;
@@ -119,8 +119,8 @@ public class ValueActionImpl<V> implements AxiomStatementRule.ActionBuilder<V>, 
 
 
     @Override
-    public Dependency<AxiomItemValue<?>> require(AxiomValueContext<?> ext) {
-        return require((Dependency<AxiomItemValue<?>>) ext);
+    public Dependency<AxiomValue<?>> require(AxiomValueContext<?> ext) {
+        return require((Dependency<AxiomValue<?>>) ext);
     }
 
 

@@ -3,7 +3,7 @@ package com.evolveum.axiom.lang.impl;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
@@ -31,9 +31,9 @@ public interface AxiomStatementRule<V> {
 
         Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
 
-        Dependency.Search<AxiomItemValue<?>> global(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency.Search<AxiomValue<?>> global(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
 
-        Dependency.Search<AxiomItemValue<?>> namespaceValue(AxiomIdentifier space, IdentifierSpaceKey itemName);
+        Dependency.Search<AxiomValue<?>> namespaceValue(AxiomIdentifier space, IdentifierSpaceKey itemName);
 
         Dependency<V> finalValue();
 
@@ -55,7 +55,7 @@ public interface AxiomStatementRule<V> {
 
         ActionBuilder<V> apply(Action<V> action);
 
-        Dependency<AxiomItemValue<?>> require(AxiomValueContext<?> ext);
+        Dependency<AxiomValue<?>> require(AxiomValueContext<?> ext);
 
 
 

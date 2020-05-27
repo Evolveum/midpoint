@@ -9,13 +9,13 @@ import com.evolveum.axiom.lang.impl.ItemValueImpl;
 import com.google.common.collect.ImmutableList;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifierDefinition> implements AxiomIdentifierDefinition {
 
-    public static final AxiomItemValueFactory<AxiomIdentifierDefinition,AxiomIdentifierDefinition> FACTORY = AxiomIdentifierDefinitionImpl::new ;
+    public static final AxiomValueFactory<AxiomIdentifierDefinition,AxiomIdentifierDefinition> FACTORY = AxiomIdentifierDefinitionImpl::new ;
 
 
     private final Scope scope;
@@ -29,7 +29,7 @@ public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifier
         this.space = this.<AxiomIdentifier>item(Item.ID_SPACE.name()).get().onlyValue().get();
 
         ImmutableList.Builder<AxiomItemDefinition> components = ImmutableList.builder();
-        for (AxiomItemValue<AxiomItemDefinition> val : this.<AxiomItemDefinition>item(Item.ID_MEMBER.name()).get().values()) {
+        for (AxiomValue<AxiomItemDefinition> val : this.<AxiomItemDefinition>item(Item.ID_MEMBER.name()).get().values()) {
             components.add(val.get());
         }
         this.components = components.build();

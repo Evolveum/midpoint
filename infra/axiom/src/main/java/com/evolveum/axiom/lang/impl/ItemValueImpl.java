@@ -7,14 +7,14 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
-public class ItemValueImpl<V> implements AxiomItemValue<V> {
+public class ItemValueImpl<V> implements AxiomValue<V> {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static final AxiomItemValueFactory FACTORY = ItemValueImpl::new;
+    private static final AxiomValueFactory FACTORY = ItemValueImpl::new;
     private final AxiomTypeDefinition type;
     private final V value;
     private final Map<AxiomIdentifier, AxiomItem<?>> items;
@@ -29,7 +29,7 @@ public class ItemValueImpl<V> implements AxiomItemValue<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <V> AxiomItemValueFactory<V,AxiomItemValue<V>> factory() {
+    public static <V> AxiomValueFactory<V,AxiomValue<V>> factory() {
         return FACTORY;
     }
 
@@ -45,7 +45,7 @@ public class ItemValueImpl<V> implements AxiomItemValue<V> {
 
     @Override
     public Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
-        return AxiomItemValue.super.item(def);
+        return AxiomValue.super.item(def);
     }
 
     @Override

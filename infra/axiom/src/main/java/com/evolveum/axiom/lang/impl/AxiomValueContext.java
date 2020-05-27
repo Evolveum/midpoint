@@ -4,13 +4,13 @@ import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
 
 public interface AxiomValueContext<V> {
 
-    void replace(AxiomItemValue<?> axiomItemValue);
+    void replace(AxiomValue<?> axiomItemValue);
 
     default <T> AxiomItemContext<T> childItem(AxiomItemDefinition def) {
         return childItem(def.name());

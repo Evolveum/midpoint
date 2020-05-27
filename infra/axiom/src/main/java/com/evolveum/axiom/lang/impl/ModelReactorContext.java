@@ -17,8 +17,8 @@ import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
-import com.evolveum.axiom.lang.api.AxiomItemValueFactory;
+import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
@@ -102,7 +102,7 @@ public class ModelReactorContext extends
 
     IdentifierSpaceHolderImpl globalSpace = new IdentifierSpaceHolderImpl(Scope.GLOBAL);
 
-    Map<AxiomIdentifier, AxiomItemValueFactory<?, ?>> typeFactories = new HashMap<>();
+    Map<AxiomIdentifier, AxiomValueFactory<?, ?>> typeFactories = new HashMap<>();
     List<AxiomValueContext<?>> roots = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
@@ -165,17 +165,17 @@ public class ModelReactorContext extends
         return null;
     }
 
-    public void addStatementFactory(AxiomIdentifier statementType, AxiomItemValueFactory<?, ?> factory) {
+    public void addStatementFactory(AxiomIdentifier statementType, AxiomValueFactory<?, ?> factory) {
         typeFactories.put(statementType, factory);
     }
 
-    public <V> AxiomItemValueFactory<V, AxiomItemValue<V>> typeFactory(AxiomTypeDefinition statementType) {
+    public <V> AxiomValueFactory<V, AxiomValue<V>> typeFactory(AxiomTypeDefinition statementType) {
         Optional<AxiomTypeDefinition> current = Optional.of(statementType);
         do {
             @SuppressWarnings("unchecked")
-            AxiomItemValueFactory<V, ?> maybe = (AxiomItemValueFactory<V, ?>) typeFactories.get(current.get().name());
+            AxiomValueFactory<V, ?> maybe = (AxiomValueFactory<V, ?>) typeFactories.get(current.get().name());
             if (maybe != null) {
-                return (AxiomItemValueFactory) maybe;
+                return (AxiomValueFactory) maybe;
             }
             current = current.get().superType();
         } while (current.isPresent());

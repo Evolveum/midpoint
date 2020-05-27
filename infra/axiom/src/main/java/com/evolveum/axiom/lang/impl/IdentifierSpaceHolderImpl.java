@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -47,11 +47,11 @@ public class IdentifierSpaceHolderImpl implements IdentifierSpaceHolder {
         return space.computeIfAbsent(spaceId, k -> new HashMap<>());
     }
 
-    Map<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomItemValue<?>>> build() {
-        ImmutableMap.Builder<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomItemValue<?>>> roots = ImmutableMap
+    Map<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomValue<?>>> build() {
+        ImmutableMap.Builder<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomValue<?>>> roots = ImmutableMap
                 .builder();
         for (Entry<AxiomIdentifier, Map<IdentifierSpaceKey, ValueContext<?>>> entry : space.entrySet()) {
-            ImmutableMap.Builder<IdentifierSpaceKey, AxiomItemValue<?>> space = ImmutableMap.builder();
+            ImmutableMap.Builder<IdentifierSpaceKey, AxiomValue<?>> space = ImmutableMap.builder();
             for (Entry<IdentifierSpaceKey, ValueContext<?>> item : entry.getValue().entrySet()) {
                 space.put(item.getKey(), item.getValue().get());
             }

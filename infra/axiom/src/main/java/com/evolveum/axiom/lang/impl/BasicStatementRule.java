@@ -14,7 +14,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemValue;
+import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
@@ -65,9 +65,9 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             Collection<AxiomIdentifierDefinition> idDefs = context.typeDefinition().identifierDefinitions();
-            Map<AxiomIdentifierDefinition, Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>>> identReq = new HashMap<>();
+            Map<AxiomIdentifierDefinition, Map<AxiomIdentifier,Dependency<AxiomValue<Object>>>> identReq = new HashMap<>();
             for(AxiomIdentifierDefinition idDef : idDefs) {
-                Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>> components = new HashMap<>();
+                Map<AxiomIdentifier,Dependency<AxiomValue<Object>>> components = new HashMap<>();
                 for(AxiomItemDefinition cmp : idDef.components()) {
                     components.put(cmp.name(), action.require(context.child(cmp, Object.class))
                             .unsatisfied(()-> context.error("Item '%s' is required by identifier, but not defined.", cmp.name()))
@@ -88,7 +88,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             AxiomIdentifier type = context.originalValue();
-            Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
+            Dependency.Search<AxiomValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
             action.apply(ctx -> {
@@ -106,7 +106,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             AxiomIdentifier itemName = context.currentValue();
-            Search<AxiomItemValue<?>> itemDef = action.require(context.namespaceValue(AxiomItemDefinition.SPACE, AxiomItemDefinition.identifier(itemName)))
+            Search<AxiomValue<?>> itemDef = action.require(context.namespaceValue(AxiomItemDefinition.SPACE, AxiomItemDefinition.identifier(itemName)))
                     .notFound(() -> action.error("item '%s' was not found", itemName));
             action.apply((val) -> {
                 val.replace(itemDef.get());
@@ -120,7 +120,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
             AxiomIdentifier type = context.originalValue();
             Dependency<AxiomItem<AxiomIdentifier>> typeName = action.require(context.parentValue().child(Item.NAME, AxiomIdentifier.class))
                     .unsatisfied(() -> action.error("type does not have name defined"));
-            Dependency.Search<AxiomItemValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
+            Dependency.Search<AxiomValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
 
             typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
             typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
@@ -180,7 +180,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
                     ));
             Dependency<AxiomItem<AxiomItemDefinition>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, AxiomItemDefinition.class));
             action.apply(ext -> {
-                for(AxiomItemValue<AxiomItemDefinition> item : itemDef.get().values()) {
+                for(AxiomValue<AxiomItemDefinition> item : itemDef.get().values()) {
                     targetRef.get().mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item.get().notInherited()));
                 }
             });
@@ -208,9 +208,9 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         this.types = ImmutableSet.copyOf(types);
     }
 
-    static IdentifierSpaceKey keyFrom(Map<AxiomIdentifier,Dependency<AxiomItemValue<Object>>> ctx) {
+    static IdentifierSpaceKey keyFrom(Map<AxiomIdentifier,Dependency<AxiomValue<Object>>> ctx) {
         ImmutableMap.Builder<AxiomIdentifier, Object> components = ImmutableMap.builder();
-        for(Entry<AxiomIdentifier, Dependency<AxiomItemValue<Object>>> entry : ctx.entrySet()) {
+        for(Entry<AxiomIdentifier, Dependency<AxiomValue<Object>>> entry : ctx.entrySet()) {
             components.put(entry.getKey(), entry.getValue().get().get());
         }
         return IdentifierSpaceKey.from(components.build());
@@ -257,7 +257,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomItemValue<?> source, AxiomValueContext<?> target, AxiomIdentifier targetName) {
+    public static void addFromType(AxiomValue<?> source, AxiomValueContext<?> target, AxiomIdentifier targetName) {
         AxiomTypeDefinition superType = (AxiomTypeDefinition) source.get();
         Preconditions.checkState(!(superType instanceof AxiomBuiltIn.Type));
         // FIXME: Add namespace change if necessary
