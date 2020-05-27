@@ -244,8 +244,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-        specificContainers.add(getConstructionAssociationPanel(modelObject));
+    protected Panel getCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+        return getConstructionAssociationPanel(modelObject);
 
     }
 

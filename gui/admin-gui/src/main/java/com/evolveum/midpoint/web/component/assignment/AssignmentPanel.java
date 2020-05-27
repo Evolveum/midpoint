@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -636,11 +637,14 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private Fragment createSpecificContainersFragment(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         QName assignmentTargetType = AssignmentsUtil.getTargetType(model.getObject().getRealValue());
         Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+        Component panel = null;
         if (supportsCustomContainers(assignmentTargetType)) {
-            addCustomSpecificContainers(specificContainers, model);
-        } else {
-            specificContainers.add(new WebMarkupContainer(ID_SPECIFIC_CONTAINER));
+            panel = getCustomSpecificContainers(specificContainers, model);
         }
+        if (panel == null) {
+            panel = new WebMarkupContainer(ID_SPECIFIC_CONTAINER);
+        }
+        specificContainers.add(panel);
 
         ItemPath assignmentPath = model.getObject().getRealValue().asPrismContainerValue().getPath();
         PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_ACTIVATION);
@@ -673,8 +677,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         return false;
     }
 
-    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-        specificContainers.add(getSpecificContainerPanel(modelObject));
+    protected Panel getCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+        return getSpecificContainerPanel(modelObject);
     }
 
     protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
@@ -684,6 +688,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             IModel<PrismContainerWrapper> wrapperModel = getSpecificContainerModel(modelObject);
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             builder.visibilityHandler(itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+            if (wrapperModel.getObject() == null) {
+                return null;
+            }
             Panel constraintsContainerPanel = getPageBase().initItemPanel(ID_SPECIFIC_CONTAINER, wrapperModel.getObject().getTypeName(),
                     wrapperModel, builder.build());
             constraintsContainerPanel.setOutputMarkupId(true);
