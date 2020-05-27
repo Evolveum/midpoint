@@ -880,6 +880,10 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
                 if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
                     Task task = getPageBase().createSimpleTask("Load resource");
                     com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
+                    ObjectReferenceType resourceRef = assignment.getConstruction().getResourceRef();
+                    if (resourceRef == null || resourceRef.getOid() == null) {
+                        return (C) assignment.getConstruction();
+                    }
                     return (C) WebModelServiceUtils.loadObject(assignment.getConstruction().getResourceRef(), getPageBase(), task, result).asObjectable();
                 } else if (assignment.getPersonaConstruction() != null) {
                     return (C) assignment.getPersonaConstruction();
