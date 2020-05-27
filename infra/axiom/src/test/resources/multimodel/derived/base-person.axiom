@@ -3,6 +3,7 @@ model base-person {
     namespace "https://example.org/base";
 
     type Person {
+        argument name;
         item name {
             type string;
         }

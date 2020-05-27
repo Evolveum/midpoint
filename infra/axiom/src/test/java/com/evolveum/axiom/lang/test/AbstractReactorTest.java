@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
@@ -36,5 +36,10 @@ public abstract class AbstractReactorTest extends AbstractUnitTest {
     protected static AxiomModelStatementSource source(String name) throws AxiomSyntaxException, IOException {
         InputStream stream = new FileInputStream(COMMON_DIR_PATH + name);
         return AxiomModelStatementSource.from(name, stream);
+    }
+
+    protected static AxiomAntlrStatementSource dataSource(String name) throws AxiomSyntaxException, IOException {
+        InputStream stream = new FileInputStream(COMMON_DIR_PATH + name);
+        return AxiomAntlrStatementSource.from(name, stream);
     }
 }

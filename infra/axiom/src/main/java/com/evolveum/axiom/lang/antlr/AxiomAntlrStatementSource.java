@@ -60,6 +60,10 @@ public class AxiomAntlrStatementSource {
         return root;
     }
 
+    public final void stream(AxiomItemStream.TargetWithResolver target) {
+        stream(target, Optional.empty());
+    }
+
     public final void stream(AxiomItemStream.TargetWithResolver target, Optional<Set<AxiomIdentifier>> emitOnly) {
         AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, target, emitOnly.orElse(null));
         visitor.visit(root);

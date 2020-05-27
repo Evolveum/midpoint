@@ -1,6 +1,7 @@
 package com.evolveum.axiom.lang.api;
 
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.axiom.lang.impl.ItemValueImpl;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,6 +24,10 @@ public class AxiomItemValueBuilder<V,T extends AxiomItemValue<V>> implements Laz
     public AxiomItemValueBuilder(AxiomTypeDefinition type, AxiomItemValueFactory<V,T> factory) {
         this.type = type;
         this.factory = factory;
+    }
+
+    public static <V> AxiomItemValueBuilder<V, AxiomItemValue<V>> from(AxiomTypeDefinition type) {
+        return new AxiomItemValueBuilder(type, ItemValueImpl.factory());
     }
 
     public V getValue() {
@@ -60,6 +65,10 @@ public class AxiomItemValueBuilder<V,T extends AxiomItemValue<V>> implements Laz
 
     public void setFactory(AxiomItemValueFactory<V,T> factoryFor) {
         this.factory = factoryFor;
+    }
+
+    public AxiomTypeDefinition type() {
+        return type;
     }
 
 }

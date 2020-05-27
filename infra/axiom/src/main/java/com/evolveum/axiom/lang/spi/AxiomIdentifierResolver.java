@@ -6,11 +6,16 @@
  */
 package com.evolveum.axiom.lang.spi;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.meta.Inheritance;
+import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +34,7 @@ public interface AxiomIdentifierResolver {
     AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName);
 
     static AxiomIdentifierResolver defaultNamespace(String namespace) {
-        return (prefix, localName) -> prefix == null ? AxiomIdentifier.from(namespace, localName) : null;
+        return (prefix, localName) -> Strings.isNullOrEmpty(prefix) ? AxiomIdentifier.from(namespace, localName) : null;
     }
 
     default AxiomIdentifierResolver or(AxiomIdentifierResolver next) {
@@ -39,6 +44,19 @@ public interface AxiomIdentifierResolver {
                 return maybe;
             }
             return next.resolveIdentifier(prefix, localName);
+        };
+    }
+
+    static AxiomIdentifierResolver defaultNamespaceFromType(AxiomTypeDefinition type) {
+        return (prefix, localName) -> {
+            if(Strings.isNullOrEmpty(prefix)) {
+                AxiomIdentifier localNs = AxiomIdentifier.local(localName);
+                Optional<AxiomItemDefinition> childDef = type.itemDefinition(localNs);
+                if(childDef.isPresent()) {
+                    return Inheritance.adapt(type.name(), childDef.get());
+                }
+            }
+            return null;
         };
     }
 

@@ -6,6 +6,10 @@ model derived-person {
         namespace "https://example.org/base";
     }
 
+    root person {
+        type Person;
+    }
+
     type Person {
         extends base:Person;
         
