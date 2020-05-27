@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.google.common.collect.Iterables;
 
 public interface AxiomItem<V> {

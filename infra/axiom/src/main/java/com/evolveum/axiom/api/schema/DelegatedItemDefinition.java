@@ -1,7 +1,10 @@
-package com.evolveum.axiom.api;
+package com.evolveum.axiom.api.schema;
 
 import java.util.Collection;
 import java.util.Optional;
+
+import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItem;
 
 abstract class DelegatedItemDefinition implements AxiomItemDefinition {
 

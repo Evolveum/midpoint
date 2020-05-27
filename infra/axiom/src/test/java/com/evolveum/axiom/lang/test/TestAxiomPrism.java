@@ -11,9 +11,8 @@ import static org.testng.Assert.assertNotNull;
 import java.io.IOException;
 import org.testng.annotations.Test;
 
-
-import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 

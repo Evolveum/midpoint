@@ -4,12 +4,12 @@ import java.util.Collection;
 import java.util.Map;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.AxiomItem;
-import com.evolveum.axiom.api.AxiomItemDefinition;
-import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
+import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
-import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 import com.google.common.collect.ImmutableList;
 

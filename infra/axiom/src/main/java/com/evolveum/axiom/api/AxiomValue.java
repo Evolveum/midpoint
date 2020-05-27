@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+
 
 public interface AxiomValue<V> extends Supplier<V> {
 

@@ -3,8 +3,8 @@ package com.evolveum.axiom.lang.impl;
 import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 
 
 interface IdentifierSpaceHolder {

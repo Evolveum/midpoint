@@ -6,10 +6,11 @@ import java.util.function.Supplier;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomItemBuilder;
-import com.evolveum.axiom.api.AxiomItemDefinition;
-import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueBuilder;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomSchemaContext;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 

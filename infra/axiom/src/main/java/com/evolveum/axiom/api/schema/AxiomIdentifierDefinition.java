@@ -1,10 +1,9 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api.schema;
 
 import java.util.Collection;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.api.AxiomItemDefinition;
 import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.ImmutableSet;
 

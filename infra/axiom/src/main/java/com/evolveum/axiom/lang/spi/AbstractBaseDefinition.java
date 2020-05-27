@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.AxiomItem;
-import com.evolveum.axiom.api.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.api.AxiomNamedDefinition;
+import com.evolveum.axiom.api.schema.AxiomNamedDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 

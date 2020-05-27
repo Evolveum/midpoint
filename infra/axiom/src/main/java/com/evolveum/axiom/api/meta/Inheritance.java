@@ -1,7 +1,7 @@
 package com.evolveum.axiom.api.meta;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 
 public interface Inheritance {
 

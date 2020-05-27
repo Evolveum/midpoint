@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
 
 class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContext {
 

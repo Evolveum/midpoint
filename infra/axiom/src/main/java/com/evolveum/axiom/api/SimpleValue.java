@@ -2,6 +2,8 @@ package com.evolveum.axiom.api;
 
 import java.util.Optional;
 
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+
 class SimpleValue<T> implements AxiomValue<T> {
 
     private final AxiomTypeDefinition type;

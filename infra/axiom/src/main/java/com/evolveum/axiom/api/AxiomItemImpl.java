@@ -2,6 +2,7 @@ package com.evolveum.axiom.api;
 
 import java.util.Collection;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.google.common.collect.ImmutableList;
 
 class AxiomItemImpl<V> extends AbstractAxiomItem<V> {

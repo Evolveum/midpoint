@@ -1,5 +1,6 @@
 package com.evolveum.axiom.api;
 
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 

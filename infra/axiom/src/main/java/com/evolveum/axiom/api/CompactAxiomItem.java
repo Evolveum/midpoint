@@ -3,6 +3,8 @@ package com.evolveum.axiom.api;
 import java.util.Collection;
 import java.util.Optional;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.google.common.collect.ImmutableSet;
 
 class CompactAxiomItem<V> extends AbstractAxiomItem<V> implements AxiomValue<V> {
