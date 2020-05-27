@@ -127,7 +127,7 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 performSelectedColumns(columnTabPanel, target);
                 if (exportedColumnsIndex.isEmpty()) {
                     LOGGER.warn("None columns selected");
-                    getPageBase().warn("ExportingPanel.message.error.selectColumn");
+                    getPageBase().warn(createStringResource("ExportingPanel.message.error.selectColumn").getString());
                     target.add(feedbackList);
                     return;
                 }
