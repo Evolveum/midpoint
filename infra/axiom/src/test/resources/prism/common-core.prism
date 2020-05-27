@@ -10,7 +10,7 @@ prism:model common-core {
 
     namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     version "3.0.0";
-    
+
     import prism {
         namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
     }
@@ -861,7 +861,7 @@ prism:model common-core {
         }
     }
 
-    mixin Documentation { 
+    mixin Documentation { 
         item documentation {
             type string;
             documentation """

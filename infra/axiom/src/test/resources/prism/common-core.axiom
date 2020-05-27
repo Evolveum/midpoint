@@ -885,15 +885,15 @@ model common-core {
 
     // Example of short version of container definition.
     prism:container {
-            name Assignment;
-            itemName assignment;
+        name Assignment;
+        itemName assignment;
 
-            // item description; // TODO make this work
-            // item documentation; // TODO make this work
-            // item extension; // TODO make this work
+        // item description; // TODO make this work
+        // item documentation; // TODO make this work
+        // item extension; // TODO make this work
 
-            // ...
-        }
+        // ...
+    }
 
     prism:container {
         name Extension;

@@ -81,11 +81,9 @@ public class TestAxiomExtension extends AbstractReactorTest {
         AxiomTypeDefinition typeDef = schemaContext.getType(Type.TYPE_DEFINITION.name()).get();
         assertNotNull(typeDef.itemDefinition(STORAGE).get());
 
-
         ModelReactorContext extendedLanguage = ModelReactorContext.reactor(schemaContext);
         extendedLanguage.loadModelFromSource(source(LANG_EXT));
         extendedLanguage.loadModelFromSource(source(LANG_EXT_USE));
-
         schemaContext = extendedLanguage.computeSchemaContext();
 
         AxiomTypeDefinition langExtDef = schemaContext.getType(Type.EXTENSION_DEFINITION.name()).get();
@@ -95,8 +93,8 @@ public class TestAxiomExtension extends AbstractReactorTest {
         assertTrue(personDef.isPresent());
 
         AxiomItem<Object> extension = personDef.get().item(STORAGE).get();
-        assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
 
+        assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());
     }
 

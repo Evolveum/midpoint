@@ -12,7 +12,7 @@ model prism {
 
     extension PrismModelExtension {
       target axiom:AxiomModel;
-      
+
       item object {
           type PrismObjectDefinition;
       }
@@ -28,6 +28,9 @@ model prism {
 
     type PrismModel {
         extends axiom:AxiomModel;
+        item type { // {}:type
+          type PrismTypeDefinition;
+        }
     }
 
     extension PrismTypeDefinitionAnnotation {
