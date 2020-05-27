@@ -8,18 +8,25 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @author mederly
- */
+import java.util.Collection;
+
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<ModificationPolicyConstraintType> {
 
+    @NotNull private final Collection<PrismObject<?>> matchingTargets;
+
     public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
+            @Nullable PrismObject<?> targetObject, LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
+        matchingTargets = targetObject != null ? singleton(targetObject) : emptySet();
     }
 
     @Override
@@ -28,5 +35,10 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
         EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
         fillCommonContent(rv);
         return rv;
+    }
+
+    @Override
+    public Collection<? extends PrismObject<?>> getTargetObjects() {
+        return matchingTargets;
     }
 }

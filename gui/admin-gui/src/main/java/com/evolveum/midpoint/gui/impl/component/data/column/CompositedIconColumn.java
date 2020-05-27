@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -19,7 +20,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author skublik
  */
-public abstract class CompositedIconColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String> {
+public abstract class CompositedIconColumn<T> extends AbstractColumn<T, String> implements IColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public CompositedIconColumn(IModel<String> displayModel) {
@@ -43,7 +44,6 @@ public abstract class CompositedIconColumn<T> extends AbstractColumn<T, String> 
 
     protected abstract CompositedIcon getCompositedIcon(final IModel<T> rowModel);
 
-    @Override
     public IModel<String> getDataModel(IModel<T> rowModel) {
         return Model.of("");
     }

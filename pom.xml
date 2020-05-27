@@ -57,7 +57,7 @@
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
-    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be istalled too):
+    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be installed too):
     mvn clean install -P -dist -DskipTests -DskipSchrodingerTests=false -DwebdriverLocation=/c/work/tools/bin/chromedriver.exe
     -->
 
@@ -165,9 +165,6 @@
         <selenium.version>3.141.59</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <!-- TODO: Check the names of properties in Spring Boot parent and let's try to use the same names. -->
-        <spring.version>5.1.9.RELEASE</spring.version>
-        <spring.security.version>5.1.6.RELEASE</spring.security.version>
         <spring.security.saml2.version>2.0.0.M30</spring.security.saml2.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
@@ -207,6 +204,8 @@
         <checkstyle.version>3.1.0</checkstyle.version>
         <xalan.version>2.7.2</xalan.version>
         <xerces.version>2.12.0</xerces.version>
+        <commons.csv.version>1.8</commons.csv.version>
+        <j2html.version>1.4.0</j2html.version>
     </properties>
 
     <dependencyManagement>
@@ -517,7 +516,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.6</version>
+                <version>2.7</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -953,7 +952,7 @@
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
-                <version>${spring.version}</version>
+                <version>${spring-framework.version}</version>
                 <exclusions>
                     <!-- replaced with jcl-over-slf4j -->
                     <exclusion>
@@ -1196,6 +1195,16 @@
                 <groupId>org.jvnet.jaxb2_commons</groupId>
                 <artifactId>jaxb2-basics-runtime</artifactId>
                 <version>0.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${commons.csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.j2html</groupId>
+                <artifactId>j2html</artifactId>
+                <version>${j2html.version}</version>
             </dependency>
 
             <!-- Maven plugins -->

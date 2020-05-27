@@ -229,9 +229,11 @@ public class DeltaConvertor {
     public static String toObjectDeltaTypeXml(ObjectDelta<? extends ObjectType> delta, DeltaConversionOptions options) throws SchemaException, JAXBException {
         Validate.notNull(delta.getPrismContext(), "ObjectDelta without prismContext cannot be converted to XML");
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta, options);
-        SerializationOptions serializationOptions = new SerializationOptions();
-        serializationOptions.setSerializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options));
-        return delta.getPrismContext().xmlSerializer().options(serializationOptions).serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+        SerializationOptions serializationOptions = new SerializationOptions()
+                .serializeReferenceNames(DeltaConversionOptions.isSerializeReferenceNames(options))
+                .escapeInvalidCharacters(DeltaConversionOptions.isEscapeInvalidCharacters(options));
+        return delta.getPrismContext().xmlSerializer().options(serializationOptions)
+                .serializeRealValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
     }
 
 

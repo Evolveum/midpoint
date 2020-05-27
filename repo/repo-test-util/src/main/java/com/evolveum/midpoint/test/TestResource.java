@@ -35,4 +35,13 @@ public class TestResource<T extends ObjectType> {
     public T getObjectable() {
         return object.asObjectable();
     }
+
+    public Class<T> getObjectClass() {
+        return object.getCompileTimeClass();
+    }
+
+    @Override
+    public String toString() {
+        return object != null ? object.toString() : file + " (" + oid + ")";
+    }
 }

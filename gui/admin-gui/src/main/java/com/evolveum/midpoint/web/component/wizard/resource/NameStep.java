@@ -477,7 +477,7 @@ public class NameStep extends WizardStep {
             }
             if (!delta.isEmpty()) {
                 parentPage.logDelta(delta);
-                WebModelServiceUtils.save(delta, ModelExecuteOptions.createRaw(), result, null, parentPage);
+                WebModelServiceUtils.save(delta, ModelExecuteOptions.create(prismContext).raw(), result, null, parentPage);
                 parentPage.resetModels();
                 saved = true;
             }

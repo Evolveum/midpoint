@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -103,6 +104,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         debugDumpCommon(sb, indent + 1);
         debugDumpSpecific(sb, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "targetObjects", getTargetObjects(), indent + 1);
         return sb.toString();
     }
 
@@ -161,5 +163,13 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
 
     public boolean isEnforcementOverride() {
         return enforcementOverride;
+    }
+
+    /**
+     * @return Target object(s) that were matched by constraint that produced this trigger.
+     * For example: target of the assignment that was added (and that matched "assignment" constraint).
+     */
+    public Collection<? extends PrismObject<?>> getTargetObjects() {
+        return Collections.emptyList();
     }
 }

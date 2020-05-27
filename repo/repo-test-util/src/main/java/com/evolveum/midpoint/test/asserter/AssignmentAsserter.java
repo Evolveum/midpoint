@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -16,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -69,6 +71,15 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     public AssignmentAsserter<R> assertRole(String expectedOid) {
         assertTargetOid(expectedOid);
         assertTargetType(RoleType.COMPLEX_TYPE);
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertResource(String expectedOid) {
+        ConstructionType construction = assignment.getConstruction();
+        assertThat(construction).as("construction in " + desc()).isNotNull();
+        assertThat(construction.getResourceRef()).as("resourceRef in construction in " + desc()).isNotNull();
+        assertThat(construction.getResourceRef().getOid()).as("resource OID in construction in " + desc())
+                .isEqualTo(expectedOid);
         return this;
     }
 

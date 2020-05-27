@@ -6,47 +6,40 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
+import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author skublik
  */
-
-public class SecurityQuestionsAuthenticationFilter extends  MidpointUsernamePasswordAuthenticationFilter {
+public class SecurityQuestionsAuthenticationFilter
+        extends MidpointUsernamePasswordAuthenticationFilter {
 
     private static final String SPRING_SECURITY_FORM_ANSWER_KEY = "answer";
     private static final String SPRING_SECURITY_FORM_USER_KEY = "user";
 
-    public static final String J_ANSWER = "answer";
     public static final String J_QID = "qid";
     public static final String J_QANS = "qans";
     public static final String J_QTXT = "qtxt";
 
-    public SecurityQuestionsAuthenticationFilter() {
-
-    }
-
-    public Authentication attemptAuthentication(HttpServletRequest request,
-                                                HttpServletResponse response) throws AuthenticationException {
+    public Authentication attemptAuthentication(
+            HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         if (isPostOnly() && !request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException(
                     "Authentication method not supported: " + request.getMethod());
         }
 
-        setUsernameParameter(this.SPRING_SECURITY_FORM_USER_KEY);
+        setUsernameParameter(SPRING_SECURITY_FORM_USER_KEY);
         String username = obtainUsername(request);
         Map<String, String> answers = obtainAnswers(request);
 
@@ -55,13 +48,13 @@ public class SecurityQuestionsAuthenticationFilter extends  MidpointUsernamePass
         }
 
         if (answers == null) {
-            answers = new HashMap<String, String>();
+            answers = new HashMap<>();
         }
 
         username = username.trim();
 
-        UsernamePasswordAuthenticationToken authRequest = new SecurityQuestionsAuthenticationToken(
-                username, answers);
+        UsernamePasswordAuthenticationToken authRequest =
+                new SecurityQuestionsAuthenticationToken(username, answers);
 
         // Allow subclasses to set the "details" property
         setDetails(request, authRequest);
@@ -74,5 +67,4 @@ public class SecurityQuestionsAuthenticationFilter extends  MidpointUsernamePass
 
         return SecurityUtils.obtainAnswers(answers, J_QID, J_QANS);
     }
-
 }

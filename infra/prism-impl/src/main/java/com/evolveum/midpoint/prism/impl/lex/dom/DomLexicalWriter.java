@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism.impl.lex.dom;
 
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -45,11 +47,13 @@ public class DomLexicalWriter {
 
     private Document doc;
     private boolean serializeCompositeObjects = false;
-    private SchemaRegistry schemaRegistry;
+    private final SchemaRegistry schemaRegistry;
+    private final SerializationOptions serializationOptions;
 
-    DomLexicalWriter(SchemaRegistry schemaRegistry) {
+    DomLexicalWriter(SchemaRegistry schemaRegistry, SerializationContext context) {
         super();
         this.schemaRegistry = schemaRegistry;
+        this.serializationOptions = context != null ? context.getOptions() : null;
     }
 
     public boolean isSerializeCompositeObjects() {
@@ -318,11 +322,12 @@ public class DomLexicalWriter {
             } else {
                 // not ItemType nor QName
                 String value = xprim.getGuessedFormattedValue();
-
+                String fixedValue = SerializationOptions.isEscapeInvalidCharacters(serializationOptions) ?
+                        DOMUtil.escapeInvalidXmlCharsIfPresent(value) : value;
                 if (asAttribute) {
-                    DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), value);
+                    DOMUtil.setAttributeValue(parentElement, elementOrAttributeName.getLocalPart(), fixedValue);
                 } else {
-                    DOMUtil.setElementTextContent(element, value);
+                    DOMUtil.setElementTextContent(element, fixedValue);
                 }
             }
 

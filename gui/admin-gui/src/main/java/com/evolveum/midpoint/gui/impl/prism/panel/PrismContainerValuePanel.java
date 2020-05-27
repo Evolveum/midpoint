@@ -533,6 +533,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected boolean isRemoveButtonVisible() {
-        return super.isRemoveButtonVisible() && getModelObject().isExpanded();
+        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper);
     }
 }

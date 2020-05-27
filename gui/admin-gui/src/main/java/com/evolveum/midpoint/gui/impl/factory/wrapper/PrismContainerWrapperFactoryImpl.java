@@ -11,17 +11,16 @@ import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -87,12 +86,18 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
             WrapperContext context, List<ItemWrapper<?,?>> wrappers) throws SchemaException {
 
         ItemWrapper<?,?> wrapper = createChildWrapper(def, containerValueWrapper, context);
+
         if (wrapper != null) {
             wrappers.add(wrapper);
         }
     }
 
     protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
+        ItemWrapperFactory<?, ?, ?> factory = getChildWrapperFactory(def);
+        return factory.createWrapper(containerValueWrapper, def, context);
+    }
+
+    private ItemWrapperFactory<?,?,?> getChildWrapperFactory(ItemDefinition def) throws SchemaException {
         ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
         if (factory == null) {
             LOGGER.error("Cannot find factory for {}", def);
@@ -100,17 +105,10 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         }
 
         LOGGER.trace("Found factory {} for {}", factory, def);
-
-        ItemWrapper<?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-
-        if (wrapper == null) {
-            LOGGER.trace("Null wrapper created for {}. Skipping.", def);
-            return null;
-        }
-
-        wrapper.setShowEmpty(context.isShowEmpty(), false);
-        return wrapper;
+        return factory;
     }
+
+
 
     @Override
     protected PrismContainerValue<C> createNewValue(PrismContainer<C> item) {
@@ -118,15 +116,20 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     @Override
-    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
+    protected PrismContainerWrapper<C> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
             ItemStatus status, WrapperContext ctx) {
-        getRegistry().registerWrapperPanel(childContainer.getDefinition().getTypeName(), PrismContainerPanel.class);
+
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
     @Override
+    public void registerWrapperPanel(PrismContainerWrapper<C> wrapper) {
+        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismContainerPanel.class);
+    }
+
+    @Override
     public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
-        return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
+        return new PrismContainerValueWrapperImpl<>(objectWrapper, objectValue, status);
     }
 
     protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {

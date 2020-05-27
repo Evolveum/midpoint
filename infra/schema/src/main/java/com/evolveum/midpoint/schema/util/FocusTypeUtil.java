@@ -55,19 +55,28 @@ public class FocusTypeUtil {
         return assignmentType;
     }
 
-    public static String dumpAssignment(AssignmentType assignmentType) {
+    public static String dumpAssignment(AssignmentType assignment) {
         StringBuilder sb = new StringBuilder();
-        if (assignmentType.getConstruction() != null) {
-            sb.append("Constr(").append(assignmentType.getConstruction().getDescription()).append(") ");
+        if (assignment.getConstruction() != null) {
+            sb.append("Constr(").append(assignment.getConstruction().getDescription()).append(") ");
         }
-        if (assignmentType.getTargetRef() != null) {
+        if (assignment.getTargetRef() != null) {
             sb.append("-[");
-            if (assignmentType.getTargetRef().getRelation() != null) {
-                sb.append(assignmentType.getTargetRef().getRelation().getLocalPart());
+            if (assignment.getTargetRef().getRelation() != null) {
+                sb.append(assignment.getTargetRef().getRelation().getLocalPart());
             }
-            sb.append("]-> ").append(assignmentType.getTargetRef().getOid());
+            sb.append("]-> ").append(assignment.getTargetRef().getOid());
         }
         return sb.toString();
+    }
+
+    public static Object dumpAssignmentLazily(AssignmentType assignment) {
+        return new Object() {
+            @Override
+            public String toString() {
+                return dumpAssignment(assignment);
+            }
+        };
     }
 
     public static String dumpInducementConstraints(AssignmentType assignmentType) {

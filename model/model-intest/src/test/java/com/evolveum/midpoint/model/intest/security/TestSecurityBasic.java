@@ -578,10 +578,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddDeny();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
-        assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("Raw Captain"));
+        assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, executeOptions().raw(), PrismTestUtil.createPolyString("Raw Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutineer"));
-        assertModifyAllowOptions(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("Raw Mutineer"));
+        assertModifyAllowOptions(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, executeOptions().raw(), PrismTestUtil.createPolyString("Raw Mutineer"));
 
         assertDeleteDeny();
 

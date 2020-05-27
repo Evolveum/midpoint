@@ -46,4 +46,14 @@ public class PrismContainerColumnHeaderPanel<C extends Containerable> extends It
     protected PrismContainerValue<C> createNewValue(PrismContainerWrapper<C> parent) {
         return null;
     }
+
+    @Override
+    protected boolean isAddButtonVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isButtonEnabled() {
+        return false;
+    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectCollection oid="11b1f98e-f587-4b9f-b92b-72e251dbb299">
+    <name>Basic filter</name>
+    <type>UserType</type>
+    <filter>
+        <substring>
+            <matching>polyStringNorm</matching>
+            <path>name</path>
+            <value>k</value>
+            <anchorEnd>true</anchorEnd>
+        </substring>
+    </filter>
+    <defaultView>
+        <column>
+            <name>nameColumnCollection</name>
+            <path>name</path>
+            <display>
+                <label>Name (Collection)</label>
+            </display>
+            <previousColumn>nameColumnReport</previousColumn>
+        </column>
+    </defaultView>
+</objectCollection>

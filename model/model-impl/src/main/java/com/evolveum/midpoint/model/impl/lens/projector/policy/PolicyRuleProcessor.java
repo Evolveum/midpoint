@@ -10,6 +10,8 @@ import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -79,6 +81,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     @Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
     @Autowired private ObjectModificationConstraintEvaluator modificationConstraintEvaluator;
     @Autowired private StateConstraintEvaluator stateConstraintEvaluator;
+    @Autowired private AlwaysTrueConstraintEvaluator alwaysTrueConstraintEvaluator;
     @Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
     @Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
     @Autowired private ExpressionFactory expressionFactory;
@@ -175,9 +178,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         }
     }
 
-    private void resolveReferences(Collection<EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
+    private void resolveReferences(Collection<? extends EvaluatedPolicyRule> evaluatedRules, Collection<? extends PolicyRuleType> otherRules)
             throws SchemaException, ObjectNotFoundException {
-        List<PolicyRuleType> rules = evaluatedRules.stream().map(er -> er.getPolicyRule()).collect(Collectors.toList());
+        List<PolicyRuleType> rules = evaluatedRules.stream().map(EvaluatedPolicyRule::getPolicyRule).collect(Collectors.toList());
         PolicyRuleTypeUtil.resolveReferences(rules, otherRules, prismContext);
     }
 
@@ -243,7 +246,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             throws PolicyViolationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         RulesEvaluationContext globalCtx = new RulesEvaluationContext();
 
-        List<EvaluatedPolicyRule> rules = new ArrayList<>();
+        List<EvaluatedPolicyRuleImpl> rules = new ArrayList<>();
         collectFocusRulesFromAssignments(rules, context);
         collectGlobalObjectRules(rules, context, task, result);
 
@@ -255,7 +258,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         LOGGER.trace("Evaluating {} object policy rules", rules.size());
         LensFocusContext<AH> focusContext = context.getFocusContext();
         focusContext.clearPolicyRules();
-        for (EvaluatedPolicyRule rule : rules) {
+        for (EvaluatedPolicyRuleImpl rule : rules) {
             if (isApplicableToObject(rule)) {
                 if (hasSituationConstraint(rule)) {
                     situationRules.add(rule);
@@ -289,17 +292,18 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         evaluateRule(new ObjectPolicyRuleEvaluationContext<>(rule, globalCtx, context, task), result);
     }
 
-    private <AH extends AssignmentHolderType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRule> rules, LensContext<AH> context) {
+    private <AH extends AssignmentHolderType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules, LensContext<AH> context) {
         DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return;
         }
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        // We intentionally evaluate rules also from negative (deleted) assignments.
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
             rules.addAll(evaluatedAssignment.getFocusPolicyRules());
         }
     }
 
-    private <AH extends AssignmentHolderType> void collectGlobalObjectRules(List<EvaluatedPolicyRule> rules, LensContext<AH> context,
+    private <AH extends AssignmentHolderType> void collectGlobalObjectRules(List<EvaluatedPolicyRuleImpl> rules, LensContext<AH> context,
             Task task, OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
@@ -321,7 +325,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
             if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
                 if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, prismContext));
+                    rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, null, prismContext));
                     globalRulesFound++;
                 } else {
                     LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
@@ -502,6 +506,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             return compositeConstraintEvaluator;
         } else if (constraint.getValue() instanceof TransitionPolicyConstraintType) {
             return transitionConstraintEvaluator;
+        } else if (constraint.getValue() instanceof AlwaysTruePolicyConstraintType) {
+            return alwaysTrueConstraintEvaluator;
         } else {
             throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
         }
@@ -610,7 +616,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                         LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
                         continue;
                     }
-                    EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), target.getAssignmentPath().clone(), prismContext);
+                    EvaluatedPolicyRuleImpl evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(),
+                            target.getAssignmentPath().clone(), evaluatedAssignment, prismContext);
                     boolean direct = target.isDirectlyAssigned();
                     if (direct) {
                         evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);

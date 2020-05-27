@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedDefinitionUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -268,11 +269,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
         ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
-        if (multiplicity == null) {
-            return;
-        }
-        String maxOccurs = multiplicity.getMaxOccurs();
-        if (maxOccurs == null || maxOccurs.equals("1")) {
+        if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return;
         }
         String tag = synchronizationExpressionsEvaluator.generateTag(multiplicity, applicableShadow,
@@ -762,9 +759,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
         }
 
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setReconcile(doReconciliation);
-        options.setLimitPropagation(syncCtx.isLimitPropagation());
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext)
+                .reconcile(doReconciliation)
+                .limitPropagation(syncCtx.isLimitPropagation());
 
         final boolean willSynchronize = isSynchronize(reaction);
         LensContext<F> lensContext;

@@ -7,6 +7,32 @@
 
 package com.evolveum.midpoint.web.security.util;
 
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+import static org.springframework.security.saml.util.StringUtils.stripStartingSlashes;
+
+import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Response;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.context.ContextLoader;
+import org.springframework.web.context.WebApplicationContext;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -30,43 +56,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.menu.MainMenuItem;
+import com.evolveum.midpoint.web.component.menu.MenuItem;
 import com.evolveum.midpoint.web.security.factory.channel.AbstractChannelFactory;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.factory.module.HttpClusterModuleFactory;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
 import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
-import com.evolveum.midpoint.web.component.menu.MainMenuItem;
-import com.evolveum.midpoint.web.component.menu.MenuItem;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.request.Request;
-import org.apache.wicket.request.Response;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.util.*;
-
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
-import static org.springframework.security.saml.util.StringUtils.stripStartingSlashes;
 
 /**
  * @author lazyman
@@ -85,10 +84,12 @@ public class SecurityUtils {
     }
 
     private static final Map<String, String> LOCAL_PATH_AND_CHANNEL;
+
     static {
         Map<String, String> map = new HashMap<>();
-        map.put("ws/rest", SchemaConstants.CHANNEL_REST_URI);
-        map.put("rest2", SchemaConstants.CHANNEL_REST_URI);
+        map.put("ws", SchemaConstants.CHANNEL_REST_URI);
+        map.put("rest", SchemaConstants.CHANNEL_REST_URI);
+        map.put("api", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
         map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
         map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
@@ -133,10 +134,9 @@ public class SecurityUtils {
         }
 
         PageDescriptor descriptor = (PageDescriptor) page.getAnnotation(PageDescriptor.class);
-        if (descriptor == null ){
+        if (descriptor == null) {
             return false;
         }
-
 
         AuthorizationAction[] actions = descriptor.action();
         List<String> list = new ArrayList<>();
@@ -183,7 +183,7 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy){
+    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
@@ -191,7 +191,7 @@ public class SecurityUtils {
         }
         String[] partsOfLocalPath = stripStartingSlashes(localePath).split("/");
 
-        AuthenticationSequenceType specificSequence =  getSpecificSequence(httpRequest);
+        AuthenticationSequenceType specificSequence = getSpecificSequence(httpRequest);
         if (specificSequence != null) {
             return specificSequence;
         }
@@ -199,7 +199,7 @@ public class SecurityUtils {
         if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
             AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
             if (sequence == null) {
-                LOGGER.debug("Couldn't find sequence by preffix {}, so try default channel", partsOfLocalPath[1]);
+                LOGGER.debug("Couldn't find sequence by prefix {}, so try default channel", partsOfLocalPath[1]);
                 sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
             }
             return sequence;
@@ -241,7 +241,8 @@ public class SecurityUtils {
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
+        // TODO: what exactly does this do, can't it be channel.equals(SchemaConstants.CHANNEL_REST_URI)?
+        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
@@ -263,12 +264,12 @@ public class SecurityUtils {
             if (sequence != null && sequence.getChannel() != null) {
                 if (useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getChannelId())
                         && Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()){
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }
                     return sequence;
                 } else if (!useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getUrlSuffix())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()){
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }
                     return sequence;
@@ -278,17 +279,17 @@ public class SecurityUtils {
         return null;
     }
 
-    public static AuthenticationSequenceType getSequenceByName(String name, AuthenticationsPolicyType authenticationPolicy){
+    public static AuthenticationSequenceType getSequenceByName(String name, AuthenticationsPolicyType authenticationPolicy) {
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
             return null;
         }
 
-        Validate.notBlank(name,"Name for searching of sequence is blank");
+        Validate.notBlank(name, "Name for searching of sequence is blank");
         for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
             if (sequence != null) {
                 if (name.equals(sequence.getName())) {
-                    if (sequence.getModule() == null || sequence.getModule().isEmpty()){
+                    if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }
                     return sequence;
@@ -299,9 +300,9 @@ public class SecurityUtils {
     }
 
     public static List<AuthModule> buildModuleFilters(AuthModuleRegistryImpl authRegistry, AuthenticationSequenceType sequence,
-                                                      HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
-                                                      CredentialsPolicyType credentialPolicy, Map<Class<? extends Object>, Object> sharedObjects,
-                                                      AuthenticationChannel authenticationChannel) {
+            HttpServletRequest request, AuthenticationModulesType authenticationModulesType,
+            CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
+            AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
         Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
@@ -312,7 +313,7 @@ public class SecurityUtils {
         }
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
-        List<AuthModule> authModules = new ArrayList<AuthModule>();
+        List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
                 AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
@@ -331,15 +332,15 @@ public class SecurityUtils {
     }
 
     private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
-                                                            AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
+            AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        if (LOCAL_PATH_AND_CHANNEL.get("ws/rest").equals(channel)) {
+        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
                 if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
-                    List<AuthModule> authModules = new ArrayList<AuthModule>();
+                    List<AuthModule> authModules = new ArrayList<>();
                     WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
                     HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
@@ -359,8 +360,8 @@ public class SecurityUtils {
         return null;
     }
 
-    private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType){
-        List<AbstractAuthenticationModuleType> modules = new ArrayList<AbstractAuthenticationModuleType>();
+    private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType) {
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
         modules.addAll(authenticationModulesType.getLoginForm());
         modules.addAll(authenticationModulesType.getSaml2());
         modules.addAll(authenticationModulesType.getHttpBasic());
@@ -372,7 +373,7 @@ public class SecurityUtils {
         modules.addAll(authenticationModulesType.getSmsNonce());
         modules.addAll(authenticationModulesType.getLdap());
 
-        for (AbstractAuthenticationModuleType module: modules) {
+        for (AbstractAuthenticationModuleType module : modules) {
             if (module.getName().equals(name)) {
                 return module;
             }
@@ -380,7 +381,7 @@ public class SecurityUtils {
         return null;
     }
 
-    public static AbstractModuleFactory getFactoryByName(AuthModuleRegistryImpl authRegistry, String name, AuthenticationModulesType authenticationModulesType){
+    public static AbstractModuleFactory getFactoryByName(AuthModuleRegistryImpl authRegistry, String name, AuthenticationModulesType authenticationModulesType) {
         AbstractAuthenticationModuleType module = getModuleByName(name, authenticationModulesType);
         if (module != null) {
             return authRegistry.findModelFactory(module);
@@ -389,7 +390,7 @@ public class SecurityUtils {
     }
 
     public static boolean isPermitAll(HttpServletRequest request) {
-        for (String url: DescriptorLoader.getPermitAllUrls()) {
+        for (String url : DescriptorLoader.getPermitAllUrls()) {
             AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
             if (matcher.matches(request)) {
                 return true;
@@ -404,7 +405,7 @@ public class SecurityUtils {
     }
 
     public static boolean isLoginPage(HttpServletRequest request) {
-        for (String url: DescriptorLoader.getLoginPages()) {
+        for (String url : DescriptorLoader.getLoginPages()) {
             AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
             if (matcher.matches(request)) {
                 return true;
@@ -432,9 +433,7 @@ public class SecurityUtils {
     }
 
     public static void saveException(HttpServletRequest request,
-                                     AuthenticationException exception) {
-        HttpSession session = request.getSession(false);
-
+            AuthenticationException exception) {
         request.getSession().setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
     }
 
@@ -474,7 +473,7 @@ public class SecurityUtils {
         }
 
         JSONArray answersList = new JSONArray(answers);
-        Map<String, String> questionAnswers = new HashMap<String, String>();
+        Map<String, String> questionAnswers = new HashMap<>();
         for (int i = 0; i < answersList.length(); i++) {
             JSONObject answer = answersList.getJSONObject(i);
             String questionId = answer.getString(idParameter);
@@ -491,7 +490,7 @@ public class SecurityUtils {
 
         if (proxyUserOid != null && actualAuth instanceof MidpointAuthentication) {
             ModuleAuthentication moduleAuth = ((MidpointAuthentication) actualAuth).getProcessingModuleAuthentication();
-            if (moduleAuth != null && moduleAuth instanceof HttpModuleAuthentication) {
+            if (moduleAuth instanceof HttpModuleAuthentication) {
                 ((HttpModuleAuthentication) moduleAuth).setProxyUserOid(proxyUserOid);
             }
         }
@@ -504,7 +503,7 @@ public class SecurityUtils {
     }
 
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
-                                            ModelService modelService, PrismContext prismContext) {
+            ModelService modelService, PrismContext prismContext) {
         UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
             ObjectQuery query = prismContext.queryFor(UserType.class).item(UserType.F_NAME)
                     .eqPoly(username).matchingNorm().build();
@@ -544,8 +543,8 @@ public class SecurityUtils {
         return userType;
     }
 
-    public static  SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
-                                                       ModelInteractionService modelInteractionService) {
+    public static SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user, SecurityContextManager securityContextManager, TaskManager manager,
+            ModelInteractionService modelInteractionService) {
         SecurityPolicyType securityPolicy = securityContextManager.runPrivileged(new Producer<SecurityPolicyType>() {
             private static final long serialVersionUID = 1L;
 
@@ -591,7 +590,7 @@ public class SecurityUtils {
         return "/" + stripSlashes(moduleAuthentication.getPrefix()) + DEFAULT_LOGOUT_PATH;
     }
 
-     public static ModuleAuthentication getAuthenticatedModule() {
+    public static ModuleAuthentication getAuthenticatedModule() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication instanceof MidpointAuthentication) {
@@ -618,7 +617,7 @@ public class SecurityUtils {
         int startIndex = localePath.indexOf(defaultPrefix) + defaultPrefix.length();
         localePath = localePath.substring(startIndex);
         if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null
-            || !stripSlashes(localePath).equals(stripSlashes(sequence.getChannel().getUrlSuffix()))) {
+                || !stripSlashes(localePath).equals(stripSlashes(sequence.getChannel().getUrlSuffix()))) {
             return false;
         }
         return true;

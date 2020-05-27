@@ -223,10 +223,10 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         then();
         assertSuccess(result);
 
-        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-        display("User after", userAfter);
-        assertAssignedRole(userAfter, ROLE_SWASHBUCKLER_OID);
-        assertAssignments(userAfter, 1);
+        assertUserAfter(USER_JACK_OID)
+                .assignments()
+                    .assertAssignments(1)
+                    .assertRole(ROLE_SWASHBUCKLER_OID);
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);

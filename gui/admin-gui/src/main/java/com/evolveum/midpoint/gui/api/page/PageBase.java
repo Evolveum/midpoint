@@ -15,6 +15,7 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
@@ -2696,7 +2697,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
 
-        ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
+        ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);
 
         return factory.createValueWrapper(parentWrapper, newValue, status, context);
 
@@ -2704,19 +2705,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
+        PrismContainerWrapperFactory<?> factory = registry.findContainerWrapperFactory(parent.getDefinition());
         ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
-        return factory.createWrapper(parent, def, ctx);
+        return (IW) factory.createWrapper(parent, def, ctx);
 
     }
 
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
+        ItemWrapperFactory<IW, ?,?> factory = registry.findWrapperFactory(item.getDefinition());
 
         ctx.setCreateIfEmpty(true);
-        return factory.createWrapper(item, status, ctx);
+        return factory.createWrapper(null, item, status, ctx);
 
     }
 
@@ -2755,5 +2756,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private SideBarMenuPanel getSideBarMenuPanel(){
         return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
+    }
+
+    public ModelExecuteOptions executeOptions() {
+        return ModelExecuteOptions.create(getPrismContext());
     }
 }

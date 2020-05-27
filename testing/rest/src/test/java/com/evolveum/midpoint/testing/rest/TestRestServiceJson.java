@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum and contributors
+ * Copyright (c) 2013-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,7 +24,6 @@ public class TestRestServiceJson extends TestAbstractRestService {
         return MediaType.APPLICATION_JSON;
     }
 
-
     @Override
     protected File getRepoFile(String fileBaseName) {
         return new File(BASE_REPO_DIR + "/json", fileBaseName + ".json");
@@ -39,5 +38,4 @@ public class TestRestServiceJson extends TestAbstractRestService {
     protected MidpointAbstractProvider getProvider() {
         return jsonProvider;
     }
-
 }

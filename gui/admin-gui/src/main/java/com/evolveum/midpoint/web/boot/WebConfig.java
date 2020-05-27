@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.CacheControl;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
  */
 @Configuration
 @Import(com.evolveum.midpoint.rest.impl.RestConfig.class)
+@EnableWebMvc
 public class WebConfig {
 
     @Bean

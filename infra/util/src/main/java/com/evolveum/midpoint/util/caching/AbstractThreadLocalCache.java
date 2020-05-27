@@ -30,7 +30,7 @@ public abstract class AbstractThreadLocalCache {
             CacheConfiguration configuration, Trace logger) {
         Thread currentThread = Thread.currentThread();
         T inst = cacheThreadMap.get(currentThread);
-        logger.trace("Cache: ENTER for thread {}, {}", currentThread.getName(), inst);
+        logger.trace("Cache: ENTER for thread {}, {} ({})", currentThread.getName(), inst, cacheClass.getSimpleName());
         if (inst == null) {
             logger.trace("Cache: creating for thread {}", currentThread.getName());
             try {

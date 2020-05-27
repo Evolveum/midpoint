@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="9c50ac7e-73c0-45cf-85e7-9a94959242f9">
+    <name>Recompute members</name>
+    <extension xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
+        <mext:workerThreads>2</mext:workerThreads>
+    </extension>
+    <executionStatus>waiting</executionStatus>
+    <recurrence>single</recurrence>
+</task>

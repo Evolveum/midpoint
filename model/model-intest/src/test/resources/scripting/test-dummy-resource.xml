@@ -15,7 +15,5 @@
             <value>Dummy Resource</value>
         </equal>
     </s:searchFilter>
-    <s:action>
-        <s:type>test-resource</s:type>
-    </s:action>
+    <s:testResource/>
 </s:search>

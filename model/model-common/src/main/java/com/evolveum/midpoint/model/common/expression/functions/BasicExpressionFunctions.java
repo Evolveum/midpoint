@@ -437,6 +437,7 @@ public class BasicExpressionFunctions {
     }
 
     public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
+        checkColon(localPart);
         return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));
     }
 
@@ -450,15 +451,24 @@ public class BasicExpressionFunctions {
 
 
     public <T> T getExtensionPropertyValue(ObjectType object, String localPart) throws SchemaException {
+        checkColon(localPart);
         return getExtensionPropertyValue(object, new javax.xml.namespace.QName(null, localPart));
     }
 
     public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+        checkColon(localPart);
         return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
     }
 
     public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+        checkColon(localPart);
         return getExtensionReferenceValue(object, new javax.xml.namespace.QName(namespace, localPart));
+    }
+
+    private void checkColon(String localPart) {
+        if (localPart != null && localPart.contains(":")) {
+            LOGGER.warn("Colon in QName local part: '{}' -- are you sure?", localPart);
+        }
     }
 
     public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
@@ -524,10 +534,12 @@ public class BasicExpressionFunctions {
 
 
     public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+        checkColon(attributeLocalPart);
         return getAttributeValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
     public <T> Collection<T> getAttributeValues(ShadowType shadow, String attributeLocalPart) {
+        checkColon(attributeLocalPart);
         return getAttributeValues(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
@@ -540,10 +552,12 @@ public class BasicExpressionFunctions {
     }
 
     public <T> T getAttributeValue(ShadowType shadow, String attributeNamespace, String attributeLocalPart) throws SchemaException {
+        checkColon(attributeLocalPart);
         return getAttributeValue(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
     public <T> T getAttributeValue(ShadowType shadow, String attributeLocalPart) throws SchemaException {
+        checkColon(attributeLocalPart);
         return getAttributeValue(shadow, new javax.xml.namespace.QName(MidPointConstants.NS_RI, attributeLocalPart));
     }
 
@@ -556,6 +570,7 @@ public class BasicExpressionFunctions {
     }
 
     public Collection<String> getAttributeStringValues(ShadowType shadow, String attributeNamespace, String attributeLocalPart) {
+        checkColon(attributeLocalPart);
         return getAttributeStringValues(shadow, new javax.xml.namespace.QName(attributeNamespace, attributeLocalPart));
     }
 
@@ -639,6 +654,7 @@ public class BasicExpressionFunctions {
     }
 
     public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) throws SchemaException {
+        checkColon(propertyLocalPart);
         if (propertyLocalPart == null) {
             return null;
         }

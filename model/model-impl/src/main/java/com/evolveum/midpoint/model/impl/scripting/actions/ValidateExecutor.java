@@ -28,7 +28,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 /**
- * @author mederly
+ * Executes "validate" action.
+ *
+ * There is no static (typed) definition of this action yet.
+ * Also, this code is not refactored yet.
  */
 @Component
 public class ValidateExecutor extends BaseActionExecutor {
@@ -42,7 +45,7 @@ public class ValidateExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
+        actionExecutorRegistry.register(NAME, this);
     }
 
     @Override
@@ -52,7 +55,7 @@ public class ValidateExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -78,8 +81,13 @@ public class ValidateExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult, context);
+            operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;
+    }
+
+    @Override
+    String getActionName() {
+        return NAME;
     }
 }

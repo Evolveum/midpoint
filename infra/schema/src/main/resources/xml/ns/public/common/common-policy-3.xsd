@@ -248,6 +248,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="alwaysTrue" type="tns:AlwaysTruePolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                This constraint always applies.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:elaborate>true</a:elaborate>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="and" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1106,6 +1118,24 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="AlwaysTruePolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    This policy constraint always applies.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="alwaysTruePolicyConstraint" type="tns:AlwaysTruePolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
     <xsd:complexType name="TransitionPolicyConstraintType">
         <xsd:annotation>
@@ -2028,7 +2058,22 @@
         <xsd:complexContent>
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
+                    <xsd:element name="object" type="c:ScriptExecutionObjectType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object(s) on which the script should be executed.
+                                (If not specified, current focus is assumed.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="asynchronous" type="c:AsynchronousScriptExecutionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options for asynchronous script execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2537,5 +2582,329 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ScriptExecutionObjectType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object(s) on which the script should be executed.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="currentObject" type="c:ObjectSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Current object. This is the default if nothing is specified.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="linkTarget" type="c:LinkTargetObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Objects linked form this one, matching given selector(s).
+                            TODO find better name.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="linkSource" type="c:LinkSourceObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Objects linked to this one, matching given selector(s).
+                            TODO find better name.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
+
+    <xsd:complexType name="LinkedObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked ones (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Link matches if it has any of the relation specified.
+                                (If no relation is specified, all links match.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
+
+    <xsd:complexType name="LinkSourceObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked sources (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkTargetObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among link targets (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="changeSituation" type="tns:LinkChangeSituationType" minOccurs="0" default="always">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                 In what situations (change-related) does the link match?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="matchesRuleAssignment" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The link target is related to the assignment that brought this policy rule to the focus object.
+                                This setting can eliminate the need to specify linked targets e.g. via archetype, if the archetype
+                                itself brings this policy rule to the object.
+
+                                This filter is approximate only! First, it ignores relations (for now). Second, it ignores whether
+                                the assignment that brought this policy rule was really the one that become listed in (old/new)
+                                roleMembershipRef. So please do not use it if you need absolute precision.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="matchesConstraint" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The link target was matched by some constraint in this policy rule (e.g. assignment modification
+                                constraint has a target object equal to assignment target). This setting can eliminate the need
+                                to specify linked targets e.g. using archetype.
+
+                                Highly experimental, probably will be removed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO some kind of limiting links targets to those present in roleMembershipRef or similar data?
+                          Currently roleMembershipRef presence is the default. -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkTargetObjectSelector" type="tns:LinkTargetObjectSelectorType" />
+
+    <xsd:simpleType name="LinkChangeSituationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                In what situations (change-related) does the link match?
+                EXPERIMENTAL. Think about broader applicability for transitional policy rules.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link always matches (even if it existed but does not any more).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="added">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches only if it was just added (i.e. its existence went from false to true).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="removed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches only if it was just removed (i.e. existence went from true to false).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REMOVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inNew">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches if it exists in the "new" state (i.e. it existence went from any to true).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_NEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="inOld">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches if it exists in the "old" state (i.e. it existence went from true to any).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IN_OLD"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="changed">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches if its existence was changed (false->true or true->false).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unchanged">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Link matches if its existence was unchanged (false->false or true->true).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNCHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AsynchronousScriptExecutionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options for asynchronous script execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="executionMode" type="c:AsynchronousScriptExecutionModeType" minOccurs="0" default="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mode of execution.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element><xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task template to use.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskCustomizer" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task customizer: an expression that takes a task and customizes its content.
+                        Input variable: task (of TaskType).
+                        Output: TaskType that should be used.
+                        This is the final step in task preparation. So the task is executed in the form
+                        that is prepared by this expression.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asynchronousScriptExecution" type="c:AsynchronousScriptExecutionType" />
+
+    <xsd:simpleType name="AsynchronousScriptExecutionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mode of asynchronous script execution.
+                EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses iterative scripting handler. This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITERATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRun">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action. Input for this action contains
+                        references to objects that should serve as bulk action inputs.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRunNoInput">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action without any explicit input.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN_NO_INPUT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

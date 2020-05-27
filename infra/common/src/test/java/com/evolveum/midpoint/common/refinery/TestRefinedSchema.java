@@ -385,7 +385,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
 
         // WHEN
-        PrismObject<ShadowType> blankShadow = rAccount.createBlankShadow();
+        PrismObject<ShadowType> blankShadow = rAccount.createBlankShadow("foo");
 
         // THEN
         assertNotNull("No blank shadow", blankShadow);
@@ -395,6 +395,7 @@ public class TestRefinedSchema extends AbstractUnitTest {
         PrismContainerDefinition<?> attrDef = objectDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
         assertNotNull("Blank shadow has no definition for attributes", attrDef);
         assertTrue("Wrong class for attributes definition: " + attrDef.getClass(), attrDef instanceof ResourceAttributeContainerDefinition);
+        assertEquals("Wrong tag", "foo", blankShadow.asObjectable().getTag());
 
     }
 

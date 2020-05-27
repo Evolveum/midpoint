@@ -253,8 +253,8 @@ public class PageCertDefinition extends PageAdminCertification {
             delta.normalize();
             if (!delta.isEmpty()) {
                 getPrismContext().adopt(delta);
-                ModelExecuteOptions options = new ModelExecuteOptions();
-                options.setRaw(true);
+                ModelExecuteOptions options = new ModelExecuteOptions(getPrismContext());
+                options.raw(true);
                 getModelService().executeChanges(MiscUtil.createCollection(delta), options, task, result);
             }
             result.computeStatus();

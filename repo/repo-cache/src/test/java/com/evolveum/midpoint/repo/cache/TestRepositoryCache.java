@@ -12,10 +12,12 @@ import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
-import java.io.IOException;
+import static org.testng.AssertJUnit.fail;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,12 +36,12 @@ import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -73,46 +75,51 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     @Autowired GlobalObjectCache globalObjectCache;
     @Autowired GlobalVersionCache globalVersionCache;
     @Autowired GlobalQueryCache globalQueryCache;
+    @Autowired PrismContext prismContext;
+
+    @SuppressWarnings("unused") // used when heap dumps are uncommented
+    private final long identifier = System.currentTimeMillis();
 
     @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
+    public void setup() {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
     @PostConstruct
     public void initialize() throws SchemaException {
+        PrismTestUtil.setPrismContext(prismContext);
+
         OperationResult initResult = new OperationResult(CLASS_DOT + "setup");
         repositoryCache.postInit(initResult);
     }
 
     @Test
-    public void testGetUser() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test100GetUser() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testGetUncachedObject(UserType.class);
     }
 
     @Test
-    public void testGetSystemConfiguration() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test110GetSystemConfiguration() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testGetCachedObject(SystemConfigurationType.class);
     }
 
     @Test
-    public void testSearchUsers() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test200SearchUsers() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testSearchUncachedObjects(UserType.class);
     }
 
     @Test
-    public void testSearchArchetypes() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test210SearchArchetypes() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testSearchCachedObjects(ArchetypeType.class);
     }
 
     @Test
-    public void testSearchUsersIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test220SearchUsersIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testSearchUncachedObjectsIterative(UserType.class);
     }
 
     @Test
-    public void testSearchArchetypesIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test230SearchArchetypesIterative() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         testSearchCachedObjectsIterative(ArchetypeType.class);
     }
 
@@ -120,7 +127,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void testModifyInIterativeSearch() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public void test300ModifyInIterativeSearch() throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -172,7 +179,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void testAddInIterativeSearch() throws SchemaException, ObjectAlreadyExistsException {
+    public void test310AddInIterativeSearch() throws SchemaException, ObjectAlreadyExistsException {
         given();
         PrismContext prismContext = getPrismContext();
         OperationResult result = createOperationResult();
@@ -223,7 +230,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
      * MID-6250
      */
     @Test
-    public void testSearchObjectsIterativeSlow() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test320SearchObjectsIterativeSlow() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -268,7 +275,7 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     }
 
     @Test
-    public void testSearchObjectsOverSize() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public void test330SearchObjectsOverSize() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
 
         deleteExistingObjects(ArchetypeType.class, result);
@@ -289,6 +296,78 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         Map<String, CachePerformanceCollector.CacheData> map = CachePerformanceCollector.INSTANCE.getGlobalPerformanceMap();
         CachePerformanceCollector.CacheData data = map.get("all.ArchetypeType");
         assertThat(data.overSizedQueries.get()).as("over-sized counter").isEqualTo(2); // search + searchIterative
+    }
+
+    // Must be executed last, because naive deletion such large number of archetypes fails on OOM
+    @Test
+    public void test900HeapUsage() throws Exception {
+        OperationResult result = new OperationResult("testHeapUsage");
+
+        int size = 2_000_000;
+        int count = 400;
+
+        // 50 is the default "step" in paged iterative search, so we can expect we always have 50 objects in memory
+        // And "times 3" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
+        // really execute the garbage collection (only suggests JVM to do it).
+        long tolerance = (50 * size) * 3;
+
+        showMemory("Initial");
+        dumpHeap("initial");
+
+        deleteExistingObjects(ArchetypeType.class, result);
+        generateLargeObjects(ArchetypeType.class, size, count, result);
+        showMemory("After generation");
+        dumpHeap("after-generation");
+
+        long usedBefore = getMemoryUsed();
+        AtomicInteger seen = new AtomicInteger();
+        AtomicLong usedInLastIteration = new AtomicLong();
+        repositoryCache.searchObjectsIterative(ArchetypeType.class, null,
+                (object, parentResult) -> {
+                    if (seen.incrementAndGet() % 100 == 0) {
+                        showMemory("After seeing " + seen.get() + " objects");
+                    }
+                    if (seen.get() == count) {
+                        usedInLastIteration.set(getMemoryUsed());
+                        dumpHeap("last-iteration");
+                    }
+                    return true;
+                }, null, true, result);
+        showMemory("Final");
+        dumpHeap("final");
+
+        long difference = usedInLastIteration.get() - usedBefore;
+
+        long differenceKb = difference / 1024;
+        long toleranceKb = tolerance / 1024;
+        System.out.printf("Difference: %,d KB (tolerating %,d KB)", differenceKb, toleranceKb);
+        if (differenceKb > toleranceKb) {
+            fail("Used too much memory during iterative search: " + differenceKb + " KB (accepting up to " + toleranceKb + " KB)");
+        }
+    }
+
+    private void showMemory(String desc) {
+        long used = getMemoryUsed();
+        display(String.format("%s: %,d used (%,d KB)%n", desc, used, used / 1024));
+    }
+
+    private long getMemoryUsed() {
+        System.gc();
+        return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+    }
+
+    @SuppressWarnings("unused")
+    private void dumpHeap(String desc) {
+        // Enable when needed
+//        try {
+//            HotSpotDiagnosticMXBean mxBean = ManagementFactory.newPlatformMXBeanProxy(ManagementFactory.getPlatformMBeanServer(),
+//                    "com.sun.management:type=HotSpotDiagnostic", HotSpotDiagnosticMXBean.class);
+//            display("Generating heap dump: " + desc + "...");
+//            mxBean.dumpHeap("heap-" + identifier + "-" + desc + ".hprof", true);
+//            display("Done");
+//        } catch (IOException e) {
+//            throw new IllegalStateException(e);
+//        }
     }
 
     private <T extends ObjectType> void testGetUncachedObject(Class<T> objectClass) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
@@ -544,6 +623,22 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
             objects.add(object);
         }
         return objects;
+    }
+
+    private <T extends ObjectType> void generateLargeObjects(Class<T> objectClass, int size, int count, OperationResult result)
+            throws SchemaException,
+            ObjectAlreadyExistsException {
+        for (int i = 0; i < count; i++) {
+            PrismObject<T> object = getPrismContext().createObject(objectClass);
+            object.asObjectable()
+                    .name(PolyStringType.fromOrig("T:" + i))
+                    .description(StringUtils.repeat('#', size));
+            repositoryCache.addObject(object, null, result);
+
+            if ((i+1) % 100 == 0) {
+                showMemory("After generating " + (i+1) + " objects");
+            }
+        }
     }
 
     private <T extends ObjectType> void deleteExistingObjects(Class<T> objectClass, OperationResult result)

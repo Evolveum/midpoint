@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface EvaluatedAssignmentTarget extends DebugDumpable {
 
+    @NotNull
     PrismObject<? extends AssignmentHolderType> getTarget();
 
     boolean isDirectlyAssigned();

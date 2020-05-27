@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author semancik
@@ -58,10 +57,14 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         return "LensObjectDeltaOperation";
     }
 
-    @NotNull
-    public LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
+    @NotNull LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
         LensObjectDeltaOperationType retval = new LensObjectDeltaOperationType();
-        retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this, DeltaConversionOptions.createSerializeReferenceNames()));
+        DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+        // Escaping invalid characters in serialized deltas could be questionable; see MID-6262.
+        // But because we currently do not use the deltas for other than human readers we can afford
+        // to replace invalid characters by descriptive text.
+        options.setEscapeInvalidCharacters(true);
+        retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this, options));
         retval.setAudited(audited);
         return retval;
     }

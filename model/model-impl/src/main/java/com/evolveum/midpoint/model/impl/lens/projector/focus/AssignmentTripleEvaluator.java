@@ -12,13 +12,14 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
  *
  * @author semancik
- *
  */
 public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
@@ -67,6 +67,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private AssignmentHolderType source;
     private AssignmentEvaluator<AH> assignmentEvaluator;
     private ActivationComputer activationComputer;
+    private ObjectResolver objectResolver;
     private PrismContext prismContext;
     private XMLGregorianCalendar now;
     private Task task;
@@ -96,48 +97,28 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         this.source = source;
     }
 
-    public AssignmentEvaluator<AH> getAssignmentEvaluator() {
-        return assignmentEvaluator;
-    }
-
     public void setAssignmentEvaluator(AssignmentEvaluator<AH> assignmentEvaluator) {
         this.assignmentEvaluator = assignmentEvaluator;
     }
 
-    public ActivationComputer getActivationComputer() {
-        return activationComputer;
+    public void setObjectResolver(ObjectResolver objectResolver) {
+        this.objectResolver = objectResolver;
     }
 
     public void setActivationComputer(ActivationComputer activationComputer) {
         this.activationComputer = activationComputer;
     }
 
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
-    }
-
-    public XMLGregorianCalendar getNow() {
-        return now;
     }
 
     public void setNow(XMLGregorianCalendar now) {
         this.now = now;
     }
 
-    public Task getTask() {
-        return task;
-    }
-
     public void setTask(Task task) {
         this.task = task;
-    }
-
-    public OperationResult getResult() {
-        return result;
     }
 
     public void setResult(OperationResult result) {
@@ -148,39 +129,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         assignmentEvaluator.reset(alsoMemberOfInvocations);
     }
 
-//    public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> preProcessAssignments(PrismObject<TaskType> taskType) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-//
-////        LensFocusContext<AH> focusContext = context.getFocusContext();
-//
-//        SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
-//
-////        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
-////                getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(),
-////                prismContext, task, result);
-//
-//        assignmentCollection.collectAssignmentsForPreprocessing(taskType.findContainer(TaskType.F_ASSIGNMENT), null);
-//
-//
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
-//        }
-//
-//        // Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
-//        // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
-//        // will be processed only once. Inside the loop we determine whether it was added, deleted or remains unchanged.
-//        // This is a first step of the processing. It takes all the account constructions regardless of the resource and
-//        // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
-//        // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
-//        // sorted out later.
-//        DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = prismContext.deltaFactory().createDeltaSetTriple();
-//        for (SmartAssignmentElement assignmentElement : assignmentCollection) {
-//            processAssignment(evaluatedAssignmentTriple, null, null, assignmentElement);
-//        }
-//
-//        return evaluatedAssignmentTriple;
-//    }
-
-    public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException,
+            CommunicationException {
 
         LensFocusContext<AH> focusContext = context.getFocusContext();
 
@@ -189,12 +140,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
         assignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
 
-        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
+        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDumpLazily());
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
 
         Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
-                getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(),
+                getNewObjectLifecycleState(focusContext), objectResolver,
                 prismContext, task, result);
 
         LOGGER.trace("Task for process: {}", task.debugDumpLazily());
@@ -361,9 +312,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         // Entirely new assignment is added
                         if (assignmentElement.isCurrent() && assignmentElement.isOld()) {
                             // Phantom add: adding assignment that is already there
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
-                            }
+                            LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;
@@ -371,9 +320,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
                             collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
                         } else {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
-                            }
+                            LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiAdd(assignmentCVal), PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;
@@ -384,9 +331,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
                     } else if (isDelete && !isAdd) {
                         // Existing assignment is removed
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
-                        }
+                        LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                         EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, true, assignmentPlacementDesc, assignmentElement);
                         if (evaluatedAssignment == null) {
                             return;
@@ -410,10 +355,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         if (isValid == isValidOld) {
                             // No change in validity -> right to the zero set
                             // The change is not significant for assignment applicability. Recon will sort out the details.
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
-                                        isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal));
-                            }
+                            LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
+                                    isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;
@@ -422,10 +365,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
                         } else if (isValid) {
                             // Assignment became valid. We need to place it in plus set to initiate provisioning
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
-                                        isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
-                            }
+                            LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
+                                    isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;
@@ -434,10 +375,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
                         } else {
                             // Assignment became invalid. We need to place is in minus set to initiate deprovisioning
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
-                                        isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal));
-                            }
+                            LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
+                                    isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;

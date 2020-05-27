@@ -219,7 +219,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
         assertModification(delta, resourceAttrDefValueWrapper.getPath(), ModificationTypeType.ADD, expectedvalue);
 
-        executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
+        executeChanges(delta, executeOptions().raw(), task, result);
         display(result);
         assertSuccess(result);
 

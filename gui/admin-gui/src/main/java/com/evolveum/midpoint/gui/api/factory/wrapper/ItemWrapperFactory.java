@@ -24,7 +24,7 @@ public interface ItemWrapperFactory<IW extends ItemWrapper, VW extends PrismValu
 
 
     IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException;
-    IW createWrapper(Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
+    IW createWrapper(PrismContainerValueWrapper<?> parent, Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
     VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
 
 

@@ -1,0 +1,120 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402">
+    <name>device</name>
+    <documentation>A device has some special characteristics:
+
+        1. It is held by at most single user at given time.
+
+        2. It gives its holder some properties, e.g. the `organizational` obtains value of
+        `D users` for any device D held.
+
+        3. On the other hand, it knows who uses it by storing the user's `name` and `fullName` in
+        its `description` property.
+
+        Note that points 2 and 3 are implemented by object templates (point 2 by template for users
+        and point 3 by template for services). This means that they work for both active and
+        inactive devices. For a different approach please see the "token" archetype.
+    </documentation>
+
+    <archetypePolicy>
+        <objectTemplateRef oid="e0d5d585-da74-4523-b4f5-78cb54c0dccd" /> <!-- template-device -->
+    </archetypePolicy>
+
+    <!-- Part 2: Triggering data transfer: Policy rules that cause recomputation of relevant objects when needed. -->
+
+    <!-- 2a: device -> user -->
+
+    <inducement>
+        <policyRule>
+            <name>recompute-user-on-device-name-change</name>
+            <documentation>
+                Recomputes a user when device name is changed. (Note that user is recomputed
+                automatically when device is assigned or unassigned.)
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>1</order> <!-- assigned to device object, so executes when device is modified -->
+    </inducement>
+
+    <!-- 2b: user -> device -->
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-user-name-change</name>
+            <documentation>Recomputes a device when user's name or fullName changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>fullName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-membership-change</name>
+            <documentation>
+                Recomputes all devices whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned the user -->
+    </inducement>
+</archetype>

@@ -79,6 +79,8 @@ public interface PrismContainer<C extends Containerable>
     @NotNull
     C getRealValue();
 
+    void setRealValue(C value) throws SchemaException;
+
     void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
 
     @NotNull
@@ -253,5 +255,4 @@ public interface PrismContainer<C extends Containerable>
      * USE WITH CARE. Make sure the definitions are not shared by other objects!
      */
     void trimDefinitionTree(Collection<? extends ItemPath> alwaysKeep);
-
 }

@@ -643,7 +643,7 @@ public final class WebComponentUtil {
         }
 
         if (options != null) {
-            prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
+            prismTask.findOrCreateContainer(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
                     .setRealValue(options.toModelExecutionOptionsType());
         }
         return task;

@@ -780,6 +780,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             PrismContainerValueWrapper<ConstructionType> constructionValue = null;
             try {
                 PrismContainerWrapper<ConstructionType> construction = modelObject.findContainer(AssignmentType.F_CONSTRUCTION);
+                if (construction == null) {
+                    return null;
+                }
                 constructionValue = construction.getValue();
             } catch (SchemaException e) {
                 LOGGER.error("Unexpected problem during construction wrapper lookup, {}", e.getMessage(), e);
@@ -829,11 +832,15 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                 return targetObject != null ? (C) targetObject.asObjectable() : null;
             }
             if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
-                Task task = getPageBase().createSimpleTask("Load resource");
-                OperationResult result = task.getResult();
-                PrismObject<?> object = WebModelServiceUtils.loadObject(assignment.getConstruction().getResourceRef(), getPageBase(), task, result);
-                if (object != null) {
-                    return (C) object.asObjectable();
+                if (assignment.getConstruction().getResourceRef().getOid() != null) {
+                    Task task = getPageBase().createSimpleTask("Load resource");
+                    OperationResult result = task.getResult();
+                    PrismObject<?> object = WebModelServiceUtils.loadObject(assignment.getConstruction().getResourceRef(), getPageBase(), task, result);
+                    if (object != null) {
+                        return (C) object.asObjectable();
+                    }
+                } else {
+                    return (C) assignment.getConstruction();
                 }
             } else if (assignment.getPersonaConstruction() != null) {
                 return (C) assignment.getPersonaConstruction();

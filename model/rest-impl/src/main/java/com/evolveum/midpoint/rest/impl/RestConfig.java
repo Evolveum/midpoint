@@ -6,63 +6,51 @@
  */
 package com.evolveum.midpoint.rest.impl;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.PrismContext;
 
 /**
  * Spring configuration for MVC-based REST service. TODO: experimental as of early 2020
- * This prepares needed (de)serializers and also drives the package scan for REST controllers.
+ * This prepares needed XML/JSON/YAML message converters.
+ * It also drives the package scan for REST controllers under this package.
  */
+@Configuration
 @ComponentScan
-@EnableWebMvc
-public class RestConfig extends WebMvcConfigurationSupport {
+public class RestConfig
+        implements WebMvcConfigurer {
 
-    @Bean
-    public MappingJackson2HttpMessageConverter myConverter(ObjectMapper objectMapper) {
-        return new MappingJackson2HttpMessageConverter(objectMapper);
+    // TODO probably @Override addArgumentResolvers for @Converter processing?
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        for (MediaType mediaType : MidpointYamlHttpMessageConverter.MEDIA_TYPES) {
+            configurer.mediaType(mediaType.getSubtype(), mediaType);
+        }
+        configurer.defaultContentType(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML);
     }
 
     @Bean
-    public ObjectMapper jsonObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(PrismObject.class, prismObjectJsonSerializer());
-        objectMapper.registerModule(module);
-
-        return objectMapper;
+    public MidpointYamlHttpMessageConverter yamlConverter(
+            PrismContext prismContext, LocalizationService localizationService) {
+        return new MidpointYamlHttpMessageConverter(prismContext, localizationService);
     }
 
-    @SuppressWarnings("rawtypes") // no <?>, otherwise the line module.addSerializer doesn't compile
-    private JsonSerializer<PrismObject> prismObjectJsonSerializer() {
-        return new JsonSerializer<PrismObject>() {
-            @Override
-            public void serialize(PrismObject value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-                PrismSerializer<String> prismSerializer = value.getPrismContext().jsonSerializer()
-                        .options(SerializationOptions.createSerializeReferenceNames());
-                try {
-                    // TODO: this is just one instance of from MidpointAbstractProvider#writeTo - how much more do we need?
-                    String rawJson = prismSerializer.serialize(value);
-                    gen.writeRaw(rawJson);
-                } catch (SchemaException e) {
-                    throw new IOException("JSON serialization problems", e);
-                }
-            }
-        };
+    @Bean
+    public MidpointXmlHttpMessageConverter xmlConverter(
+            PrismContext prismContext, LocalizationService localizationService) {
+        return new MidpointXmlHttpMessageConverter(prismContext, localizationService);
+    }
+
+    @Bean
+    public MidpointJsonHttpMessageConverter jsonConverter(
+            PrismContext prismContext, LocalizationService localizationService) {
+        return new MidpointJsonHttpMessageConverter(prismContext, localizationService);
     }
 }

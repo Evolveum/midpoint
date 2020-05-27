@@ -6,6 +6,40 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static java.util.Collections.*;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -25,10 +59,9 @@ import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalS
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
-import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
@@ -59,7 +92,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -72,42 +104,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-
 /**
  * @author semancik
- *
  */
 @Component
 public class MidpointFunctionsImpl implements MidpointFunctions {
@@ -125,6 +123,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private transient Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
+    @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
     @Autowired private WorkflowService workflowService;
     @Autowired private ConstantsManager constantsManager;
     @Autowired private LocalizationService localizationService;
@@ -134,7 +133,6 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
     @Autowired private TaskManager taskManager;
     @Autowired private SchemaHelper schemaHelper;
-    @Context HttpServletRequest httpServletRequest;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -292,14 +290,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
-        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-        if (ctx == null) {
-            throw new IllegalStateException("No lens context");
-        }
-        ModelElementContext<F> focusContext = ctx.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus in lens context");
-        }
+        ModelContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelElementContext<F> focusContext = ctx.getFocusContextRequired();
 
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
 
@@ -375,14 +367,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
-        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
-        if (ctx == null) {
-            throw new IllegalStateException("No lens context");
-        }
-        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus in lens context");
-        }
+        ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        ModelElementContext<? extends FocusType> focusContext = ctx.getFocusContextRequired();
 
         PrismObject<? extends FocusType> focus;
         ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
@@ -416,10 +402,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @SuppressWarnings("unused")
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext == null) {
-            throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with model context");
-        }
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
@@ -762,7 +745,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {
+    public <V extends PrismValue, D extends ItemDefinition> Mapping<V, D> getMapping() {
         return ModelExpressionThreadLocalHolder.getMapping();
     }
 
@@ -856,14 +839,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return resolveReferenceInternal(reference, false);
     }
 
-    private <T extends ObjectType> T resolveReferenceInternal(ObjectReferenceType reference, boolean allowNotFound)
+    <T extends ObjectType> T resolveReferenceInternal(ObjectReferenceType reference, boolean allowNotFound)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         if (reference == null) {
             return null;
         }
-        QName type = reference.getType();           // TODO what about implicitly specified types, like in resourceRef?
+        QName type = reference.getType(); // TODO what about implicitly specified types, like in resourceRef?
         PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByType(reference.getType());
         if (objectDefinition == null) {
@@ -1473,7 +1456,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (securityPolicy != null && securityPolicy.getAuthentication() != null
                 && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             if (securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
-            && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
+                    && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName();
                 String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
@@ -1517,24 +1500,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return createBaseConfirmationLink(prefix, userType) + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
     }
 
-    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences){
-                AuthenticationSequenceType sequenceByName = null;
-                AuthenticationSequenceType defaultSequence = null;
-                for (AuthenticationSequenceType sequenceType : sequences) {
-                    if (sequenceType.getName().equals(nameOfSequence)) {
-                        sequenceByName = sequenceType;
-                        break;
-                    } else if (sequenceType.getChannel().getChannelId().equals(channel)
-                            && Boolean.TRUE.equals(sequenceType.getChannel().isDefault())) {
-                        defaultSequence = sequenceType;
-                    }
-                }
-                AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
-                if (usedSequence != null) {
-                    String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
-                    String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
-                    return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
-                }
+    private String createPrefixLinkByAuthSequence(String channel, String nameOfSequence, Collection<AuthenticationSequenceType> sequences) {
+        AuthenticationSequenceType sequenceByName = null;
+        AuthenticationSequenceType defaultSequence = null;
+        for (AuthenticationSequenceType sequenceType : sequences) {
+            if (sequenceType.getName().equals(nameOfSequence)) {
+                sequenceByName = sequenceType;
+                break;
+            } else if (sequenceType.getChannel().getChannelId().equals(channel)
+                    && Boolean.TRUE.equals(sequenceType.getChannel().isDefault())) {
+                defaultSequence = sequenceType;
+            }
+        }
+        AuthenticationSequenceType usedSequence = sequenceByName != null ? sequenceByName : defaultSequence;
+        if (usedSequence != null) {
+            String sequecnceSuffix = usedSequence.getChannel().getUrlSuffix();
+            String prefix = (sequecnceSuffix.startsWith("/")) ? sequecnceSuffix : ("/" + sequecnceSuffix);
+            return SchemaConstants.AUTH_MODULE_PREFIX + prefix;
+        }
         return null;
     }
 
@@ -1622,7 +1605,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LOGGER.trace("No shadowRef in association {}", shadowAssociationType);
             return null;
         }
-        if (shadowRef.asReferenceValue().getObject() != null){
+        if (shadowRef.asReferenceValue().getObject() != null) {
             return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
         }
 
@@ -1654,6 +1637,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ConfigurationException, ExpressionEvaluationException {
         return AssignmentPath.collectExtensions(path, startAt, modelService, getCurrentTask(), getCurrentResult());
     }
+
     @Override
     public TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
             String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
@@ -1676,7 +1660,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             newTask.setName(PolyStringType.fromOrig("Execute changes"));
             newTask.setRecurrence(TaskRecurrenceType.SINGLE);
         }
-        newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
+        newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
         newTask.setOid(null);
         newTask.setTaskIdentifier(null);
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), prismContext));
@@ -1697,12 +1681,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
         newTask.asPrismObject().addExtensionItem(deltasProperty);
         if (options != null) {
-            //noinspection unchecked
-            PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-            PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
-            optionsProperty.setRealValue(options.toModelExecutionOptionsType());
-            newTask.asPrismObject().addExtensionItem(optionsProperty);
+            PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
+                    .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+            PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
+            optionsContainer.setRealValue(options.toModelExecutionOptionsType());
+            newTask.asPrismObject().addExtensionItem(optionsContainer);
         }
         ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService
@@ -1744,9 +1727,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public Object executeAdHocProvisioningScript(String resourceOid, String language, String code)
-                    throws SchemaException, ObjectNotFoundException,
-                    ExpressionEvaluationException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ObjectAlreadyExistsException {
         OperationProvisioningScriptType script = new OperationProvisioningScriptType();
         script.setCode(code);
         script.setLanguage(language);
@@ -1767,10 +1750,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
-        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext == null) {
-            throw new IllegalStateException("No lensContext");
-        }
+        ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return emptySet();
@@ -1895,17 +1875,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (!(object instanceof AssignmentHolderType)) {
             return archetypeOid == null;
         }
-
-        ModelContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
-        if (lensContext != null) {
-            ModelElementContext<O> focusContext = lensContext.getFocusContext();
-            ArchetypeType archetypeType = focusContext.getArchetype();
-            if (archetypeType != null) {
-                return archetypeType.getOid().equals(archetypeOid);
-            }
-        }
-
-        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
+        List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType) object).getArchetypeRef();
         if (archetypeOid == null) {
             return archetypeRefs.isEmpty();
         }
@@ -2020,25 +1990,38 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
+    public <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return MiscUtil.extractSingleton(findAssignees(type), () -> new IllegalStateException("More than one assignee found"));
+        return linkedObjectsFunctions.findLinkedSource(type);
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
+    public <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ObjectQuery query = prismContext.queryFor(type)
-                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
-                    .ref(getFocusObjectReference().asReferenceValue().clone())
-                .build();
-        return searchObjects(type, query, null);
+        return linkedObjectsFunctions.findLinkedSources(type);
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
+    public <T extends AssignmentHolderType> T findLinkedTarget(Class<T> type, String archetypeOid)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedTarget(type, archetypeOid);
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
+    @NotNull
+    public <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedTargets(type, archetypeOid);
     }
 
     @Experimental
     @NotNull
-    private ObjectReferenceType getFocusObjectReference() {
+    public ObjectReferenceType getFocusObjectReference() {
         ObjectType focusObject = getFocusObjectAny();
         String oid = focusObject.getOid();
         if (oid == null) {
@@ -2054,14 +2037,33 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         if (lensContext == null) {
             throw new IllegalStateException("No model context present. Are you calling this method within model operation?");
         }
-        LensFocusContext<T> focusContext = lensContext.getFocusContext();
-        if (focusContext == null) {
-            throw new IllegalStateException("No focus context present");
-        }
+        LensFocusContext<T> focusContext = lensContext.getFocusContextRequired();
         PrismObject<T> object = focusContext.getObjectAny();
         if (object == null) {
             throw new IllegalStateException("No old, current, nor new object in focus context");
         }
         return object.asObjectable();
+    }
+
+    @Override
+    public void createRecomputeTrigger(Class<? extends ObjectType> type, String oid) throws SchemaException,
+            ObjectAlreadyExistsException, ObjectNotFoundException {
+        OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".createRecomputeTrigger");
+
+        TriggerType trigger = new TriggerType(prismContext)
+                .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                .timestamp(XmlTypeConverter.createXMLGregorianCalendar());
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(type)
+                .item(ObjectType.F_TRIGGER).add(trigger)
+                .asItemDeltas();
+        repositoryService.modifyObject(type, oid, itemDeltas, result);
+    }
+
+    public boolean extensionOptionIsNotFalse(String localName) {
+        return BooleanUtils.isNotFalse(getBooleanExtensionOption(localName));
+    }
+
+    public Boolean getBooleanExtensionOption(String localName) {
+        return ModelExecuteOptions.getExtensionOptionValue(getModelContext().getOptions(), new ItemName(localName), Boolean.class);
     }
 }

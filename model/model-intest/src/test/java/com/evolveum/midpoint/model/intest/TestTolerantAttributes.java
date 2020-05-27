@@ -127,7 +127,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         // WHEN
         when();
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -168,7 +168,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         userDelta.addModification(propertyDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -214,7 +214,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         userDelta.addModification(propertyDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -261,7 +261,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         userDelta.addModification(propertyDelta);
         Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(userDelta);
 
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -311,7 +311,7 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 
         // WHEN
         when();
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

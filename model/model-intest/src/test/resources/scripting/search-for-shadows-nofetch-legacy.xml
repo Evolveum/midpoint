@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:type>c:ShadowType</s:type>
+    <s:searchFilter>
+        <and xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <ref>
+                <path>c:resourceRef</path>
+                <value xsi:type="c:ObjectReferenceType" oid="10000000-0000-0000-0000-000000000004"/>
+            </ref>
+            <equal>
+                <path>c:objectClass</path>
+                <value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</value>
+            </equal>
+        </and>
+    </s:searchFilter>
+    <s:options>
+        <c:option>
+            <c:options>
+                <c:noFetch>true</c:noFetch>
+            </c:options>
+        </c:option>
+    </s:options>
+</s:search>

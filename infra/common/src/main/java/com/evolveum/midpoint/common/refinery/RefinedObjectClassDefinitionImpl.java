@@ -362,7 +362,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
+    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition, String tag) {
         PrismObject<ShadowType> accountShadow;
         try {
             accountShadow = getPrismContext().createObject(ShadowType.class);
@@ -375,6 +375,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         accountShadowType
             .intent(getIntent())
             .kind(getKind())
+            .tag(tag)
             .objectClass(getObjectClassDefinition().getTypeName())
             .resourceRef(getResourceOid(), ResourceType.COMPLEX_TYPE);
 

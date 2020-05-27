@@ -48,7 +48,7 @@ public class ProcessSpecifications implements DebugDumpable {
         final WfProcessSpecificationType basicSpec;
         final List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsWithRules;
 
-        ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry) {
+        private ProcessSpecification(Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> entry) {
             this.basicSpec = entry.getKey();
             this.actionsWithRules = entry.getValue();
         }
@@ -72,7 +72,7 @@ public class ProcessSpecifications implements DebugDumpable {
         }
     }
 
-    static ProcessSpecifications createFromRules(List<EvaluatedPolicyRule> rules, PrismContext prismContext)
+    static ProcessSpecifications createFromRules(List<? extends EvaluatedPolicyRule> rules, PrismContext prismContext)
             throws ObjectNotFoundException {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
         LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collectedSpecifications = new LinkedHashMap<>();

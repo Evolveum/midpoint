@@ -1061,7 +1061,9 @@ public class TestStrings extends AbstractStoryTest {
         // audit
         displayDumpable("audit", dummyAuditService);
         List<AuditEventRecord> records = dummyAuditService.getRecords();
-        assertEquals("Wrong # of audit records", 4, records.size());
+        if (records.size() != 4 && records.size() != 5) {
+            fail("Wrong # of audit records: " + records.size() + " (expected 4 or 5)");
+        }
         AuditEventRecord record = records.get(0);
         Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = record.getDeltas();
         assertEquals("Wrong # of deltas in audit record", 1, deltas.size());
@@ -1075,6 +1077,7 @@ public class TestStrings extends AbstractStoryTest {
 
         // record #1, #2: cancellation of work items of other approvers
         // record #3: finishing process execution
+        // optional #4: asynchronous execution in task
 
         CaseType rootCase = getCase(aCase.getParentRef().getOid());
         waitForCaseClose(rootCase, CASE_WAIT_TIMEOUT);

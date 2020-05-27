@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.util;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.Map;
@@ -338,4 +339,17 @@ public class DOMUtilTest extends AbstractUnitTest {
         assertTrue("Not support string with surrogates in xml", support);
     }
 
+    @Test
+    public void testEscapeInvalidXmlChars() {
+        String value = "A\u0006B\u0000C";
+        try {
+            DOMUtil.checkValidXmlChars(value);
+            fail("unexpected success");
+        } catch (IllegalStateException e) {
+            displayExpectedException(e);
+        }
+
+        String fixed = DOMUtil.escapeInvalidXmlCharsIfPresent(value);
+        assertThat(fixed).as("fixed string").isEqualTo("A[INVALID CODE POINT: 6]B[INVALID CODE POINT: 0]C");
+    }
 }

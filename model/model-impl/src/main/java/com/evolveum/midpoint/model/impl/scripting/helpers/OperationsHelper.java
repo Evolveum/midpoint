@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.scripting.helpers;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,14 +33,22 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.AbstractExecutionActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 /**
  * @author mederly
@@ -49,9 +58,61 @@ public class OperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationsHelper.class);
 
+    private static final String PARAM_RAW = "raw";
+    private static final String PARAM_DRY_RUN = "dryRun";
+    private static final String PARAM_SKIP_APPROVALS = "skipApprovals";
+    private static final String PARAM_OPTIONS = "options";
+
     @Autowired private ModelService modelService;
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private PrismContext prismContext;
+    @Autowired private ExpressionHelper expressionHelper;
+
+    public boolean getDryRun(ActionExpressionType action, PipelineData input, ExecutionContext context, OperationResult result)
+            throws ScriptExecutionException, SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        return expressionHelper.getActionArgument(Boolean.class, action,
+                AbstractExecutionActionExpressionType.F_DRY_RUN, PARAM_DRY_RUN,
+                input, context, false, PARAM_DRY_RUN, result);
+    }
+
+    @NotNull
+    public ModelExecuteOptions getOptions(ActionExpressionType action, PipelineData input, ExecutionContext context,
+            OperationResult result) throws ScriptExecutionException, SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        ModelExecuteOptions options = getRawOptions(action, input, context, result);
+
+        // raw and skipApprovals are not part of static schema
+        Boolean raw = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_RAW, input, context, null, PARAM_RAW, result);
+        Boolean skipApprovals = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_SKIP_APPROVALS, input, context, null, PARAM_SKIP_APPROVALS, result);
+
+        if (Boolean.TRUE.equals(raw)) {
+            options.raw(true);
+        }
+        if (Boolean.TRUE.equals(skipApprovals)) {
+            if (options.getPartialProcessing() != null) {
+                options.getPartialProcessing().setApprovals(SKIP);
+            } else {
+                options.partialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+            }
+        }
+        return options;
+    }
+
+    @NotNull
+    private ModelExecuteOptions getRawOptions(ActionExpressionType action, PipelineData input, ExecutionContext context,
+            OperationResult result) throws ScriptExecutionException, SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ModelExecuteOptionsType optionsBean = expressionHelper.getActionArgument(ModelExecuteOptionsType.class, action,
+                AbstractExecutionActionExpressionType.F_EXECUTE_OPTIONS, PARAM_OPTIONS, input, context, null,
+                "executeOptions", result);
+        if (optionsBean != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
+        } else {
+            return ModelExecuteOptions.create(prismContext);
+        }
+    }
+
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         return applyDelta(delta, null, context, result);
@@ -59,6 +120,7 @@ public class OperationsHelper {
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
+            //noinspection unchecked
             return modelService.executeChanges(Collections.singleton(delta), options, context.getTask(), result);
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
@@ -67,6 +129,7 @@ public class OperationsHelper {
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> applyDelta(ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, boolean dryRun, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
+            LOGGER.debug("Going to execute delta (raw={}):\n{}", dryRun, delta.debugDumpLazily());
             if (dryRun) {
                 modelInteractionService.previewChanges(Collections.singleton(delta), options, context.getTask(), result);
                 return null;
@@ -101,12 +164,6 @@ public class OperationsHelper {
         } catch (ConfigurationException|ObjectNotFoundException|SchemaException|CommunicationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
         }
-    }
-
-    public ModelExecuteOptions createExecutionOptions(boolean raw) {
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setRaw(raw);
-        return options;
     }
 
     public long recordStart(ExecutionContext context, ObjectType objectType) {
@@ -149,22 +206,21 @@ public class OperationsHelper {
         }
     }
 
-    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, ExecutionContext context,
-            OperationResult globalResult) {
-        OperationResult result = new OperationResult(executor.getClass().getName() + "." + "execute");
+    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, OperationResult globalResult) {
+        OperationResult result = globalResult.createMinorSubresult(executor.getClass().getName() + "." + "execute");
         if (item != null) {
             result.addParam("value", String.valueOf(item.getValue()));
-            item.getResult().addSubresult(result);
         }
         return result;
     }
 
-    public void trimAndCloneResult(OperationResult result, OperationResult globalResult,
-            ExecutionContext context) {
+    public void trimAndCloneResult(OperationResult result, OperationResult itemResultParent) {
         result.computeStatusIfUnknown();
         // TODO make this configurable
-        result.getSubresults().forEach(s -> s.setMinor());
+        result.getSubresults().forEach(OperationResult::setMinor);
         result.cleanupResult();
-        globalResult.addSubresult(result.clone());
+        if (itemResultParent != null) {
+            itemResultParent.addSubresult(result.clone());
+        }
     }
 }

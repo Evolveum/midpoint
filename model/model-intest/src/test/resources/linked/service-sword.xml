@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="c64ee819-6dcd-4ad2-a91a-303fb0aed29e">
+    <name>sword</name>
+    <assignment>
+        <targetRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" type="ArchetypeType" /> <!-- archetype-device -->
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus> <!-- it's a wooden sword -->
+    </activation>
+</service>
