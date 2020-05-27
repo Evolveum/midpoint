@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<AxiomTypeDefinition> {
 
     public final AxiomIdentifier IDENTIFIER_MEMBER = AxiomIdentifier.axiom("name");
-    public final AxiomIdentifier IDENTIFIER_SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");
+    public final AxiomIdentifier SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");
 
 
     @Override

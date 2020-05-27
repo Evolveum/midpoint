@@ -27,11 +27,15 @@ public interface AxiomStatementRule<V> {
 
         Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
 
-        <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition namespace, Class<T> valueType);
+        <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition item, Class<T> valueType);
+
+        <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition item, Class<T> valueType);
 
         Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
 
         Dependency.Search<AxiomValue<?>> global(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+
+        Dependency.Search<AxiomValueReference<?>> reference(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
 
         Dependency.Search<AxiomValue<?>> namespaceValue(AxiomIdentifier space, IdentifierSpaceKey itemName);
 

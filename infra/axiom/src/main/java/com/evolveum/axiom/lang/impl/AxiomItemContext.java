@@ -8,4 +8,6 @@ public interface AxiomItemContext<T> {
 
     T onlyValue();
 
+    void addOperationalValue(AxiomValueReference<T> value);
+
 }

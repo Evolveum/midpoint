@@ -190,12 +190,14 @@ model axiom-lang {
     }
 
     type AxiomTypeReference {
-        //type AxiomIdentifier;
-        //reference {
-        //    scope global;
-        //    space AxiomTypeDefinition;
-        //    argument name;
-        //}
+        argument name;
+        item name {
+            type AxiomIdentifier;
+        }
+        item target {
+            type AxiomTypeDefinition;
+            operational true;
+        }
     }
 
     type AxiomMixinDefinition {

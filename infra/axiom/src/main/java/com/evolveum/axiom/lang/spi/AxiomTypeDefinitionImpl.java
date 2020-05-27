@@ -37,7 +37,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
         }
         itemDefinitions = builder.build();
 
-        superType = this.<AxiomTypeDefinition>item(Item.SUPERTYPE_REFERENCE.name()).map(v -> v.onlyValue().get());
+        superType = onlyValue(AxiomTypeDefinition.class,Item.SUPERTYPE_REFERENCE, Item.REF_TARGET).map(v -> v.get());
 
         argument = this.<AxiomIdentifier>item(Item.ARGUMENT.name()).flatMap(v -> itemDefinition(v.onlyValue().get()));
         identifiers = upcast(this.<AxiomIdentifierDefinition>item(Item.IDENTIFIER_DEFINITION.name()).map(v -> v.values()).orElse(Collections.emptyList()));

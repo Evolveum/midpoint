@@ -34,4 +34,15 @@ public interface AxiomValue<V> extends Supplier<V> {
         return new SimpleValue<V>(typeDefinition, value);
     }
 
+   default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
+        Optional<AxiomValue<?>> current = Optional.of(this);
+        for(AxiomItemDefinition name : components) {
+            current = current.get().item(name).map(v -> v.onlyValue());
+            if(current.isEmpty()) {
+                return Optional.empty();
+            }
+        }
+        return (Optional) current;
+    }
+
 }

@@ -54,6 +54,8 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition ID_SPACE = new Item("space", Type.IDENTIFIER, false);
 
         public static final AxiomItemDefinition TARGET = new Item("target", Type.TYPE_REFERENCE, true);
+        public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
+
 
         private final AxiomIdentifier identifier;
         private final AxiomTypeDefinition type;
@@ -128,7 +130,10 @@ public class AxiomBuiltIn {
         public static final Type UUID = new Type("uuid");
         public static final Type STRING = new Type("string");
         public static final Type IDENTIFIER = new Type("AxiomIdentifier");
-        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference");
+        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference", null, () -> Item.NAME, () -> itemDefs(
+                    Item.NAME,
+                    Item.REF_TARGET
+                ));
         public static final Type BASE_DEFINITION =
                 new Type("AxiomBaseDefinition", null, () -> Item.NAME, () -> itemDefs(
                         Item.NAME,

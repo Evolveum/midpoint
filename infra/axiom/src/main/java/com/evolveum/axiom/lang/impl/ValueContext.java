@@ -32,6 +32,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     private final LookupImpl lookup = new LookupImpl();
     private final V originalValue;
     private final Collection<Dependency<?>> dependencies = new HashSet<>();
+    private AxiomValue<V> lazyValue;
+    public ReferenceDependency referenceDependency = new ReferenceDependency();
+    public Reference reference = new Reference();
 
     public ValueContext(SourceLocation loc, IdentifierSpaceHolder space) {
         super(null, loc, space);
@@ -43,6 +46,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         super(itemContext, loc, AxiomIdentifierDefinition.Scope.LOCAL);
         originalValue = value;
         result = new Result(parent().type(), value);
+        lazyValue = new LazyValue<>(itemDefinition().typeDefinition(),() -> get());
     }
 
     @Override
@@ -70,7 +74,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     protected Result mutable() {
-        Preconditions.checkState(result instanceof ValueContext.Result);
+        Preconditions.checkState(result instanceof ValueContext.Result, "Result is not mutable.");
         return (Result) result;
     }
 
@@ -81,6 +85,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     @Override
     public AxiomValue<V> get() {
+        if(isMutable()) {
+            result = Dependency.immediate(result.get());
+        }
         return result.get();
     }
 
@@ -166,8 +173,8 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public <T> AxiomItemContext<T> childItem(AxiomIdentifier name) {
-        return (AxiomItemContext<T>) mutable().getOrCreateItem(Inheritance.adapt(parent().name(), name), SourceLocation.runtime());
+    public <T> ItemContext<T> childItem(AxiomIdentifier name) {
+        return (ItemContext<T>) mutable().getOrCreateItem(Inheritance.adapt(parent().name(), name), SourceLocation.runtime());
     }
 
     @Override
@@ -210,7 +217,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         addDependency(action);
     }
 
-    public <T> Dependency<AxiomItem<T>> requireChild(AxiomIdentifier item) {
+    public <T> Dependency.Search<AxiomItem<T>> requireChild(AxiomIdentifier item) {
         return Dependency.retriableDelegate(() -> {
             if(result instanceof ValueContext.Result) {
                 return ((ValueContext.Result) result).getItem(item);
@@ -266,6 +273,24 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
 
         @Override
+        public <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition definition, Class<T> valueType) {
+            return Dependency.retriableDelegate(() -> {
+                Dependency<AxiomItem<?>> item;
+                if(result instanceof ValueContext.Result) {
+                    item = ((ValueContext.Result) result).getItem(definition.name());
+                } else {
+                    item = result.flatMap(v -> Dependency.from(v.item(definition)));
+                }
+                if(item instanceof ItemContext) {
+                    return ((ItemContext) item).onlyValue0();
+                } else if (item == null) {
+                    return null;
+                }
+                return item.map(i -> i.onlyValue());
+            });
+        }
+
+        @Override
         public Dependency<AxiomValueContext<?>> modify(AxiomIdentifier space, IdentifierSpaceKey key) {
             return (Dependency.retriableDelegate(() -> {
                 ValueContext<?> maybe = lookup(space, key);
@@ -284,6 +309,18 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
                 ValueContext<?> maybe = lookup(space, key);
                 if(maybe != null) {
                     return (Dependency) maybe;
+                }
+                return null;
+            });
+        }
+
+        @Override
+        public Dependency.Search<AxiomValueReference<?>> reference(AxiomIdentifier space,
+                IdentifierSpaceKey key) {
+            return Dependency.retriableDelegate(() -> {
+                ValueContext<?> maybe = lookup(space, key);
+                if(maybe != null) {
+                    return Dependency.immediate(maybe.reference);
                 }
                 return null;
             });
@@ -354,9 +391,40 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         };
     }
 
+    public AxiomValue<?> lazyValue() {
+        return lazyValue;
+    }
+
     @Override
     public AxiomIdentifierResolver valueResolver() {
         return rootImpl().valueResolver();
+    }
+
+    final class Reference implements AxiomValueReference<V> {
+
+        public ReferenceDependency asDependency() {
+            return referenceDependency;
+        }
+
+    }
+
+    final class ReferenceDependency implements Dependency<AxiomValue<V>> {
+
+        @Override
+        public boolean isSatisfied() {
+            return ValueContext.this.isSatisfied();
+        }
+
+        @Override
+        public AxiomValue<V> get() {
+            return lazyValue;
+        }
+
+        @Override
+        public Exception errorMessage() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 
 }

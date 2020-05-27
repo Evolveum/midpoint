@@ -84,15 +84,21 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         }
 
     },
-    EXPAND_TYPE_REFERENCE(items(Item.TYPE_REFERENCE), types(Type.TYPE_REFERENCE)) {
+    EXPAND_TYPE_REFERENCE(all(), types(Type.TYPE_REFERENCE)) {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
-            AxiomIdentifier type = context.originalValue();
-            Dependency.Search<AxiomValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
-            typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
-            typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
+
+            Dependency<AxiomValueReference<?>> typeDef = action.require(context.child(Item.NAME, AxiomIdentifier.class)
+                .unsatisfied(() -> action.error("type name is missing."))
+                .map(v -> v.onlyValue().get())
+                .flatMap(name ->
+                    context.reference(AxiomTypeDefinition.SPACE,AxiomTypeDefinition.identifier(name))
+                        .notFound(() ->  action.error("type '%s' was not found.", name))
+                        .unsatisfied(() -> action.error("Referenced type %s is not complete.", name))
+                )
+            );
             action.apply(ctx -> {
-                ctx.replace(typeDef.get());
+                ctx.childItem(Item.REF_TARGET).addOperationalValue((AxiomValueReference) typeDef.get());
             });
         }
     },
@@ -117,16 +123,13 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
 
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
-            AxiomIdentifier type = context.originalValue();
-            Dependency<AxiomItem<AxiomIdentifier>> typeName = action.require(context.parentValue().child(Item.NAME, AxiomIdentifier.class))
-                    .unsatisfied(() -> action.error("type does not have name defined"));
-            Dependency.Search<AxiomValue<?>> typeDef = action.require(context.global(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(type)));
-
-            typeDef.notFound(() ->  action.error("type '%s' was not found.", type));
-            typeDef.unsatisfied(() -> action.error("Referenced type %s is not complete.", type));
+            Dependency<AxiomTypeDefinition> typeDef =
+                    action.require(
+                            context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
+                            .map(v -> v.get()));
+            typeDef.unsatisfied(() -> action.error("Supertype is not complete."));
             action.apply(superTypeValue -> {
-                superTypeValue.replace(typeDef.get());
-                addFromType(typeDef.get(), superTypeValue.parentValue(), typeName.get().onlyValue().get());
+                addFromType(typeDef.get(), superTypeValue.parentValue(), typeDef.get().name());
             });
         }
 
@@ -134,7 +137,6 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
     },
 
     IMPORT_DEFAULT_TYPES(all(), types(Type.MODEL)) {
-
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             Dependency<NamespaceContext> req = action.require(context.namespace(Item.NAMESPACE.name(), namespaceId(AxiomModel.BUILTIN_TYPES)));
@@ -174,9 +176,10 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
             Dependency<AxiomValueContext<?>> targetRef = action.require(context.child(Item.TARGET, AxiomIdentifier.class)
+                    .map(v -> v.onlyValue().item(Item.NAME).get()))
                     .flatMap(item ->
-                        context.modify(AxiomTypeDefinition.IDENTIFIER_SPACE, AxiomTypeDefinition.identifier(item.onlyValue().get()))
-                        .unsatisfied(() -> action.error("Target %s not found.",item.onlyValue().get()))
+                        context.modify(AxiomTypeDefinition.SPACE, AxiomTypeDefinition.identifier((AxiomIdentifier) item.onlyValue().get()))
+                        .unsatisfied(() -> action.error("Target %s not found.",item.onlyValue().get())
                     ));
             Dependency<AxiomItem<AxiomItemDefinition>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, AxiomItemDefinition.class));
             action.apply(ext -> {

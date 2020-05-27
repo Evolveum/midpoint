@@ -11,7 +11,6 @@ import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.DependantAction;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 public class ValueActionImpl<V> implements AxiomStatementRule.ActionBuilder<V>, DependantAction<AxiomSemanticException> {
 
@@ -91,7 +90,7 @@ public class ValueActionImpl<V> implements AxiomStatementRule.ActionBuilder<V>, 
 
     @Override
     public void fail(Exception e) throws AxiomSemanticException {
-        this.error = e;
+        this.error = new AxiomSemanticException(context.startLocation(), e.getClass().getName() + " " + e.getMessage(), e);
     }
 
 

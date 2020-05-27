@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -13,12 +14,12 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDefinition> implements AxiomItemDefinition {
 
     public static final AxiomValueFactory<AxiomItemDefinition,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
-    private final AxiomTypeDefinition valueType;
+    private final AxiomValue<AxiomTypeDefinition> valueType;
     private final Optional<AxiomItem<String>> minOccurs;
 
     public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomItemDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
-        this.valueType = this.<AxiomTypeDefinition>item(Item.TYPE_REFERENCE.name()).get().onlyValue().get();
+        this.valueType = require(onlyValue(AxiomTypeDefinition.class,Item.TYPE_REFERENCE, Item.REF_TARGET));
         minOccurs = this.<String>item(Item.MIN_OCCURS.name());
     }
 
@@ -39,7 +40,7 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDef
 
     @Override
     public AxiomTypeDefinition typeDefinition() {
-        return valueType;
+        return valueType.get();
     }
 
     @Override

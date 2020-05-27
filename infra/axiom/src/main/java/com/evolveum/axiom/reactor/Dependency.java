@@ -146,6 +146,12 @@ public interface Dependency<T> {
             Preconditions.checkState(isSatisfied(), "Requirement was not satisfied");
             return delegate().get();
         }
+
+        @Override
+        public Exception errorMessage() {
+            Exception maybe = super.errorMessage();
+            return maybe != null ? maybe : delegate().errorMessage();
+        }
     }
 
     public final class OptionalDep<T> extends Delegated<T> {
@@ -240,21 +246,14 @@ public interface Dependency<T> {
     }
 
     default <R> Dependency<R> map(Function<T,R> map) {
-        return new Suppliable<R>(() -> {
-            if(isSatisfied()) {
-                return map.apply(get());
-            }
-            return null;
-        });
+        return new MapDependency<>(this, map);
     }
 
     default <R> Dependency<R> flatMap(Function<T,Dependency<R>> map) {
-        return new RetriableDelegate<R>(() -> {
-            if(isSatisfied()) {
-                return map.apply(get());
-            }
-            return null;
-        });
+        return new FlatMapDependency<>(this, map);
+    }
+    static <T> Dependency<T> of(T from) {
+        return Dependency.immediate(from);
     }
 
 }

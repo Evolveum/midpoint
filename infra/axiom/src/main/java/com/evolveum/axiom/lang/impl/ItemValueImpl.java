@@ -20,6 +20,9 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
     private final Map<AxiomIdentifier, AxiomItem<?>> items;
 
 
+    protected <X> X require(Optional<X> value) {
+        return value.get();
+    }
 
     public ItemValueImpl(AxiomTypeDefinition type, V value, Map<AxiomIdentifier, AxiomItem<?>> items) {
         super();

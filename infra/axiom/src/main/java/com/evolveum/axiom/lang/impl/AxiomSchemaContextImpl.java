@@ -23,7 +23,7 @@ public class AxiomSchemaContextImpl implements AxiomSchemaContext {
     public AxiomSchemaContextImpl(Map<AxiomIdentifier,Map<IdentifierSpaceKey, AxiomValue<?>>> globalMap) {
         this.globals = globalMap;
         this.roots = Maps.transformValues(globalMap.get(AxiomItemDefinition.ROOT_SPACE), AxiomItemDefinition.class::cast);
-        this.types = Maps.transformValues(globalMap.get(AxiomTypeDefinition.IDENTIFIER_SPACE), AxiomTypeDefinition.class::cast);
+        this.types = Maps.transformValues(globalMap.get(AxiomTypeDefinition.SPACE), AxiomTypeDefinition.class::cast);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AxiomSchemaContextImpl implements AxiomSchemaContext {
     public static AxiomSchemaContextImpl boostrapContext() {
         Map<IdentifierSpaceKey, AxiomValue<?>> root = ImmutableMap.of(nameKey(AxiomBuiltIn.Item.MODEL_DEFINITION.name()), AxiomBuiltIn.Item.MODEL_DEFINITION);
         Map<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomValue<?>>> global
-            = ImmutableMap.of(AxiomItemDefinition.ROOT_SPACE, root, AxiomTypeDefinition.IDENTIFIER_SPACE, ImmutableMap.of());
+            = ImmutableMap.of(AxiomItemDefinition.ROOT_SPACE, root, AxiomTypeDefinition.SPACE, ImmutableMap.of());
         return new AxiomSchemaContextImpl(global);
     }
 

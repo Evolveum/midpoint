@@ -58,7 +58,14 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
 
     @Override
     public boolean isSatisfied() {
-        return Dependency.allSatisfied(values);
+        for (Dependency<AxiomValue<V>> value : values) {
+            if(!(value instanceof ValueContext.ReferenceDependency)) {
+                if(!value.isSatisfied()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override
@@ -84,6 +91,12 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
+    public void addOperationalValue(AxiomValueReference<V> value) {
+        Preconditions.checkState(value instanceof ValueContext.Reference);
+        values.add(((ValueContext.Reference) value).asDependency());
+    }
+
+    @Override
     public V onlyValue() {
         Preconditions.checkState(values.size() == 1);
         return values.iterator().next().get().get();
@@ -97,6 +110,13 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     @Override
     public AxiomIdentifierResolver valueResolver() {
         return rootImpl().valueResolver();
+    }
+
+    public Dependency<AxiomValue<V>> onlyValue0() {
+        if(values.size() == 1) {
+            return values.iterator().next();
+        }
+        return null;
     }
 
 }

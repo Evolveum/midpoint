@@ -54,6 +54,7 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
     public T get() {
         Builder<AxiomIdentifier, AxiomItem<?>> builder = ImmutableMap.builder();
         for(Entry<AxiomIdentifier, Supplier<? extends AxiomItem<?>>> entry : children.entrySet()) {
+            AxiomItem<?> item = entry.getValue().get();
             builder.put(entry.getKey(), entry.getValue().get());
         }
         return factory.create(type, value, builder.build());
