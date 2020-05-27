@@ -5,20 +5,20 @@ This file contains quick install guide. For Full commented installation manual g
 
 https://wiki.evolveum.com/display/midPoint/midPoint+Development+Snapshot
 
-1. Pre-requisities:
+1. Prerequisites:
 
     1. Java (JDK) 11
     2. Apache Maven 3
     3. midPoint source code retrieved via Git
 
 2. Compile sources
- 
+
 2.1 Building sources with tests
 
 Execute the following maven command:
 
    mvn install
-   
+
 Note: building midPoint with the tests takes considerably long time (approx. 1 hour)
 
 2.2 Building sources without tests
@@ -31,7 +31,7 @@ After the build is complete the distribution archives are available in:
 
    dist/target/
 
-2.4 Insall the distribution
+2.4 Install the distribution
 
 Unpack the distribution package to a convenient place (e.g. /opt/midpoint)
 

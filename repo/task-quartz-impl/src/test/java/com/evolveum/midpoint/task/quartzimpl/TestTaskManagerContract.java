@@ -760,9 +760,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         Task firstPrerequisiteTask = taskManager.createTaskInstance(
                 addObjectFromFile(taskFilename("-prerequisite-1")), result);
 
-        List<Task> prerequisities = rootTask.listPrerequisiteTasks(result);
-        assertEquals("Wrong # of prerequisite tasks", 1, prerequisities.size());
-        assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisities.get(0).getOid());
+        List<Task> prerequisites = rootTask.listPrerequisiteTasks(result);
+        assertEquals("Wrong # of prerequisite tasks", 1, prerequisites.size());
+        assertEquals("Wrong OID of prerequisite task", firstPrerequisiteTask.getOid(), prerequisites.get(0).getOid());
 
         Task secondPrerequisiteTask = taskManager.createTaskInstance();
         secondPrerequisiteTask.setName("Second prerequisite");

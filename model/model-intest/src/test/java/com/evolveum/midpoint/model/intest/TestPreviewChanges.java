@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.intest;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 
 import java.io.File;
@@ -308,7 +307,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -326,7 +325,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         try {
             // WHEN
-            modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+            modelInteractionService.previewChanges(deltas, null, task, result);
             AssertJUnit.fail("Expected exception, but it haven't come");
         } catch (SchemaException e) {
             displayExpectedException(e);
@@ -445,7 +444,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -486,7 +485,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -537,7 +536,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -616,7 +615,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // WHEN
         when();
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
-                ModelExecuteOptions.createReconcile(), task, result);
+                executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -709,7 +708,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
-        ModelExecuteOptions.createReconcile();
 
         // WHEN
         when();
@@ -907,7 +905,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_GUYBRUSH_OID,
                 ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions options = executeOptions().reconcile();
 
         // WHEN
         when();
@@ -1176,7 +1174,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // WHEN
         when();
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
-                ModelExecuteOptions.createReconcile(), task, result);
+                executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -1288,7 +1286,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1342,7 +1340,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1398,7 +1396,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -1428,7 +1426,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
         displayDumpable("Preview context", modelContext);
 
         // THEN
@@ -1455,7 +1453,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1512,7 +1510,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1568,7 +1566,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -1669,7 +1667,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         then();
@@ -1760,7 +1758,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1847,7 +1845,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -1943,7 +1941,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Input deltas: ", deltas);
 
         // WHEN
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, null, task, result);
 
         // THEN
         displayDumpable("Preview context", modelContext);
@@ -2016,7 +2014,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // WHEN
         when();
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(singleton(empty),
-                createEvaluateAllAssignmentRelationsOnRecompute(), task, result);
+                executeOptions().evaluateAllAssignmentRelationsOnRecompute(), task, result);
 
         // THEN
         then();

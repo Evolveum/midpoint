@@ -2067,6 +2067,13 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="asynchronous" type="c:AsynchronousScriptExecutionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options for asynchronous script execution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2588,6 +2595,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="currentObject" type="c:ObjectSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Current object. This is the default if nothing is specified.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="linkTarget" type="c:LinkTargetObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2598,7 +2614,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="linkSource" type="c:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="linkSource" type="c:LinkSourceObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2612,10 +2628,10 @@
     </xsd:complexType>
     <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
 
-    <xsd:complexType name="LinkTargetObjectSelectorType">
+    <xsd:complexType name="LinkedObjectSelectorType">
         <xsd:annotation>
             <xsd:documentation>
-                Selects objects among link targets (for this object).
+                Selects objects among linked ones (for this object).
                 EXPERIMENTAL
             </xsd:documentation>
             <xsd:appinfo>
@@ -2635,6 +2651,44 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
+
+    <xsd:complexType name="LinkSourceObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked sources (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkTargetObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among link targets (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:LinkedObjectSelectorType">
+                <xsd:sequence>
                     <xsd:element name="changeSituation" type="tns:LinkChangeSituationType" minOccurs="0" default="always">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2682,6 +2736,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
@@ -2729,7 +2784,7 @@
             <xsd:enumeration value="inOld">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Link matches if it exists in the "old" state  (i.e. it existence went from true to any).
+                        Link matches if it exists in the "old" state (i.e. it existence went from true to any).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IN_OLD"/>
@@ -2757,6 +2812,99 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-
     </xsd:simpleType>
+
+    <xsd:complexType name="AsynchronousScriptExecutionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Options for asynchronous script execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="executionMode" type="c:AsynchronousScriptExecutionModeType" minOccurs="0" default="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mode of execution.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element><xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task template to use.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>TaskType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskCustomizer" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Task customizer: an expression that takes a task and customizes its content.
+                        Input variable: task (of TaskType).
+                        Output: TaskType that should be used.
+                        This is the final step in task preparation. So the task is executed in the form
+                        that is prepared by this expression.
+
+                        EXPERIMENTAL.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="asynchronousScriptExecution" type="c:AsynchronousScriptExecutionType" />
+
+    <xsd:simpleType name="AsynchronousScriptExecutionModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Mode of asynchronous script execution.
+                EXPERIMENTAL.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="iterative">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses iterative scripting handler. This is the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITERATIVE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRun">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action. Input for this action contains
+                        references to objects that should serve as bulk action inputs.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="singleRunNoInput">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Uses single-run scripting action without any explicit input.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_RUN_NO_INPUT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 </xsd:schema>

@@ -45,7 +45,7 @@ public class RecomputeExecutor extends AbstractObjectBasedActionExecutor<Assignm
 
         boolean dryRun = operationsHelper.getDryRun(action, input, context, globalResult);
         ModelExecuteOptions options = operationsHelper.getOptions(action, input, context, globalResult);
-        options.setReconcile(true);
+        options.reconcile(true);
         TriggerCreationType triggerCreation = action instanceof RecomputeActionExpressionType ?
                 ((RecomputeActionExpressionType) action).getTriggered() : null;
 

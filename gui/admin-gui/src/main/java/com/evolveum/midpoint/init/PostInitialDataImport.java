@@ -127,7 +127,7 @@ public class PostInitialDataImport extends DataImport {
             LOGGER.info("Starting post-initial import of file {}.", file.getName());
             ImportOptionsType options = new ImportOptionsType();
             options.overwrite(true);
-            options.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+            options.setModelExecutionOptions(new ModelExecuteOptionsType(prismContext).raw(false));
             model.importObjectsFromFile(file, options, task, result);
             result.recordSuccess();
             return true;

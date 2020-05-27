@@ -6,13 +6,20 @@
  */
 package com.evolveum.midpoint.model.api;
 
-
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.List;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType.*;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -22,121 +29,20 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
  *
  * @author semancik
  */
+@SuppressWarnings("UnusedReturnValue")
 public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
 
     /**
-     * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
-     * that no longer exists on resource may fail without a FORCE option. If FORCE option is used then the operation is
-     * finished even if the account does not exist (e.g. at least shadow is removed from midPoint repository).
+     * Majority of the content is present also in ModelExecuteOptionsType.
+     * So let's reuse the schema instead of duplicating it.
      */
-    private Boolean force;
-
-    /**
-     * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
-     * any expressions, etc.
-     */
-    private Boolean raw;
-
-    /**
-     * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
-     * data formats (ProtectedString, ProtectedByteArray).
-     * It is not recommended to use in production environment. This option is provided only for diagnostic
-     * purposes to be used in development environments.
-     */
-    private Boolean noCrypt;
-
-    /**
-     * Option to reconcile focus and all projections while executing changes.
-     * (implies reconcileFocus)
-     */
-    private Boolean reconcile;
-
-    /**
-     * Option to reconcile focus while executing changes.
-     * If this option is set and the reconcile option is not set then the projections
-     * reconciliation will not be forced (but it may still happen if other configuration
-     * loads full projection).
-     */
-    private Boolean reconcileFocus;
-
-    /**
-     * Option to reconcile affected objects after executing changes.
-     * Typical use: after a role is changed, all users that have been assigned this role
-     * would be reconciled.
-     *
-     * Because it is difficult to determine all affected objects (e.g. users that have
-     * indirectly assigned a role), midPoint does a reasonable attempt to determine
-     * and reconcile them. E.g. it may be limited to a direct assignees.
-     *
-     * Also, because of time complexity, the reconciliation may be executed in
-     * a separate background task.
-     */
-    private Boolean reconcileAffected;
-
-    /**
-     * Option to execute changes as soon as they are approved. (For the primary stage approvals, the default behavior
-     * is to wait until all changes are approved/rejected and then execute the operation as a whole.)
-     */
-    private Boolean executeImmediatelyAfterApproval;
-
-    /**
-     * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
-     */
-    private Boolean overwrite;
-
-    /**
-     * Option to simulate import operation. E.g. search filters will be resolved.
-     */
-    private Boolean isImport;
-
-    /**
-     * Causes reevaluation of search filters (producing partial errors on failure).
-     */
-    private Boolean reevaluateSearchFilters;
-
-    /**
-     * Option to limit propagation only for the source resource
-     */
-    private Boolean limitPropagation;
+    @NotNull private final ModelExecuteOptionsType content;
 
     /**
      * Is this operation already authorized, i.e. should it be executed without any further authorization checks?
      * EXPERIMENTAL. Currently supported only for raw executions.
      */
     private Boolean preAuthorized;
-
-    /**
-     * Business context that describes this request.
-     */
-    private OperationBusinessContextType requestBusinessContext;
-
-    /**
-     * Options that control selective execution of model logic.
-     * Use with extreme care. Some combinations may be dangerous.
-     */
-    private PartialProcessingOptionsType partialProcessing;
-
-    /**
-     * Partial processing for initial clockwork stage. Used primarily for eliminating overhead when starting
-     * operations that are expected to result in (background) approval processing.
-     *
-     * Note that if this option is used and if the clockwork proceeds to PRIMARY phase (e.g. because there are
-     * no approvals), the context will be rotten after INITIAL phase. This presents some overhead. So please use
-     * this option only if there is reasonable assumption that the request will stop after INITIAL phase.
-     */
-    private PartialProcessingOptionsType initialPartialProcessing;
-
-    /**
-     * A method to resolve conflicts on focus objects. This specifies how will the processors handle
-     * optimistic locking conflicts - and whether they even try to detect them. The default value is
-     * null, which means that there is no reaction to conflicts and that the conflicts are not even
-     * detected.
-     *
-     * Note that different default conflict resolution may be specified in system configuration.
-     *
-     * EXPERIMENTAL
-     */
-    private ConflictResolutionType focusConflictResolution;
 
     /**
      * Processes all assignment relations on recompute. Used for computing all assignments.
@@ -151,349 +57,228 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      */
     private TracingProfileType tracingProfile;
 
-    public Boolean getForce() {
-        return force;
+    public ModelExecuteOptions(PrismContext prismContext) {
+        content = new ModelExecuteOptionsType(prismContext);
     }
 
-    public void setForce(Boolean force) {
-        this.force = force;
+    private ModelExecuteOptions(@NotNull ModelExecuteOptionsType content) {
+        this.content = content;
+    }
+
+    private ModelExecuteOptions() {
+        this((PrismContext) null);
+    }
+
+    public static ModelExecuteOptions create(PrismContext prismContext) {
+        return new ModelExecuteOptions(prismContext);
+    }
+
+    public static ModelExecuteOptions create(ModelExecuteOptions original, PrismContext prismContext) {
+        return original != null ? original.clone() : new ModelExecuteOptions(prismContext);
+    }
+
+    public static boolean is(ModelExecuteOptions options, ItemName itemName) {
+        return is(options, itemName, false);
+    }
+
+    public static boolean is(ModelExecuteOptions options, ItemName itemName, boolean defaultValue) {
+        if (options == null) {
+            return defaultValue;
+        }
+        Boolean value = (Boolean) options.content.asPrismContainerValue().getPropertyRealValue(itemName, Boolean.class);
+        return value != null ? value : defaultValue;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public <T> T getExtensionOptionValue(ItemName name, Class<T> clazz) {
+        Item<?, ?> item = content.asPrismContainerValue().findItem(ItemPath.create(F_EXTENSION, name));
+        return item != null ? item.getRealValue(clazz) : null;
+    }
+
+    public static <T> T getExtensionOptionValue(ModelExecuteOptions options, ItemName name, Class<T> clazz) {
+        return options != null ? options.getExtensionOptionValue(name, clazz) : null;
+    }
+
+    //region Specific methods
+
+    public Boolean getForce() {
+        return content.isForce();
+    }
+
+    public ModelExecuteOptions force(Boolean force) {
+        content.setForce(force);
+        return this;
+    }
+
+    public ModelExecuteOptions force() {
+        return force(true);
     }
 
     public static boolean isForce(ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.force == null) {
-            return false;
-        }
-        return options.force;
-    }
-
-    public static ModelExecuteOptions createForce() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setForce(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setForce() {
-        setForce(true);
-        return this;
+        return is(options, ModelExecuteOptionsType.F_FORCE);
     }
 
     public Boolean getRaw() {
-        return raw;
+        return content.isRaw();
     }
 
-    public void setRaw(Boolean raw) {
-        this.raw = raw;
+    public ModelExecuteOptions raw(Boolean raw) {
+        content.setRaw(raw);
+        return this;
+    }
+
+    public ModelExecuteOptions raw() {
+        return raw(true);
     }
 
     public static boolean isRaw(ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.raw == null) {
-            return false;
-        }
-        return options.raw;
+        return is(options, ModelExecuteOptionsType.F_RAW);
     }
 
+    @Deprecated // kept because of (expected) external uses; use create(prismContext).raw() instead
     public static ModelExecuteOptions createRaw() {
         ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setRaw(true);
+        opts.raw(true);
         return opts;
-    }
-
-    public ModelExecuteOptions setRaw() {
-        setRaw(true);
-        return this;
     }
 
     public Boolean getNoCrypt() {
-        return noCrypt;
+        return content.isNoCrypt();
     }
 
-    public void setNoCrypt(Boolean noCrypt) {
-        this.noCrypt = noCrypt;
+    public ModelExecuteOptions noCrypt(Boolean noCrypt) {
+        content.setNoCrypt(noCrypt);
+        return this;
     }
 
     public static boolean isNoCrypt(ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.noCrypt == null) {
-            return false;
-        }
-        return options.noCrypt;
-    }
-
-    public static ModelExecuteOptions createNoCrypt() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setNoCrypt(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setNoCrypt() {
-        setNoCrypt(true);
-        return this;
+        return is(options, F_NO_CRYPT);
     }
 
     public Boolean getReconcile() {
-        return reconcile;
+        return content.isReconcile();
     }
 
-    public void setReconcile(Boolean reconcile) {
-        this.reconcile = reconcile;
+    public ModelExecuteOptions reconcile(Boolean reconcile) {
+        content.setReconcile(reconcile);
+        return this;
+    }
+
+    public ModelExecuteOptions reconcile() {
+        return reconcile(true);
     }
 
     public static boolean isReconcile(ModelExecuteOptions options) {
-        if (options == null){
-            return false;
-        }
-        if (options.reconcile == null){
-            return false;
-        }
-        return options.reconcile;
+        return is(options, ModelExecuteOptionsType.F_RECONCILE);
     }
 
+    @Deprecated // kept because of (expected) external uses; use create(prismContext).reconcile() instead
     public static ModelExecuteOptions createReconcile() {
         ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setReconcile(true);
+        opts.reconcile(true);
         return opts;
     }
 
-    public static ModelExecuteOptions createReconcile(ModelExecuteOptions defaultOptions) {
-        ModelExecuteOptions opts = defaultOptions != null ? defaultOptions.clone() : new ModelExecuteOptions();
-        opts.setReconcile(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setReconcile() {
-        setReconcile(true);
+    public ModelExecuteOptions reconcileFocus(Boolean reconcileFocus) {
+        content.setReconcileFocus(reconcileFocus);
         return this;
     }
 
-    public Boolean getReconcileFocus() {
-        return reconcileFocus;
-    }
-
-    public void setReconcileFocus(Boolean reconcileFocus) {
-        this.reconcileFocus = reconcileFocus;
-    }
-
-    public static ModelExecuteOptions createReconcileFocus() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setReconcileFocus(true);
-        return opts;
+    public ModelExecuteOptions reconcileFocus() {
+        return reconcileFocus(true);
     }
 
     public static boolean isReconcileFocus(ModelExecuteOptions options) {
-        if (options == null){
-            return false;
-        }
-        if (options.reconcileFocus == null){
-            return false;
-        }
-        return options.reconcileFocus;
-    }
-
-    public Boolean getReconcileAffected() {
-        return reconcileAffected;
-    }
-
-    public void setReconcileAffected(Boolean reconcile) {
-        this.reconcileAffected = reconcile;
-    }
-
-    public static boolean isReconcileAffected(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.reconcileAffected == null){
-            return false;
-        }
-        return options.reconcileAffected;
-    }
-
-    public static ModelExecuteOptions createReconcileAffected(){
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setReconcileAffected(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setReconcileAffected() {
-        setReconcileAffected(true);
-        return this;
+        return is(options, ModelExecuteOptionsType.F_RECONCILE_FOCUS);
     }
 
     public Boolean getOverwrite() {
-        return overwrite;
+        return content.isOverwrite();
     }
 
-    public void setOverwrite(Boolean overwrite) {
-        this.overwrite = overwrite;
-    }
-
-    public static boolean isOverwrite(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.overwrite == null){
-            return false;
-        }
-        return options.overwrite;
-    }
-
-    public static ModelExecuteOptions createOverwrite(){
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setOverwrite(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setOverwrite() {
-        setOverwrite(true);
+    public ModelExecuteOptions overwrite(Boolean overwrite) {
+        content.setOverwrite(overwrite);
         return this;
     }
 
-    public Boolean getIsImport() {
-        return isImport;
+    public ModelExecuteOptions overwrite() {
+        return overwrite(true);
     }
 
-    public void setIsImport(Boolean isImport) {
-        this.isImport = isImport;
+    public static boolean isOverwrite(ModelExecuteOptions options) {
+        return is(options, F_OVERWRITE);
     }
 
-    public static boolean isIsImport(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.isImport == null){
-            return false;
-        }
-        return options.isImport;
+    // Intentionally using "set" to avoid confusion with asking on "isImport"
+    @SuppressWarnings("WeakerAccess")
+    public ModelExecuteOptions setIsImport(Boolean isImport) {
+        content.setIsImport(isImport);
+        return this;
     }
 
-    public static ModelExecuteOptions createIsImport(){
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setIsImport(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setIsImport(){
+    // Intentionally using "set" to avoid confusion with asking on "isImport"
+    public ModelExecuteOptions setIsImport() {
         setIsImport(true);
         return this;
     }
 
-    public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
-        this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
+    public static boolean isIsImport(ModelExecuteOptions options) {
+        return is(options, F_IS_IMPORT);
     }
 
-    public static boolean isExecuteImmediatelyAfterApproval(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.executeImmediatelyAfterApproval == null) {
-            return false;
-        }
-        return options.executeImmediatelyAfterApproval;
-    }
-
-    public static ModelExecuteOptions createExecuteImmediatelyAfterApproval() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setExecuteImmediatelyAfterApproval(true);
-        return opts;
-    }
-
-    public void setLimitPropagation(Boolean limitPropagation) {
-        this.limitPropagation = limitPropagation;
-    }
-
-    public static boolean isLimitPropagation(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.limitPropagation == null){
-            return false;
-        }
-        return options.limitPropagation;
-    }
-
-    public static ModelExecuteOptions createLimitPropagation() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setLimitPropagation(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setLimitPropagation() {
-        setLimitPropagation(true);
+    public ModelExecuteOptions executeImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
+        content.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         return this;
     }
 
-
-    public Boolean getReevaluateSearchFilters() {
-        return reevaluateSearchFilters;
+    public ModelExecuteOptions executeImmediatelyAfterApproval() {
+        return executeImmediatelyAfterApproval(true);
     }
 
-    public void setReevaluateSearchFilters(Boolean reevaluateSearchFilters) {
-        this.reevaluateSearchFilters = reevaluateSearchFilters;
+    public static boolean isExecuteImmediatelyAfterApproval(ModelExecuteOptions options) {
+        return is(options, F_EXECUTE_IMMEDIATELY_AFTER_APPROVAL);
     }
 
-    public static boolean isReevaluateSearchFilters(ModelExecuteOptions options){
-        if (options == null){
-            return false;
-        }
-        if (options.reevaluateSearchFilters == null){
-            return false;
-        }
-        return options.reevaluateSearchFilters;
-    }
-
-    public static ModelExecuteOptions createReevaluateSearchFilters(){
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setReevaluateSearchFilters(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setReevaluateSearchFilters(){
-        setReevaluateSearchFilters(true);
+    public ModelExecuteOptions limitPropagation(Boolean limitPropagation) {
+        content.setLimitPropagation(limitPropagation);
         return this;
     }
 
-    public Boolean getPreAuthorized() {
-        return preAuthorized;
+    public static boolean isLimitPropagation(ModelExecuteOptions options) {
+        return is(options, F_LIMIT_PROPAGATION);
     }
 
-    public void setPreAuthorized(Boolean value) {
+    public ModelExecuteOptions reevaluateSearchFilters(Boolean reevaluateSearchFilters) {
+        content.setReevaluateSearchFilters(reevaluateSearchFilters);
+        return this;
+    }
+
+    public static boolean isReevaluateSearchFilters(ModelExecuteOptions options) {
+        return is(options, F_REEVALUATE_SEARCH_FILTERS);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public void preAuthorized(Boolean value) {
         this.preAuthorized = value;
     }
 
-    public static boolean isPreAuthorized(ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        if (options.preAuthorized == null){
-            return false;
-        }
-        return options.preAuthorized;
-    }
-
-    public static ModelExecuteOptions createPreAuthorized() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setPreAuthorized(true);
-        return opts;
-    }
-
-    public ModelExecuteOptions setPreAuthorized() {
-        setPreAuthorized(true);
+    public ModelExecuteOptions preAuthorized() {
+        preAuthorized(true);
         return this;
     }
 
-    public OperationBusinessContextType getRequestBusinessContext() {
-        return requestBusinessContext;
+    public static boolean isPreAuthorized(ModelExecuteOptions options) {
+        return options != null && options.preAuthorized != null && options.preAuthorized;
     }
 
-    public void setRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
-        this.requestBusinessContext = requestBusinessContext;
+    @SuppressWarnings("WeakerAccess")
+    public OperationBusinessContextType getRequestBusinessContext() {
+        return content.getRequestBusinessContext();
+    }
+
+    public ModelExecuteOptions requestBusinessContext(OperationBusinessContextType requestBusinessContext) {
+        content.setRequestBusinessContext(requestBusinessContext);
+        return this;
     }
 
     public static OperationBusinessContextType getRequestBusinessContext(ModelExecuteOptions options) {
@@ -503,18 +288,13 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.getRequestBusinessContext();
     }
 
-    public static ModelExecuteOptions createRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setRequestBusinessContext(requestBusinessContext);
-        return opts;
-    }
-
     public PartialProcessingOptionsType getPartialProcessing() {
-        return partialProcessing;
+        return content.getPartialProcessing();
     }
 
-    public void setPartialProcessing(PartialProcessingOptionsType partialProcessing) {
-        this.partialProcessing = partialProcessing;
+    public ModelExecuteOptions partialProcessing(PartialProcessingOptionsType partialProcessing) {
+        content.setPartialProcessing(partialProcessing);
+        return this;
     }
 
     public static PartialProcessingOptionsType getPartialProcessing(ModelExecuteOptions options) {
@@ -524,19 +304,13 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.getPartialProcessing();
     }
 
-    public static ModelExecuteOptions createPartialProcessing(PartialProcessingOptionsType partialProcessing) {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setPartialProcessing(partialProcessing);
-        return opts;
-    }
-
     public PartialProcessingOptionsType getInitialPartialProcessing() {
-        return initialPartialProcessing;
+        return content.getInitialPartialProcessing();
     }
 
-    public void setInitialPartialProcessing(
-            PartialProcessingOptionsType initialPartialProcessing) {
-        this.initialPartialProcessing = initialPartialProcessing;
+    public ModelExecuteOptions initialPartialProcessing(PartialProcessingOptionsType initialPartialProcessing) {
+        content.setInitialPartialProcessing(initialPartialProcessing);
+        return this;
     }
 
     public static PartialProcessingOptionsType getInitialPartialProcessing(ModelExecuteOptions options) {
@@ -546,18 +320,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.getInitialPartialProcessing();
     }
 
-    public static ModelExecuteOptions createInitialPartialProcessing(PartialProcessingOptionsType partialProcessing) {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setInitialPartialProcessing(partialProcessing);
-        return opts;
-    }
-
+    @SuppressWarnings("WeakerAccess")
     public ConflictResolutionType getFocusConflictResolution() {
-        return focusConflictResolution;
+        return content.getFocusConflictResolution();
     }
 
-    public void setFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
-        this.focusConflictResolution = focusConflictResolution;
+    public ModelExecuteOptions focusConflictResolution(ConflictResolutionType focusConflictResolution) {
+        content.setFocusConflictResolution(focusConflictResolution);
+        return this;
     }
 
     public static ConflictResolutionType getFocusConflictResolution(ModelExecuteOptions options) {
@@ -567,121 +337,86 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.getFocusConflictResolution();
     }
 
-    public static ModelExecuteOptions createFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setFocusConflictResolution(focusConflictResolution);
-        return opts;
-    }
-
-    public Boolean getEvaluateAllAssignmentRelationsOnRecompute() {
-        return evaluateAllAssignmentRelationsOnRecompute;
-    }
-
-    public void setEvaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
+    @SuppressWarnings("WeakerAccess")
+    public ModelExecuteOptions evaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
         this.evaluateAllAssignmentRelationsOnRecompute = evaluateAllAssignmentRelationsOnRecompute;
+        return this;
+    }
+
+    public ModelExecuteOptions evaluateAllAssignmentRelationsOnRecompute() {
+        return evaluateAllAssignmentRelationsOnRecompute(true);
     }
 
     public static boolean isEvaluateAllAssignmentRelationsOnRecompute(ModelExecuteOptions options) {
         return options != null && isTrue(options.evaluateAllAssignmentRelationsOnRecompute);
     }
 
-    public static ModelExecuteOptions createEvaluateAllAssignmentRelationsOnRecompute() {
-        ModelExecuteOptions opts = new ModelExecuteOptions();
-        opts.setEvaluateAllAssignmentRelationsOnRecompute(true);
-        return opts;
-    }
-
     public TracingProfileType getTracingProfile() {
         return tracingProfile;
     }
 
-    public void setTracingProfile(TracingProfileType tracingProfile) {
+    public ModelExecuteOptions tracingProfile(TracingProfileType tracingProfile) {
         this.tracingProfile = tracingProfile;
+        return this;
     }
 
     public static TracingProfileType getTracingProfile(ModelExecuteOptions options) {
         return options != null ? options.tracingProfile : null;
     }
 
-    public ModelExecuteOptions createTracingProfile(TracingProfileType tracingProfile) {
-        setTracingProfile(tracingProfile);
+    // TEMPORARY
+    public ModelExecuteOptions reconcileAffected(Boolean value) {
+        content.setReconcileAffected(value);
         return this;
     }
 
+    public static boolean isReconcileAffected(ModelExecuteOptions options) {
+        return is(options, F_RECONCILE_AFFECTED);
+    }
+
+    //endregion
+
     public ModelExecuteOptionsType toModelExecutionOptionsType() {
-        ModelExecuteOptionsType retval = new ModelExecuteOptionsType();
-        retval.setForce(force);
-        retval.setRaw(raw);
-        retval.setNoCrypt(noCrypt);
-        retval.setReconcile(reconcile);
-        retval.setReconcileFocus(reconcileFocus);
-        retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
-        retval.setOverwrite(overwrite);
-        retval.setIsImport(isImport);
-        retval.setLimitPropagation(limitPropagation);
-        retval.setReevaluateSearchFilters(reevaluateSearchFilters);
-        // preAuthorized is purposefully omitted (security reasons)
-        retval.setRequestBusinessContext(requestBusinessContext);
-        retval.setPartialProcessing(partialProcessing);
-        retval.setFocusConflictResolution(focusConflictResolution);
-        return retval;
+        return clone().content; // cloning for safety reasons
     }
 
-    public static ModelExecuteOptions fromModelExecutionOptionsType(ModelExecuteOptionsType type) {
-        if (type == null) {
-            return null;
-        }
-        ModelExecuteOptions retval = new ModelExecuteOptions();
-        retval.setForce(type.isForce());
-        retval.setRaw(type.isRaw());
-        retval.setNoCrypt(type.isNoCrypt());
-        retval.setReconcile(type.isReconcile());
-        retval.setReconcileFocus(type.isReconcileFocus());
-        retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
-        retval.setOverwrite(type.isOverwrite());
-        retval.setIsImport(type.isIsImport());
-        retval.setLimitPropagation(type.isLimitPropagation());
-        retval.setReevaluateSearchFilters(type.isReevaluateSearchFilters());
-        // preAuthorized is purposefully omitted (security reasons)
-        retval.setRequestBusinessContext(type.getRequestBusinessContext());
-        retval.setPartialProcessing(type.getPartialProcessing());
-        retval.setFocusConflictResolution(type.getFocusConflictResolution());
-        return retval;
+    public static ModelExecuteOptions fromModelExecutionOptionsType(ModelExecuteOptionsType bean) {
+        return bean != null ? new ModelExecuteOptions(bean) : null;
     }
 
-    public static ModelExecuteOptions fromRestOptions(List<String> options){
-        if (options == null || options.isEmpty()){
+    public static ModelExecuteOptions fromRestOptions(List<String> options, PrismContext prismContext) {
+        if (options == null || options.isEmpty()) {
             return null;
         }
 
-        ModelExecuteOptions retVal = new ModelExecuteOptions();
+        ModelExecuteOptions retVal = new ModelExecuteOptions(prismContext);
         for (String option : options){
-            if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)){
-                retVal.setRaw(true);
+            if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)) {
+                retVal.raw(true);
             }
-            if (ModelExecuteOptionsType.F_EXECUTE_IMMEDIATELY_AFTER_APPROVAL.getLocalPart().equals(option)){
-                retVal.setExecuteImmediatelyAfterApproval(true);
+            if (ModelExecuteOptionsType.F_EXECUTE_IMMEDIATELY_AFTER_APPROVAL.getLocalPart().equals(option)) {
+                retVal.executeImmediatelyAfterApproval(true);
             }
-            if (ModelExecuteOptionsType.F_FORCE.getLocalPart().equals(option)){
-                retVal.setForce(true);
+            if (ModelExecuteOptionsType.F_FORCE.getLocalPart().equals(option)) {
+                retVal.force(true);
             }
-            if (ModelExecuteOptionsType.F_NO_CRYPT.getLocalPart().equals(option)){
-                retVal.setNoCrypt(true);
+            if (F_NO_CRYPT.getLocalPart().equals(option)) {
+                retVal.noCrypt(true);
             }
-            if (ModelExecuteOptionsType.F_OVERWRITE.getLocalPart().equals(option)){
-                retVal.setOverwrite(true);
+            if (F_OVERWRITE.getLocalPart().equals(option)) {
+                retVal.overwrite(true);
             }
-            if (ModelExecuteOptionsType.F_RECONCILE.getLocalPart().equals(option)){
-                retVal.setReconcile(true);
+            if (ModelExecuteOptionsType.F_RECONCILE.getLocalPart().equals(option)) {
+                retVal.reconcile(true);
             }
-            if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)){
+            if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)) {
                 retVal.setIsImport(true);
             }
-            if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)){
-                retVal.setLimitPropagation(true);
+            if (ModelExecuteOptionsType.F_LIMIT_PROPAGATION.getLocalPart().equals(option)) {
+                retVal.limitPropagation(true);
             }
-            if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)){
-                retVal.setReevaluateSearchFilters(true);
+            if (ModelExecuteOptionsType.F_REEVALUATE_SEARCH_FILTERS.getLocalPart().equals(option)) {
+                retVal.reevaluateSearchFilters(true);
             }
             // preAuthorized is purposefully omitted (security reasons)
         }
@@ -692,22 +427,21 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("ModelExecuteOptions(");
-        appendFlag(sb, "executeImmediatelyAfterApproval", executeImmediatelyAfterApproval);
-        appendFlag(sb, "force", force);
-        appendFlag(sb, "isImport", isImport);
-        appendFlag(sb, "limitPropagation", limitPropagation);
-        appendFlag(sb, "noCrypt", noCrypt);
-        appendFlag(sb, "overwrite", overwrite);
+        appendFlag(sb, "executeImmediatelyAfterApproval", content.isExecuteImmediatelyAfterApproval());
+        appendFlag(sb, "force", content.isForce());
+        appendFlag(sb, "isImport", content.isIsImport());
+        appendFlag(sb, "limitPropagation", content.isLimitPropagation());
+        appendFlag(sb, "noCrypt", content.isNoCrypt());
+        appendFlag(sb, "overwrite", content.isOverwrite());
         appendFlag(sb, "preAuthorized", preAuthorized);
-        appendFlag(sb, "raw", raw);
-        appendFlag(sb, "reconcile", reconcile);
-        appendFlag(sb, "reconcileFocus", reconcileFocus);
-        appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
-        appendFlag(sb, "reconcileAffected", reconcileAffected);
-        appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
-        appendVal(sb, "partialProcessing", format(partialProcessing));
-        appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
-        appendVal(sb, "focusConflictResolution", focusConflictResolution);
+        appendFlag(sb, "raw", content.isRaw());
+        appendFlag(sb, "reconcile", content.isReconcile());
+        appendFlag(sb, "reconcileFocus", content.isReconcileFocus());
+        appendFlag(sb, "reevaluateSearchFilters", content.isReevaluateSearchFilters());
+        appendFlag(sb, "requestBusinessContext", content.getRequestBusinessContext() == null ? null : true);
+        appendVal(sb, "partialProcessing", format(content.getPartialProcessing()));
+        appendVal(sb, "initialPartialProcessing", format(content.getInitialPartialProcessing()));
+        appendVal(sb, "focusConflictResolution", content.getFocusConflictResolution());
         appendVal(sb, "tracingProfile", tracingProfile);
         removeLastComma(sb);
         sb.append(")");
@@ -760,10 +494,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         sb.append(label).append(value).append(",");
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ModelExecuteOptions clone() {
-        // not much efficient, but...
-        ModelExecuteOptions clone = fromModelExecutionOptionsType(toModelExecutionOptionsType());
-        clone.setPreAuthorized(this.preAuthorized);
+        ModelExecuteOptions clone = new ModelExecuteOptions(content.clone());
+        clone.preAuthorized = this.preAuthorized;
+        clone.evaluateAllAssignmentRelationsOnRecompute = this.evaluateAllAssignmentRelationsOnRecompute;
+        clone.tracingProfile = this.tracingProfile;
         return clone;
     }
 
@@ -773,10 +509,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     }
 
     public PartialProcessingOptionsType getOrCreatePartialProcessing() {
-        if (partialProcessing == null) {
-            partialProcessing = new PartialProcessingOptionsType();
+        if (content.getPartialProcessing() == null) {
+            content.setPartialProcessing(new PartialProcessingOptionsType());
         }
-        return partialProcessing;
+        return content.getPartialProcessing();
     }
 
     public static GetOperationOptions toGetOperationOptions(ModelExecuteOptions modelOptions) {

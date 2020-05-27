@@ -38,7 +38,7 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
@@ -721,7 +721,7 @@ public class Clockwork {
                 DebugUtil.indentDebugDump(sb, 1);
                 sb.append(projectionContext.getHumanReadableName());
                 if (projectionContext.isTombstone()) {
-                    sb.append(" THOMBSTONE");
+                    sb.append(" TOMBSTONE");
                 }
                 sb.append(": ");
                 sb.append(projectionContext.getSynchronizationPolicyDecision());

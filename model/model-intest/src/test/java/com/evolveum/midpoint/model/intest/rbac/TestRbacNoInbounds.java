@@ -23,7 +23,7 @@ public class TestRbacNoInbounds extends TestRbac {
 
     @Override
     protected ModelExecuteOptions getDefaultOptions() {
-        return ModelExecuteOptions.createPartialProcessing(
+        return executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().inbound(PartialProcessingTypeType.SKIP));
     }
 }

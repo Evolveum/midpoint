@@ -525,7 +525,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -640,7 +640,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

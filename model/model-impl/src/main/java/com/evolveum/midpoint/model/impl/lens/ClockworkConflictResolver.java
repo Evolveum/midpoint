@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -46,6 +47,7 @@ public class ClockworkConflictResolver {
     @Autowired private Clockwork clockwork;
     @Autowired private ContextFactory contextFactory;
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
 
     private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1; // synchronize with common-core-3.xsd
     private static final int DEFAULT_CONFLICT_RESOLUTION_DELAY_UNIT = 5000; // synchronize with common-core-3.xsd
@@ -110,7 +112,7 @@ public class ClockworkConflictResolver {
             return HookOperationMode.FOREGROUND;
         }
         PrismObject<F> focusObject = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
-        ModelExecuteOptions options = new ModelExecuteOptions();
+        ModelExecuteOptions options = new ModelExecuteOptions(prismContext);
         switch (resolutionPolicy.getAction()) {
             case FAIL: throw new SystemException("Conflict detected while updating " + focusObject);
             case LOG:
@@ -119,7 +121,7 @@ public class ClockworkConflictResolver {
             case RECOMPUTE:
                 break;
             case RECONCILE:
-                options.setReconcile();
+                options.reconcile();
                 break;
             default:
                 throw new IllegalStateException("Unsupported conflict resolution action: " + resolutionPolicy.getAction());
@@ -152,7 +154,7 @@ public class ClockworkConflictResolver {
 
         ConflictResolutionType focusConflictResolution = new ConflictResolutionType();
         focusConflictResolution.setAction(ConflictResolutionActionType.ERROR);
-        options.setFocusConflictResolution(focusConflictResolution);
+        options.focusConflictResolution(focusConflictResolution);
 
         int preconditionAttempts = 0;
         while (true) {

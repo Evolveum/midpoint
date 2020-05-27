@@ -221,7 +221,7 @@ public class TestOrgStructCaribbean extends AbstractInitializedModelIntegrationT
         // WHEN
         when();
         modelService.recompute(OrgType.class, ORG_CARIBBEAN_DEPARTMENT_OF_THINGS_OID,
-                ModelExecuteOptions.createReconcileFocus(), task, result);
+                executeOptions().reconcileFocus(), task, result);
 
         // THEN
         then();

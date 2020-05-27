@@ -790,10 +790,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     /**
      * List all prerequisite tasks for the current tasks, i.e. tasks that must complete before this one can proceed.
-     * If A is on the list of prerequisities of B (THIS), it means that B is on list of dependents of A (i.e.
+     * If A is on the list of prerequisites of B (THIS), it means that B is on list of dependents of A (i.e.
      * B waits for A to complete).
      *
-     * Again, implicit prerequisities (children) are not listed here.
+     * Again, implicit prerequisites (children) are not listed here.
      */
 
     List<Task> listPrerequisiteTasks(OperationResult parentResult) throws SchemaException;

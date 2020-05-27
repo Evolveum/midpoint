@@ -1195,7 +1195,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+                executeOptions().raw(), task, result, ActivationStatusType.DISABLED);
 
         // WHEN
         when();
@@ -1220,7 +1220,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.ENABLED);
+                executeOptions().raw(), task, result, ActivationStatusType.ENABLED);
 
         // WHEN
         when();

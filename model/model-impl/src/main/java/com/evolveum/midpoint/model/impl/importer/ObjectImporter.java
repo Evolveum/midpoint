@@ -407,16 +407,16 @@ public class ObjectImporter {
         if (importOptions.getModelExecutionOptions() != null) {
             modelOptions = ModelExecuteOptions.fromModelExecutionOptionsType(importOptions.getModelExecutionOptions());
         } else {
-            modelOptions = new ModelExecuteOptions();
+            modelOptions = ModelExecuteOptions.create(prismContext);
         }
         if (modelOptions.getRaw() == null) {
-            modelOptions.setRaw(true);
+            modelOptions.raw(true);
         }
         if (modelOptions.getOverwrite() == null) {
-            modelOptions.setOverwrite(overwrite);
+            modelOptions.overwrite(overwrite);
         }
         if (isFalse(importOptions.isEncryptProtectedValues()) && modelOptions.getNoCrypt() == null) {
-            modelOptions.setNoCrypt(true);
+            modelOptions.noCrypt(true);
         }
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService

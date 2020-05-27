@@ -440,7 +440,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
                 fillContextWithFocus(lensContext, focus);
                 addFocusDeltaToContext(lensContext, testDetails2.getFocusDelta());
                 if (immediate) {
-                    lensContext.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
+                    lensContext.setOptions(executeOptions().executeImmediatelyAfterApproval());
                 }
                 return lensContext;
             }

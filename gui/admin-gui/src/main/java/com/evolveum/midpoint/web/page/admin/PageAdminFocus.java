@@ -706,7 +706,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
             ModelContext<UserType> modelContext;
             try {
-                ModelExecuteOptions options = ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute();
+                ModelExecuteOptions options = executeOptions().evaluateAllAssignmentRelationsOnRecompute();
                 modelContext = getModelInteractionService().previewChanges(Collections.singleton(delta), options, task, result);
             } catch (NoFocusNameSchemaException e) {
                 info(getString("pageAdminFocus.message.noUserName"));

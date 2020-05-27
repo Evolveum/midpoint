@@ -363,7 +363,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void importObjectsFromFileNotRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
         ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType(prismContext);
         modelOptions.setRaw(false);
         options.setModelExecutionOptions(modelOptions);
         importObjectFromFile(file, options, task, result);
@@ -962,7 +962,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModifyDelta(userOid, modifications, UserType.class);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        modelService.executeChanges(deltas, useRawPlusRecompute ? ModelExecuteOptions.createRaw() : null, task, result);
+        modelService.executeChanges(deltas, useRawPlusRecompute ? executeOptions().raw() : null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -3964,7 +3964,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
-        executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
+        executeChanges(delta, executeOptions().raw(), task, result);
     }
 
     protected <O extends ObjectType> void deleteObject(Class<O> type, String oid)
@@ -4002,7 +4002,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
-        ModelExecuteOptions options = ModelExecuteOptions.createForce();
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).force();
         executeChanges(delta, options, task, result);
     }
 
@@ -4820,7 +4820,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationAddContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
         ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.setReconcileAffected(reconcileAffected);
+        options.reconcileAffected(reconcileAffected);
         executeChanges(roleDelta, options, getTestTask(), result);
         result.computeStatus();
         if (reconcileAffected) {
@@ -4982,7 +4982,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationDeleteContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
         ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.setReconcileAffected(reconcileAffected);
+        options.reconcileAffected(reconcileAffected);
         executeChanges(roleDelta, options, task, result);
         result.computeStatus();
         if (reconcileAffected) {
@@ -4994,7 +4994,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @NotNull
     protected ModelExecuteOptions nullToEmpty(ModelExecuteOptions options) {
-        return options != null ? options : new ModelExecuteOptions();
+        return options != null ? options : executeOptions();
     }
 
     protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -5275,12 +5275,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void reconcileUser(String oid, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(options), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.create(options, prismContext).reconcile(), task, result);
     }
 
     protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<OrgType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(OrgType.class, oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), executeOptions().reconcile(), task, result);
     }
 
     protected void assertRefEquals(String message, ObjectReferenceType expected, ObjectReferenceType actual) {
@@ -6224,7 +6224,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, ModelExecuteOptions.createRaw());
+        assertAddDeny(file, executeOptions().raw());
     }
 
     protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
@@ -6570,5 +6570,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         resource.object = modelService.getObject(resource.object.getCompileTimeClass(), resource.oid, null, task, result);
+    }
+
+    protected ModelExecuteOptions executeOptions() {
+        return ModelExecuteOptions.create(prismContext);
     }
 }

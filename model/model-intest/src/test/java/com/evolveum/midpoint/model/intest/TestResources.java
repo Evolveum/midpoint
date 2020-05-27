@@ -932,7 +932,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), ModelExecuteOptions.createRaw(),
+        modelService.executeChanges(MiscSchemaUtil.createCollection(resourceDelta), executeOptions().raw(),
                 task, result);
 
         // THEN
@@ -1013,7 +1013,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         // WHEN
         when();
-        executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
+        executeChanges(diffDelta, executeOptions().raw(), task, result);
 
         // THEN
         then();
@@ -1123,7 +1123,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         IntegrationTestTools.assertNoRepoThreadLocalCache();
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
         // WHEN
         modelService.executeChanges(deltas, options , task, result);
 

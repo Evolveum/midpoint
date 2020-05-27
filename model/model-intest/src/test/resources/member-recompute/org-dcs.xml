@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="67720733-9de6-47da-b856-ce063c4a6659">
+    <name>dcs</name>
+    <assignment>
+        <targetRef oid="b685545e-995f-45e0-8d32-92cd3781ef54" type="ArchetypeType" /> <!-- department -->
+    </assignment>
+    <costCenter>07210</costCenter>
+    <displayName>Department of Computer Science</displayName>
+</org>

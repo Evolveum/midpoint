@@ -69,7 +69,7 @@ public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
         logger.info("adding system config page");
-        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
+        addObject(systemConfig, executeOptions().overwrite(), initTask, initResult);
     }
 
     @Test

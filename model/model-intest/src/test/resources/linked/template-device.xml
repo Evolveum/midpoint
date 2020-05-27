@@ -17,8 +17,8 @@
                 <script>
                     <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
 
-                    assignee = midpoint.findAssignee(UserType.class)
-                    assignee != null ? 'Used by ' + assignee.name + ' (' + assignee.fullName + ')' : 'Not used'</code>
+                    linkedSource = midpoint.findLinkedSource(UserType.class)
+                    linkedSource != null ? 'Used by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not used'</code>
                 </script>
             </expression>
             <target>

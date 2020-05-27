@@ -148,7 +148,7 @@ public class AccCertUpdateHelper {
         try {
             ops = modelService.executeChanges(
                     singleton(objectDelta),
-                    ModelExecuteOptions.createRaw().setPreAuthorized(), task, result);
+                    ModelExecuteOptions.create(prismContext).raw().preAuthorized(), task, result);
         } catch (ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new SystemException("Unexpected exception when adding object: " + e.getMessage(), e);
         }
@@ -175,7 +175,7 @@ public class AccCertUpdateHelper {
         ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, itemDeltas, objectClass
         );
         try {
-            ModelExecuteOptions options = ModelExecuteOptions.createRaw().setPreAuthorized();
+            ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).raw().preAuthorized();
             modelService.executeChanges(Collections.singletonList(objectDelta), options, task, result);
         } catch (SecurityViolationException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException e) {
             throw new SystemException("Unexpected exception when modifying " + objectClass.getSimpleName() + " " + oid + ": " + e.getMessage(), e);

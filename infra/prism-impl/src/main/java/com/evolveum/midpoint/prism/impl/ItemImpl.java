@@ -235,10 +235,11 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
      * Type override, also for compatibility.
      */
     public <X> X getRealValue(Class<X> type) {
-        if (getValue() == null) {
+        V singleValue = getValue();
+        if (singleValue == null) {
             return null;
         }
-        Object value = getValue().getRealValue();
+        Object value = singleValue.getRealValue();
         if (value == null) {
             return null;
         }

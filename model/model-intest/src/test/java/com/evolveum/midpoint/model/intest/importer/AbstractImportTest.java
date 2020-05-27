@@ -688,7 +688,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         ImportOptionsType importOptions = getDefaultImportOptions();
         importOptions.setOverwrite(true);
         importOptions.setKeepOid(true);
-        importOptions.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+        importOptions.setModelExecutionOptions(new ModelExecuteOptionsType(prismContext).raw(false));
 
         dummyAuditService.clear();
 
@@ -730,7 +730,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
         ImportOptionsType importOptions = getDefaultImportOptions();
         importOptions.setOverwrite(true);
         importOptions.setKeepOid(true);
-        importOptions.setModelExecutionOptions(new ModelExecuteOptionsType().raw(false));
+        importOptions.setModelExecutionOptions(new ModelExecuteOptionsType(prismContext).raw(false));
 
         dummyAuditService.clear();
 
