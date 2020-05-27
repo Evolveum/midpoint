@@ -28,9 +28,13 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -59,12 +63,12 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //    private static final String ID_MAIN_BUTTON = "mainButton";
 //    private static final String ID_LABEL = "label";
 //    private static final String ID_DELETE_BUTTON = "deleteButton";
-//    private static final String ID_POPOVER = "popover";
-//    private static final String ID_POPOVER_BODY = "popoverBody";
+    private static final String ID_POPOVER = "popover";
+    private static final String ID_POPOVER_BODY = "popoverBody";
 //    private static final String ID_UPDATE = "update";
 //    private static final String ID_CLOSE = "close";
 //    private static final String ID_VALUES = "values";
-//    private static final String ID_VALUE = "value";
+    private static final String ID_VALUE = "value";
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
@@ -96,15 +100,15 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     }
 
     private void initLayout() {
-//        popoverModel = new LoadableModel<SearchItemPopoverDto<T>>(false) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected SearchItemPopoverDto<T> load() {
-//                return loadPopoverItems();
-//            }
-//        };
+        popoverModel = new LoadableModel<SearchItemPopoverDto<T>>(false) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected SearchItemPopoverDto<T> load() {
+                return loadPopoverItems();
+            }
+        };
 //
 //        AjaxLink<Void> mainButton = new AjaxLink<Void>(ID_MAIN_BUTTON) {
 //
@@ -141,7 +145,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //            }
 //        });
 //
-//        initPopover();
+        initPopover();
 
 
         WebMarkupContainer searchItemContainer = new WebMarkupContainer(ID_SEARCH_ITEM_CONTAINER);
@@ -173,15 +177,24 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         switch (item.getType()) {
             case REFERENCE:
                 //TODO change probably to another component
-                searchItemField = new ValueChoosePanel<Referencable>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value")){
-
+                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
+                ((TextPanel)searchItemField).getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("focus") {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public List<QName> getSupportedTypes() {
-                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                        editPerformed(ajaxRequestTarget);
                     }
-                };
+                });
+//                searchItemField = new ValueChoosePanel<Referencable>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value")){
+//
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public List<QName> getSupportedTypes() {
+//                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+//                    }
+//                };
                 break;
             case BOOLEAN:
                 choices = (IModel) createBooleanChoices();
@@ -235,55 +248,62 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         }
         return Model.of(item.getValue().getValue().toString());
     }
-//    private SearchItemPopoverDto<T> loadPopoverItems() {
-//        SearchItemPopoverDto<T> dto = new SearchItemPopoverDto<>();
-//
-//        SearchItem<T> item = getModelObject();
-//        for (DisplayableValue<T> value : item.getValues()) {
-//            //TODO : what if null reference
-//            DisplayableValue<T> itemValue = new SearchValue<T>(value.getValue(), value.getLabel());
-//            dto.getValues().add(itemValue);
-//        }
-//
-//        if (dto.getValues().isEmpty()) {
-//            dto.getValues().add(new SearchValue<>());
-//        }
-//
-//        return dto;
-//    }
+    private SearchItemPopoverDto<T> loadPopoverItems() {
+        SearchItemPopoverDto<T> dto = new SearchItemPopoverDto<>();
 
-//    private void initPopover() {
-//        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
-//        popover.setOutputMarkupId(true);
-//        add(popover);
-//
-//        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_POPOVER_BODY);
-//        popoverBody.setOutputMarkupId(true);
-//        popover.add(popoverBody);
-//
-//        ListView<DisplayableValue<T>> values = new ListView<DisplayableValue<T>>(ID_VALUES,
-//            new PropertyModel<>(popoverModel, SearchItem.F_VALUES)) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void populateItem(final ListItem<DisplayableValue<T>> item) {
-//                item.add(AttributeModifier.replace("style", new IModel<String>() {
-//
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public String getObject() {
-//                        return item.getIndex() != 0 ? "margin-top: 5px;" : null;
-//                    }
-//                }));
-//
-//                SearchPopupPanel<T> fragment = createPopoverFragment(item.getModel());
-//                fragment.setRenderBodyOnly(true);
-//                item.add(fragment);
-//            }
-//        };
-//        popoverBody.add(values);
+        SearchItem<T> item = getModelObject();
+            DisplayableValue<T> itemValue = new SearchValue<T>(item.getValue().getValue(), item.getValue().getLabel());
+            dto.getValues().add(itemValue);
+
+        if (dto.getValues().isEmpty()) {
+            dto.getValues().add(new SearchValue<>());
+        }
+
+        return dto;
+    }
+
+    private void initPopover() {
+        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
+        popover.setOutputMarkupId(true);
+        add(popover);
+
+        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_POPOVER_BODY);
+        popoverBody.setOutputMarkupId(true);
+        popover.add(popoverBody);
+
+
+        DisplayableValue val = SearchItemPanel.this.getModelObject().getValue();
+        IModel<DisplayableValue<ObjectReferenceType>> refModel = new IModel<DisplayableValue<ObjectReferenceType>>() {
+            @Override
+            public DisplayableValue<ObjectReferenceType> getObject() {
+                if (val.getValue() instanceof ObjectReferenceType){
+                    return val;
+                } else {
+                    return null;
+                }
+            }
+        };
+                SearchPopupPanel<T> value =
+                        (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, refModel) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected List<QName> getAllowedRelations() {
+                        if (SearchItemPanel.this.getModelObject().getAllowedRelations() != null) {
+                            return SearchItemPanel.this.getModelObject().getAllowedRelations();
+                        }
+                        return super.getAllowedRelations();
+                    }
+
+                    @Override
+                    protected List<QName> getSupportedTargetList() {
+                        return new ArrayList<>();
+//                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) SearchItemPanel.this.getModelObject().getDefinition()).getTargetTypeName());
+                    }
+                };
+                value.setRenderBodyOnly(true);
+        popoverBody.add(value);
 //
 //        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
 //
@@ -306,7 +326,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //            }
 //        };
 //        popoverBody.add(close);
-//    }
+    }
 //
 //    private SearchPopupPanel<T> createPopoverFragment(IModel<DisplayableValue<T>> data) {
 ////        SearchPopupPanel<T> popup;
@@ -443,18 +463,18 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //        togglePopover(target);
 //    }
 
-//    private void editPerformed(AjaxRequestTarget target) {
-//        LOG.debug("Edit performed");
-//
-//        popoverModel.reset();
-//        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
-//        togglePopover(target);
-//    }
-//
-//    public void togglePopover(AjaxRequestTarget target) {
-//        SearchPanel panel = findParent(SearchPanel.class);
-//        panel.togglePopover(target, get(ID_MAIN_BUTTON), get(ID_POPOVER), 0);
-//    }
+    private void editPerformed(AjaxRequestTarget target) {
+        LOG.debug("Edit performed");
+
+        popoverModel.reset();
+        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
+        togglePopover(target);
+    }
+
+    public void togglePopover(AjaxRequestTarget target) {
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.togglePopover(target, get(createComponentPath(ID_SEARCH_ITEM_CONTAINER, ID_SEARCH_ITEM_FIELD)), get(ID_POPOVER), 0);
+    }
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem<T> item = getModelObject();

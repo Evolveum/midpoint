@@ -78,7 +78,7 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
 
         add(type);
 
-        if (getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
+        if (getModelObject() != null && getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
             getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
         }
         List<QName> allowedRelations = new ArrayList<QName>();
