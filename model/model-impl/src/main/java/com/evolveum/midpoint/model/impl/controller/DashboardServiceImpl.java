@@ -399,20 +399,30 @@ public class DashboardServiceImpl implements DashboardService {
             searchFilter = collection.getFilter();
         } else {
             searchFilter = collectionConfig.getFilter();
-            if (collectionConfig.getBaseCollectionRef() != null && collectionConfig.getBaseCollectionRef().getCollectionRef() != null) {
-                ObjectReferenceType ref = collectionConfig.getBaseCollectionRef().getCollectionRef();
-                Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-                ObjectCollectionType collection = (ObjectCollectionType) modelService
-                        .getObject(refType, ref.getOid(), null, task, result).asObjectable();
+            if (collectionConfig.getBaseCollectionRef() != null &&
+                    (collectionConfig.getBaseCollectionRef().getCollectionRef() != null || collectionConfig.getBaseCollectionRef().getFilter() != null)) {
+                Class<ObjectType> typeFromBaseCollection = null;
+                if (collectionConfig.getBaseCollectionRef().getCollectionRef() != null) {
+                    ObjectReferenceType ref = collectionConfig.getBaseCollectionRef().getCollectionRef();
+                    Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
+                    ObjectCollectionType collection = (ObjectCollectionType) modelService
+                            .getObject(refType, ref.getOid(), null, task, result).asObjectable();
 
-                searchFilterForMerge = collection.getFilter();
-                Class<ObjectType> typeFromBaseCollection = (Class<ObjectType>) prismContext.getSchemaRegistry()
-                        .getCompileTimeClassForObjectType(collection.getType());
+                    searchFilterForMerge = collection.getFilter();
+                    typeFromBaseCollection = (Class<ObjectType>) prismContext.getSchemaRegistry()
+                            .getCompileTimeClassForObjectType(collection.getType());
+                } else {
+                    searchFilterForMerge = collectionConfig.getBaseCollectionRef().getFilter();
+                }
                 if (typeForFilter == null) {
+                    if (typeFromBaseCollection == null) {
+                        LOGGER.error("Type of objects is null");
+                        throw new IllegalArgumentException("Type of objects is null");
+                    }
                     type = typeFromBaseCollection;
                 } else {
                     type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
-                    if (!typeFromBaseCollection.isAssignableFrom(type)) {
+                    if (typeFromBaseCollection != null && !typeFromBaseCollection.isAssignableFrom(type)) {
                         LOGGER.error("Type of objects from filter don't inherit from type from base collection");
                         throw new IllegalArgumentException("Type of objects from filter don't inherit from type from base collection");
                     }
