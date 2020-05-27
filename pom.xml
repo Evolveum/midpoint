@@ -57,7 +57,7 @@
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
-    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be istalled too):
+    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be installed too):
     mvn clean install -P -dist -DskipTests -DskipSchrodingerTests=false -DwebdriverLocation=/c/work/tools/bin/chromedriver.exe
     -->
 
