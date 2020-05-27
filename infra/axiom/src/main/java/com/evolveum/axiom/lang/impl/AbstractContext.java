@@ -40,7 +40,6 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
         return start;
     }
 
-
     @Override
     public ValueContext<?> lookup(AxiomIdentifier space, IdentifierSpaceKey key) {
         ValueContext<?> maybe = localSpace.lookup(space, key);

@@ -17,6 +17,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
@@ -154,7 +155,7 @@ public class ModelReactorContext extends
 
     public void loadModelFromSource(AxiomModelStatementSource source) {
         SourceContext sourceCtx = new SourceContext(this, source, source.imports(), new CompositeIdentifierSpace());
-        source.stream(new ItemStreamContextBuilder(sourceCtx), Optional.empty());
+        source.stream(new AxiomBuilderStreamTarget(sourceCtx), Optional.empty());
     }
 
     @Override

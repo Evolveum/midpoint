@@ -12,7 +12,7 @@ import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
-import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ItemBuilder;
+import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;

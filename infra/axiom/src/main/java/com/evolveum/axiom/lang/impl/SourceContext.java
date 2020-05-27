@@ -14,7 +14,7 @@ import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
-import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ValueBuilder;
+import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
