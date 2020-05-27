@@ -3,10 +3,10 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomNamedDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
-import com.evolveum.axiom.lang.api.AxiomItem;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 
 public class AbstractBaseDefinition<V> extends ItemValueImpl<V> implements AxiomNamedDefinition {

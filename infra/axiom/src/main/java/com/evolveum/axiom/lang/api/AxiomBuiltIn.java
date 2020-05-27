@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;

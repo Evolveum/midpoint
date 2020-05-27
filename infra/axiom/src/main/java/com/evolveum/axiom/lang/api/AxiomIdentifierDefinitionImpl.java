@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.google.common.collect.ImmutableSet;
 
 class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {

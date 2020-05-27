@@ -1,11 +1,9 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.Iterables;
 
 public interface AxiomItem<V> {

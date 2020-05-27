@@ -4,10 +4,10 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.lang.api.AxiomNamedDefinition;
+import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 

@@ -18,10 +18,10 @@ import org.testng.annotations.Test;
 
 
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
-import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 

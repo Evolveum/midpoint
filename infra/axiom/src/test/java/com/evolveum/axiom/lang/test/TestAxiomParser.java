@@ -15,10 +15,9 @@ import java.util.Optional;
 
 import org.testng.annotations.Test;
 
-
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;

@@ -4,16 +4,17 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
+import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
+import com.evolveum.axiom.lang.api.AxiomNamedDefinition;
+import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.collect.ImmutableMap;
 
 public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<AxiomTypeDefinition> {

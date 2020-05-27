@@ -1,6 +1,6 @@
 package com.evolveum.axiom.lang.spi;
 
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomItemDefinition;
 import com.google.common.base.Strings;
 
 public class AxiomSemanticException extends RuntimeException {

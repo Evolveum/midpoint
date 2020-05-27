@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 
 public interface AxiomSchemaContext {
 

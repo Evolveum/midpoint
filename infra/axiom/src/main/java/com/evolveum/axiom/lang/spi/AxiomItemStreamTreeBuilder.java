@@ -10,7 +10,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.google.common.base.Preconditions;
 

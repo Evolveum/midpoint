@@ -5,10 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.evolveum.axiom.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;

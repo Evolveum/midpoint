@@ -12,9 +12,9 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomTypeDefinition;
 import com.evolveum.axiom.api.meta.Inheritance;
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 

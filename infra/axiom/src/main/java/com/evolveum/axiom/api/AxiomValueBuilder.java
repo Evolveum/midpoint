@@ -1,8 +1,6 @@
 package com.evolveum.axiom.api;
 
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.lang.api.AxiomItem;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 
 import java.util.LinkedHashMap;

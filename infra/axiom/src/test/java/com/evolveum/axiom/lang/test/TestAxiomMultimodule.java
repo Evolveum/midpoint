@@ -10,8 +10,7 @@ import static org.testng.Assert.assertEquals;
 import java.io.IOException;
 import org.testng.annotations.Test;
 
-
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.api.AxiomItemDefinition;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
