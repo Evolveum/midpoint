@@ -7,6 +7,7 @@
 package com.evolveum.axiom.lang.api;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 

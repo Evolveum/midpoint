@@ -1,6 +1,8 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
 import java.util.Optional;
+
+import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 class SimpleValue<T> implements AxiomValue<T> {
 

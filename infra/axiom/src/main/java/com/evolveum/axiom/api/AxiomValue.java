@@ -1,11 +1,13 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.AxiomItem;
+import com.evolveum.axiom.lang.api.AxiomItemDefinition;
+import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 
 public interface AxiomValue<V> extends Supplier<V> {

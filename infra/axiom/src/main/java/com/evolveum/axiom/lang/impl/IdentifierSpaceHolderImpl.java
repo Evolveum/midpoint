@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

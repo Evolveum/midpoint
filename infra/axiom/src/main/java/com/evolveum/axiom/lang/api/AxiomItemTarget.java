@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomValueBuilder;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.SourceLocation;
 

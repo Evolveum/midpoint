@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomSchemaContext;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;

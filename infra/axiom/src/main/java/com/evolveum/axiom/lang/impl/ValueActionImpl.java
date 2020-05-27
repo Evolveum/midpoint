@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.lang.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 import com.evolveum.axiom.reactor.DependantAction;

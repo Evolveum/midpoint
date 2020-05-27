@@ -1,8 +1,9 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api;
 
 import java.util.Map;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.lang.api.AxiomItem;
+import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 public interface AxiomValueFactory<V,T extends AxiomValue<V>> {
 

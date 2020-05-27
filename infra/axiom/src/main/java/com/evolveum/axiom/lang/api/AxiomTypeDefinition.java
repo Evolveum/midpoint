@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.google.common.collect.ImmutableMap;
 

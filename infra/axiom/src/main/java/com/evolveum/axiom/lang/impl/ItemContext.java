@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomValue;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.impl.ItemStreamContextBuilder.ItemBuilder;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;

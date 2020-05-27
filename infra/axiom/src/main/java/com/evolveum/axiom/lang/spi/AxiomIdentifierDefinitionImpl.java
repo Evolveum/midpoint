@@ -3,14 +3,14 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Collection;
 import java.util.Map;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomIdentifierDefinition;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 import com.google.common.collect.ImmutableList;
 import com.evolveum.axiom.lang.api.AxiomItem;
 import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomValue;
-import com.evolveum.axiom.lang.api.AxiomValueFactory;
 import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
 
 public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifierDefinition> implements AxiomIdentifierDefinition {
