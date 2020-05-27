@@ -127,7 +127,7 @@ public class ValueActionImpl<V> implements AxiomStatementRule.ActionBuilder<V>, 
 
     @Override
     public AxiomSemanticException error(String message, Object... arguments) {
-        return new AxiomSemanticException(context.startLocation() + Strings.lenientFormat(message, arguments));
+        return AxiomSemanticException.create(context.startLocation(), message, arguments);
     }
 
     public String name() {

@@ -11,10 +11,10 @@ import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomItemStream;
+import com.evolveum.axiom.api.stream.AxiomItemStream;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.google.common.base.Preconditions;
 
 

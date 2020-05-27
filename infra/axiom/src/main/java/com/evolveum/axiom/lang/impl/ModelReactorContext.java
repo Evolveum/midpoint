@@ -129,7 +129,7 @@ public class ModelReactorContext extends
                 }
             }
         }
-        throw new AxiomSemanticException(messages.toString());
+        throw new AxiomSemanticException(null, messages.toString());
 
     }
 

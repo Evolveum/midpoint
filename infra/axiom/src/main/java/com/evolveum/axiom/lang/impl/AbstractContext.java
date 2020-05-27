@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 
 abstract class AbstractContext<P extends AbstractContext<?>> implements IdentifierSpaceHolder {
 

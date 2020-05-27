@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api.stream;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -11,8 +11,8 @@ import com.evolveum.axiom.api.AxiomValueBuilder;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
 

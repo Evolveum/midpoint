@@ -12,8 +12,9 @@ import java.util.List;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class AxiomErrorListener extends BaseErrorListener {
 

@@ -1,4 +1,4 @@
-package com.evolveum.axiom.lang.spi;
+package com.evolveum.axiom.concepts;
 
 public class SourceLocation {
 

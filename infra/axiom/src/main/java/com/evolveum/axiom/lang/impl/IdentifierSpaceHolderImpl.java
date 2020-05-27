@@ -12,7 +12,6 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 public class IdentifierSpaceHolderImpl implements IdentifierSpaceHolder {
@@ -30,11 +29,8 @@ public class IdentifierSpaceHolderImpl implements IdentifierSpaceHolder {
                                                                                                          // Auto-generated
                                                                                                          // method stub
         ValueContext<?> previous = space(space).putIfAbsent(key, item);
-        if (previous != null) {
-            throw new AxiomSemanticException(item.startLocation()
-                    + Strings.lenientFormat("%s identifier space: Item %s is already defined at %s", space,
-                            item, previous.startLocation()));
-        }
+        AxiomSemanticException.check(previous == null, item.startLocation(),
+                "%s identifier space: Item %s is already defined at %s", space,item, previous);
     }
 
     @Override

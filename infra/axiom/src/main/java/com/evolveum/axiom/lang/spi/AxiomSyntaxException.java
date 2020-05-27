@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.google.common.base.Strings;
 
 public class AxiomSyntaxException extends RuntimeException {
@@ -22,8 +23,8 @@ public class AxiomSyntaxException extends RuntimeException {
         this.source = source;
     }
 
-    public AxiomSyntaxException(SourceLocation source2, String message) {
-        this(source2, message, null);
+    public AxiomSyntaxException(SourceLocation source, String message) {
+        this(source, message, null);
     }
 
     public final Optional<SourceLocation> getSource() {
@@ -35,7 +36,6 @@ public class AxiomSyntaxException extends RuntimeException {
         if (source != null) {
             sb.append(source);
         }
-
         return sb.append(getMessage()).toString();
     }
 

@@ -12,12 +12,12 @@ import java.util.Set;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.stream.AxiomItemStream;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
-import com.evolveum.axiom.lang.api.AxiomItemStream;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 

@@ -4,16 +4,16 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.axiom.lang.api;
+package com.evolveum.axiom.api.stream;
 
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 import com.google.common.base.Preconditions;
 
 

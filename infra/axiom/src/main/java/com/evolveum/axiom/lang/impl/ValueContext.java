@@ -22,9 +22,9 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
+import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
-import com.evolveum.axiom.lang.spi.SourceLocation;
 
 public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements AxiomValueContext<V>, ValueBuilder, Dependency<AxiomValue<V>> {
 
@@ -328,7 +328,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public AxiomSemanticException error(String message, Object... arguments) {
-            return new AxiomSemanticException(startLocation() + " " + Strings.lenientFormat(message, arguments));
+            return AxiomSemanticException.create(startLocation(), message, arguments);
         }
     }
 

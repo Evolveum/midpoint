@@ -19,8 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
-import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 

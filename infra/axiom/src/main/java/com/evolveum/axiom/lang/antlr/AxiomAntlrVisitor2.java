@@ -9,8 +9,8 @@ package com.evolveum.axiom.lang.antlr;
 import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.lang.api.AxiomItemStream;
-import com.evolveum.axiom.lang.api.AxiomItemStream.Target;
+import com.evolveum.axiom.api.stream.AxiomItemStream;
+import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
 
 public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 

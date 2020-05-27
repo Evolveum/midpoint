@@ -16,8 +16,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
-import com.evolveum.axiom.lang.api.AxiomItemStream;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
