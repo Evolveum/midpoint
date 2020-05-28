@@ -17151,6 +17151,7 @@
                                 This collection is merge with filter.
                             </xsd:documentation>
                             <xsd:appinfo>
+                                <a:elaborate>true</a:elaborate>
                                 <a:since>4.2</a:since>
                                 <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
                             </xsd:appinfo>
