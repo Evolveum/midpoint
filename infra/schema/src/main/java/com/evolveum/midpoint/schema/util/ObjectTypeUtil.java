@@ -289,20 +289,20 @@ public class ObjectTypeUtil {
         return createObjectRef(objectType.asPrismObject(), relation);
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, PrismContext prismContext) {
+    public static ObjectReferenceType createObjectRef(PrismObject<?> object, PrismContext prismContext) {
         if (object == null) {
             return null;
         }
         return createObjectRef(object, prismContext.getDefaultRelation());
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, QName relation) {
+    public static ObjectReferenceType createObjectRef(PrismObject<?> object, QName relation) {
         if (object == null) {
             return null;
         }
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(object.getOid());
-        PrismObjectDefinition<T> definition = object.getDefinition();
+        PrismObjectDefinition<?> definition = object.getDefinition();
         if (definition != null) {
             ref.setType(definition.getTypeName());
         }

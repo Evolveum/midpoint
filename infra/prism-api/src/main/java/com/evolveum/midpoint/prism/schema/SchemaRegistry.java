@@ -83,6 +83,16 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
      */
     QName determineTypeForClass(Class<?> clazz);
 
+    @NotNull
+    default QName determineTypeForClassRequired(Class<?> clazz) {
+        QName typeName = determineTypeForClass(clazz);
+        if (typeName != null) {
+            return typeName;
+        } else {
+            throw new IllegalStateException("No type for " + clazz);
+        }
+    }
+
     /**
      * This method will try to locate the appropriate object definition and apply it.
      * @param container
@@ -123,6 +133,15 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
 
     // Takes XSD types into account as well
     <T> Class<T> determineClassForType(QName type);
+
+    default <T> Class<T> determineClassForTypeRequired(QName type) {
+        Class<T> clazz = determineClassForType(type);
+        if (clazz != null) {
+            return clazz;
+        } else {
+            throw new IllegalStateException("No class for " + type);
+        }
+    }
 
     // Takes XSD types into account as well
     Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);

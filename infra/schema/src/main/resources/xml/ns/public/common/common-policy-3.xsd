@@ -2067,7 +2067,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="asynchronous" type="c:AsynchronousScriptExecutionType" minOccurs="0">
+                    <xsd:element name="asynchronousExecution" type="c:AsynchronousScriptExecutionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Options for asynchronous script execution.
