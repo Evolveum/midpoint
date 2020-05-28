@@ -943,4 +943,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     public void setManualRefreshEnabled(Boolean manualRefreshEnabled) {
         this.manualRefreshEnabled = manualRefreshEnabled;
     }
+
+    protected LoadableModel<Search> getSearchModel() {
+        return searchModel;
+    }
 }

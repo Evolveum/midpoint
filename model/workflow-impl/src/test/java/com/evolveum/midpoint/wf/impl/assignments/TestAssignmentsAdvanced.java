@@ -1261,8 +1261,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .item(UserType.F_DESCRIPTION).replace(testName)
                 .asObjectDelta(userJackOid);
 
-        ModelExecuteOptions options = immediate ? ModelExecuteOptions.createExecuteImmediatelyAfterApproval() : new ModelExecuteOptions();
-        options.setPartialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
+        ModelExecuteOptions options = executeOptions()
+                .executeImmediatelyAfterApproval(immediate)
+                .partialProcessing(new PartialProcessingOptionsType().approvals(PROCESS));
         ModelContext<ObjectType> modelContext = modelInteractionService
                 .previewChanges(singleton(primaryDelta), options, task, result);
 

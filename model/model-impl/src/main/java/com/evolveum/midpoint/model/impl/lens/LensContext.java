@@ -663,10 +663,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public OperationBusinessContextType getRequestBusinessContext() {
-        if (options == null) {
-            return null;
-        }
-        return options.getRequestBusinessContext();
+        return ModelExecuteOptions.getRequestBusinessContext(options);
     }
 
     /**

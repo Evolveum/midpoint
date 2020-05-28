@@ -7,14 +7,12 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="panel">
-
         <p align="center">
             <div wicket:id="warningMessage"/>
-            <div wicket:id="table" style="padding: 5px;" />
-            <a class="btn btn-primary btn-sm" wicket:id="exportAll"/>
-            <a class="btn btn-primary btn-sm" wicket:id="exportSelected"/>
-            <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
+            <div wicket:id="check"/>
+    <h3>
+        <wicket:message key="ExportingFilterTabPanel.searchFilter"/>
+    </h3>
+            <textarea wicket:id="filter"/>
         </p>
-    </div>
 </wicket:panel>

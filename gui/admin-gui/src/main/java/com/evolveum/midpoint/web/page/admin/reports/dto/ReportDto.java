@@ -7,12 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardReportEngineConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -41,7 +36,7 @@ public class ReportDto implements Serializable {
     private String name;
     private String description;
     private boolean searchOnResource;
-    private ExportType exportType;
+    private JasperExportType exportType;
     private JasperReportDto jasperReportDto;
     private byte[] templateStyle;
     private String virtualizer;
@@ -75,27 +70,15 @@ public class ReportDto implements Serializable {
             }
         } else {
             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
-            if (jasperConfig == null) {
-                this.exportType = reportType.getExport();
+            this.exportType = jasperConfig.getExport();
         //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-                this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
-                this.templateStyle = reportType.getTemplateStyle();
-                this.parent = !BooleanUtils.isFalse(reportType.isParent());
-                this.virtualizer = reportType.getVirtualizer();
-                this.virtualizerKickOn = reportType.getVirtualizerKickOn();
-                this.maxPages = reportType.getMaxPages();
-                this.timeout = reportType.getTimeout();
-            } else {
-                this.exportType = jasperConfig.getExport();
-        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-                this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
-                this.templateStyle = jasperConfig.getTemplateStyle();
-                this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
-                this.virtualizer = jasperConfig.getVirtualizer();
-                this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
-                this.maxPages = jasperConfig.getMaxPages();
-                this.timeout = jasperConfig.getTimeout();
-            }
+            this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
+            this.templateStyle = jasperConfig.getTemplateStyle();
+            this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
+            this.virtualizer = jasperConfig.getVirtualizer();
+            this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
+            this.maxPages = jasperConfig.getMaxPages();
+            this.timeout = jasperConfig.getTimeout();
         }
     }
 
@@ -108,7 +91,7 @@ public class ReportDto implements Serializable {
         this.name = name;
     }
 
-    public ReportDto(String name, String description, ExportType export, boolean parent) {
+    public ReportDto(String name, String description, JasperExportType export, boolean parent) {
         this.name = name;
         this.description = description;
 //        this.xml = xml;
@@ -193,11 +176,11 @@ public class ReportDto implements Serializable {
         this.description = description;
     }
 
-    public ExportType getExportType() {
+    public JasperExportType getExportType() {
         return exportType;
     }
 
-    public void setExportType(ExportType exportType) {
+    public void setExportType(JasperExportType exportType) {
         this.exportType = exportType;
     }
 

@@ -73,6 +73,20 @@ public class DashboardUtils {
         return false;
     }
 
+    public static boolean isCollectionRefSpecOfCollectionNull(DashboardWidgetType widget) {
+        if (isDataNull(widget)) {
+            return true;
+        }
+        if (isCollectionOfDataNull(widget)) {
+            return true;
+        }
+        if (widget.getData().getCollection() == null) {
+            LOGGER.error("CollectionRefSpecification of Data is not found in widget " + widget.getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
     public static boolean isCollectionRefOfCollectionNull(DashboardWidgetType widget) {
         if (isDataNull(widget)) {
             return true;

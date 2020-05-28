@@ -867,7 +867,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
         for (DebugObjectItem bean : items) {
-            WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(),
+            WebModelServiceUtils.deleteObject(dto.getType(), bean.getOid(), executeOptions().raw(),
                     result, this);
         }
         result.computeStatusIfUnknown();

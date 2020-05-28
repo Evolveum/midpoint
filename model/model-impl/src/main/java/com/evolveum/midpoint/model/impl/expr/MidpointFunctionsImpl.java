@@ -30,8 +30,11 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -89,7 +92,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -1679,12 +1681,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
         newTask.asPrismObject().addExtensionItem(deltasProperty);
         if (options != null) {
-            //noinspection unchecked
-            PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-            PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
-            optionsProperty.setRealValue(options.toModelExecutionOptionsType());
-            newTask.asPrismObject().addExtensionItem(optionsProperty);
+            PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = prismContext.getSchemaRegistry()
+                    .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+            PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
+            optionsContainer.setRealValue(options.toModelExecutionOptionsType());
+            newTask.asPrismObject().addExtensionItem(optionsContainer);
         }
         ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
         Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService
@@ -1989,33 +1990,33 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignee(Class<T> type) throws CommunicationException, ObjectNotFoundException,
+    public <T extends AssignmentHolderType> T findLinkedSource(Class<T> type) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignee(type);
+        return linkedObjectsFunctions.findLinkedSource(type);
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> List<T> findAssignees(Class<T> type) throws CommunicationException,
+    public <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignees(type);
+        return linkedObjectsFunctions.findLinkedSources(type);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
-    public <T extends AssignmentHolderType> T findAssignedObject(Class<T> type, String archetypeOid)
+    public <T extends AssignmentHolderType> T findLinkedTarget(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignedObject(type, archetypeOid);
+        return linkedObjectsFunctions.findLinkedTarget(type, archetypeOid);
     }
 
     // Should be used after assignment evaluation!
     @Experimental
     @NotNull
-    public <T extends AssignmentHolderType> List<T> findAssignedObjects(Class<T> type, String archetypeOid)
+    public <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        return linkedObjectsFunctions.findAssignedObjects(type, archetypeOid);
+        return linkedObjectsFunctions.findLinkedTargets(type, archetypeOid);
     }
 
     @Experimental
@@ -2056,5 +2057,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
         repositoryService.modifyObject(type, oid, itemDeltas, result);
+    }
+
+    public boolean extensionOptionIsNotFalse(String localName) {
+        return BooleanUtils.isNotFalse(getBooleanExtensionOption(localName));
+    }
+
+    public Boolean getBooleanExtensionOption(String localName) {
+        return ModelExecuteOptions.getExtensionOptionValue(getModelContext().getOptions(), new ItemName(localName), Boolean.class);
     }
 }

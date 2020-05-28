@@ -122,7 +122,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
+        addObject(systemConfig, executeOptions().overwrite(), initTask, initResult);
 
     }
 

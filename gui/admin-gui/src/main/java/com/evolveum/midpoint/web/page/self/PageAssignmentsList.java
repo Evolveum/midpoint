@@ -280,7 +280,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             delta = prepareDelta(user, result);
 
             ModelExecuteOptions options = createOptions();
-            options.setInitialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP)); // TODO make this configurable?
+            options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP)); // TODO make this configurable?
             getModelService().executeChanges(Collections.singletonList(delta), options, createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS), result);
 
             result.recordSuccess();
@@ -331,8 +331,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         } else {
             businessContextType = null;
         }
-        ModelExecuteOptions options = ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions();
-        options.setRequestBusinessContext(businessContextType);
+        ModelExecuteOptions options = ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(getPrismContext());
+        options.requestBusinessContext(businessContextType);
         return options;
     }
 
@@ -466,7 +466,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
             partialProcessing.setInbound(SKIP);
             partialProcessing.setProjection(SKIP);
-            ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
+            ModelExecuteOptions recomputeOptions = executeOptions().partialProcessing(partialProcessing);
             modelContext = getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="2b87aa2e-dd86-4842-bcf5-76200a9a8533">
+    <name>Dashboard report with triple view</name>
+    <reportEngine>dashboard</reportEngine>
+    <dashboard>
+        <dashboardRef oid="00000000-0000-0000-0001-000022661231" relation="default" type="DashboardType"/>
+        <view>
+            <type>UserType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>RoleType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>ResourceType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>TaskType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>AssignmentHolderType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>ShadowType</type>
+            <column>
+                <name>nameColumnReport</name>
+                <path>name</path>
+                <display>
+                    <label>Name (Report)</label>
+                </display>
+                <previousColumn>nameColumnDashboard</previousColumn>
+            </column>
+        </view>
+        <view>
+            <type>AuditEventRecordType</type>
+            <column>
+                <name>timeColumnReport</name>
+                <path>time</path>
+                <display>
+                    <label>Time (Report)</label>
+                </display>
+                <previousColumn>timeColumnDashboard</previousColumn>
+            </column>
+        </view>
+    </dashboard>
+</report>

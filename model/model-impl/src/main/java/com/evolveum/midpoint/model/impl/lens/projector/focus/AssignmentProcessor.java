@@ -656,7 +656,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     /**
-     * Simply mark all projections as illegal - except those that are being unliked
+     * Simply mark all projections as illegal - except those that are being unlinked
      */
     private <F extends AssignmentHolderType> void processFocusDelete(LensContext<F> context, OperationResult result) {
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/linked"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/linked"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <!-- user extension -->
+
+    <xsd:complexType name="ModelExecutionOptionsTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ModelExecuteOptionsType"/> <!-- huh? -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:recomputeMembers" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="recomputeMembers" type="xsd:boolean"/>
+</xsd:schema>

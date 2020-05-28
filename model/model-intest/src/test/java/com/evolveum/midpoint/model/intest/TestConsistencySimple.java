@@ -166,7 +166,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
             ObjectDelta<UserType> removeLinkRefDelta = deltaFor(UserType.class)
                     .item(UserType.F_LINK_REF).replace()
                     .asObjectDelta(USER_JACK_OID);
-            executeChanges(removeLinkRefDelta, ModelExecuteOptions.createRaw(), task, result);
+            executeChanges(removeLinkRefDelta, executeOptions().raw(), task, result);
             jack = getUser(USER_JACK_OID);
             assertEquals("Unexpected # of accounts for jack after linkRef removal", 0, jack.asObjectable().getLinkRef().size());
 
@@ -180,7 +180,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                             .item(ShadowType.F_EXISTS).replace(Boolean.FALSE)
                             .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                             .asObjectDelta(shadowBefore.getOid());
-                    executeChanges(markAsDead, ModelExecuteOptions.createRaw(), task, result);
+                    executeChanges(markAsDead, executeOptions().raw(), task, result);
                 }
                 assertNotNull("jack's shadow does not exist", getObject(ShadowType.class, shadowBefore.getOid()));
             }
@@ -205,7 +205,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
             case RECONCILE:
                 ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object()
                         .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-                modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
+                modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), executeOptions().reconcile(), task, result);
                 break;
             default:
                 throw new IllegalArgumentException("focusOperation: " + focusOperation);
@@ -272,7 +272,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
             }
             ObjectDelta<UserType> killLinkRefDelta = deltaFor(UserType.class)
                     .item(UserType.F_LINK_REF).replace().asObjectDelta(USER_JACK_OID);
-            executeChanges(killLinkRefDelta, ModelExecuteOptions.createRaw(), task, result);
+            executeChanges(killLinkRefDelta, executeOptions().raw(), task, result);
         }
         List<PrismObject<ShadowType>> jacksShadows = getJacksShadows(result);
         for (PrismObject<ShadowType> shadow : jacksShadows) {

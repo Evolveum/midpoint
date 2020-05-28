@@ -387,7 +387,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                     result.recordFatalError(getString("PageSelfRegistration.message.createDelta.fatalError", e.getMessage()), e);
                     return result;
                 }
-                WebModelServiceUtils.save(userDelta, ModelExecuteOptions.createOverwrite(), result, task, PageSelfRegistration.this);
+                WebModelServiceUtils.save(userDelta, executeOptions().overwrite(), result, task, PageSelfRegistration.this);
                 return result;
             }, administrator);
         } catch (CommonException|RuntimeException e) {

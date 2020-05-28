@@ -62,33 +62,6 @@
 
     <inducement>
         <policyRule>
-            <name>recompute-device-on-membership-change</name>
-            <documentation>
-                Recomputes all devices whose membership has changed.
-            </documentation>
-            <policyConstraints>
-                <alwaysTrue/>
-            </policyConstraints>
-            <policyActions>
-                <scriptExecution>
-                    <object>
-                        <linkTarget>
-                            <changeSituation>changed</changeSituation>
-                            <!-- i.e. all objects that brought this policy rule to the focus -->
-                            <matchesRuleAssignment>true</matchesRuleAssignment>
-                        </linkTarget>
-                    </object>
-                    <executeScript>
-                        <s:recompute/>
-                    </executeScript>
-                </scriptExecution>
-            </policyActions>
-        </policyRule>
-        <order>2</order> <!-- assigned the user -->
-    </inducement>
-
-    <inducement>
-        <policyRule>
             <name>recompute-device-on-user-name-change</name>
             <documentation>Recomputes a device when user's name or fullName changes.</documentation>
             <policyConstraints>
@@ -116,5 +89,32 @@
             </policyActions>
         </policyRule>
         <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-membership-change</name>
+            <documentation>
+                Recomputes all devices whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned the user -->
     </inducement>
 </archetype>

@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.projector.policy;
+package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;

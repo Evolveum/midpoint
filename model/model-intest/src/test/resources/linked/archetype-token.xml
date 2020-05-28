@@ -65,8 +65,8 @@
                     <script>
                         <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
 
-                        assignee = midpoint.findAssignee(UserType.class)
-                        assignee != null ? 'Held by ' + assignee.name + ' (' + assignee.fullName + ')' : 'Not held'</code>
+                        linkedSource = midpoint.findLinkedSource(UserType.class)
+                        linkedSource != null ? 'Held by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not held'</code>
                     </script>
                 </expression>
                 <target>

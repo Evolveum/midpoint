@@ -16,6 +16,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -35,7 +37,7 @@ public class RReport extends RObject<ReportType> {
 
     private RPolyString nameCopy;
     private ROrientationType orientation;
-    private RExportType export;
+    private RExportType exportType;
     private Boolean parent;
     private Boolean useHibernateSession;
 
@@ -66,12 +68,12 @@ public class RReport extends RObject<ReportType> {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public RExportType getExport() {
-        return export;
+    public RExportType getExportType() {
+        return exportType;
     }
 
-    public void setExport(RExportType export) {
-        this.export = export;
+    public void setExportType(RExportType export) {
+        this.exportType = export;
     }
 
     @Index(name = "iReportParent")
@@ -103,7 +105,7 @@ public class RReport extends RObject<ReportType> {
             return false;
         if (orientation != null ? !orientation.equals(rReport.orientation) : rReport.orientation != null)
             return false;
-        if (export != null ? !export.equals(rReport.export) : rReport.export != null)
+        if (exportType != null ? !exportType.equals(rReport.exportType) : rReport.exportType != null)
             return false;
         if (parent != null ? !parent.equals(rReport.parent) : rReport.parent != null)
             return false;
@@ -117,7 +119,7 @@ public class RReport extends RObject<ReportType> {
         int result = super.hashCode();
         result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (orientation != null ? orientation.hashCode() : 0);
-        result = 31 * result + (export != null ? export.hashCode() : 0);
+        result = 31 * result + (exportType != null ? exportType.hashCode() : 0);
         result = 31 * result + (parent != null ? parent.hashCode() : 0);
         result = 31 * result + (useHibernateSession != null ? useHibernateSession.hashCode() : 0);
 
@@ -127,13 +129,18 @@ public class RReport extends RObject<ReportType> {
     // dynamically called
     public static void copyFromJAXB(ReportType jaxb, RReport repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-
+        JasperReportEngineConfigurationType jasperConfig = jaxb.getJasper();
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        ExportConfigurationType exportConfig = jaxb.getExport();
+        if (exportConfig != null) {
+            repo.setExportType(RUtil.getRepoEnumValue(exportConfig.getType(), RExportType.class));
+        }
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setOrientation(RUtil.getRepoEnumValue(jaxb.getOrientation(), ROrientationType.class));
-        repo.setExport(RUtil.getRepoEnumValue(jaxb.getExport(), RExportType.class));
-        repo.setParent(jaxb.isParent());
-        repo.setUseHibernateSession(jaxb.isUseHibernateSession());
+        if (jasperConfig != null) {
+            repo.setOrientation(RUtil.getRepoEnumValue(jasperConfig.getOrientation(), ROrientationType.class));
+            repo.setParent(jasperConfig.isParent());
+            repo.setUseHibernateSession(jasperConfig.isUseHibernateSession());
+        }
     }
 }

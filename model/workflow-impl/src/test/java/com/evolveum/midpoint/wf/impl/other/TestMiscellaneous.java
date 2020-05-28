@@ -112,7 +112,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, ROLE_SAILOR.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        modelService.executeChanges(deltas, ModelExecuteOptions.createRequestBusinessContext(businessContext), task, result);
+        modelService.executeChanges(deltas, executeOptions().requestBusinessContext(businessContext), task, result);
 
         assertNotAssignedRole(userJackOid, ROLE_SAILOR.oid, result);
 
@@ -177,8 +177,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, ROLE_CAPTAIN.oid, RoleType.COMPLEX_TYPE, null, null, null, true);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        ModelExecuteOptions options = ModelExecuteOptions.createRequestBusinessContext(businessContext);
-        options.setExecuteImmediatelyAfterApproval(true);
+        ModelExecuteOptions options = executeOptions().requestBusinessContext(businessContext);
+        options.executeImmediatelyAfterApproval(true);
         modelService.executeChanges(deltas, options, task, result);
 
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
@@ -236,8 +236,8 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         // GIVEN
 
-        ModelExecuteOptions options = ModelExecuteOptions
-                .createPartialProcessing(new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
+        ModelExecuteOptions options = executeOptions().partialProcessing(
+                new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         assignRole(userJackOid, ROLE_GOLD.oid, options, task, result);
         assertAssignedRole(getUser(userJackOid), ROLE_GOLD.oid);
 
@@ -352,7 +352,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                         .item(UserType.F_ASSIGNMENT)
                         .add(ObjectTypeUtil.createAssignmentTo(ROLE_CAPTAIN.oid, ObjectTypes.ROLE, prismContext))
                         .asObjectDelta(userJackOid);
-        ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(
+        ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
         modelService.executeChanges(Collections.singletonList(delta), options, task, result);
 

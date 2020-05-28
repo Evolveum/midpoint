@@ -247,7 +247,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertEnableTimestampFocus(userJackBefore, null, start);
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, executeOptions().raw(), task, result, ActivationStatusType.DISABLED);
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
@@ -980,7 +980,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), executeOptions().raw(), task, result);
 
         // THEN
         then();
@@ -1175,7 +1175,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         when();
         ObjectDelta<UserType> innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY,
                 userJack.asObjectable().getLocality().toPolyString());
-        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -1216,7 +1216,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY,
                 userJack.asObjectable().getLocality().toPolyString());
-        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), executeOptions().reconcile(), task, result);
 
         // THEN
 
@@ -1793,7 +1793,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

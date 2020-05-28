@@ -160,7 +160,7 @@ public class ModelCrudService {
 
             if (options == null) {
                 if (StringUtils.isNotEmpty(objectType.getVersion())) {
-                    options = ModelExecuteOptions.createOverwrite();
+                    options = ModelExecuteOptions.create(prismContext).overwrite();
                 }
             }
 

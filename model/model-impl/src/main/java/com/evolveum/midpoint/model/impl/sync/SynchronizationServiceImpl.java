@@ -759,9 +759,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             }
         }
 
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setReconcile(doReconciliation);
-        options.setLimitPropagation(syncCtx.isLimitPropagation());
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext)
+                .reconcile(doReconciliation)
+                .limitPropagation(syncCtx.isLimitPropagation());
 
         final boolean willSynchronize = isSynchronize(reaction);
         LensContext<F> lensContext;

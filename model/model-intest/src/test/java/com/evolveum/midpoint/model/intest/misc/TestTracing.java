@@ -63,8 +63,8 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
         OperationResult result = getTestOperationResult();
 
         when();
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setTracingProfile(createModelAndProvisioningLoggingTracingProfile());
+        ModelExecuteOptions options = executeOptions();
+        options.tracingProfile(createModelAndProvisioningLoggingTracingProfile());
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)

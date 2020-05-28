@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
@@ -129,13 +130,12 @@ public class ExecuteChangeOptionsDto implements Serializable {
     }
 
     @NotNull
-    public ModelExecuteOptions createOptions() {
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setForce(isForce());
-        options.setReconcile(isReconcile());
-        options.setReconcileAffected(isReconcileAffected());
-        options.setExecuteImmediatelyAfterApproval(!isExecuteAfterAllApprovals());
-        options.setTracingProfile(tracing);
+    public ModelExecuteOptions createOptions(PrismContext prismContext) {
+        ModelExecuteOptions options = new ModelExecuteOptions(prismContext);
+        options.force(isForce());
+        options.reconcile(isReconcile());
+        options.executeImmediatelyAfterApproval(!isExecuteAfterAllApprovals());
+        options.tracingProfile(tracing);
         return options;
     }
 

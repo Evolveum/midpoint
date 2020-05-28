@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
@@ -42,25 +43,21 @@ public class RecomputeTriggerHandler implements SingleTriggerHandler {
     @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
     @Autowired private Clockwork clockwork;
     @Autowired private ContextFactory contextFactory;
+    @Autowired private PrismContext prismContext;
 
     @PostConstruct
     private void initialize() {
         triggerHandlerRegistry.register(HANDLER_URI, this);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
-     */
     @Override
     public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
         try {
 
             LOGGER.trace("Recomputing {}", object);
             // Reconcile option used for compatibility. TODO: do we need it?
-            LensContext<UserType> lensContext = contextFactory.createRecomputeContext(object, ModelExecuteOptions.createReconcile(), task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDump());
-            }
+            LensContext<O> lensContext = contextFactory.createRecomputeContext(object, new ModelExecuteOptions(prismContext).reconcile(), task, result);
+            LOGGER.trace("Recomputing of {}: context:\n{}", object, lensContext.debugDumpLazily());
             clockwork.run(lensContext, task, result);
             LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
 

@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<dashboard oid="00000000-0000-0000-0001-000000661231">
+    <name>test-dashboard-view</name>
+    <display>
+        <label>Test dashboard</label>
+    </display>
+    <widget>
+        <identifier>resources-all</identifier>
+        <display>
+            <label>Resources all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-database</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000006" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>resources</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>user-all</identifier>
+        <display>
+            <label>User all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb266" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>users</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>assignment-holder-all</identifier>
+        <display>
+            <label>Assignment holder all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-user</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb775" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>assignment holders</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>task-all</identifier>
+        <display>
+            <label>Task all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-tasks</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000000007" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>tasks</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>role-all</identifier>
+        <display>
+            <label>Role all</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fe fe-role_icon</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb255" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>roles</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>shadow-of-resource</identifier>
+        <display>
+            <label>Shadow of resource</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-database</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>shadows</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>nameColumn</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name</label>
+                    </display>
+                </column>
+                <column>
+                    <name>nameColumn2</name>
+                    <path>name</path>
+                    <display>
+                        <label>Name2</label>
+                    </display>
+                    <previousColumn>nameColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+    <widget>
+        <identifier>all audit</identifier>
+        <display>
+            <label>Audit records</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-cog</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>auditSearch</sourceType>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0001-000000001234" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>records</value>
+                </expression>
+            </dataField>
+            <view>
+                <column>
+                    <name>timeColumn</name>
+                    <path>time</path>
+                    <display>
+                        <label>Time</label>
+                    </display>
+                </column>
+                <column>
+                    <name>timeColumn2</name>
+                    <path>time</path>
+                    <display>
+                        <label>Time2</label>
+                    </display>
+                    <previousColumn>timeColumn</previousColumn>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </column>
+            </view>
+        </presentation>
+    </widget>
+</dashboard>

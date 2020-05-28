@@ -174,7 +174,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected ModelExecuteOptions createModelOptions() {
-        return ModelExecuteOptions.createRaw();
+        return getPageBase().executeOptions().raw();
     }
 
 }

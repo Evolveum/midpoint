@@ -25,15 +25,12 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -321,15 +318,15 @@ public class PageDebugView extends PageAdminConfiguration {
 //                }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
-                ModelExecuteOptions options = new ModelExecuteOptions();
+                ModelExecuteOptions options = ModelExecuteOptions.create(getPrismContext());
                 if (isTrue(DebugViewOptions.ID_SAVE_AS_RAW)) {
-                    options.setRaw(true);
+                    options.raw(true);
                 }
                 if (isTrue(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS)) {
-                    options.setReevaluateSearchFilters(true);
+                    options.reevaluateSearchFilters(true);
                 }
                 if(!isTrue(DebugViewOptions.ID_ENCRYPT)) {
-                    options.setNoCrypt(true);
+                    options.noCrypt(true);
                 }
 
                 getModelService().executeChanges(deltas, options, task, result);

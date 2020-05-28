@@ -544,7 +544,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(), task, result);
+        recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -579,8 +579,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         partialProcessing.setObjectTemplateAfterAssignments(PartialProcessingTypeType.SKIP);
         partialProcessing.setProjection(PartialProcessingTypeType.SKIP);
         partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
-        ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(partialProcessing);
-        options.setReconcileFocus(true);
+        ModelExecuteOptions options = executeOptions()
+                .partialProcessing(partialProcessing)
+                .reconcileFocus(true);
 
         // WHEN
         when();

@@ -19,7 +19,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -249,7 +248,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 deltaFor(UserType.class)
                         .item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U1"))
                         .asObjectDelta(USER_JACK_OID),
-                ModelExecuteOptions.createRaw(), task, result);
+                executeOptions().raw(), task, result);
 
         recomputeUser(USER_JACK_OID, task, result);
 
@@ -286,7 +285,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 deltaFor(UserType.class)
                         .item(UserType.F_ORGANIZATIONAL_UNIT).delete(PolyString.fromOrig("U2"))
                         .asObjectDelta(USER_JACK_OID),
-                ModelExecuteOptions.createRaw(), task, result);
+                executeOptions().raw(), task, result);
 
         executeChanges(
                 deltaFor(UserType.class)
@@ -323,7 +322,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 deltaFor(UserType.class)
                         .item(UserType.F_ORGANIZATION).add(PolyString.fromOrig("OU: nonsense"))
                         .asObjectDelta(USER_JACK_OID),
-                ModelExecuteOptions.createRaw(), task, result);
+                executeOptions().raw(), task, result);
 
         executeChanges(
                 deltaFor(UserType.class)
@@ -626,7 +625,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 deltaFor(OrgType.class)
                         .item(OrgType.F_EXTENSION, MANAGER_ID_QNAME).replace(id)
                         .asObjectDelta(ORG_GOVERNOR_OFFICE_OID),
-                ModelExecuteOptions.createRaw(), task, result);
+                executeOptions().raw(), task, result);
     }
 
     private void changeEmployeeIdRaw(String id, Task initTask, OperationResult initResult) throws CommonException {
@@ -634,6 +633,6 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
                 deltaFor(UserType.class)
                         .item(UserType.F_EMPLOYEE_NUMBER).replace(id)
                         .asObjectDelta(USER_ELAINE_OID),
-                ModelExecuteOptions.createRaw(), initTask, initResult);
+                executeOptions().raw(), initTask, initResult);
     }
 }
