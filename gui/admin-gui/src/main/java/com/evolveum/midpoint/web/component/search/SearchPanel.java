@@ -615,13 +615,19 @@ public class SearchPanel extends BasePanel<Search> {
                         }
 
                         MoreDialogDto dto = moreDialogModel.getObject();
-                        String nameFilter = dto.getNameFilter();
+//                        String nameFilter = dto.getNameFilter();
 
                         String propertyName = property.getName().toLowerCase();
-                        if (StringUtils.isNotEmpty(nameFilter)
-                                && !propertyName.contains(nameFilter.toLowerCase())) {
-                            return false;
+                        for (SearchItem searchItem : search.getItems()){
+                            if (propertyName.equalsIgnoreCase(searchItem.getName())){
+                                return false;
+                            }
                         }
+
+//                        if (StringUtils.isNotEmpty(nameFilter)
+//                                && !propertyName.contains(nameFilter.toLowerCase())) {
+//                            return false;
+//                        }
 
                         return true;
                     }

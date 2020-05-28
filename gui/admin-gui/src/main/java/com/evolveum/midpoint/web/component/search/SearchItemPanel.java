@@ -7,6 +7,27 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -21,35 +42,14 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.util.ListModel;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -73,6 +73,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
     private static final String ID_REMOVE_BUTTON = "removeButton";
+    private static final String ID_EDIT_BUTTON = "editButton";
 
     private LoadableModel<SearchItemPopoverDto<T>> popoverModel;
 
@@ -145,6 +146,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //            }
 //        });
 //
+        setOutputMarkupId(true);
         initPopover();
 
 
@@ -157,6 +159,18 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         searchItemContainer.add(searchItemLabel);
 
         initSearchItemField(searchItemContainer);
+
+        AjaxSubmitButton editButton = new AjaxSubmitButton(ID_EDIT_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                togglePopover(target);
+            }
+        };
+        editButton.setOutputMarkupId(true);
+        editButton.add(new VisibleBehaviour(() -> SearchItem.Type.REFERENCE.equals(getModelObject().getType())));
+        searchItemContainer.add(editButton);
 
         AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -177,8 +191,42 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         switch (item.getType()) {
             case REFERENCE:
                 //TODO change probably to another component
-                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
-                ((TextPanel)searchItemField).getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("focus") {
+                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public String getObject(){
+                        SearchItem searchItem = getModelObject();
+                        if (searchItem == null || searchItem.getValue() == null){
+                            return null;
+                        }
+                        ObjectReferenceType ref = (ObjectReferenceType) searchItem.getValue().getValue();
+                        if (ref == null){
+                            return null;
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        if (StringUtils.isNotEmpty(ref.getOid())){
+                            sb.append(createStringResource("ReferencePopupPanel.oid").getString());
+                            sb.append(ref.getOid());
+                        }
+                        if (ref.getRelation() != null){
+                            if (sb.length() > 0){
+                                sb.append("; ");
+                            }
+                            sb.append(createStringResource("ReferencePopupPanel.relation").getString());
+                            sb.append(ref.getRelation().getLocalPart());
+                        }
+                        if (ref.getType() != null){
+                            if (sb.length() > 0){
+                                sb.append("; ");
+                            }
+                            sb.append(ref.getType().getLocalPart());
+                        }
+                        return sb.toString();
+                    }
+                });
+                ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new EnableBehaviour(() -> false));
+                ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("focus") {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -283,27 +331,40 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 }
             }
         };
-                SearchPopupPanel<T> value =
-                        (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, refModel) {
+        if (getModelObject() != null && SearchItem.Type.REFERENCE.equals(getModelObject().getType())) {
+            SearchPopupPanel<T> value =
+                    (SearchPopupPanel<T>) new ReferencePopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value")) {
 
-                    private static final long serialVersionUID = 1L;
+                        private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected List<QName> getAllowedRelations() {
-                        if (SearchItemPanel.this.getModelObject().getAllowedRelations() != null) {
-                            return SearchItemPanel.this.getModelObject().getAllowedRelations();
+                        @Override
+                        protected List<QName> getAllowedRelations() {
+                            if (SearchItemPanel.this.getModelObject().getAllowedRelations() != null) {
+                                return SearchItemPanel.this.getModelObject().getAllowedRelations();
+                            }
+                            return super.getAllowedRelations();
                         }
-                        return super.getAllowedRelations();
-                    }
 
-                    @Override
-                    protected List<QName> getSupportedTargetList() {
-                        return new ArrayList<>();
-//                        return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) SearchItemPanel.this.getModelObject().getDefinition()).getTargetTypeName());
-                    }
-                };
-                value.setRenderBodyOnly(true);
-        popoverBody.add(value);
+                        @Override
+                        protected List<QName> getSupportedTargetList() {
+                            ItemDefinition itemDef = SearchItemPanel.this.getModelObject().getDefinition();
+                            if (itemDef instanceof PrismReferenceDefinition) {
+                                return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) SearchItemPanel.this.getModelObject().getDefinition()).getTargetTypeName());
+                            }
+                            return new ArrayList<>();
+                        }
+
+                        @Override
+                        protected void confirmPerformed(AjaxRequestTarget target) {
+                            closeEditPopoverPerformed(target);
+                        }
+                    };
+            value.setRenderBodyOnly(true);
+            popoverBody.add(value);
+        } else {
+            WebMarkupContainer value = new WebMarkupContainer(ID_VALUE);
+            popoverBody.add(value);
+        }
 //
 //        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE, createStringResource("SearchItemPanel.update")) {
 //
@@ -459,9 +520,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 //        return popoverModel;
 //    }
 //
-//    private void closeEditPopoverPerformed(AjaxRequestTarget target) {
-//        togglePopover(target);
-//    }
+    private void closeEditPopoverPerformed(AjaxRequestTarget target) {
+        target.add(SearchItemPanel.this);
+    }
 
     private void editPerformed(AjaxRequestTarget target) {
         LOG.debug("Edit performed");
@@ -478,7 +539,21 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem<T> item = getModelObject();
-        ((SearchValue)item.getValue()).setValue(null);
+//        if (SearchItem.Type.REFERENCE.equals(getModelObject().getType())){
+//            ObjectReferenceType newVal = new ObjectReferenceType();
+//
+//            PrismReferenceDefinition def = (PrismReferenceDefinition) item.getDefinition();
+//            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
+//            if (supportedTargets.size() == 1) {
+//                newVal.setType(supportedTargets.iterator().next());
+//            } else {
+//                newVal.setType(ObjectType.COMPLEX_TYPE);
+//            }
+//            newVal.setType(def.getTargetTypeName());
+//            ((SearchValue)item.getValue()).setValue(newVal);
+//        } else {
+            ((SearchValue) item.getValue()).setValue(null);
+//        }
 //        Search search = item.getSearch();
 //        search.delete(item);
 //

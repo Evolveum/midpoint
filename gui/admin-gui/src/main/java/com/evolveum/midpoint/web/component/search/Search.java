@@ -136,6 +136,8 @@ public class Search implements Serializable, DebugDumpable {
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
             if (supportedTargets.size() == 1) {
                 ref.setType(supportedTargets.iterator().next());
+            } else {
+                ref.setType(ObjectType.COMPLEX_TYPE);
             }
             if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
                 ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
