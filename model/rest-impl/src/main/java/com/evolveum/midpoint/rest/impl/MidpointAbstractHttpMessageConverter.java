@@ -14,7 +14,6 @@ import java.util.Locale;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -26,6 +25,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -60,7 +60,8 @@ public abstract class MidpointAbstractHttpMessageConverter<T> extends AbstractHt
     }
 
     @Override
-    protected T readInternal(@NotNull Class<? extends T> clazz, @NotNull HttpInputMessage inputMessage)
+    protected @NotNull T readInternal(
+            @NotNull Class<? extends T> clazz, @NotNull HttpInputMessage inputMessage)
             throws IOException, HttpMessageNotReadableException {
         PrismParser parser = getParser(inputMessage.getBody());
 
@@ -76,6 +77,7 @@ public abstract class MidpointAbstractHttpMessageConverter<T> extends AbstractHt
                 // This code covers type migrations, eventually we'd like to drop old type support.
                 object = migrateType(object, clazz);
             }
+            //noinspection ConstantConditions - we assume object is NOT null
             return clazz.cast(object);
         } catch (SchemaException e) {
             throw new HttpMessageNotReadableException("Failure during read", e, inputMessage);

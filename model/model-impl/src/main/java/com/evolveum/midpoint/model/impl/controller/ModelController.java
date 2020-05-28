@@ -163,7 +163,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return certificationManager;
     }
 
-
+    @NotNull
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException,

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.query.builder;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 
 import javax.xml.namespace.QName;
@@ -20,6 +21,7 @@ public interface S_AtomicFilterEntry {
     S_AtomicFilterExit all();
     S_AtomicFilterExit none();
     S_AtomicFilterExit undefined();
+    S_AtomicFilterExit filter(ObjectFilter filter); // not much tested, use with care
     S_ConditionEntry item(QName... names);
     S_ConditionEntry item(String... names);
     S_ConditionEntry item(ItemPath path);

@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -173,6 +175,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Qualifier("sqlRepositoryServiceImpl")
     protected RepositoryService plainRepositoryService;
 
+    @Autowired protected ReferenceResolver referenceResolver;
     @Autowired protected SystemObjectCache systemObjectCache;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected ProvisioningService provisioningService;

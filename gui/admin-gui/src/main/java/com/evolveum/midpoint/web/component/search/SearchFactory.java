@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
@@ -212,7 +211,7 @@ public class SearchFactory {
                 item.setFixed(true);
             }
         }
-        search.setShowMoreDialog(isAllowToConfigureSearchItems(modelServiceLocator, type, collectionViewName));
+        search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, type, collectionViewName));
         return search;
     }
 

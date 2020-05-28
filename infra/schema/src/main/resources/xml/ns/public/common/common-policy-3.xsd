@@ -2067,11 +2067,34 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="asynchronous" type="c:AsynchronousScriptExecutionType" minOccurs="0">
+                    <xsd:element name="asynchronousExecution" type="c:AsynchronousScriptExecutionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Options for asynchronous script execution.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="runAsRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                Reference to the user whose identity will be used to execute the script,
+                                including search for relevant objects and/or task submission in case of
+                                asynchronous execution.
+                                </p>
+                                <p>
+                                The whole process will use authorizations that this user has. If the script
+                                triggers any change then the change will be audited under the identity of
+                                this user.
+                                </p>
+                                <p>
+                                If no user is specified then the identify of currently logged-in user or
+                                the owner of the task will be used.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -2820,6 +2843,7 @@
                 Options for asynchronous script execution.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:container>true</a:container>
                 <a:since>4.2</a:since>
                 <a:experimental>true</a:experimental>
             </xsd:appinfo>
@@ -2831,7 +2855,8 @@
                         Mode of execution.
                     </xsd:documentation>
                 </xsd:annotation>
-            </xsd:element><xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="taskTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Task template to use.
@@ -2839,7 +2864,7 @@
                         EXPERIMENTAL.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:objectReferenceTargetType>TaskType</a:objectReferenceTargetType>
+                        <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
