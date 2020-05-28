@@ -41,6 +41,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 
+import org.springframework.util.ClassUtils;
+
 import static java.util.Collections.*;
 
 /**
@@ -796,6 +798,19 @@ public class MiscUtil {
         } else {
             //noinspection unchecked
             return (T) value;
+        }
+    }
+
+    public static Class<?> determineCommonAncestor(Collection<Class<?>> classes) {
+        if (!classes.isEmpty()) {
+            Iterator<Class<?>> iterator = classes.iterator();
+            Class<?> currentCommonAncestor = iterator.next();
+            while (iterator.hasNext()) {
+                currentCommonAncestor = ClassUtils.determineCommonAncestor(currentCommonAncestor, iterator.next());
+            }
+            return currentCommonAncestor;
+        } else {
+            return null;
         }
     }
 }
