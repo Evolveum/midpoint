@@ -7,10 +7,17 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.security.RunAsRunner;
+import com.evolveum.midpoint.model.impl.security.RunAsRunnerFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +61,10 @@ public class PolicyRuleScriptExecutor {
     @Autowired ModelService modelService;
     @Autowired SecurityContextManager securityContextManager;
     @Autowired ModelObjectResolver modelObjectResolver;
+    @Autowired ReferenceResolver referenceResolver;
     @Autowired ExpressionFactory expressionFactory;
     @Autowired ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+    @Autowired RunAsRunnerFactory runAsRunnerFactory;
 
     public void execute(@NotNull LensContext<?> context, Task task, OperationResult parentResult)
             throws SchemaException {
@@ -108,13 +117,18 @@ public class PolicyRuleScriptExecutor {
 
         // Must not be minor because of background OID information.
         OperationResult result = parentResult.createSubresult(OP_EXECUTE_SCRIPTS_FROM_RULES);
-        try {
+        try (RunAsRunner runAsRunner = runAsRunnerFactory.runner()) {
             for (EvaluatedPolicyRuleImpl rule : rules) {
                 List<ScriptExecutionPolicyActionType> enabledActions = rule.getEnabledActions(ScriptExecutionPolicyActionType.class);
                 LOGGER.trace("Rule {} has {} enabled script execution actions", rule, enabledActions.size());
                 for (ScriptExecutionPolicyActionType action : enabledActions) {
                     ActionContext actx = new ActionContext(action, rule, context, task, this);
-                    executeScriptingAction(actx, result);
+                    try {
+                        // We should consider ordering actions to be executed by runAsRef to avoid unnecessary context switches.
+                        runAsRunner.runAs(() -> executeScriptingAction(actx, result), actx.action.getRunAsRef(), result);
+                    } catch (CommonException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute scripting action - continuing with others (if present)", e);
+                    }
                 }
             }
         } catch (Throwable t) {

@@ -7,12 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
+import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isChanged;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +29,6 @@ import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -37,7 +41,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Evaluates assignment target(s) - if there are any.
@@ -171,7 +174,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     }
 
     @NotNull
-    private List<? extends PrismObject<? extends ObjectType>> getTargets() throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private List<? extends PrismObject<? extends ObjectType>> getTargets() throws SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             return resolveTargets(segment, ctx, result);
         } catch (ObjectNotFoundException ex) {
@@ -182,75 +186,54 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             // For OrgType references we trigger the reconciliation (see MID-2242)
             ctx.evalAssignment.setForceRecon(true);
             return Collections.emptyList();
+        } catch (SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException |
+                SecurityViolationException | RuntimeException e) {
+            MiscUtil.throwAsSame(e, "Couldn't resolve targets in " + segment.assignment + " in " +
+                    segment.sourceDescription + ": " + e.getMessage());
+            throw e; // just to make compiler happy (exception is thrown in the above statement)
         }
     }
 
     @NotNull
-    private List<? extends PrismObject<? extends ObjectType>> resolveTargets(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
+    private List<PrismObject<? extends ObjectType>> resolveTargets(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
             OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectReferenceType targetRef = segment.assignment.getTargetRef();
-        String oid = targetRef.getOid();
-
-        // Target is referenced, need to fetch it
-        Class<? extends ObjectType> targetClass;
-        if (targetRef.getType() != null) {
-            targetClass = ctx.ae.prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
-            if (targetClass == null) {
-                throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + segment.assignment + " in " + segment.sourceDescription);
-            }
-        } else {
-            throw new SchemaException("Missing type in target reference in " + segment.assignment + " in " + segment.sourceDescription);
-        }
-
-        if (oid == null) {
-            LOGGER.trace("Resolving dynamic target ref");
-            if (targetRef.getFilter() == null) {
-                throw new SchemaException("The OID and filter are both null in assignment targetRef in "+segment.source);
-            }
-            return resolveTargetsFromFilter(targetClass, targetRef.getFilter(), segment, ctx, result);
-        } else {
-            LOGGER.trace("Resolving target {}:{} from repository", targetClass.getSimpleName(), oid);
-            PrismObject<? extends ObjectType> target;
-            try {
-                target = ctx.ae.repository.getObject(targetClass, oid, null, result);
-            } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " in " + segment.sourceDescription, e);
-            }
-            // Not handling object not found exception here. Caller will handle that.
-            if (target == null) {
-                throw new IllegalArgumentException("Got null target from repository, oid:"+oid+", class:"+targetClass+" (should not happen, probably a bug) in "+segment.sourceDescription);
-            }
-            return Collections.singletonList(target);
-        }
+        ReferenceResolver.FilterEvaluator filterEvaluator = createFilterEvaluator(segment, ctx);
+        return ctx.ae.referenceResolver.resolve(targetRef, null, REPOSITORY, filterEvaluator, ctx.task, result);
     }
 
     @NotNull
-    private List<? extends PrismObject<? extends ObjectType>> resolveTargetsFromFilter(Class<? extends ObjectType> targetClass,
-            SearchFilterType filter, AssignmentPathSegmentImpl segment,
-            EvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
-        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result));
-        try {
-            PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
-            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null, null, systemConfiguration.asObjectable(), ctx.ae.prismContext);
-            variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
-            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
-            if (assignmentPathVariables != null) {
-                ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
-            }
-            variables.addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables());
-            ObjectFilter origFilter = ctx.ae.prismContext.getQueryConverter().parseFilter(filter, targetClass);
-            // TODO: expression profile should be determined from the holding object archetype
-            ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, expressionProfile, ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext, " evaluating resource filter expression ", ctx.task, result);
-            if (evaluatedFilter == null) {
-                throw new SchemaException("The OID is null and filter could not be evaluated in assignment targetRef in "+segment.source);
-            }
+    private ReferenceResolver.FilterEvaluator createFilterEvaluator(AssignmentPathSegmentImpl segment,
+            EvaluationContext<AH> ctx) {
+        return (rawFilter, result1) -> {
+                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                        new ExpressionEnvironment<>(ctx.ae.lensContext, null, ctx.task, result1));
+                try {
+                    // TODO: expression profile should be determined from the holding object archetype
+                    ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+                    ExpressionVariables variables = createVariables(segment, ctx, result1);
+                    return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
+                            ctx.ae.mappingFactory.getExpressionFactory(), ctx.ae.prismContext,
+                            " evaluating resource filter expression ", ctx.task, result1);
+                } finally {
+                    ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+                }
+            };
+    }
 
-            return ctx.ae.repository.searchObjects(targetClass, ctx.ae.prismContext.queryFactory().createQuery(evaluatedFilter), null, result);
-            // we don't check for no targets here; as we don't care for referential integrity
-        } finally {
-            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+    @NotNull
+    private ExpressionVariables createVariables(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx,
+            OperationResult result) throws SchemaException {
+        PrismObject<SystemConfigurationType> systemConfiguration = ctx.ae.systemObjectCache.getSystemConfiguration(result);
+        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(segment.source, null,
+                null, systemConfiguration.asObjectable(), ctx.ae.prismContext);
+        variables.put(ExpressionConstants.VAR_SOURCE, segment.getOrderOneObject(), ObjectType.class);
+        AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
+        if (assignmentPathVariables != null) {
+            ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
         }
+        variables.addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables());
+        return variables;
     }
 }

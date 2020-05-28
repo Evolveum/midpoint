@@ -88,7 +88,10 @@ class LinkSourceFinder implements AutoCloseable {
             ExpressionEvaluationException {
         ObjectQuery query = createQuery(sourceSelectors);
         Class<? extends AssignmentHolderType> objectType = getSourceType();
-        return new CompleteQuery<>(objectType, query, null);
+        CompleteQuery<? extends AssignmentHolderType> completeQuery = new CompleteQuery<>(objectType, query, null);
+
+        LOGGER.trace("Sources as query:\n{}", completeQuery.debugDumpLazily());
+        return completeQuery;
     }
 
     private ObjectQuery createQuery(List<LinkSourceObjectSelectorType> sourceSelectors) throws CommunicationException,
@@ -133,7 +136,6 @@ class LinkSourceFinder implements AutoCloseable {
 
     @NotNull
     private List<PrismObject<? extends ObjectType>> searchForSources(CompleteQuery<?> completeQuery) throws SchemaException {
-        LOGGER.trace("Looking for link sources using computed query:\n{}", completeQuery.debugDumpLazily());
         //noinspection unchecked
         return (List) beans.repositoryService.searchObjects(completeQuery.getType(),
                 completeQuery.getQuery(), completeQuery.getOptions(), result);
@@ -141,7 +143,6 @@ class LinkSourceFinder implements AutoCloseable {
 
     @NotNull
     private List<PrismReferenceValue> searchForSourceReferences(CompleteQuery<?> completeQuery) throws SchemaException {
-        LOGGER.trace("Looking for link sources (as references) using computed query:\n{}", completeQuery.debugDumpLazily());
         List<PrismReferenceValue> references = new ArrayList<>();
         beans.repositoryService.searchObjectsIterative(completeQuery.getType(), completeQuery.getQuery(),
                 (object, parentResult) ->

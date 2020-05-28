@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
+import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -126,8 +127,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
         Task recomputeTask = waitForTaskFinish(taskOid, false);
         assertTask(recomputeTask, "recompute task after")
                 .display()
-                .assertSuccess()
-                .assertClosed();
+                .assertSuccess();
 
         assertUserAfterByUsername("user-dcs-0000")
                 .assertCostCenter("07999");

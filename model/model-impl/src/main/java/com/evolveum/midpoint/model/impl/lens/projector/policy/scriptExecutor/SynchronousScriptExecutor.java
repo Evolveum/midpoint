@@ -78,8 +78,7 @@ class SynchronousScriptExecutor {
 
     private VariablesMap createInitialVariables() {
         VariablesMap rv = new VariablesMap();
-        rv.put(ExpressionConstants.VAR_POLICY_ACTION, actx.action, ScriptExecutionPolicyActionType.class);
-        rv.put(ExpressionConstants.VAR_POLICY_RULE, actx.rule, EvaluatedPolicyRule.class);
+        actx.putIntoVariables(rv);
         rv.put(ExpressionConstants.VAR_MODEL_CONTEXT, actx.context, ModelContext.class);
         return rv;
     }
