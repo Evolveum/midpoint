@@ -217,12 +217,7 @@ public class CollectionProcessor {
         if (filter == null) {
             return null;
         }
-        Collection<SelectorOptions<GetOperationOptions>> options = null;
-        if (ShadowType.class.isAssignableFrom(targetTypeClass)){
-            options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-        }
-
-        return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), options, task, result);
+        return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), null, task, result);
     }
 
     public CompiledObjectCollectionView compileObjectCollectionView(PrismObject<ObjectCollectionType> collection,
