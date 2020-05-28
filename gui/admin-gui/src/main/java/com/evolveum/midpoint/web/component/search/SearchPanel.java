@@ -135,7 +135,14 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             protected void populateItem(ListItem<SearchItem<?>> item) {
-                SearchItemPanel<?> searchItem = new SearchItemPanel(ID_ITEM, item.getModel());
+                SearchItemPanel<?> searchItem = new SearchItemPanel(ID_ITEM, item.getModel()){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean canRemoveSearchItem(){
+                        return SearchPanel.this.getModelObject().isCanConfigure();
+                    }
+                };
                 item.add(searchItem);
             }
         };
@@ -143,7 +150,7 @@ public class SearchPanel extends BasePanel<Search> {
         form.add(items);
 
         WebMarkupContainer moreGroup = new WebMarkupContainer(ID_MORE_GROUP);
-        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isShowMoreDialog()));
+        moreGroup.add(new VisibleBehaviour(() -> createVisibleBehaviour(SearchBoxModeType.BASIC).isVisible() && getModelObject().isCanConfigure()));
         form.add(moreGroup);
 
         AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {

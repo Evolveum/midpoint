@@ -57,7 +57,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private boolean showAdvanced = false;
     private boolean isFullTextSearchEnabled = false;
-    private boolean showMoreDialog;
+    private boolean canConfigure;
 
     private String advancedQuery;
     private String advancedError;
@@ -379,12 +379,12 @@ public class Search implements Serializable, DebugDumpable {
         isFullTextSearchEnabled = fullTextSearchEnabled;
     }
 
-    public boolean isShowMoreDialog() {
-        return showMoreDialog;
+    public boolean isCanConfigure() {
+        return canConfigure;
     }
 
-    public void setShowMoreDialog(boolean showMoreDialog) {
-        this.showMoreDialog = showMoreDialog;
+    public void setCanConfigure(boolean canConfigure) {
+        this.canConfigure = canConfigure;
     }
 
     private String createErrorMessage(Exception ex) {

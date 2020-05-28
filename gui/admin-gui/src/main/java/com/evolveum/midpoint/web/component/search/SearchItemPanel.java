@@ -180,6 +180,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 deletePerformed(target);
             }
         };
+        removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
         removeButton.setOutputMarkupId(true);
         searchItemContainer.add(removeButton);
     }
@@ -308,6 +309,10 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         }
 
         return dto;
+    }
+
+    protected boolean canRemoveSearchItem(){
+        return false;
     }
 
     private void initPopover() {
@@ -539,24 +544,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private void deletePerformed(AjaxRequestTarget target) {
         SearchItem<T> item = getModelObject();
-//        if (SearchItem.Type.REFERENCE.equals(getModelObject().getType())){
-//            ObjectReferenceType newVal = new ObjectReferenceType();
-//
-//            PrismReferenceDefinition def = (PrismReferenceDefinition) item.getDefinition();
-//            List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(def.getTargetTypeName());
-//            if (supportedTargets.size() == 1) {
-//                newVal.setType(supportedTargets.iterator().next());
-//            } else {
-//                newVal.setType(ObjectType.COMPLEX_TYPE);
-//            }
-//            newVal.setType(def.getTargetTypeName());
-//            ((SearchValue)item.getValue()).setValue(newVal);
-//        } else {
-            ((SearchValue) item.getValue()).setValue(null);
-//        }
-//        Search search = item.getSearch();
-//        search.delete(item);
-//
+        Search search = item.getSearch();
+        search.delete(item);
+
         SearchPanel panel = findParent(SearchPanel.class);
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
