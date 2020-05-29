@@ -167,7 +167,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 wrapper.setLoadWithNoFetch(noFetch);
 
                 if (wrapper != null) {
-                    list.add((ShadowWrapper)wrapper);
+                    list.add(wrapper);
                 } else {
                     showResult(subResult, "pageAdminFocus.message.shadowWrapperIsNull");
                     LOGGER.error("ShadowWrapper is null");
