@@ -4,10 +4,8 @@ model axiom-lang {
 
     root model {
         documentation """
-            Axiom Model
-
             Declares a new axiom model.
-            """;
+        """;
         type AxiomModel;
     }
 
@@ -28,10 +26,8 @@ model axiom-lang {
 
         item root {
             documentation """
-              Root Definition
-
-              Root Definition defines allowed root for serialized documents
-              modeled by Axiom language.
+                Defines allowed root for serialized documents
+                modeled by Axiom language.
             """;
             type AxiomRootDefinition;
         }
@@ -49,7 +45,7 @@ model axiom-lang {
         item mixin {
             type AxiomMixinDefinition;
             documentation """
-                Mixin Declaration, declares a new global mixin, aset of reusable item
+                Declares a new global mixin, a set of reusable item
                 definitions, which can be used in type definitions.
             """;
         }
@@ -190,12 +186,20 @@ model axiom-lang {
     }
 
     type AxiomTypeReference {
+        documentation "Type Reference";
         argument name;
+
         item name {
+            documentation "Name of referenced type";
             type AxiomIdentifier;
+            minOccurs 1;
+            maxOccurs 1;
         }
         item target {
+            documentation "Definition of referenced type";
             type AxiomTypeDefinition;
+            minOccurs 1;
+            maxOccurs 1;
             operational true;
         }
     }
@@ -212,8 +216,6 @@ model axiom-lang {
     }
 
     // "Type library" (temporary)
-
-
 
     type SemanticVersion {
         extends string;

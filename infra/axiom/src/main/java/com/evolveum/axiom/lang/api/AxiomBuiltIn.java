@@ -55,6 +55,7 @@ public class AxiomBuiltIn {
 
         public static final AxiomItemDefinition TARGET = new Item("target", Type.TYPE_REFERENCE, true);
         public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
+        public static final AxiomItemDefinition USES = new Item("uses", Type.TYPE_REFERENCE, true);
 
 
         private final AxiomIdentifier identifier;

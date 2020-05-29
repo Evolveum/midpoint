@@ -132,10 +132,21 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomIdentifier> {
                 addFromType(typeDef.get(), superTypeValue.parentValue(), typeDef.get().name());
             });
         }
-
-
     },
+    ITEMS_FROM_MIXIN(items(Item.USES),types(Type.TYPE_REFERENCE)) {
 
+        @Override
+        public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
+            Dependency<AxiomTypeDefinition> typeDef =
+                    action.require(
+                            context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
+                            .map(v -> v.get()));
+            typeDef.unsatisfied(() -> action.error("Supertype is not complete."));
+            action.apply(superTypeValue -> {
+                addFromType(typeDef.get(), superTypeValue.parentValue(), typeDef.get().name());
+            });
+        }
+    },
     IMPORT_DEFAULT_TYPES(all(), types(Type.MODEL)) {
         @Override
         public void apply(Lookup<AxiomIdentifier> context, ActionBuilder<AxiomIdentifier> action) throws AxiomSemanticException {
