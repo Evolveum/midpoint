@@ -48,6 +48,9 @@ model prism {
         item objectReference {
             type boolean;
         }
+        item itemName {
+            type axiom:AxiomName;
+        }
     }
 
     type PrismTypeDefinition {

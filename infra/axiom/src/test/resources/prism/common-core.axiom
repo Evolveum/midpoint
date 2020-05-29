@@ -17,7 +17,7 @@ model common-core {
 
     type Object {
         prism:object;
-        itemName object;
+        prism:itemName object;
         documentation """
             Common supertype for all identity objects. Defines basic properties
             that each object must have to live in our system (identifier, name).
@@ -235,7 +235,7 @@ model common-core {
 
     type AssignmentHolder {
         extends Object;
-        itemName assignmentHolder;
+        prism:itemName assignmentHolder;
         documentation """
             Abstract supertype for all object types that can have assignments.
         """;
@@ -361,7 +361,7 @@ model common-core {
 
     type Focus {
         extends AssignmentHolder;
-        itemName focus;
+        prism:itemName focus;
         documentation """
             Abstract supertype for all object types that can be focus of full midPoint computation.
             This basically means objects that have projections. But focal objects also have
@@ -886,7 +886,7 @@ model common-core {
     // Example of short version of container definition.
     prism:container {
         name Assignment;
-        itemName assignment;
+        prism:itemName assignment;
 
         // item description; // TODO make this work
         // item documentation; // TODO make this work
@@ -897,7 +897,7 @@ model common-core {
 
     prism:container {
         name Extension;
-        itemName extension;
+        prism:itemName extension;
         documentation """
             Extension container that provides generic extensibility mechanism.
             Almost any extension property can be placed in this container.
@@ -912,7 +912,7 @@ model common-core {
 
     prism:object GenericObject {
         extends Focus;
-        itemName genericObject;
+        prism:itemName genericObject;
         documentation """
             Generic object for storing unknown (unexpected) object types.
 
@@ -929,7 +929,7 @@ model common-core {
     }
 
     prism:container Trigger {
-        itemName trigger;
+        prism:itemName trigger;
         documentation """
             Defines triggers for an object. Trigger is an action that should take place
             at specified time or under some other condition.
@@ -965,7 +965,7 @@ model common-core {
     }
 
     prism:container Metadata {
-        itemName metadata;
+        prism:itemName metadata;
         documentation """
             Meta-data about data creation, modification, etc.
             It may apply to objects but also parts of the object (e.g. assignments).

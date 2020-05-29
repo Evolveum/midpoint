@@ -160,11 +160,6 @@ model axiom-lang {
             minOccurs 0;
         }
 
-        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
-        item itemName {
-            type AxiomName;
-        }
-
         item item {
             type AxiomItemDefinition;
             identifier name;
