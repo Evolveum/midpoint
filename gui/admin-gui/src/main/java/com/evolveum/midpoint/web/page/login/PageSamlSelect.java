@@ -43,12 +43,16 @@ import static java.lang.String.format;
 @PageDescriptor(urls = {
                     @Url(mountUrl = "/saml2/select", matchUrlForSecurity = "/saml2/select")
                 }, permitAll = true, loginPage = true)
-public class PageSamlSelect extends PageBase implements Serializable {
+public class PageSamlSelect extends AbstractPageLogin implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSamlSelect.class);
 
     public PageSamlSelect() {
+    }
+
+    @Override
+    protected void initCustomLayer() {
         List<IdentityProvider> providers = getProviders();
         add(new ListView<IdentityProvider>("providers", providers) {
             @Override
@@ -56,7 +60,6 @@ public class PageSamlSelect extends PageBase implements Serializable {
                 item.add(new ExternalLink("provider", item.getModelObject().getRedirectLink(), item.getModelObject().getLinkText()));
             }
         });
-
     }
 
     private List<IdentityProvider> getProviders() {
@@ -80,54 +83,5 @@ public class PageSamlSelect extends PageBase implements Serializable {
         String key = "web.security.flexAuth.unsupported.auth.type";
         error(getString(key));
         return providers;
-    }
-
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
-            return;
-        }
-
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        clearBreadcrumbs();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        if (SecurityUtils.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
-    }
-
-    @Override
-    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
-        return false;
     }
 }

@@ -19,6 +19,7 @@ public class SecurityPolicyUtil {
     public static final String DEFAULT_MODULE_NAME = "loginForm";
     public static final String HTTP_BASIC_MODULE_NAME = "httpBasic";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
+    public static final String DEFAULT_SEQUENCE_DISPLAY_NAME = "Default gui sequence";
     public static final String REST_SEQUENCE_NAME = "rest-default";
     public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
     public static final String PASSWORD_RESET_SEQUENCE_NAME = "password-reset-default";
@@ -206,6 +207,7 @@ public class SecurityPolicyUtil {
     public static AuthenticationSequenceType createDefaultSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(DEFAULT_SEQUENCE_NAME);
+        sequence.setDisplayName(DEFAULT_SEQUENCE_DISPLAY_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
         channel.channelId(DEFAULT_CHANNEL);
