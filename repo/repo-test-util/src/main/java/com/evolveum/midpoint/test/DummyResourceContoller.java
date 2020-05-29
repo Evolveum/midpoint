@@ -180,8 +180,6 @@ public class DummyResourceContoller extends AbstractResourceController {
 
         DummyObjectClass privilegeObjectClass = dummyResource.getPrivilegeObjectClass();
         addAttrDef(privilegeObjectClass, DUMMY_PRIVILEGE_ATTRIBUTE_POWER, Integer.class, false, false);
-
-        isExtendedSchema = true;
     }
 
     /**
@@ -205,8 +203,6 @@ public class DummyResourceContoller extends AbstractResourceController {
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_ACCOUNT_EXPIRES_NAME, Long.class, false, false);
         // This should in fact be icfs:groups but this is OK for now
         addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME, String.class, false, true);
-
-        isExtendedSchema = true;
     }
 
     /**
@@ -217,12 +213,12 @@ public class DummyResourceContoller extends AbstractResourceController {
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Integer.class, false, false);            // uid and gid are temporarily not required
         addAttrDef(posixAccount, DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Integer.class, false, false);
         dummyResource.addAuxiliaryObjectClass(DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME, posixAccount);
-        isExtendedSchema = true;
     }
 
-    public DummyAttributeDefinition addAttrDef(DummyObjectClass accountObjectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+    public DummyAttributeDefinition addAttrDef(DummyObjectClass objectClass, String attrName, Class<?> type, boolean isRequired, boolean isMulti) {
+        isExtendedSchema = true;
         DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attrName, type, isRequired, isMulti);
-        accountObjectClass.add(attrDef);
+        objectClass.add(attrDef);
         return attrDef;
     }
 
