@@ -115,7 +115,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
     private void addSkippedTargetsToMembershipLists()
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
-        boolean resolvedTargets = false;
+//        boolean resolvedTargets = false;
         // TODO CLEAN THIS UP
         // Important: but we still want this to be reflected in roleMembershipRef
         if (segment.isNonNegativeRelativityMode() && Util.shouldCollectMembership(segment)) {
@@ -123,7 +123,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
                 ctx.membershipCollector.collect(segment.assignment.getTargetRef(), segment.relation);
             } else {
                 // no OID, so we have to resolve the filter
-                resolvedTargets = true;
+//                resolvedTargets = true;
                 targets.addAll(getTargets());
                 for (PrismObject<? extends ObjectType> targetObject : targets) {
                     ObjectType target = targetObject.asObjectable();
@@ -134,10 +134,11 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
             }
         }
 
-        // We have to know targets for direct assignments
-        if (segment.direct && !resolvedTargets) {
-            targets.addAll(getTargets());
-        }
+        // We have to know targets for direct assignments.
+        // But these should be perhaps loaded lazily (MID-6292)
+//        if (segment.direct && !resolvedTargets) {
+//            targets.addAll(getTargets());
+//        }
     }
 
     private boolean hasCycle(@NotNull PrismObject<? extends ObjectType> target) throws PolicyViolationException {
