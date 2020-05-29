@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
+import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
+import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
+
+import java.io.File;
+import java.io.IOException;
+
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -14,18 +21,12 @@ import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstan
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Creates empty but functional environment for model integration tests - but without all the configured objects
@@ -48,9 +49,6 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
     static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
     protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-
-    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-iterative-bulk-action.xml", SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
-    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-single-bulk-action.xml", SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
 
     protected PrismObject<UserType> userAdministrator;
 
@@ -104,5 +102,16 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
             ObjectAlreadyExistsException, EncryptionException, IOException {
         repoAdd(ARCHETYPE_TASK_ITERATIVE_BULK_ACTION, initResult);
         repoAdd(ARCHETYPE_TASK_SINGLE_BULK_ACTION, initResult);
+    }
+
+    /**
+     * Runs "trigger scanner on demand" task: starts it and waits for its completion.
+     *
+     * Note that the task must be imported before using this method. This method can be then run
+     * repeatedly.
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected Task runTriggerScannerOnDemand(OperationResult result) throws CommonException {
+        return rerunTask(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
     }
 }

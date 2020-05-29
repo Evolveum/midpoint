@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,36 +120,49 @@ public class ExpressionUtil {
             return (O) inputVal;
         }
 
-        Object intermediateVal;
+        Object intermediateInputVal = treatGString(inputVal);
+        intermediateInputVal = treatEncryption(finalExpectedJavaType, intermediateInputVal, protector);
+        intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
+
+        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
+        PrismUtil.recomputeRealValue(convertedVal, prismContext);
+        return convertedVal;
+    }
+
+    private static Object treatGString(Object inputVal) {
+        if (inputVal instanceof GString) {
+            return inputVal.toString();
+        } else {
+            return inputVal;
+        }
+    }
+
+    private static <I, O> Object treatEncryption(Class<O> finalExpectedJavaType, I inputVal, Protector protector) {
         if (finalExpectedJavaType == ProtectedStringType.class) {
-            String valueToEncrypt;
-            if (inputVal instanceof String) {
-                valueToEncrypt = (String) inputVal;
-            } else {
-                valueToEncrypt = JavaTypeConverter.convert(String.class, inputVal);
-            }
             try {
-                intermediateVal = protector.encryptString(valueToEncrypt);
+                // We know that input is not ProtectedStringType
+                return protector.encryptString(JavaTypeConverter.convert(String.class, inputVal));
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else if (inputVal instanceof ProtectedStringType) {
             try {
-                intermediateVal = protector.decryptString((ProtectedStringType) inputVal);
+                // We know that expected java type is not ProtectedStringType
+                return protector.decryptString((ProtectedStringType) inputVal);
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
-            intermediateVal = inputVal;
+            return inputVal;
         }
+    }
 
+    private static <I> Object treatAdditionalConvertor(Function<Object, Object> additionalConvertor, Object inputVal) {
         if (additionalConvertor != null) {
-            intermediateVal = additionalConvertor.apply(intermediateVal);
+            return additionalConvertor.apply(inputVal);
+        } else {
+            return inputVal;
         }
-
-        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
-        PrismUtil.recomputeRealValue(convertedVal, prismContext);
-        return convertedVal;
     }
 
     // TODO: do we need this?

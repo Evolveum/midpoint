@@ -26,4 +26,28 @@
             </expression>
         </mapping>
     </item>
+    <item>
+        <ref>organization</ref>
+        <mapping>
+            <evaluationPhase>afterAssignments</evaluationPhase>
+            <strength>strong</strength>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+                        ARCHETYPE_CLUB_OID = 'fefa9261-b897-439c-ad79-15f10d547bba'
+
+                        midpoint.findLinkedTargets(OrgType.class, ARCHETYPE_CLUB_OID)
+                            .collect { "${it.name} (${it.displayName})" }
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+        </mapping>
+    </item>
 </objectTemplate>

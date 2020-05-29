@@ -12,10 +12,19 @@
 
     <inducement>
         <policyRule>
+            <documentation>
+                When club name or displayName changes, members must be recomputed
+                (but only if requested by an execution option).
+            </documentation>
             <policyConstraints>
-                <modification>
-                    <item>costCenter</item>
-                </modification>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>displayName</item>
+                    </modification>
+                </or>
             </policyConstraints>
             <policyActions>
                 <scriptExecution>
@@ -23,15 +32,42 @@
                         <linkSource/>
                     </object>
                     <executeScript>
-                        <s:recompute/>
+                        <s:recompute>
+                            <!--
+                                We use optimized triggers because we expect that members will be recomputed during
+                                reconciliation of 'clubs' resource. Reconciliation can result in modification of
+                                a number of clubs at approximately the same time. So it's better to avoid repeated
+                                recomputation of individual members by using triggers - or even better, optimizing
+                                delayed triggers.
+                            -->
+                            <s:triggered>
+                                <fireAfter>PT1M</fireAfter>
+                            </s:triggered>
+                        </s:recompute>
                     </executeScript>
+                    <asynchronousExecution>
+                        <taskCustomizer>
+                            <script>
+                                <code>import com.evolveum.prism.xml.ns._public.types_3.PolyStringType
+
+                                // Using worker threads when (only) setting triggers is maybe not necessary.
+                                // But we use it here e.g. to demonstrate how we can set the number of worker
+                                // threads using execute options in synchronization reaction.
+
+                                preparedTask.name = PolyStringType.fromOrig('Trigger club members recomputation')
+                                basic.setTaskWorkerThreads(preparedTask, midpoint.getExtensionOptionRealValue('memberRecomputationWorkerThreads'))
+                                preparedTask
+                                </code>
+                            </script>
+                        </taskCustomizer>
+                    </asynchronousExecution>
                 </scriptExecution>
             </policyActions>
         </policyRule>
         <condition>
             <expression>
                 <script>
-                    <code>midpoint.extensionOptionIsNotFalse('recomputeMembers')</code>
+                    <code>midpoint.extensionOptionIsTrue('recomputeMembers')</code>
                 </script>
             </expression>
         </condition>

@@ -249,6 +249,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, F_EXECUTE_IMMEDIATELY_AFTER_APPROVAL);
     }
 
+    public Boolean getLimitPropagation() {
+        return content.isLimitPropagation();
+    }
+
     public ModelExecuteOptions limitPropagation(Boolean limitPropagation) {
         content.setLimitPropagation(limitPropagation);
         return this;
@@ -391,7 +395,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     }
 
     public static ModelExecuteOptions fromModelExecutionOptionsType(ModelExecuteOptionsType bean) {
-        return bean != null ? new ModelExecuteOptions(bean) : null;
+        return bean != null ? new ModelExecuteOptions(bean.clone()) : null;
     }
 
     public static ModelExecuteOptions fromRestOptions(List<String> options, PrismContext prismContext) {
