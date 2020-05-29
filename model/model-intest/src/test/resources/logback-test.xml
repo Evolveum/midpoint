@@ -141,7 +141,7 @@
     <logger name="com.evolveum.icf.dummy.connector" level="DEBUG" />
     <logger name="com.evolveum.icf.dummy.resource" level="DEBUG" />
 
-    <!--<logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor" level="TRACE" />-->
+    <!--<logger name="com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor" level="TRACE" />-->
     <root level="INFO">
         <appender-ref ref="X" />
         <appender-ref ref="TracingAppender" />

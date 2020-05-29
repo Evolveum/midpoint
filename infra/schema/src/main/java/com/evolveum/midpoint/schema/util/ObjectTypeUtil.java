@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +34,7 @@ import org.w3c.dom.Element;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -911,5 +911,36 @@ public class ObjectTypeUtil {
             temp.clear();
         }
         return customColumnsList;
+    }
+
+    public static void setExtensionPropertyRealValues(PrismContext prismContext, PrismContainerValue<?> parent, ItemName propertyName,
+            Object... values) throws SchemaException {
+        // To cater for setExtensionPropertyRealValues(..., null)
+        List<?> refinedValues = Arrays.stream(values)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        PrismContainerValue<?> extension;
+        PrismContainer<Containerable> extensionContainer = parent.findContainer(ObjectType.F_EXTENSION);
+        if (extensionContainer != null) {
+            extension = extensionContainer.getValue();
+        } else {
+            if (refinedValues.isEmpty()) {
+                return; // nothing to do here
+            } else {
+                extension = parent.findOrCreateContainer(ObjectType.F_EXTENSION).getValue();
+            }
+        }
+
+        if (refinedValues.isEmpty()) {
+            extension.removeProperty(propertyName);
+        } else {
+            //noinspection unchecked
+            PrismProperty<Object> property =
+                    prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(propertyName)
+                            .instantiate();
+            refinedValues.forEach(property::addRealValue);
+            extension.addReplaceExisting(property);
+        }
     }
 }

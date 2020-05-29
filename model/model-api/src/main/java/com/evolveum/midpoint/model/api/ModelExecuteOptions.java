@@ -6,22 +6,24 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType.*;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType.*;
-
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Options for execution of Model operations. These options influence the way how the operations are executed.
@@ -89,15 +91,23 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return value != null ? value : defaultValue;
     }
 
+    //region Extension processing
     @SuppressWarnings("WeakerAccess")
-    public <T> T getExtensionOptionValue(ItemName name, Class<T> clazz) {
+    public <T> T getExtensionItemRealValue(ItemName name, Class<T> clazz) {
         Item<?, ?> item = content.asPrismContainerValue().findItem(ItemPath.create(F_EXTENSION, name));
         return item != null ? item.getRealValue(clazz) : null;
     }
 
-    public static <T> T getExtensionOptionValue(ModelExecuteOptions options, ItemName name, Class<T> clazz) {
-        return options != null ? options.getExtensionOptionValue(name, clazz) : null;
+    public static <T> T getExtensionItemRealValue(ModelExecuteOptions options, ItemName name, Class<T> clazz) {
+        return options != null ? options.getExtensionItemRealValue(name, clazz) : null;
     }
+
+    public ModelExecuteOptions setExtensionPropertyRealValues(PrismContext prismContext, ItemName propertyName, Object... values)
+            throws SchemaException {
+        ObjectTypeUtil.setExtensionPropertyRealValues(prismContext, content.asPrismContainerValue(), propertyName, values);
+        return this;
+    }
+    //endregion
 
     //region Specific methods
 

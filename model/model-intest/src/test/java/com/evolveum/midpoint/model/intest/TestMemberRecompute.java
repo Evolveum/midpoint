@@ -9,11 +9,9 @@ package com.evolveum.midpoint.model.intest;
 import java.io.File;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +27,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.namespace.QName;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -44,7 +40,8 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/member-recompute");
 
     private static final String NS_LINKED = "http://midpoint.evolveum.com/xml/ns/samples/linked";
-    private static final QName RECOMPUTE_MEMBERS_NAME = new QName(NS_LINKED, "recomputeMembers");
+    private static final ItemName RECOMPUTE_MEMBERS_NAME = new ItemName(NS_LINKED, "recomputeMembers");
+    private static final ItemName MEMBER_RECOMPUTATION_WORKER_THREADS_NAME = new ItemName(NS_LINKED, "memberRecomputationWorkerThreads");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
@@ -118,7 +115,9 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
         ObjectDelta<OrgType> delta = deltaFor(OrgType.class)
                 .item(OrgType.F_COST_CENTER).replace("07999")
                 .asObjectDelta(ORG_DCS.oid);
-        executeChanges(delta, null, task, result);
+        ModelExecuteOptions options = new ModelExecuteOptions(prismContext)
+                .setExtensionPropertyRealValues(prismContext, MEMBER_RECOMPUTATION_WORKER_THREADS_NAME, 3);
+        executeChanges(delta, options, task, result);
 
         then();
         assertSuccess(result);
@@ -129,8 +128,9 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
         Task recomputeTask = waitForTaskFinish(taskOid, false);
         assertTask(recomputeTask, "recompute task after")
                 .display()
+                .assertSuccess()
                 .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
-                .assertSuccess();
+                .assertExtensionValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS.getLocalPart(), 3);
 
         assertUserAfterByUsername("user-dcs-0000")
                 .assertCostCenter("07999");
@@ -164,14 +164,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
 
     @NotNull
     private ModelExecuteOptions doNotRecompute() throws SchemaException {
-        ModelExecuteOptionsType optionsBean = new ModelExecuteOptionsType(prismContext);
-        //noinspection unchecked
-        PrismPropertyDefinition<Boolean> recomputeDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(RECOMPUTE_MEMBERS_NAME);
-        PrismProperty<Boolean> recomputeProp = recomputeDef.instantiate();
-        recomputeProp.setRealValue(false);
-        optionsBean.asPrismContainerValue().findOrCreateContainer(ModelExecuteOptionsType.F_EXTENSION)
-                .createNewValue()
-                .add(recomputeProp);
-        return ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
+        return new ModelExecuteOptions(prismContext)
+                .setExtensionPropertyRealValues(prismContext, RECOMPUTE_MEMBERS_NAME, false);
     }
 }
