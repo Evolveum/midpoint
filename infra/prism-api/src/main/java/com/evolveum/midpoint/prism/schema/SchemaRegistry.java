@@ -134,12 +134,22 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     // Takes XSD types into account as well
     <T> Class<T> determineClassForType(QName type);
 
+    default <T> Class<T> determineClassForTypeRequired(QName type, Class<T> expected) {
+        Class<?> clazz = determineClassForTypeRequired(type);
+        if (!expected.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException("Expected to get " + expected + " but got " + clazz + " instead, for " + type);
+        } else {
+            //noinspection unchecked
+            return (Class<T>) clazz;
+        }
+    }
+
     default <T> Class<T> determineClassForTypeRequired(QName type) {
         Class<T> clazz = determineClassForType(type);
         if (clazz != null) {
             return clazz;
         } else {
-            throw new IllegalStateException("No class for " + type);
+            throw new IllegalArgumentException("No class for " + type);
         }
     }
 

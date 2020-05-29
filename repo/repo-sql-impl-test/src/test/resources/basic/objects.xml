@@ -1046,106 +1046,82 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            oid="AUDITLOG-3333-3333-TEST-10000000000"
+            oid="AUDITLOG-3333-3333-TEST-10000000000" xsi:type="c:ReportType"
             version="0">
         <name>Audit logs report</name>
         <description>Report made from audit records.</description>
-        <template>
-            <![CDATA[<jasperReport
-                    xmlns="http://jasperreports.sourceforge.net/jasperreports"
-                    name="testreport"
-                    uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-                <property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
-                <property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-                <import value="com.evolveum.midpoint.report.ReportUtils"/>
-                <template><![CDATA[$P{BaseTemplateStyles}\]\]></template>
-                <parameter name="BaseTemplateStyles" class="java.lang.String"/>
-                <parameter name="LOGO_PATH" class="java.lang.String"/>
-                <queryString language="hql">
-                    <![CDATA[select aer.timestamp as timestamp,
-                            aer.initiatorName as initiator,
-                            aer.eventType as eventType,
-                            aer.eventStage as eventStage,
-                            aer.targetName as targetName,
-                            aer.targetType as targetType,
-                            aer.targetOwnerName as targetOwnerName,
-                            aer.outcome as outcome,
-                            aer.message as message,
-                            odo.delta as delta
-                            from RObjectDeltaOperation as odo
-                            join odo.record as aer
-                            where aer.timestamp >= '2000-01-01' and aer.timestamp <= '2020-12-31'
-                            order by aer.timestamp\]\]></queryString>
-            </jasperReport>]]>
-        </template>
-        <templateStyle>
-        <![CDATA[
+        <jasper>
+            <templateStyle>
+                <![CDATA[
              <jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
                  <style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
                        pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/>
                  <style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
                         mode="Opaque" name="Title" style="Base"/>
              </jasperTemplate>]]>
-        </templateStyle>
-        <orientation>landscape</orientation>
-        <export>pdf</export>
-        <useHibernateSession>true</useHibernateSession>
-        <field>
-            <nameReport>timestamp</nameReport>
-            <nameHeader>Timestamp</nameHeader>
-            <itemPath>c:timestamp</itemPath>
-            <sortOrderNumber>1</sortOrderNumber>
-            <sortOrder>ascending</sortOrder>
-            <width>12</width>
-            <classType>xsd:dateTime</classType>
-        </field>
-        <dataSource>
-            <providerClass>com.evolveum.midpoint.report.SomeCustomSuperProvider</providerClass>
-            <springBean>true</springBean>
-        </dataSource>
-        <parent>true</parent>
-        <subreport>
-            <name>userList</name>
-            <reportRef oid="12345678-1234-1234-1234-123456789012" type="c:ReportType"/>
-        </subreport>
-        <subreport>
-            <name>someParameter</name>
-            <reportRef oid="87654321-1234-1234-1234-123456789012" type="c:ReportType"/>
-        </subreport>
-        <configurationSchema>
-            <definition>
-                <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                            xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
-                            elementFormDefault="qualified"
-                            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+            </templateStyle>
+            <orientation>landscape</orientation>
+            <useHibernateSession>true</useHibernateSession>
+            <field>
+                <nameReport>timestamp</nameReport>
+                <nameHeader>Timestamp</nameHeader>
+                <itemPath>c:timestamp</itemPath>
+                <sortOrderNumber>1</sortOrderNumber>
+                <sortOrder>ascending</sortOrder>
+                <width>12</width>
+                <classType>xsd:dateTime</classType>
+            </field>
+            <dataSource>
+                <providerClass>com.evolveum.midpoint.report.SomeCustomSuperProvider</providerClass>
+                <springBean>true</springBean>
+            </dataSource>
+            <parent>true</parent>
+            <subreport>
+                <name>userList</name>
+                <reportRef oid="12345678-1234-1234-1234-123456789012" type="c:ReportType"/>
+            </subreport>
+            <subreport>
+                <name>someParameter</name>
+                <reportRef oid="87654321-1234-1234-1234-123456789012" type="c:ReportType"/>
+            </subreport>
+            <configurationSchema>
+                <definition>
+                    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                                xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                                elementFormDefault="qualified"
+                                targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-                    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+                        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-                    <xsd:element name="hqlQuery" type="xsd:string"/>
-                    <xsd:element name="type" type="xsd:QName"/>
-                    <xsd:element name="filter" type="q:SearchFilterType"/>
-                    <xsd:element name="LOGO_PATH" type="xsd:string"/>
-                    <xsd:element name="BaseTemplateStyles" type="xsd:string"/>
-                    <xsd:element name="from" type="xsd:dateTime"/>
-                    <xsd:element name="to" type="xsd:dateTime"/>
-                    <xsd:element name="eventType" type="r:EventType"/>
-                    <xsd:simpleType name="EventType">
-                        <xsd:restriction base="xsd:string">
-                            <xsd:enumeration value="createSession"/>
-                            <xsd:enumeration value="getObject"/>
-                        </xsd:restriction>
-                    </xsd:simpleType>
-                </xsd:schema>
-            </definition>
-        </configurationSchema>
-        <configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
-            <r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
-            <r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
-            <r:type>c:UserType</r:type>
-        </configuration>
+                        <xsd:element name="hqlQuery" type="xsd:string"/>
+                        <xsd:element name="type" type="xsd:QName"/>
+                        <xsd:element name="filter" type="q:SearchFilterType"/>
+                        <xsd:element name="LOGO_PATH" type="xsd:string"/>
+                        <xsd:element name="BaseTemplateStyles" type="xsd:string"/>
+                        <xsd:element name="from" type="xsd:dateTime"/>
+                        <xsd:element name="to" type="xsd:dateTime"/>
+                        <xsd:element name="eventType" type="r:EventType"/>
+                        <xsd:simpleType name="EventType">
+                            <xsd:restriction base="xsd:string">
+                                <xsd:enumeration value="createSession"/>
+                                <xsd:enumeration value="getObject"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:schema>
+                </definition>
+            </configurationSchema>
+            <configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+                <r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
+                <r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
+                <r:type>c:UserType</r:type>
+            </configuration>
+        </jasper>
+        <export>
+            <type>csv</type>
+        </export>
     </report>
 
     <valuePolicy oid="SECURITY-0000-0000-0000-000000000003"

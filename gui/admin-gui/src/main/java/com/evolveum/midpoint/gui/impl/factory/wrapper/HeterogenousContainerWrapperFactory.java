@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -54,6 +56,11 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
     @Override
     public boolean match(ItemDefinition<?> def) {
         QName defName = def.getTypeName();
+
+        if (CollectionRefSpecificationType.COMPLEX_TYPE.equals(defName)
+        && def.getItemName().equivalent(CollectionRefSpecificationType.F_BASE_COLLECTION_REF)) {
+            return true;
+        }
 
         if (TaskPartitionsDefinitionType.COMPLEX_TYPE.equals(defName)) {
             return true;

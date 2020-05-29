@@ -7,8 +7,21 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
+import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.MODEL;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+
+import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -18,11 +31,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsynchronousScriptExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import java.util.List;
 
 /**
  * Creates tasks of given type (single-run, iterative) for given (specified) executeScript beans.
@@ -58,8 +70,15 @@ abstract class ScriptingTaskCreator {
         AsynchronousScriptExecutionType asynchronousExecution = actx.action.getAsynchronousExecution();
         TaskType newTask;
         if (asynchronousExecution.getTaskTemplateRef() != null) {
-            newTask = beans.modelObjectResolver.resolve(asynchronousExecution.getTaskTemplateRef(), TaskType.class,
-                    null, "task template", actx.task, result);
+            List<PrismObject<? extends ObjectType>> tasks = beans.referenceResolver.resolve(asynchronousExecution.getTaskTemplateRef(), null,
+                    MODEL, createTaskFilterEvaluator(), actx.task, result);
+            if (tasks.isEmpty()) {
+                throw new ObjectNotFoundException("Task template was specified but was not found");
+            } else if (tasks.size() > 1) {
+                throw new IllegalStateException("Task template reference resolution lead to more than one task template: " + tasks);
+            } else {
+                newTask = (TaskType) tasks.get(0).asObjectable();
+            }
         } else {
             newTask = new TaskType(beans.prismContext);
             newTask.setName(PolyStringType.fromOrig("Execute script"));
@@ -71,6 +90,28 @@ abstract class ScriptingTaskCreator {
         newTask.setOwnerRef(createObjectRef(principal.getFocus(), beans.prismContext));
         newTask.setExecutionStatus(RUNNABLE);
         return newTask;
+    }
+
+    private ReferenceResolver.FilterEvaluator createTaskFilterEvaluator() {
+        return (rawFilter, result1) -> {
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment<>(actx.context, null, actx.task, result1));
+            try {
+                ExpressionVariables variables = createVariables();
+                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+                return ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, expressionProfile,
+                        beans.expressionFactory, beans.prismContext,
+                        "evaluating task template filter expression ", actx.task, result1);
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        };
+    }
+
+    private ExpressionVariables createVariables() throws SchemaException {
+        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(actx.context, null);
+        actx.putIntoVariables(variables);
+        return variables;
     }
 
     /**

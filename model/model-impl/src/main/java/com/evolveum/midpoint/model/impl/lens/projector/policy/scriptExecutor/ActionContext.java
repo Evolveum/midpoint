@@ -7,9 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExecutionPolicyActionType;
 
@@ -35,5 +38,10 @@ class ActionContext {
         this.focusContext = context.getFocusContextRequired();
         this.task = task;
         this.beans = beans;
+    }
+
+    void putIntoVariables(VariablesMap variables) {
+        variables.put(ExpressionConstants.VAR_POLICY_ACTION, action, ScriptExecutionPolicyActionType.class);
+        variables.put(ExpressionConstants.VAR_POLICY_RULE, rule, EvaluatedPolicyRule.class);
     }
 }

@@ -14,7 +14,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
@@ -55,7 +55,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -97,13 +96,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
     @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
+    @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
@@ -1127,7 +1123,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <F extends AssignmentHolderType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
             XMLGregorianCalendar now) throws SchemaException {
         return new AssignmentEvaluator.Builder<F>()
-                .repository(repositoryService)
+                .referenceResolver(referenceResolver)
                 .focusOdo(context.getFocusContext().getObjectDeltaObject())
                 .lensContext(context)
                 .channel(context.getChannel())
