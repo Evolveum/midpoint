@@ -9,7 +9,7 @@ import com.google.common.collect.Iterables;
 
 public interface AxiomItem<V> {
 
-    AxiomIdentifier name();
+    AxiomName name();
     Optional<AxiomItemDefinition> definition();
 
     Collection<AxiomValue<V>> values();

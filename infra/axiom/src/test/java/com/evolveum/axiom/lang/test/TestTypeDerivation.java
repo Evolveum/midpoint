@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
@@ -32,10 +32,10 @@ import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class TestTypeDerivation extends AbstractReactorTest {
 
-    private static final AxiomIdentifier DERIVED_PERSON = AxiomIdentifier.from("https://example.org/derived", "Person");
-    private static final AxiomIdentifier FIRST_NAME = DERIVED_PERSON.localName("firstName");
-    private static final AxiomIdentifier LAST_NAME = DERIVED_PERSON.localName("lastName");
-    private static final AxiomIdentifier NAME = AxiomIdentifier.from("https://example.org/base", "name");
+    private static final AxiomName DERIVED_PERSON = AxiomName.from("https://example.org/derived", "Person");
+    private static final AxiomName FIRST_NAME = DERIVED_PERSON.localName("firstName");
+    private static final AxiomName LAST_NAME = DERIVED_PERSON.localName("lastName");
+    private static final AxiomName NAME = AxiomName.from("https://example.org/base", "name");
     private static final String DIR = "multimodel/derived/";
     private static final String BASE = DIR + "base-person.axiom";
     private static final String DERIVED = DIR + "derived-person.axiom";
@@ -57,7 +57,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(DERIVED_PERSON);
         assertTrue(personDef.isPresent());
-        for (Entry<AxiomIdentifier, AxiomItemDefinition> idDef : personDef.get().itemDefinitions().entrySet()) {
+        for (Entry<AxiomName, AxiomItemDefinition> idDef : personDef.get().itemDefinitions().entrySet()) {
             AxiomItemDefinition item = idDef.getValue();
             assertEquals(idDef.getKey(), Inheritance.adapt(DERIVED_PERSON, item), " should have different namespace");
         }

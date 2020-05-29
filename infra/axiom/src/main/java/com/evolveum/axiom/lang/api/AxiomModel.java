@@ -1,11 +1,11 @@
 package com.evolveum.axiom.lang.api;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 
 public interface AxiomModel {
 
-    AxiomIdentifier NAMESPACE = AxiomIdentifier.axiom("namespace");
-    AxiomIdentifier IMPORTED_NAMESPACE = AxiomIdentifier.axiom("ImportedNamespace");
+    AxiomName NAMESPACE = AxiomName.axiom("namespace");
+    AxiomName IMPORTED_NAMESPACE = AxiomName.axiom("ImportedNamespace");
     String BUILTIN_TYPES = "https://ns.evolveum.com/axiom/language";
 
     String name();

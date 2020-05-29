@@ -19,7 +19,7 @@ public abstract class AbstractAxiomItem<V> implements AxiomItem<V> {
     }
 
     @Override
-    public AxiomIdentifier name() {
+    public AxiomName name() {
         return definition.name();
     }
 }

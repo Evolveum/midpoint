@@ -11,17 +11,17 @@ import static org.testng.Assert.assertNotNull;
 import java.io.IOException;
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class TestAxiomPrism extends AbstractReactorTest {
 
-    private static final AxiomIdentifier PERSON = AxiomIdentifier.from("https://example.org", "Person");
-    private static final AxiomIdentifier STORAGE = AxiomIdentifier.from("https://example.org/extension", "type");
+    private static final AxiomName PERSON = AxiomName.from("https://example.org", "Person");
+    private static final AxiomName STORAGE = AxiomName.from("https://example.org/extension", "type");
 
-    private static final AxiomIdentifier PERSON_EXTENSION = AxiomIdentifier.from("https://schema.org", "SchemaOrgPerson");
+    private static final AxiomName PERSON_EXTENSION = AxiomName.from("https://schema.org", "SchemaOrgPerson");
     private static final String DIR = "prism/";
     private static final String PRISM = DIR + "prism.axiom";
     private static final String COMMON_CORE = DIR + "common-core.axiom";

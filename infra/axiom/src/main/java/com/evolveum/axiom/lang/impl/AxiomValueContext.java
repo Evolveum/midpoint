@@ -1,6 +1,6 @@
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -16,7 +16,7 @@ public interface AxiomValueContext<V> {
         return childItem(def.name());
     }
 
-    <T> AxiomItemContext<T> childItem(AxiomIdentifier name);
+    <T> AxiomItemContext<T> childItem(AxiomName name);
 
     V currentValue();
 
@@ -24,7 +24,7 @@ public interface AxiomValueContext<V> {
 
     void mergeItem(AxiomItem<?> axiomItem);
 
-    void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key);
+    void register(AxiomName space, Scope scope, IdentifierSpaceKey key);
 
     AxiomRootContext root();
 

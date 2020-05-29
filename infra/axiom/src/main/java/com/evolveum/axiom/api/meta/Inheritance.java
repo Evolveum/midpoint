@@ -1,6 +1,6 @@
 package com.evolveum.axiom.api.meta;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 
 public interface Inheritance {
@@ -11,25 +11,25 @@ public interface Inheritance {
     Inheritance CURRENT = NO_CHANGE;
 
 
-    static AxiomIdentifier adapt(AxiomIdentifier parent, AxiomIdentifier child) {
+    static AxiomName adapt(AxiomName parent, AxiomName child) {
         return CURRENT.apply(parent, child);
     }
 
-    static AxiomIdentifier adapt(AxiomIdentifier parent, AxiomItemDefinition child) {
+    static AxiomName adapt(AxiomName parent, AxiomItemDefinition child) {
         return child.inherited() ? adapt(parent, child.name()) : child.name();
     }
 
-    AxiomIdentifier apply(AxiomIdentifier parent, AxiomIdentifier child);
+    AxiomName apply(AxiomName parent, AxiomName child);
 
-    static AxiomIdentifier inheritNamespace(AxiomIdentifier parent, AxiomIdentifier name) {
+    static AxiomName inheritNamespace(AxiomName parent, AxiomName name) {
         return parent.localName(name.localName());
     }
 
-    static AxiomIdentifier noNamespace(AxiomIdentifier parent, AxiomIdentifier name) {
+    static AxiomName noNamespace(AxiomName parent, AxiomName name) {
         return name.defaultNamespace();
     }
 
-    static AxiomIdentifier noChange(AxiomIdentifier parent, AxiomIdentifier name) {
+    static AxiomName noChange(AxiomName parent, AxiomName name) {
         return name;
     }
 }

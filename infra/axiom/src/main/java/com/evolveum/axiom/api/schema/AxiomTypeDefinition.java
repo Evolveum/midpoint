@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableMap;
 
 public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<AxiomTypeDefinition> {
 
-    public final AxiomIdentifier IDENTIFIER_MEMBER = AxiomIdentifier.axiom("name");
-    public final AxiomIdentifier SPACE = AxiomIdentifier.axiom("AxiomTypeDefinition");
+    public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
+    public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
 
 
     @Override
@@ -37,11 +37,11 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
 
     Optional<AxiomTypeDefinition> superType();
 
-    Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions();
+    Map<AxiomName, AxiomItemDefinition> itemDefinitions();
 
     Collection<AxiomIdentifierDefinition> identifierDefinitions();
 
-    default Optional<AxiomItemDefinition> itemDefinition(AxiomIdentifier child) {
+    default Optional<AxiomItemDefinition> itemDefinition(AxiomName child) {
         AxiomItemDefinition maybe = itemDefinitions().get(child);
         if(maybe == null) {
             maybe = itemDefinitions().get(Inheritance.adapt(name(), child));
@@ -52,7 +52,7 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
         return Optional.ofNullable(maybe).or(() -> superType().flatMap(s -> s.itemDefinition(child)));
     }
 
-    static IdentifierSpaceKey identifier(AxiomIdentifier name) {
+    static IdentifierSpaceKey identifier(AxiomName name) {
         return IdentifierSpaceKey.from(ImmutableMap.of(IDENTIFIER_MEMBER, name));
     }
 
@@ -60,7 +60,7 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
         return itemDefinitions().values().stream().filter(AxiomItemDefinition::required).collect(Collectors.toList());
     }
 
-    default Optional<AxiomItemDefinition> itemDefinition(AxiomIdentifier parentItem, AxiomIdentifier name) {
+    default Optional<AxiomItemDefinition> itemDefinition(AxiomName parentItem, AxiomName name) {
         return itemDefinition(Inheritance.adapt(parentItem, name));
     }
 
@@ -72,7 +72,7 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
         return other.isSubtypeOf(this);
     }
 
-    default boolean isSubtypeOf(AxiomIdentifier other) {
+    default boolean isSubtypeOf(AxiomName other) {
         Optional<AxiomTypeDefinition> current = Optional.of(this);
         while(current.isPresent()) {
             if(current.get().name().equals(other)) {

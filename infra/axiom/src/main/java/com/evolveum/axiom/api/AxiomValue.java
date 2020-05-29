@@ -23,7 +23,7 @@ public interface AxiomValue<V> extends Supplier<V> {
     }
 
     @SuppressWarnings("unchecked")
-    default <T> Optional<AxiomItem<T>> item(AxiomIdentifier name) {
+    default <T> Optional<AxiomItem<T>> item(AxiomName name) {
         return items().stream().filter(value -> name.equals(value.name())).findFirst().map(v -> (AxiomItem<T>) v);
     }
 

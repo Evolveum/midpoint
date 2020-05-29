@@ -6,7 +6,7 @@
  */
 package com.evolveum.axiom.api.schema;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.base.MoreObjects;
@@ -14,9 +14,9 @@ import com.google.common.collect.ImmutableMap;
 
 public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<AxiomItemDefinition> {
 
-    AxiomIdentifier ROOT_SPACE = AxiomIdentifier.axiom("AxiomRootDefinition");
-    AxiomIdentifier SPACE = AxiomIdentifier.axiom("AxiomItemDefinition");
-    AxiomIdentifier NAME = AxiomIdentifier.axiom("name");
+    AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
+    AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
+    AxiomName NAME = AxiomName.axiom("name");
 
     @Override
     default AxiomItemDefinition get() {
@@ -47,7 +47,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<Ax
                 .toString();
     }
 
-    static AxiomItemDefinition derived(AxiomIdentifier name , AxiomItemDefinition source) {
+    static AxiomItemDefinition derived(AxiomName name , AxiomItemDefinition source) {
         return new DelegatedItemDefinition() {
 
             @Override
@@ -56,13 +56,13 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<Ax
             }
 
             @Override
-            public AxiomIdentifier name() {
+            public AxiomName name() {
                 return name;
             }
         };
     }
 
-    static IdentifierSpaceKey identifier(AxiomIdentifier name) {
+    static IdentifierSpaceKey identifier(AxiomName name) {
         return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
     }
 
@@ -78,7 +78,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<Ax
 
     }
 
-    default AxiomItemDefinition derived(AxiomIdentifier name) {
+    default AxiomItemDefinition derived(AxiomName name) {
         return derived(name, this);
     }
 

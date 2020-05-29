@@ -3,18 +3,18 @@ package com.evolveum.axiom.api.schema;
 import java.util.Optional;
 import java.util.Set;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.google.common.collect.ImmutableSet;
 
 class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {
 
     private Set<AxiomItemDefinition> components;
 
-    private AxiomIdentifier space;
+    private AxiomName space;
 
     private Scope scope;
 
-    public AxiomIdentifierDefinitionImpl(Set<AxiomItemDefinition> components, AxiomIdentifier space, Scope scope) {
+    public AxiomIdentifierDefinitionImpl(Set<AxiomItemDefinition> components, AxiomName space, Scope scope) {
         super();
         this.components = ImmutableSet.copyOf(components);
         this.space = space;
@@ -32,7 +32,7 @@ class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {
     }
 
     @Override
-    public AxiomIdentifier space() {
+    public AxiomName space() {
         return space;
     }
 

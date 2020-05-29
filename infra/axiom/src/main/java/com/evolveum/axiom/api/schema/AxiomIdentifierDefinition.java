@@ -3,7 +3,7 @@ package com.evolveum.axiom.api.schema;
 import java.util.Collection;
 import java.util.Set;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.ImmutableSet;
 
@@ -18,7 +18,7 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
 
     Scope scope();
 
-    AxiomIdentifier space();
+    AxiomName space();
 
     enum Scope {
         GLOBAL,
@@ -26,11 +26,11 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
         LOCAL
     }
 
-    static AxiomIdentifierDefinition global(AxiomIdentifier name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition global(AxiomName name, AxiomItemDefinition... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.GLOBAL);
     }
 
-    static AxiomIdentifierDefinition local(AxiomIdentifier name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition local(AxiomName name, AxiomItemDefinition... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.LOCAL);
     }
 
@@ -47,11 +47,11 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
         throw new IllegalArgumentException("Unknown scope " + scope);
     }
 
-    static AxiomIdentifierDefinition from(AxiomIdentifier space, Scope scope, Set<AxiomItemDefinition> members) {
+    static AxiomIdentifierDefinition from(AxiomName space, Scope scope, Set<AxiomItemDefinition> members) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(members), space, scope);
     }
 
-    static AxiomIdentifierDefinition parent(AxiomIdentifier name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition parent(AxiomName name, AxiomItemDefinition... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.PARENT);
     }
 

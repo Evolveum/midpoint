@@ -3,7 +3,7 @@ package com.evolveum.axiom.lang.impl;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.concepts.SourceLocation;
@@ -29,7 +29,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     public P parent() {
         return parent;
     }
-    protected abstract Optional<AxiomItemDefinition> childDef(AxiomIdentifier id);
+    protected abstract Optional<AxiomItemDefinition> childDef(AxiomName id);
 
 
     protected SourceContext rootImpl() {
@@ -41,7 +41,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public ValueContext<?> lookup(AxiomIdentifier space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key) {
         ValueContext<?> maybe = localSpace.lookup(space, key);
         if(maybe != null) {
             return maybe;
@@ -50,7 +50,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
         switch (scope) {
             case GLOBAL:
                 rootImpl().register(space, scope, key, context);
@@ -67,7 +67,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomIdentifier space) {
+    public Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomName space) {
         return localSpace.space(space);
     }
 }

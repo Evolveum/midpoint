@@ -6,10 +6,10 @@
  */
 package com.evolveum.axiom.api.schema;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 
 public interface AxiomNamedDefinition {
 
-    AxiomIdentifier name();
+    AxiomName name();
     String documentation();
 }

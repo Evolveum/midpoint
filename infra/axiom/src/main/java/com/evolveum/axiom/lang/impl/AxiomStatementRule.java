@@ -1,6 +1,6 @@
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -25,19 +25,19 @@ public interface AxiomStatementRule<V> {
 
         AxiomItemDefinition itemDefinition();
 
-        Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
+        Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId);
 
         <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition item, Class<T> valueType);
 
         <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition item, Class<T> valueType);
 
-        Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency<AxiomValueContext<?>> modify(AxiomName identifierSpace, IdentifierSpaceKey identifier);
 
-        Dependency.Search<AxiomValue<?>> global(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency.Search<AxiomValue<?>> global(AxiomName identifierSpace, IdentifierSpaceKey identifier);
 
-        Dependency.Search<AxiomValueReference<?>> reference(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency.Search<AxiomValueReference<?>> reference(AxiomName identifierSpace, IdentifierSpaceKey identifier);
 
-        Dependency.Search<AxiomValue<?>> namespaceValue(AxiomIdentifier space, IdentifierSpaceKey itemName);
+        Dependency.Search<AxiomValue<?>> namespaceValue(AxiomName space, IdentifierSpaceKey itemName);
 
         Dependency<V> finalValue();
 

@@ -18,7 +18,7 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
     private final AxiomTypeDefinition type;
 
     private AxiomValueFactory<V,T> factory;
-    private Map<AxiomIdentifier, Supplier<? extends AxiomItem<?>>> children = new LinkedHashMap<>();
+    private Map<AxiomName, Supplier<? extends AxiomItem<?>>> children = new LinkedHashMap<>();
     private V value;
 
     public AxiomValueBuilder(AxiomTypeDefinition type, AxiomValueFactory<V,T> factory) {
@@ -38,22 +38,22 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
         this.value = value;
     }
 
-    public void add(AxiomIdentifier name, Supplier<? extends AxiomItem<?>> child) {
+    public void add(AxiomName name, Supplier<? extends AxiomItem<?>> child) {
         children.put(name, child);
     }
 
-    public Supplier<? extends AxiomItem<?>> get(AxiomIdentifier name) {
+    public Supplier<? extends AxiomItem<?>> get(AxiomName name) {
         return children.get(name);
     }
 
-    public Supplier<? extends AxiomItem<?>> get(AxiomIdentifier name, Function<AxiomIdentifier, ? extends Supplier<? extends AxiomItem<?>>> child) {
+    public Supplier<? extends AxiomItem<?>> get(AxiomName name, Function<AxiomName, ? extends Supplier<? extends AxiomItem<?>>> child) {
         return children.computeIfAbsent(name, child);
     }
 
     @Override
     public T get() {
-        Builder<AxiomIdentifier, AxiomItem<?>> builder = ImmutableMap.builder();
-        for(Entry<AxiomIdentifier, Supplier<? extends AxiomItem<?>>> entry : children.entrySet()) {
+        Builder<AxiomName, AxiomItem<?>> builder = ImmutableMap.builder();
+        for(Entry<AxiomName, Supplier<? extends AxiomItem<?>>> entry : children.entrySet()) {
             AxiomItem<?> item = entry.getValue().get();
             builder.put(entry.getKey(), entry.getValue().get());
         }

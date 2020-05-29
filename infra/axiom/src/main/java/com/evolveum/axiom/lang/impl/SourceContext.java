@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -21,11 +21,11 @@ import com.google.common.base.Strings;
 
 class SourceContext extends ValueContext<Void> implements AxiomRootContext, ValueBuilder {
 
-    private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root", "root");
+    private static final AxiomName ROOT = AxiomName.from("root", "root");
 
     private final ModelReactorContext context;
     private final AxiomModelStatementSource source;
-    private final Map<AxiomIdentifier, ItemContext> items = new HashMap();
+    private final Map<AxiomName, ItemContext> items = new HashMap();
     private final CompositeIdentifierSpace globalSpace;
     private Map<String, String> imports;
 
@@ -38,17 +38,17 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public AxiomIdentifier name() {
+    public AxiomName name() {
         return ROOT;
     }
 
     @Override
-    public ItemContext<?> startItem(AxiomIdentifier identifier, SourceLocation loc) {
+    public ItemContext<?> startItem(AxiomName identifier, SourceLocation loc) {
         return items.computeIfAbsent(identifier, id -> createItem(id, loc));
     }
 
     @Override
-    public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
+    public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
         return context.rootDefinition(statement);
     }
 
@@ -63,13 +63,13 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
         this.context.register(space, scope, key, context);
     }
 
     @Override
-    public ValueContext<?> lookup(AxiomIdentifier space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key) {
         return globalSpace.lookup(space, key);
     }
 
@@ -81,7 +81,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
         context.applyRuleDefinitions(valueContext);
     }
 
-    public Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> requireNamespace(AxiomName name, IdentifierSpaceKey namespaceId) {
         return Dependency.retriableDelegate(() -> {
             return context.namespace(name, namespaceId);
         });
@@ -102,13 +102,13 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     public AxiomIdentifierResolver itemResolver() {
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
-                AxiomIdentifier axiomNs = AxiomIdentifier.axiom(localName);
+                AxiomName axiomNs = AxiomName.axiom(localName);
                 if(childDef(axiomNs).isPresent()) {
                     return axiomNs;
                 }
             }
             String namespace = imports.get(prefix);
-            return AxiomIdentifier.from(namespace, localName);
+            return AxiomName.from(namespace, localName);
         };
     }
 
@@ -116,7 +116,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     public AxiomIdentifierResolver valueResolver() {
         return AxiomIdentifierResolver.BUILTIN_TYPES.or((prefix, localName) -> {
             String namespace = imports.get(prefix);
-            return AxiomIdentifier.from(namespace, localName);
+            return AxiomName.from(namespace, localName);
         });
     }
 }

@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
@@ -21,15 +21,15 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
-    private final Optional<Set<AxiomIdentifier>> limit;
+    private final Optional<Set<AxiomName>> limit;
     private final String sourceName;
 
-    public AbstractAxiomAntlrVisitor(String name, Set<AxiomIdentifier> limit) {
+    public AbstractAxiomAntlrVisitor(String name, Set<AxiomName> limit) {
         this.sourceName = name;
         this.limit = Optional.ofNullable(limit);
     }
 
-    private AxiomIdentifier statementIdentifier(IdentifierContext identifier) {
+    private AxiomName statementIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
         return resolveItemName(prefix, localName);
@@ -37,8 +37,8 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
 
     protected abstract AxiomItemStream.Target delegate();
-    protected abstract AxiomIdentifier resolveItemName(String prefix, String localName);
-    protected abstract AxiomIdentifier resolveArgument(String prefix, String localName);
+    protected abstract AxiomName resolveItemName(String prefix, String localName);
+    protected abstract AxiomName resolveArgument(String prefix, String localName);
 
     private String nullableText(ParserRuleContext prefix) {
         return prefix != null ? prefix.getText() : "";
@@ -46,7 +46,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     @Override
     public final T visitStatement(StatementContext ctx) {
-        AxiomIdentifier identifier = statementIdentifier(ctx.identifier());
+        AxiomName identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
             SourceLocation start = sourceLocation(ctx.identifier().start);
             delegate().startItem(identifier, start);
@@ -78,7 +78,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         }
     }
 
-    private boolean canEmit(AxiomIdentifier identifier) {
+    private boolean canEmit(AxiomName identifier) {
         if (limit.isPresent()) {
             return limit.get().contains(identifier);
         }
@@ -91,11 +91,11 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return defaultResult();
     }
 
-    private AxiomIdentifier convert(IdentifierContext argument) {
+    private AxiomName convert(IdentifierContext argument) {
         return argumentIdentifier(argument);
     }
 
-    private AxiomIdentifier argumentIdentifier(IdentifierContext identifier) {
+    private AxiomName argumentIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
         return resolveArgument(prefix, localName);

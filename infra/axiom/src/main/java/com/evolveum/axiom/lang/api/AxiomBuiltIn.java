@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 
 public class AxiomBuiltIn {
 
-    public static final Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> EMPTY = Lazy.instant(ImmutableMap.of());
+    public static final Lazy<Map<AxiomName, AxiomItemDefinition>> EMPTY = Lazy.instant(ImmutableMap.of());
     public static final Lazy<AxiomItemDefinition> NO_ARGUMENT = Lazy.nullValue();
 
 
@@ -58,13 +58,13 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition USES = new Item("uses", Type.TYPE_REFERENCE, true);
 
 
-        private final AxiomIdentifier identifier;
+        private final AxiomName identifier;
         private final AxiomTypeDefinition type;
         private boolean required;
 
 
         private Item(String identifier, AxiomTypeDefinition type, boolean required) {
-            this.identifier = AxiomIdentifier.axiom(identifier);
+            this.identifier = AxiomName.axiom(identifier);
             this.type = type;
             this.required = required;
         }
@@ -75,7 +75,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public AxiomName name() {
             return identifier;
         }
 
@@ -130,7 +130,7 @@ public class AxiomBuiltIn {
     public static class Type implements AxiomTypeDefinition {
         public static final Type UUID = new Type("uuid");
         public static final Type STRING = new Type("string");
-        public static final Type IDENTIFIER = new Type("AxiomIdentifier");
+        public static final Type IDENTIFIER = new Type("AxiomName");
         public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference", null, () -> Item.NAME, () -> itemDefs(
                     Item.NAME,
                     Item.REF_TARGET
@@ -206,40 +206,40 @@ public class AxiomBuiltIn {
         public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
         public static final Type EXTENSION_DEFINITION = new Type("AxiomExtensionDefinition");
 
-        private final AxiomIdentifier identifier;
+        private final AxiomName identifier;
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;
-        private final Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> items;
+        private final Lazy<Map<AxiomName, AxiomItemDefinition>> items;
 
 
         private Type(String identifier) {
             this(identifier, null, Lazy.nullValue(), EMPTY);
         }
 
-        private Type(String identifier, Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+        private Type(String identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, null, Lazy.nullValue(), Lazy.from(items));
         }
 
-        private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+        private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, superType, NO_ARGUMENT, Lazy.from(items));
         }
 
 
         private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<AxiomItemDefinition> argument,
-                Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+                Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, superType, Lazy.from(argument), Lazy.from(items));
         }
 
         private Type(String identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
-                Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
-            this.identifier = AxiomIdentifier.axiom(identifier);
+                Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
+            this.identifier = AxiomName.axiom(identifier);
             this.argument = argument;
             this.superType = superType;
             this.items = items;
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public AxiomName name() {
             return identifier;
         }
 
@@ -254,12 +254,12 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomIdentifier, AxiomItemDefinition> itemDefinitions() {
+        public Map<AxiomName, AxiomItemDefinition> itemDefinitions() {
             return items.get();
         }
 
-        private static Map<AxiomIdentifier, AxiomItemDefinition> itemDefs(AxiomItemDefinition... items) {
-            Builder<AxiomIdentifier, AxiomItemDefinition> builder = ImmutableMap.builder();
+        private static Map<AxiomName, AxiomItemDefinition> itemDefs(AxiomItemDefinition... items) {
+            Builder<AxiomName, AxiomItemDefinition> builder = ImmutableMap.builder();
 
             for (AxiomItemDefinition item : items) {
                 builder.put(item.name(), item);

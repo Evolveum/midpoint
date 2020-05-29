@@ -9,7 +9,7 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Optional;
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.concepts.SourceLocation;
@@ -58,7 +58,7 @@ public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Target {
     }
 
     @Override
-    public void startItem(AxiomIdentifier item, SourceLocation loc) {
+    public void startItem(AxiomName item, SourceLocation loc) {
         Optional<AxiomItemDefinition> childDef = value(current()).childDef(item);
         AxiomSyntaxException.check(childDef.isPresent(), loc , "Item %s not allowed in %s", item, current().name());
         offer(value(current()).startItem(item, loc));
@@ -70,7 +70,7 @@ public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Target {
     }
 
     private interface Builder {
-        AxiomIdentifier name();
+        AxiomName name();
     }
 
     public interface ItemBuilder extends Builder {
@@ -80,8 +80,8 @@ public class AxiomItemStreamTreeBuilder implements AxiomItemStream.Target {
     }
 
     public interface ValueBuilder extends Builder {
-        Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement);
-        ItemBuilder startItem(AxiomIdentifier identifier, SourceLocation loc);
+        Optional<AxiomItemDefinition> childDef(AxiomName statement);
+        ItemBuilder startItem(AxiomName identifier, SourceLocation loc);
         void endValue(SourceLocation loc);
     }
 

@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -26,10 +26,10 @@ import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class TestAxiomExtension extends AbstractReactorTest {
 
-    private static final AxiomIdentifier PERSON = AxiomIdentifier.from("https://example.org", "Person");
-    private static final AxiomIdentifier STORAGE = AxiomIdentifier.from("https://example.org/extension", "type");
+    private static final AxiomName PERSON = AxiomName.from("https://example.org", "Person");
+    private static final AxiomName STORAGE = AxiomName.from("https://example.org/extension", "type");
 
-    private static final AxiomIdentifier PERSON_EXTENSION = AxiomIdentifier.from("https://schema.org", "SchemaOrgPerson");
+    private static final AxiomName PERSON_EXTENSION = AxiomName.from("https://schema.org", "SchemaOrgPerson");
     private static final String DIR = "multimodel/extension/";
     private static final String SCHEMA_ORG = DIR + "person-extension.axiom";
     private static final String BASE = DIR + "test-person.axiom";
@@ -52,7 +52,7 @@ public class TestAxiomExtension extends AbstractReactorTest {
         Optional<AxiomTypeDefinition> extPersonDef = schemaContext.getType(PERSON_EXTENSION);
         assertTrue(extPersonDef.isPresent());
 
-        for(AxiomIdentifier item : extPersonDef.get().itemDefinitions().keySet()) {
+        for(AxiomName item : extPersonDef.get().itemDefinitions().keySet()) {
             assertTrue(personDef.get().itemDefinition(item).isPresent());
         }
     }

@@ -2,7 +2,7 @@ package com.evolveum.axiom.lang.spi;
 
 import java.util.Collection;
 import java.util.Map;
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
@@ -21,12 +21,12 @@ public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifier
     private final Scope scope;
     private final Collection<AxiomItemDefinition> components;
 
-    private final AxiomIdentifier space;
+    private final AxiomName space;
 
-    public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomIdentifierDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
+    public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomIdentifierDefinition value, Map<AxiomName, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
-        this.scope = AxiomIdentifierDefinition.scope(this.<AxiomIdentifier>item(Item.ID_SCOPE.name()).get().onlyValue().get().localName());
-        this.space = this.<AxiomIdentifier>item(Item.ID_SPACE.name()).get().onlyValue().get();
+        this.scope = AxiomIdentifierDefinition.scope(this.<AxiomName>item(Item.ID_SCOPE.name()).get().onlyValue().get().localName());
+        this.space = this.<AxiomName>item(Item.ID_SPACE.name()).get().onlyValue().get();
 
         ImmutableList.Builder<AxiomItemDefinition> components = ImmutableList.builder();
         for (AxiomValue<AxiomItemDefinition> val : this.<AxiomItemDefinition>item(Item.ID_MEMBER.name()).get().values()) {
@@ -51,7 +51,7 @@ public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifier
     }
 
     @Override
-    public AxiomIdentifier space() {
+    public AxiomName space() {
         return space;
     }
 

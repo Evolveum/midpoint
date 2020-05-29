@@ -18,7 +18,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
@@ -65,7 +65,7 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
 
     public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Target listener,
-            Optional<Set<AxiomIdentifier>> emitOnly) {
+            Optional<Set<AxiomName>> emitOnly) {
         stream(resolver.or(this), BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
     }
 
@@ -91,13 +91,13 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     }
 
     @Override
-    public AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
+    public AxiomName resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
         if(prefix == null) {
             prefix = "";
         }
         String maybeNs = imports.get(prefix);
         if(maybeNs != null) {
-            return AxiomIdentifier.from(maybeNs, localName);
+            return AxiomName.from(maybeNs, localName);
         }
         return null;
     }

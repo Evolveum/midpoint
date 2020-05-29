@@ -76,7 +76,7 @@ model axiom-lang {
         argument prefix;
 
         item prefix {
-            type AxiomIdentifier;
+            type AxiomName;
         }
 
         item namespace {
@@ -96,7 +96,7 @@ model axiom-lang {
         argument name;
 
         item name {
-            type AxiomIdentifier;
+            type AxiomName;
         }
 
         item documentation {
@@ -118,7 +118,7 @@ model axiom-lang {
     type AxiomIdentifierDefinition {
          argument key;
          item key {
-            type AxiomIdentifier;
+            type AxiomName;
             minOccurs "1";
          }
          item scope {
@@ -126,7 +126,7 @@ model axiom-lang {
             minOccurs "1";
          }
          item space {
-            type AxiomIdentifier;
+            type AxiomName;
             minOccurs "1";
          }
     }
@@ -145,7 +145,7 @@ model axiom-lang {
         }
 
         item argument {
-            type AxiomIdentifier;
+            type AxiomName;
             documentation """
                 Name of item, which is target of short-form value declaration.
             """;
@@ -182,7 +182,7 @@ model axiom-lang {
 
         // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
         item itemName {
-            type AxiomIdentifier;
+            type AxiomName;
         }
 
         item item {
@@ -194,8 +194,7 @@ model axiom-lang {
         }
     }
 
-    // FIXME: Should be AxiomName
-    type AxiomIdentifier {
+    type AxiomName {
         documentation """
             Qualified name. Consists of namespace and local name.
         """;
@@ -258,7 +257,7 @@ model axiom-lang {
         argument name;
 
         item name {
-            type AxiomIdentifier;
+            type AxiomName;
             documentation """
                 Name of referenced type definition.
                 The value must be name of existing type definition, which is 

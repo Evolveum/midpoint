@@ -11,13 +11,13 @@ import org.jetbrains.annotations.NotNull;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-public class AxiomIdentifier {
+public class AxiomName {
 
     public static final String AXIOM_NAMESPACE = "https://ns.evolveum.com/axiom/language";
     private final String namespace;
     private final String localName;
 
-    public AxiomIdentifier(String namespace, String localName) {
+    public AxiomName(String namespace, String localName) {
         this.namespace = Preconditions.checkNotNull(namespace, "namespace");
         this.localName = Preconditions.checkNotNull(localName, "localName");
     }
@@ -43,9 +43,9 @@ public class AxiomIdentifier {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (!(obj instanceof AxiomIdentifier))
+        if (!(obj instanceof AxiomName))
             return false;
-        AxiomIdentifier other = (AxiomIdentifier) obj;
+        AxiomName other = (AxiomName) obj;
         if (localName == null) {
             if (other.localName != null)
                 return false;
@@ -67,31 +67,31 @@ public class AxiomIdentifier {
         return "(" + namespace + ")" +localName;
     }
 
-    public static AxiomIdentifier axiom(String identifier) {
-        return new AxiomIdentifier(AXIOM_NAMESPACE, identifier);
+    public static AxiomName axiom(String identifier) {
+        return new AxiomName(AXIOM_NAMESPACE, identifier);
     }
 
-    public static AxiomIdentifier from(String namespace, String localName) {
-        return new AxiomIdentifier(namespace, localName);
+    public static AxiomName from(String namespace, String localName) {
+        return new AxiomName(namespace, localName);
     }
 
-    public boolean sameNamespace(AxiomIdentifier other) {
+    public boolean sameNamespace(AxiomName other) {
         return this.namespace().equals(other.namespace());
     }
 
-    public AxiomIdentifier localName(String name) {
-        return AxiomIdentifier.from(namespace, name);
+    public AxiomName localName(String name) {
+        return AxiomName.from(namespace, name);
     }
 
-    public AxiomIdentifier namespace(String targetNamespace) {
-        return AxiomIdentifier.from(targetNamespace, localName);
+    public AxiomName namespace(String targetNamespace) {
+        return AxiomName.from(targetNamespace, localName);
     }
 
-    public AxiomIdentifier defaultNamespace() {
-        return AxiomIdentifier.from("", localName);
+    public AxiomName defaultNamespace() {
+        return AxiomName.from("", localName);
     }
 
-    public static AxiomIdentifier local(@NotNull String localName) {
+    public static AxiomName local(@NotNull String localName) {
         return from("", localName);
     }
 

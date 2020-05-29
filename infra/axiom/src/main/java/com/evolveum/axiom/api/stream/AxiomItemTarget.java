@@ -3,7 +3,7 @@ package com.evolveum.axiom.api.stream;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomItemBuilder;
 import com.evolveum.axiom.api.AxiomValue;
@@ -34,8 +34,8 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
     private final class Root implements ValueBuilder {
 
         @Override
-        public AxiomIdentifier name() {
-            return AxiomIdentifier.axiom("AbstractRoot");
+        public AxiomName name() {
+            return AxiomName.axiom("AbstractRoot");
         }
 
         @Override
@@ -49,12 +49,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
+        public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
             return context.getRoot(statement);
         }
 
         @Override
-        public ItemBuilder startItem(AxiomIdentifier identifier, SourceLocation loc) {
+        public ItemBuilder startItem(AxiomName identifier, SourceLocation loc) {
             result = new Item<>(childDef(identifier).get());
             return result;
         }
@@ -75,7 +75,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public AxiomName name() {
             return builder.definition().name();
         }
 
@@ -125,7 +125,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public AxiomName name() {
             return builder.type().name();
         }
 
@@ -140,12 +140,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public Optional<AxiomItemDefinition> childDef(AxiomIdentifier statement) {
+        public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
             return builder.type().itemDefinition(statement);
         }
 
         @Override
-        public ItemBuilder startItem(AxiomIdentifier identifier, SourceLocation loc) {
+        public ItemBuilder startItem(AxiomName identifier, SourceLocation loc) {
             Object itemImpl = builder.get(identifier, (id) -> {
                 return new Item(childDef(identifier).get());
             });

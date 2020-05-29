@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
@@ -18,9 +18,9 @@ public class AxiomSchemaContextImpl implements AxiomSchemaContext {
 
     private Map<IdentifierSpaceKey, AxiomItemDefinition> roots;
     private Map<IdentifierSpaceKey, AxiomTypeDefinition> types;
-    private Map<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomValue<?>>> globals;
+    private Map<AxiomName, Map<IdentifierSpaceKey, AxiomValue<?>>> globals;
 
-    public AxiomSchemaContextImpl(Map<AxiomIdentifier,Map<IdentifierSpaceKey, AxiomValue<?>>> globalMap) {
+    public AxiomSchemaContextImpl(Map<AxiomName,Map<IdentifierSpaceKey, AxiomValue<?>>> globalMap) {
         this.globals = globalMap;
         this.roots = Maps.transformValues(globalMap.get(AxiomItemDefinition.ROOT_SPACE), AxiomItemDefinition.class::cast);
         this.types = Maps.transformValues(globalMap.get(AxiomTypeDefinition.SPACE), AxiomTypeDefinition.class::cast);
@@ -32,7 +32,7 @@ public class AxiomSchemaContextImpl implements AxiomSchemaContext {
     }
 
     @Override
-    public Optional<AxiomTypeDefinition> getType(AxiomIdentifier type) {
+    public Optional<AxiomTypeDefinition> getType(AxiomName type) {
         return Optional.ofNullable(types.get(nameKey(type)));
     }
 
@@ -42,17 +42,17 @@ public class AxiomSchemaContextImpl implements AxiomSchemaContext {
     }
 
     @Override
-    public Optional<AxiomItemDefinition> getRoot(AxiomIdentifier type) {
+    public Optional<AxiomItemDefinition> getRoot(AxiomName type) {
         return Optional.ofNullable(roots.get(nameKey(type)));
     }
 
-    private static IdentifierSpaceKey nameKey(AxiomIdentifier type) {
+    private static IdentifierSpaceKey nameKey(AxiomName type) {
         return IdentifierSpaceKey.of(AxiomTypeDefinition.IDENTIFIER_MEMBER, type);
     }
 
     public static AxiomSchemaContextImpl boostrapContext() {
         Map<IdentifierSpaceKey, AxiomValue<?>> root = ImmutableMap.of(nameKey(AxiomBuiltIn.Item.MODEL_DEFINITION.name()), AxiomBuiltIn.Item.MODEL_DEFINITION);
-        Map<AxiomIdentifier, Map<IdentifierSpaceKey, AxiomValue<?>>> global
+        Map<AxiomName, Map<IdentifierSpaceKey, AxiomValue<?>>> global
             = ImmutableMap.of(AxiomItemDefinition.ROOT_SPACE, root, AxiomTypeDefinition.SPACE, ImmutableMap.of());
         return new AxiomSchemaContextImpl(global);
     }

@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
@@ -17,14 +17,14 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
     private static final AxiomValueFactory FACTORY = ItemValueImpl::new;
     private final AxiomTypeDefinition type;
     private final V value;
-    private final Map<AxiomIdentifier, AxiomItem<?>> items;
+    private final Map<AxiomName, AxiomItem<?>> items;
 
 
     protected <X> X require(Optional<X> value) {
         return value.get();
     }
 
-    public ItemValueImpl(AxiomTypeDefinition type, V value, Map<AxiomIdentifier, AxiomItem<?>> items) {
+    public ItemValueImpl(AxiomTypeDefinition type, V value, Map<AxiomName, AxiomItem<?>> items) {
         super();
         this.type = type;
         this.value = value;
@@ -52,7 +52,7 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
     }
 
     @Override
-    public <T> Optional<AxiomItem<T>> item(AxiomIdentifier name) {
+    public <T> Optional<AxiomItem<T>> item(AxiomName name) {
         return Optional.ofNullable((AxiomItem<T>) items.get(name));
     }
 

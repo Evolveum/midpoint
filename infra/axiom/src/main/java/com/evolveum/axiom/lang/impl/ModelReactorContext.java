@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -38,7 +38,7 @@ public class ModelReactorContext extends
         RuleReactorContext<AxiomSemanticException, ValueContext<?>, ValueActionImpl<?>, RuleContextImpl>
         implements AxiomIdentifierResolver {
 
-    private static final AxiomIdentifier ROOT = AxiomIdentifier.from("root", "root");
+    private static final AxiomName ROOT = AxiomName.from("root", "root");
 
     private static final String AXIOM_LANG_RESOURCE = "/axiom-lang.axiom";
     private static final String AXIOM_BUILTIN_RESOURCE = "/axiom-base-types.axiom";
@@ -103,7 +103,7 @@ public class ModelReactorContext extends
 
     IdentifierSpaceHolderImpl globalSpace = new IdentifierSpaceHolderImpl(Scope.GLOBAL);
 
-    Map<AxiomIdentifier, AxiomValueFactory<?, ?>> typeFactories = new HashMap<>();
+    Map<AxiomName, AxiomValueFactory<?, ?>> typeFactories = new HashMap<>();
     List<AxiomValueContext<?>> roots = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
@@ -159,14 +159,14 @@ public class ModelReactorContext extends
     }
 
     @Override
-    public AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
+    public AxiomName resolveIdentifier(@Nullable String prefix, @NotNull String localName) {
         if (Strings.isNullOrEmpty(prefix)) {
-            return AxiomIdentifier.axiom(localName);
+            return AxiomName.axiom(localName);
         }
         return null;
     }
 
-    public void addStatementFactory(AxiomIdentifier statementType, AxiomValueFactory<?, ?> factory) {
+    public void addStatementFactory(AxiomName statementType, AxiomValueFactory<?, ?> factory) {
         typeFactories.put(statementType, factory);
     }
 
@@ -192,7 +192,7 @@ public class ModelReactorContext extends
         return exported.computeIfAbsent(namespace, k -> new CompositeIdentifierSpace());
     }
 
-    public Dependency<NamespaceContext> namespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId) {
         return Dependency.orNull(exported.get(namespaceId));
     }
 
@@ -207,7 +207,7 @@ public class ModelReactorContext extends
         return rules;
     }
 
-    public Optional<AxiomItemDefinition> rootDefinition(AxiomIdentifier statement) {
+    public Optional<AxiomItemDefinition> rootDefinition(AxiomName statement) {
         return boostrapContext.getRoot(statement);
     }
 
@@ -215,7 +215,7 @@ public class ModelReactorContext extends
         addActionsFor(valueContext);
     }
 
-    public void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
     }
 

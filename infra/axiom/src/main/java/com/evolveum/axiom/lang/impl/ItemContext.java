@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -20,18 +20,18 @@ import com.google.common.collect.Collections2;
 
 public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements AxiomItemContext<V>, Supplier<AxiomItem<V>>, Dependency<AxiomItem<V>>, ItemBuilder {
 
-    private final AxiomIdentifier name;
+    private final AxiomName name;
     Collection<Dependency<AxiomValue<V>>> values = new ArrayList<>();
     private final AxiomItemDefinition definition;
 
-    public ItemContext(ValueContext<?> sourceContext, AxiomIdentifier name, AxiomItemDefinition definition, SourceLocation loc) {
+    public ItemContext(ValueContext<?> sourceContext, AxiomName name, AxiomItemDefinition definition, SourceLocation loc) {
         super(sourceContext, loc, sourceContext);
         this.name = name;
         this.definition = definition;
     }
 
     @Override
-    public AxiomIdentifier name() {
+    public AxiomName name() {
         return name;
     }
 
@@ -52,7 +52,7 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
-    protected Optional<AxiomItemDefinition> childDef(AxiomIdentifier id) {
+    protected Optional<AxiomItemDefinition> childDef(AxiomName id) {
         return type().itemDefinition(id);
     }
 

@@ -3,7 +3,7 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
@@ -17,7 +17,7 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDef
     private final AxiomValue<AxiomTypeDefinition> valueType;
     private final Optional<AxiomItem<String>> minOccurs;
 
-    public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomItemDefinition value, Map<AxiomIdentifier, AxiomItem<?>> items) {
+    public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomItemDefinition value, Map<AxiomName, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
         this.valueType = require(onlyValue(AxiomTypeDefinition.class,Item.TYPE_REFERENCE, Item.REF_TARGET));
         minOccurs = this.<String>item(Item.MIN_OCCURS.name());

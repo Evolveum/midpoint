@@ -15,7 +15,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
@@ -64,13 +64,13 @@ public class AxiomAntlrStatementSource {
         stream(target, Optional.empty());
     }
 
-    public final void stream(AxiomItemStream.TargetWithResolver target, Optional<Set<AxiomIdentifier>> emitOnly) {
+    public final void stream(AxiomItemStream.TargetWithResolver target, Optional<Set<AxiomName>> emitOnly) {
         AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, target, emitOnly.orElse(null));
         visitor.visit(root);
     }
 
     public final void stream(AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomItemStream.Target listener,
-            Optional<Set<AxiomIdentifier>> emitOnly) {
+            Optional<Set<AxiomName>> emitOnly) {
         AxiomAntlrVisitor<?> visitor = new AxiomAntlrVisitor<>(sourceName, statements, arguments, listener, emitOnly.orElse(null));
         visitor.visit(root);
     }

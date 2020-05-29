@@ -3,15 +3,15 @@ package com.evolveum.axiom.api.schema;
 import java.util.Collection;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 
 public interface AxiomSchemaContext {
 
     Collection<AxiomItemDefinition> roots();
 
-    Optional<AxiomItemDefinition> getRoot(AxiomIdentifier type);
+    Optional<AxiomItemDefinition> getRoot(AxiomName type);
 
-    Optional<AxiomTypeDefinition> getType(AxiomIdentifier type);
+    Optional<AxiomTypeDefinition> getType(AxiomName type);
 
     Collection<AxiomTypeDefinition> types();
 

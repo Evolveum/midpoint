@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -22,24 +22,24 @@ import org.jetbrains.annotations.Nullable;
 
 public interface AxiomIdentifierResolver {
 
-    final AxiomIdentifierResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomIdentifier.AXIOM_NAMESPACE);
+    final AxiomIdentifierResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomName.AXIOM_NAMESPACE);
     final Set<String> BUILTINS = ImmutableSet.of("string","boolean","uri", "int", "binary", "dateTime");
     final AxiomIdentifierResolver BUILTIN_TYPES = (prefix, localName) -> {
         if((prefix == null || prefix.isEmpty()) && BUILTINS.contains(localName)) {
-            return AxiomIdentifier.axiom(localName);
+            return AxiomName.axiom(localName);
         }
         return null;
     };
 
-    AxiomIdentifier resolveIdentifier(@Nullable String prefix, @NotNull String localName);
+    AxiomName resolveIdentifier(@Nullable String prefix, @NotNull String localName);
 
     static AxiomIdentifierResolver defaultNamespace(String namespace) {
-        return (prefix, localName) -> Strings.isNullOrEmpty(prefix) ? AxiomIdentifier.from(namespace, localName) : null;
+        return (prefix, localName) -> Strings.isNullOrEmpty(prefix) ? AxiomName.from(namespace, localName) : null;
     }
 
     default AxiomIdentifierResolver or(AxiomIdentifierResolver next) {
         return (prefix, localName) -> {
-            AxiomIdentifier maybe = this.resolveIdentifier(prefix, localName);
+            AxiomName maybe = this.resolveIdentifier(prefix, localName);
             if (maybe != null) {
                 return maybe;
             }
@@ -50,7 +50,7 @@ public interface AxiomIdentifierResolver {
     static AxiomIdentifierResolver defaultNamespaceFromType(AxiomTypeDefinition type) {
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
-                AxiomIdentifier localNs = AxiomIdentifier.local(localName);
+                AxiomName localNs = AxiomName.local(localName);
                 Optional<AxiomItemDefinition> childDef = type.itemDefinition(localNs);
                 if(childDef.isPresent()) {
                     return Inheritance.adapt(type.name(), childDef.get());

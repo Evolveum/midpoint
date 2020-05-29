@@ -8,7 +8,7 @@ package com.evolveum.axiom.lang.antlr;
 
 import java.util.Set;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
@@ -20,7 +20,7 @@ public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
     private final AxiomItemStream.Target delegate;
 
     public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomItemStream.Target delegate,
-            Set<AxiomIdentifier> limit) {
+            Set<AxiomName> limit) {
         super(name, limit);
         this.statements = statements;
         this.arguments = arguments;
@@ -28,12 +28,12 @@ public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
     }
 
     @Override
-    protected AxiomIdentifier resolveArgument(String prefix, String localName) {
+    protected AxiomName resolveArgument(String prefix, String localName) {
         return arguments.resolveIdentifier(prefix, localName);
     }
 
     @Override
-    protected AxiomIdentifier resolveItemName(String prefix, String localName) {
+    protected AxiomName resolveItemName(String prefix, String localName) {
         return statements.resolveIdentifier(prefix, localName);
     }
 
