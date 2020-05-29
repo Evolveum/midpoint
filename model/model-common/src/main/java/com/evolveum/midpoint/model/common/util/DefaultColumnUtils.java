@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.api.util;
+package com.evolveum.midpoint.model.common.util;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,11 +49,11 @@ public class DefaultColumnUtils {
     private static final Map<Class<?>, Map<ItemPath, String>> SPECIFIC_LOCALIZATION;
 
     static {
-        SPECIFIC_LOCALIZATION = new ImmutableMap.Builder<Class<?>, Map<ItemPath, String>>()
-                .put(UserType.class, new ImmutableMap.Builder<ItemPath, String>()
+        SPECIFIC_LOCALIZATION = ImmutableMap.<Class<?>, Map<ItemPath, String>>builder()
+                .put(UserType.class, ImmutableMap.<ItemPath, String>builder()
                         .put(UserType.F_LINK_REF, "FocusType.accounts")
                         .build())
-                .put(TaskType.class, new ImmutableMap.Builder<ItemPath, String>()
+                .put(TaskType.class, ImmutableMap.<ItemPath, String>builder()
                         .put(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime")
                         .put(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt")
                         .put(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain")
@@ -61,13 +61,13 @@ public class DefaultColumnUtils {
                                 IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT),
                                 "pageTasks.task.errors")
                         .build())
-                .put(ResourceType.class, new ImmutableMap.Builder<ItemPath, String>()
+                .put(ResourceType.class, ImmutableMap.<ItemPath, String>builder()
                         .put(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE),
                                 "ConnectorType.connectorType")
                         .put(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION),
                                 "ConnectorType.connectorVersion")
                         .build())
-                .put(AuditEventRecordType.class, new ImmutableMap.Builder<ItemPath, String>()
+                .put(AuditEventRecordType.class, ImmutableMap.<ItemPath, String>builder()
                         .put(new ItemName(AuditConstants.TIME_COLUMN), AuditConstants.TIME_COLUMN_KEY)
                         .put(new ItemName(AuditConstants.INITIATOR_COLUMN), AuditConstants.INITIATOR_COLUMN_KEY)
                         .put(new ItemName(AuditConstants.EVENT_STAGE_COLUMN), AuditConstants.EVENT_STAGE_COLUMN_KEY)
@@ -102,7 +102,7 @@ public class DefaultColumnUtils {
                 new ItemName(AuditConstants.DELTA_COLUMN)
         );
 
-        COLUMNS_DEF = new ImmutableMap.Builder<Class<? extends ObjectType>, List<ItemPath>>()
+        COLUMNS_DEF = ImmutableMap.<Class<? extends ObjectType>, List<ItemPath>>builder()
                 .put(ResourceType.class, Arrays.asList(
                         ResourceType.F_NAME,
                         ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE),

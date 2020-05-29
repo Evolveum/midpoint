@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -368,8 +368,8 @@ public abstract class ExportController {
                 }
                 return sb.toString();
             default:
-                if(record.getCustomColumnProperty().containsKey(path)) {
-                    return record.getCustomColumnProperty().get(path);
+                if (record.getCustomColumnProperty().containsKey(path.toString())) {
+                    return record.getCustomColumnProperty().get(path.toString());
                 } else {
                     LOGGER.error("Unknown name of column for AuditReport " + path);
                     throw new IllegalArgumentException("Unknown name of column for AuditReport " + path);
