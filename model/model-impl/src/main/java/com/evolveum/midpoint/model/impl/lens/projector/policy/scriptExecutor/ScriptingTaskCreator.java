@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -25,8 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -43,10 +41,14 @@ abstract class ScriptingTaskCreator {
 
     @NotNull final ActionContext actx;
     @NotNull final PolicyRuleScriptExecutor beans;
+    @NotNull private final AsynchronousScriptExecutionType asynchronousScriptExecution;
+
+    private static final String VAR_PREPARED_TASK = "preparedTask";
 
     ScriptingTaskCreator(@NotNull ActionContext actx) {
         this.actx = actx;
         this.beans = actx.beans;
+        this.asynchronousScriptExecution = actx.action.getAsynchronousExecution();
     }
 
     /**
@@ -112,6 +114,41 @@ abstract class ScriptingTaskCreator {
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(actx.context, null);
         actx.putIntoVariables(variables);
         return variables;
+    }
+
+    TaskType customizeTask(TaskType preparedTask, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        ExpressionType customizer = asynchronousScriptExecution.getTaskCustomizer();
+        if (customizer == null) {
+            return preparedTask;
+        } else {
+            ModelExpressionThreadLocalHolder.pushExpressionEnvironment(
+                    new ExpressionEnvironment<>(actx.context, null, actx.task, result));
+            try {
+                PrismObjectDefinition<TaskType> taskDefinition = preparedTask.asPrismObject().getDefinition();
+
+                ExpressionVariables variables = createVariables();
+                variables.addVariableDefinition(VAR_PREPARED_TASK, preparedTask, taskDefinition);
+                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+                PrismValue customizedTaskValue = ExpressionUtil.evaluateExpression(variables, taskDefinition,
+                        customizer, expressionProfile, beans.expressionFactory, "task customizer",
+                        actx.task, result);
+                if (customizedTaskValue == null) {
+                    throw new IllegalStateException("Task customizer returned no value");
+                }
+                if (!(customizedTaskValue instanceof PrismObjectValue)) {
+                    throw new IllegalStateException("Task customizer returned a value that is not a PrismObjectValue: " + customizedTaskValue);
+                }
+                Objectable customizedTaskBean = ((PrismObjectValue) customizedTaskValue).asObjectable();
+                if (!(customizedTaskBean instanceof TaskType)) {
+                    throw new IllegalStateException("Task customizer returned a value that is not a TaskType: " + customizedTaskBean);
+                }
+                return (TaskType) customizedTaskBean;
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        }
     }
 
     /**

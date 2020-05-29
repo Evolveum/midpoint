@@ -2064,6 +2064,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     public Boolean getBooleanExtensionOption(String localName) {
-        return ModelExecuteOptions.getExtensionOptionValue(getModelContext().getOptions(), new ItemName(localName), Boolean.class);
+        return getExtensionOptionRealValue(localName, Boolean.class);
+    }
+
+    public Object getExtensionOptionRealValue(String localName) {
+        return ModelExecuteOptions.getExtensionItemRealValue(getModelContext().getOptions(), new ItemName(localName), Object.class);
+    }
+
+    public <T> T getExtensionOptionRealValue(String localName, Class<T> type) {
+        return ModelExecuteOptions.getExtensionItemRealValue(getModelContext().getOptions(), new ItemName(localName), type);
     }
 }

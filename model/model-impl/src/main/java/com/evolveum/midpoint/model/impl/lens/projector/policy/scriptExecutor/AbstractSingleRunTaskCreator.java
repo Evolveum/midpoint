@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -30,20 +32,15 @@ abstract class AbstractSingleRunTaskCreator extends ScriptingTaskCreator {
             SecurityViolationException, ExpressionEvaluationException {
         TaskType newTask = createArchetypedTask(result);
         setScriptInTask(newTask, executeScript);
-        return newTask;
+        return customizeTask(newTask, result);
     }
 
     @NotNull
     private TaskType createArchetypedTask(OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-        TaskType newTask = createEmptyTask(result);
-        newTask.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
-
-        // TODO task customizer
-        // TODO task archetype
-
-        return newTask;
+        return super.createEmptyTask(result)
+                .beginAssignment()
+                    .targetRef(SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                .end();
     }
-
 }

@@ -14,10 +14,14 @@ import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstan
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.io.File;
@@ -31,6 +35,8 @@ import java.io.IOException;
  *  - empty system configuration
  *  - administrator user (from common dir)
  *  - superuser role (from common dir)
+ *
+ * There are some standard archetypes defined, but not imported. Individual tests should import them if necessary.
  */
 @Experimental
 public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelIntegrationTest {
@@ -43,10 +49,13 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
     protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-iterative-bulk-action.xml", SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-single-bulk-action.xml", SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
+
     protected PrismObject<UserType> userAdministrator;
 
     @Override
-    public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
 
         // We want logging config from logback-test.xml and not from system config object (unless suppressed)
@@ -87,5 +96,13 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult)
             throws IOException, CommonException, EncryptionException {
         return null;
+    }
+
+    // To be used when needed
+    @SuppressWarnings("WeakerAccess")
+    protected void importTaskArchetypes(OperationResult initResult) throws SchemaException,
+            ObjectAlreadyExistsException, EncryptionException, IOException {
+        repoAdd(ARCHETYPE_TASK_ITERATIVE_BULK_ACTION, initResult);
+        repoAdd(ARCHETYPE_TASK_SINGLE_BULK_ACTION, initResult);
     }
 }

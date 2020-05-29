@@ -42,6 +42,7 @@
                                     <expression>
                                         <script>
                                             <code>
+                                                // just to check filter expression evaluations
                                                 '9c50ac7e-73c0-45cf-85e7-9a94959242f9'
                                             </code>
                                         </script>
@@ -52,9 +53,11 @@
                         <taskCustomizer>
                             <script>
                                 <code>
-                                    log.info('Input task = {}', task.asPrismObject().debugDump())
-                                    task.description = 'Hello there'
-                                    task
+                                    log.info('Task being prepared = {}', preparedTask.asPrismObject().debugDump())
+                                    preparedTask.description = 'Hello there'
+                                    workerThreads = midpoint.getExtensionOptionRealValue('memberRecomputationWorkerThreads')
+                                    basic.setTaskWorkerThreads(preparedTask, workerThreads)
+                                    preparedTask
                                 </code>
                             </script>
                         </taskCustomizer>
