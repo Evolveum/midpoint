@@ -51,6 +51,9 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<UserType> USER_GRAMMI = new TestResource<>(TEST_DIR, "user-grammi.xml", "041d0c03-c322-4e0d-89ba-a2d49b732674");
     private static final TestResource<UserType> USER_CUBBY = new TestResource<>(TEST_DIR, "user-cubby.xml", "7b8f2e00-a49e-40ff-a4bd-11b70bac89d3");
 
+    // Separate scenario
+    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT = new TestResource<>(TEST_DIR, "archetype-project.xml", "4d3280a1-6514-4984-ac2c-7e56c05af258");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -72,6 +75,8 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(USER_GRUFFY, initTask, initResult);
         addObject(USER_GRAMMI, initTask, initResult);
         addObject(USER_CUBBY, initTask, initResult);
+
+        addObject(ARCHETYPE_PROJECT, initTask, initResult);
 
 //        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
@@ -471,5 +476,37 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertServiceAfter(SERVICE_WHISTLE.oid)
                 .assertDescription("Held by " + testUser.getName().getOrig() + " (Test User)");
 
+    }
+
+    /**
+     * Creates a project. Two children should be created automatically.
+     */
+    @Test
+    public void test900CreateProject() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        OrgType ariane = new OrgType(prismContext)
+                .name("ariane")
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_PROJECT.oid, ArchetypeType.COMPLEX_TYPE)
+                .end();
+        addObject(ariane.asPrismObject(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertOrgAfter(ariane.getOid())
+                .assertName("ariane");
+
+        assertOrgByName("ariane_users", "after")
+                .display()
+                .assertParentOrgRefs(ariane.getOid());
+
+        assertOrgByName("ariane_groups", "after")
+                .display()
+                .assertParentOrgRefs(ariane.getOid());
     }
 }

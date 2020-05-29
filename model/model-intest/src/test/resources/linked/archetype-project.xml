@@ -1,0 +1,133 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           oid="4d3280a1-6514-4984-ac2c-7e56c05af258">
+    <name>project</name>
+    <documentation>
+        A project has two child objects: users and groups. These are to be created when project is created.
+    </documentation>
+
+    <inducement>
+        <policyRule>
+            <name>create-children-on-new-project-creation</name>
+            <documentation>
+                Creates children when new project is created.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <!-- no object spec, so executed on the object itself -->
+                    <executeScript>
+                        <s:pipeline>
+                            <s:action>
+                                <!-- old style -->
+                                <s:type>execute-script</s:type>
+                                <s:parameter>
+                                    <s:name>script</s:name>
+                                    <value xsi:type="ScriptExpressionEvaluatorType">
+                                        <code>
+                                            import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+
+                                            users = new OrgType(prismContext)
+                                                    .name(input.name + '_users')
+                                                    .beginAssignment()
+                                                        .targetRef(input.oid, OrgType.COMPLEX_TYPE)
+                                                    .end()
+
+                                            groups = new OrgType(prismContext)
+                                                    .name(input.name + '_groups')
+                                                    .beginAssignment()
+                                                        .targetRef(input.oid, OrgType.COMPLEX_TYPE)
+                                                    .end()
+
+                                            [users, groups] // Returning two objects - they will be created in the second action
+                                        </code>
+                                    </value>
+                                </s:parameter>
+                                <s:parameter>
+                                    <s:name>outputItem</s:name>
+                                    <value>OrgType</value>
+                                </s:parameter>
+                            </s:action>
+                            <s:action>
+                                <s:type>add</s:type> <!-- creates objects prepared above -->
+                            </s:action>
+                        </s:pipeline>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>1</order> <!-- assigned to project -->
+    </inducement>
+
+    <!-- 2b: user -> device -->
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-user-name-change</name>
+            <documentation>Recomputes a device when user's name or fullName changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>fullName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-membership-change</name>
+            <documentation>
+                Recomputes all devices whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned the user -->
+    </inducement>
+</archetype>
