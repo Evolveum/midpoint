@@ -11,29 +11,10 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-
-    <div class="row">
-        <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
-            <div class="panel panel-default" style="margin-top: 120px;">
-                <div class="panel-body">
-                    <h4><wicket:message key="PageSamlSelect.select.identity.provider"/></h4>
-                    <div wicket:id="providers">
-                        <a wicket:id="provider"/>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <h4><wicket:message key="PageSamlSelect.select.identity.provider"/></h4>
+    <div wicket:id="providers">
+        <a wicket:id="provider"/>
     </div>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
-
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
 </wicket:extend>
 
 </body>
