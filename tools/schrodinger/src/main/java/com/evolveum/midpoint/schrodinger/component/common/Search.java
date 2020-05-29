@@ -13,6 +13,10 @@ import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
+import org.openqa.selenium.By;
+
+import static com.codeborne.selenide.Selectors.byText;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -22,13 +26,18 @@ public class Search<T> extends Component<T> {
         super(parent, parentElement);
     }
 
-    public Popover<Search<T>> byName() {
-
+    public SearchItemField<Search<T>> byName() {
         choiceBasicSearch();
+        SelenideElement nameElement = getItemByName("Name");
+        SelenideElement nameInput = nameElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new SearchItemField(this, nameInput);
+    }
 
-        getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='mainButton']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new Popover<>(this, getDisplayedPopover());
+    public Search<T> updateSearch(){
+        getParentElement().$(Schrodinger.byDataId("searchSimple"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return this;
     }
 
     private void choiceBasicSearch() {
@@ -85,9 +94,9 @@ public class Search<T> extends Component<T> {
     }
 
     private SelenideElement getItemByName(String name) {
-        ElementsCollection items = getParentElement().findAll(Schrodinger.byDataId("a", "mainButton"));
+        ElementsCollection items = getParentElement().findAll(By.className("search-item"));
         for (SelenideElement item : items) {
-            if (item.getText().startsWith(name + ":")) {
+            if (item.$(byText(name)) != null) {
                 return item;
             }
         }
@@ -106,6 +115,8 @@ public class Search<T> extends Component<T> {
         }
         return popover;
     }
+
+
 
     public Search<T> resetBasicSearch() {
         choiceBasicSearch();

@@ -57,7 +57,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private boolean showAdvanced = false;
     private boolean isFullTextSearchEnabled = false;
-    private boolean canConfigure;
+    private boolean canConfigure = true; //TODO should be changed to false
 
     private String advancedQuery;
     private String advancedError;
