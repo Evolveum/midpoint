@@ -2872,8 +2872,10 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Task customizer: an expression that takes a task and customizes its content.
-                        Input variable: task (of TaskType).
-                        Output: TaskType that should be used.
+
+                        Input variable: preparedTask (of TaskType).
+                        Output: TaskType that should be used. (It is possible to modify preparedTask and return it.)
+
                         This is the final step in task preparation. So the task is executed in the form
                         that is prepared by this expression.
 

@@ -52,9 +52,9 @@
                         <taskCustomizer>
                             <script>
                                 <code>
-                                    log.info('Input task = {}', task.asPrismObject().debugDump())
-                                    task.description = 'Hello there'
-                                    task
+                                    log.info('Task being prepared = {}', preparedTask.asPrismObject().debugDump())
+                                    preparedTask.description = 'Hello there'
+                                    preparedTask
                                 </code>
                             </script>
                         </taskCustomizer>

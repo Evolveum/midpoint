@@ -64,6 +64,8 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        importTaskArchetypes(initResult);
+
         addObject(TASK_TEMPLATE_RECOMPUTE_MEMBERS, initTask, initResult);
 
         addObject(TEMPLATE_USER, initTask, initResult);
@@ -127,6 +129,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest {
         Task recomputeTask = waitForTaskFinish(taskOid, false);
         assertTask(recomputeTask, "recompute task after")
                 .display()
+                .assertArchetypeRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value())
                 .assertSuccess();
 
         assertUserAfterByUsername("user-dcs-0000")

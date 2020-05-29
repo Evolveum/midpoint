@@ -9,9 +9,11 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -51,20 +53,16 @@ class IterativeScriptingTaskCreator extends ScriptingTaskCreator {
         setQueryInTask(newTask, completeQuery);
         setScriptInTask(newTask, executeScript);
 
-        return newTask;
+        return customizeTask(newTask, result);
     }
 
     @NotNull
     private TaskType createArchetypedTask(OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-        TaskType newTask = super.createEmptyTask(result);
-        newTask.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
-
-        // TODO task customizer
-        // TODO task archetype
-
-        return newTask;
+        return super.createEmptyTask(result)
+                .beginAssignment()
+                    .targetRef(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value(), ArchetypeType.COMPLEX_TYPE)
+                .end();
     }
 
     @NotNull

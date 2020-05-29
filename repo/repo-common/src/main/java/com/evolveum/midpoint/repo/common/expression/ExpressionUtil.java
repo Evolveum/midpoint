@@ -758,6 +758,7 @@ public class ExpressionUtil {
                 shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
         PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
