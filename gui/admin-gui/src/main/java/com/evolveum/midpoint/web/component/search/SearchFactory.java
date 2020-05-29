@@ -323,7 +323,7 @@ public class SearchFactory {
     private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName){
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
         if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null){
-            return false;
+            return true; //todo should be set to false
         }
         return searchConfig.isAllowToConfigureSearchItems();
     }

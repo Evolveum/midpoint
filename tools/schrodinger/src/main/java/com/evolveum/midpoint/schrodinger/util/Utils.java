@@ -59,7 +59,7 @@ public class Utils {
                             .updateSearch()
                         .and()
                     .selectCheckboxByName(assignment)
-                .and()
+                    .and()
                 .clickAdd();
         }
 
