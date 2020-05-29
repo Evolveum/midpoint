@@ -71,7 +71,6 @@ public class ModelRestController extends AbstractRestController {
         OperationResult parentResult = createSubresult(task, "generateValue");
 
         Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
-
         ResponseEntity<?> response;
         try {
             PrismObject<? extends ObjectType> object = model.getObject(clazz, oid, null, task, parentResult);
@@ -301,7 +300,7 @@ public class ModelRestController extends AbstractRestController {
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
             @RequestParam(value = "options", required = false) List<String> options,
-            @RequestBody PrismObject<T> object) {
+            @RequestBody @NotNull PrismObject<T> object) {
         logger.debug("model rest service for add operation start");
 
         Task task = initRequest();
@@ -387,7 +386,7 @@ public class ModelRestController extends AbstractRestController {
             @PathVariable("type") String type,
             @PathVariable("id") String id, // TODO is it OK that this is not used or at least asserted?
             @RequestParam(value = "options", required = false) List<String> options,
-            @RequestBody PrismObject<T> object) {
+            @RequestBody @NotNull PrismObject<T> object) {
         logger.debug("model rest service for add operation start");
 
         Task task = initRequest();
