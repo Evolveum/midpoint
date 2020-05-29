@@ -8,34 +8,18 @@ import com.google.common.collect.ImmutableSet;
 
 class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {
 
-    private Set<AxiomItemDefinition> components;
+    private Set<AxiomName> components;
 
-    private AxiomName space;
 
-    private Scope scope;
-
-    public AxiomIdentifierDefinitionImpl(Set<AxiomItemDefinition> components, AxiomName space, Scope scope) {
+    public AxiomIdentifierDefinitionImpl(Set<AxiomName> components, AxiomName space, Scope scope) {
         super();
         this.components = ImmutableSet.copyOf(components);
-        this.space = space;
-        this.scope = scope;
     }
 
     @Override
-    public Set<AxiomItemDefinition> components() {
+    public Set<AxiomName> components() {
         return components;
     }
-
-    @Override
-    public Scope scope() {
-        return scope;
-    }
-
-    @Override
-    public AxiomName space() {
-        return space;
-    }
-
     @Override
     public Optional<AxiomTypeDefinition> type() {
         // TODO Auto-generated method stub

@@ -24,6 +24,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
+
 public class TestAxiomExtension extends AbstractReactorTest {
 
     private static final AxiomName PERSON = AxiomName.from("https://example.org", "Person");
@@ -43,10 +44,6 @@ public class TestAxiomExtension extends AbstractReactorTest {
         context.loadModelFromSource(source(SCHEMA_ORG));
         context.loadModelFromSource(source(BASE));
         AxiomSchemaContext schemaContext = context.computeSchemaContext();
-
-        AxiomTypeDefinition langExtDef = schemaContext.getType(Type.AUGMENTATION_DEFINITION.name()).get();
-        assertTrue(!langExtDef.identifierDefinitions().isEmpty());
-
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());
         Optional<AxiomTypeDefinition> extPersonDef = schemaContext.getType(PERSON_EXTENSION);
@@ -64,7 +61,6 @@ public class TestAxiomExtension extends AbstractReactorTest {
         AxiomSchemaContext schemaContext = context.computeSchemaContext();
 
         AxiomTypeDefinition langExtDef = schemaContext.getType(Type.AUGMENTATION_DEFINITION.name()).get();
-        assertTrue(!langExtDef.identifierDefinitions().isEmpty());
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());
@@ -73,6 +69,9 @@ public class TestAxiomExtension extends AbstractReactorTest {
 
     @Test
     public void axiomTestLanguageExtension() throws IOException, AxiomSyntaxException {
+
+        assertTrue(Type.AUGMENTATION_DEFINITION.isSubtypeOf(Type.TYPE_DEFINITION.get()));
+
         ModelReactorContext context = ModelReactorContext.defaultReactor();
         context.loadModelFromSource(source(LANG_EXT));
         AxiomSchemaContext schemaContext = context.computeSchemaContext();
@@ -84,9 +83,6 @@ public class TestAxiomExtension extends AbstractReactorTest {
         extendedLanguage.loadModelFromSource(source(LANG_EXT));
         extendedLanguage.loadModelFromSource(source(LANG_EXT_USE));
         schemaContext = extendedLanguage.computeSchemaContext();
-
-        AxiomTypeDefinition langExtDef = schemaContext.getType(Type.AUGMENTATION_DEFINITION.name()).get();
-        assertTrue(!langExtDef.identifierDefinitions().isEmpty());
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());

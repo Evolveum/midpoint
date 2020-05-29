@@ -18,7 +18,6 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.ImmutableSet;
 
 public class AxiomBuiltIn {
 
@@ -30,6 +29,8 @@ public class AxiomBuiltIn {
         throw new UnsupportedOperationException("Utility class");
     }
 
+
+
     public static class Item implements AxiomItemDefinition {
         public static final Item NAME = new Item("name", Type.IDENTIFIER, true);
         public static final Item ARGUMENT = new Item("argument", Type.IDENTIFIER, false);
@@ -38,9 +39,16 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition VERSION = new Item("version", Type.STRING, true);
         public static final AxiomItemDefinition TYPE_REFERENCE = new Item("type", Type.TYPE_REFERENCE, true);
         public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
+
         public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.TYPE_REFERENCE, false);
         public static final Item ROOT_DEFINITION = new Item("root", Type.ROOT_DEFINITION, false);
-        public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false);
+        public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false) {
+
+            @Override
+            public Optional<AxiomIdentifierDefinition> identifierDefinition() {
+                return Optional.of(NAME_IDENTIFIER.get());
+            }
+        };
         public static final Item MODEL_DEFINITION = new Item("model", Type.MODEL, false);
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
@@ -57,6 +65,9 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
         public static final AxiomItemDefinition USES = new Item("uses", Type.TYPE_REFERENCE, true);
 
+
+        protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
+                ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
 
         private final AxiomName identifier;
         private final AxiomTypeDefinition type;
@@ -122,8 +133,12 @@ public class AxiomBuiltIn {
 
         @Override
         public AxiomTypeDefinition definingType() {
-            // TODO Auto-generated method stub
             return null;
+        }
+
+        @Override
+        public Optional<AxiomIdentifierDefinition> identifierDefinition() {
+            return Optional.empty();
         }
     }
 
@@ -153,49 +168,21 @@ public class AxiomBuiltIn {
         public static final Type TYPE_DEFINITION =
                 new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.ARGUMENT,
-                    Item.IDENTIFIER_DEFINITION,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION
-                )) {
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
-                return TYPE_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> TYPE_IDENTIFIER_DEFINITION = Lazy.from(()->
-            ImmutableSet.of(AxiomIdentifierDefinition.global(TYPE_DEFINITION.name(), Item.NAME)));
+                ));
 
 
         public static final Type ITEM_DEFINITION =
                 new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.TYPE_REFERENCE,
+                    Item.IDENTIFIER_DEFINITION,
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS,
                     Item.OPERATIONAL
-                )) {
+                ));
 
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
-                return ITEM_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        public static final Type ROOT_DEFINITION =
-                new Type("AxiomRootDefinition", ITEM_DEFINITION, () -> itemDefs()) {
-
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
-                return ROOT_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> ITEM_IDENTIFIER_DEFINITION = Lazy.from(()->
-        ImmutableSet.of(AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME)));
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> ROOT_IDENTIFIER_DEFINITION = Lazy.from(()->
-        ImmutableSet.of(AxiomIdentifierDefinition.global(AxiomItemDefinition.ROOT_SPACE, Item.NAME)));
-
+        public static final Type ROOT_DEFINITION = new Type("AxiomRootDefinition", ITEM_DEFINITION);
 
         public static final Type IDENTIFIER_DEFINITION =
                 new Type("AxiomIdentifierDefinition", BASE_DEFINITION, () -> Item.ID_MEMBER, () -> itemDefs(
@@ -204,7 +191,7 @@ public class AxiomBuiltIn {
                     Item.ID_SPACE
                 ));
         public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
-        public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition");
+        public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition",TYPE_DEFINITION);
 
         private final AxiomName identifier;
         private final AxiomTypeDefinition superType;
@@ -218,6 +205,10 @@ public class AxiomBuiltIn {
 
         private Type(String identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, null, Lazy.nullValue(), Lazy.from(items));
+        }
+
+        private Type(String identifier, AxiomTypeDefinition superType) {
+            this(identifier, superType, NO_ARGUMENT, EMPTY);
         }
 
         private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {

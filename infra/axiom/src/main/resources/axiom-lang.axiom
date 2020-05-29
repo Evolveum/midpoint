@@ -86,10 +86,11 @@ model axiom-lang {
 
     type AxiomRootDefinition {
         extends AxiomItemDefinition;
-        identifier name {
-            scope global;
-            space AxiomRootDefinition;
-        }
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
     }
 
     type AxiomBaseDefinition {
@@ -121,14 +122,6 @@ model axiom-lang {
             type AxiomName;
             minOccurs "1";
          }
-         item scope {
-            type string;
-            minOccurs "1";
-         }
-         item space {
-            type AxiomName;
-            minOccurs "1";
-         }
     }
 
     type AxiomTypeDefinition {
@@ -138,11 +131,6 @@ model axiom-lang {
 
             Defines type name, type supertype and set of value items.
         """;
-
-        identifier name {
-            scope global;
-            space AxiomTypeDefinition;
-        }
 
         item argument {
             type AxiomName;
@@ -172,14 +160,6 @@ model axiom-lang {
             minOccurs 0;
         }
 
-        item identifier {
-            type AxiomIdentifierDefinition;
-            documentation """
-                Definition of identifiers of this type.
-            """;
-            minOccurs 0;
-        }
-
         // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
         item itemName {
             type AxiomName;
@@ -187,6 +167,7 @@ model axiom-lang {
 
         item item {
             type AxiomItemDefinition;
+            identifier name;
             documentation """
                 Definition of child items
             """;
@@ -203,10 +184,12 @@ model axiom-lang {
     type AxiomItemDefinition {
         extends AxiomBaseDefinition;
 
-        // FIXME: Move this to AxionTypeDefinition -> item(item)
-        identifier name {
-            space AxiomItemDefinition;
-            scope parent;
+        item identifier {
+            type AxiomIdentifierDefinition;
+            documentation """
+                Definition of value identifiers for this item.
+            """;
+            minOccurs 0;
         }
 
         item type {

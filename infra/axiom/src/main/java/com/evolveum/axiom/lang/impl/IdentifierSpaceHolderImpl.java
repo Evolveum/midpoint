@@ -29,8 +29,9 @@ public class IdentifierSpaceHolderImpl implements IdentifierSpaceHolder {
                                                                                                          // Auto-generated
                                                                                                          // method stub
         ValueContext<?> previous = space(space).putIfAbsent(key, item);
-        AxiomSemanticException.check(previous == null, item.startLocation(),
-                "%s identifier space: Item %s is already defined at %s", space,item, previous);
+        if(previous != null) {
+            throw AxiomSemanticException.create(item.startLocation(), "%s: %s is already defined at %s", space.localName(),item, previous.startLocation());
+        }
     }
 
     @Override

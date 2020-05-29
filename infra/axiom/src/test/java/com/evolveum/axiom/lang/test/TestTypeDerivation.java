@@ -25,7 +25,6 @@ import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
@@ -52,8 +51,6 @@ public class TestTypeDerivation extends AbstractReactorTest {
     @Test
     public void axiomTestInheritance() throws IOException, AxiomSyntaxException {
         AxiomSchemaContext schemaContext = loadModel();
-        AxiomTypeDefinition langExtDef = schemaContext.getType(Type.AUGMENTATION_DEFINITION.name()).get();
-        assertTrue(!langExtDef.identifierDefinitions().isEmpty());
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(DERIVED_PERSON);
         assertTrue(personDef.isPresent());

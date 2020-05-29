@@ -79,4 +79,9 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     public AxiomTypeDefinition definingType() {
         return delegate().definingType();
     }
+
+    @Override
+    public Optional<AxiomIdentifierDefinition> identifierDefinition() {
+        return delegate().identifierDefinition();
+    }
 }

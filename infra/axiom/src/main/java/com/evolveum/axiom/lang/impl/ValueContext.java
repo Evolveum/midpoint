@@ -273,6 +273,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
 
         @Override
+        public <T> Dependency<AxiomItem<T>> child(AxiomName definition, Class<T> valueType) {
+            return requireChild(Inheritance.adapt(parent().name(), definition));
+        }
+
+        @Override
         public <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition definition, Class<T> valueType) {
             return Dependency.retriableDelegate(() -> {
                 Dependency<AxiomItem<?>> item;

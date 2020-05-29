@@ -11,6 +11,7 @@ import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
+import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
@@ -20,7 +21,6 @@ import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
-import com.evolveum.axiom.reactor.Dependency.Search;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -54,32 +54,52 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
             }
         }
     },
+    REGISTER_TYPE(all(), types(Type.TYPE_DEFINITION)) {
 
-    REGISTER_TO_IDENTIFIER_SPACE(all(),all()){
+        @Override
+        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
+            Dependency<AxiomName> typeName = action.require(context.child(Item.NAME, AxiomName.class)
+                    .map(v -> v.onlyValue().get()))
+                    .unsatisfied(() -> action.error("Type does not have name defined."));
+            action.apply(ctx -> {
+                ctx.register(AxiomTypeDefinition.SPACE, AxiomIdentifierDefinition.Scope.GLOBAL, AxiomTypeDefinition.identifier(typeName.get()));
+            });
+        }
+    },
+    REGISTER_ROOT(all(), types(Type.ROOT_DEFINITION)) {
+
+        @Override
+        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
+            Dependency<AxiomName> typeName = action.require(context.child(Item.NAME, AxiomName.class)
+                    .map(v -> v.onlyValue().get()))
+                    .unsatisfied(() -> action.error("Type does not have name defined."));
+            action.apply(ctx -> {
+                ctx.register(AxiomItemDefinition.ROOT_SPACE, AxiomIdentifierDefinition.Scope.GLOBAL, AxiomItemDefinition.identifier(typeName.get()));
+            });
+        }
+    },
+    ITEM_VALUE_IDENTIFIER(all(),all()){
 
         @Override
         public boolean isApplicableTo(AxiomItemDefinition definition) {
-            return !definition.typeDefinition().identifierDefinitions().isEmpty();
+            if(definition.identifierDefinition().isPresent()) {
+                return true;
+            }
+            return false;
         }
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Collection<AxiomIdentifierDefinition> idDefs = context.typeDefinition().identifierDefinitions();
-            Map<AxiomIdentifierDefinition, Map<AxiomName,Dependency<AxiomValue<Object>>>> identReq = new HashMap<>();
-            for(AxiomIdentifierDefinition idDef : idDefs) {
-                Map<AxiomName,Dependency<AxiomValue<Object>>> components = new HashMap<>();
-                for(AxiomItemDefinition cmp : idDef.components()) {
-                    components.put(cmp.name(), action.require(context.child(cmp, Object.class))
-                            .unsatisfied(()-> context.error("Item '%s' is required by identifier, but not defined.", cmp.name()))
-                            .map(v -> v.onlyValue()));
-                }
-                identReq.put(idDef, components);
+            AxiomIdentifierDefinition idDef = context.itemDefinition().identifierDefinition().get();
+            Map<AxiomName,Dependency<AxiomValue<Object>>> components = new HashMap<>();
+            for(AxiomName key : idDef.components()) {
+                components.put(key, action.require(context.child(key, Object.class))
+                        .unsatisfied(()-> context.error("Item '%s' is required by identifier, but not defined.", key))
+                        .map(v -> v.onlyValue()));
             }
             action.apply(ctx -> {
-                for (AxiomIdentifierDefinition idDef : idDefs) {
-                    IdentifierSpaceKey key = keyFrom(identReq.get(idDef));
-                    ctx.register(idDef.space(), idDef.scope(), key);
-                }
+                IdentifierSpaceKey key = keyFrom(components);
+                ctx.register(AxiomItemDefinition.VALUE_SPACE, Scope.PARENT, key);
             });
         }
 
@@ -99,23 +119,6 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
             );
             action.apply(ctx -> {
                 ctx.childItem(Item.REF_TARGET).addOperationalValue((AxiomValueReference) typeDef.get());
-            });
-        }
-    },
-    EXPAND_IDENTIFIER_ITEM(items(Item.ID_MEMBER), all()) {
-
-        @Override
-        public boolean isApplicableTo(AxiomItemDefinition definition) {
-            return Item.ID_MEMBER.name().equals(definition.name());
-        }
-
-        @Override
-        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            AxiomName itemName = context.currentValue();
-            Search<AxiomValue<?>> itemDef = action.require(context.namespaceValue(AxiomItemDefinition.SPACE, AxiomItemDefinition.identifier(itemName)))
-                    .notFound(() -> action.error("item '%s' was not found", itemName));
-            action.apply((val) -> {
-                val.replace(itemDef.get());
             });
         }
     },
@@ -185,6 +188,11 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
     APPLY_AUGMENTATION(all(), types(Type.AUGMENTATION_DEFINITION)) {
 
         @Override
+        public boolean isApplicableTo(AxiomItemDefinition definition) {
+            return super.isApplicableTo(definition);
+        }
+
+        @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             Dependency<AxiomValueContext<?>> targetRef = action.require(context.child(Item.TARGET, AxiomName.class)
                     .map(v -> v.onlyValue().item(Item.NAME).get()))
@@ -199,19 +207,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
                 }
             });
         }
-    },
-    /*
-     * Not needed - registration is handled by identifier statement
-    REGISTER_TYPE(items(Item.TYPE_DEFINITION), types(Type.TYPE_DEFINITION)) {
-
-        @Override
-        public void apply(Context<AxiomIdentifier> rule) throws AxiomSemanticException {
-            AxiomIdentifier typeName = action.requireValue();
-            action.apply(ctx -> ctx.registerAsGlobalItem(typeName));
-        }
-    },
-     */
-    ;
+    };
 
     private final Set<AxiomName> items;
     private final Set<AxiomName> types;

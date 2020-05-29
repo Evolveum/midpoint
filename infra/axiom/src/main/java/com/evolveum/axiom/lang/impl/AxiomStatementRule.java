@@ -29,6 +29,8 @@ public interface AxiomStatementRule<V> {
 
         <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition item, Class<T> valueType);
 
+        <T> Dependency<AxiomItem<T>> child(AxiomName item, Class<T> valueType);
+
         <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition item, Class<T> valueType);
 
         Dependency<AxiomValueContext<?>> modify(AxiomName identifierSpace, IdentifierSpaceKey identifier);

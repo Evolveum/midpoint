@@ -6,6 +6,8 @@
  */
 package com.evolveum.axiom.api.schema;
 
+import java.util.Optional;
+
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
@@ -17,6 +19,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<Ax
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
     AxiomName NAME = AxiomName.axiom("name");
+    AxiomName VALUE_SPACE = AxiomName.axiom("value");
 
     @Override
     default AxiomItemDefinition get() {
@@ -101,4 +104,6 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<Ax
             }
         };
     }
+
+    Optional<AxiomIdentifierDefinition> identifierDefinition();
 }

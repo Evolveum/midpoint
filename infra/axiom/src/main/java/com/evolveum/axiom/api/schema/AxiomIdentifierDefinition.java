@@ -14,11 +14,7 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
         return this;
     }
 
-    Collection<AxiomItemDefinition> components();
-
-    Scope scope();
-
-    AxiomName space();
+    Collection<AxiomName> components();
 
     enum Scope {
         GLOBAL,
@@ -26,11 +22,11 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
         LOCAL
     }
 
-    static AxiomIdentifierDefinition global(AxiomName name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition global(AxiomName name, AxiomName... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.GLOBAL);
     }
 
-    static AxiomIdentifierDefinition local(AxiomName name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition local(AxiomName name, AxiomName... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.LOCAL);
     }
 
@@ -47,11 +43,11 @@ public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDef
         throw new IllegalArgumentException("Unknown scope " + scope);
     }
 
-    static AxiomIdentifierDefinition from(AxiomName space, Scope scope, Set<AxiomItemDefinition> members) {
+    static AxiomIdentifierDefinition from(AxiomName space, Scope scope, Set<AxiomName> members) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(members), space, scope);
     }
 
-    static AxiomIdentifierDefinition parent(AxiomName name, AxiomItemDefinition... components) {
+    static AxiomIdentifierDefinition parent(AxiomName name, AxiomName... components) {
         return new AxiomIdentifierDefinitionImpl(ImmutableSet.copyOf(components), name, Scope.PARENT);
     }
 
