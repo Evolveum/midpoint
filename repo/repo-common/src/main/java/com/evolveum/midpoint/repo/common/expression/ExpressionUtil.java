@@ -758,6 +758,7 @@ public class ExpressionUtil {
                 shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
         PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -801,6 +802,7 @@ public class ExpressionUtil {
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate 'old' state
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -809,7 +811,7 @@ public class ExpressionUtil {
             return null;
         }
         Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             return null;
         }
 

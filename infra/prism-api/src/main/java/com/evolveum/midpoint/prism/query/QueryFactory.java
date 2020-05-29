@@ -116,10 +116,32 @@ public interface QueryFactory {
     AndFilter createAnd(List<ObjectFilter> conditions);
 
     @NotNull
+    default ObjectFilter createAndOptimized(List<ObjectFilter> conditions) {
+        if (conditions.isEmpty()) {
+            return createAll();
+        } else if (conditions.size() == 1) {
+            return conditions.get(0);
+        } else {
+            return createAnd(conditions);
+        }
+    }
+
+    @NotNull
     OrFilter createOr(ObjectFilter... conditions);
 
     @NotNull
     OrFilter createOr(List<ObjectFilter> conditions);
+
+    @NotNull
+    default ObjectFilter createOrOptimized(List<ObjectFilter> conditions) {
+        if (conditions.isEmpty()) {
+            return createNone();
+        } else if (conditions.size() == 1) {
+            return conditions.get(0);
+        } else {
+            return createOr(conditions);
+        }
+    }
 
     @NotNull
     NotFilter createNot(ObjectFilter inner);
@@ -156,7 +178,6 @@ public interface QueryFactory {
     OrgFilter createRootOrg();
 
     @NotNull
-    @Deprecated // please use QueryBuilder instead
     TypeFilter createType(QName type, ObjectFilter filter);
 
     @NotNull

@@ -17152,7 +17152,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+                                <a:displayName>CollectionSpecificationType.baseCollectionRef</a:displayName>
+                                <a:elaborate>true</a:elaborate>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

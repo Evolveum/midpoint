@@ -1325,6 +1325,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
     /**
      * @return additional security filter. This filter is supposed to be added (operation "AND") to the original filter.
+     *
+     * See also {@link com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator} (should be merged eventually?)
      */
     private <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilterPhase(MidPointPrincipal principal,
             String[] operationUrls, AuthorizationPhaseType phase, boolean includeNullPhase,

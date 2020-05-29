@@ -940,7 +940,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractExecutionActionExpressionType">
                 <xsd:sequence>
-                    <xsd:element name="triggered" type="c:TriggerCreationType">
+                    <xsd:element name="triggered" type="c:TriggerCreationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Does not invoke recompute immediately but uses a trigger to do that.

@@ -117,7 +117,8 @@ class AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.NOT_FOUND, result);
         }
 
-        if (t instanceof CommunicationException || t instanceof TunnelException) {
+        if (t instanceof CommunicationException
+                || t instanceof TunnelException) {
             return createErrorResponseBuilder(HttpStatus.GATEWAY_TIMEOUT, result);
         }
 
@@ -129,7 +130,9 @@ class AbstractRestController {
             return createErrorResponseBuilder(HttpStatus.BAD_GATEWAY, result);
         }
 
-        if (t instanceof SchemaException || t instanceof ExpressionEvaluationException) {
+        if (t instanceof SchemaException
+                || t instanceof ExpressionEvaluationException
+                || t instanceof IllegalArgumentException) {
             return createErrorResponseBuilder(HttpStatus.BAD_REQUEST, result);
         }
 

@@ -57,7 +57,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private boolean showAdvanced = false;
     private boolean isFullTextSearchEnabled = false;
-    private boolean showMoreDialog;
+    private boolean canConfigure = true; //TODO should be changed to false
 
     private String advancedQuery;
     private String advancedError;
@@ -136,6 +136,8 @@ public class Search implements Serializable, DebugDumpable {
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
             if (supportedTargets.size() == 1) {
                 ref.setType(supportedTargets.iterator().next());
+            } else {
+                ref.setType(ObjectType.COMPLEX_TYPE);
             }
             if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
                 ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
@@ -377,12 +379,12 @@ public class Search implements Serializable, DebugDumpable {
         isFullTextSearchEnabled = fullTextSearchEnabled;
     }
 
-    public boolean isShowMoreDialog() {
-        return showMoreDialog;
+    public boolean isCanConfigure() {
+        return canConfigure;
     }
 
-    public void setShowMoreDialog(boolean showMoreDialog) {
-        this.showMoreDialog = showMoreDialog;
+    public void setCanConfigure(boolean canConfigure) {
+        this.canConfigure = canConfigure;
     }
 
     private String createErrorMessage(Exception ex) {

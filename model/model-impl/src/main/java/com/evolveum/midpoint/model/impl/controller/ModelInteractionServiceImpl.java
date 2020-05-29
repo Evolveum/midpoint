@@ -28,9 +28,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.util.ReferenceResolverImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
@@ -159,7 +161,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private static final Trace LOGGER = TraceManager.getTrace(ModelInteractionServiceImpl.class);
 
     @Autowired private ContextFactory contextFactory;
-    @Autowired private Projector projector;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private SchemaTransformer schemaTransformer;
@@ -169,6 +170,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+    @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private RelationRegistry relationRegistry;
@@ -1447,7 +1449,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @Nullable AbstractWorkItemType workItem, QName privilegeLimitationItemName, Task task, OperationResult result) {
         AssignmentEvaluator.Builder<UserType> builder =
                 new AssignmentEvaluator.Builder<UserType>()
-                        .repository(cacheRepositoryService)
+                        .referenceResolver(referenceResolver)
                         .focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
                         .channel(null)
                         .objectResolver(objectResolver)

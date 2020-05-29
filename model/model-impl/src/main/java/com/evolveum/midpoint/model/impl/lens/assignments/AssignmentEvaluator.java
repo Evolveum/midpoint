@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -75,7 +76,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     // Spring beans and bean-like objects used
 
-    final RepositoryService repository;
+    final ReferenceResolver referenceResolver;
     final ObjectResolver objectResolver;
     final SystemObjectCache systemObjectCache;
     final RelationRegistry relationRegistry;
@@ -91,7 +92,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     private final MemberOfEngine memberOfEngine;
 
     private AssignmentEvaluator(Builder<AH> builder) {
-        repository = builder.repository;
+        referenceResolver = builder.referenceResolver;
         focusOdo = builder.focusOdo;
         lensContext = builder.lensContext;
         channel = builder.channel;
@@ -272,7 +273,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     }
 
     public static final class Builder<AH extends AssignmentHolderType> {
-        private RepositoryService repository;
+        private ReferenceResolver referenceResolver;
         private ObjectDeltaObject<AH> focusOdo;
         private LensContext<AH> lensContext;
         private String channel;
@@ -291,8 +292,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         public Builder() {
         }
 
-        public Builder<AH> repository(RepositoryService val) {
-            repository = val;
+        public Builder<AH> referenceResolver(ReferenceResolver val) {
+            referenceResolver = val;
             return this;
         }
 
