@@ -6,7 +6,7 @@ model schema-org-person {
         namespace "https://example.org";
     }
 
-    extension SchemaOrgPerson {
+    augmentation SchemaOrgPerson {
         target base:Person;
 
         item honorificPrefix {

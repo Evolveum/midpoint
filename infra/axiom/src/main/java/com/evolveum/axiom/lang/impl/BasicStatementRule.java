@@ -182,7 +182,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         }
     },
 
-    APPLY_EXTENSION(all(), types(Type.EXTENSION_DEFINITION)) {
+    APPLY_AUGMENTATION(all(), types(Type.AUGMENTATION_DEFINITION)) {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {

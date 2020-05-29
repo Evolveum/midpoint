@@ -6,7 +6,7 @@ model language-extension {
         namespace "https://ns.evolveum.com/axiom/language";
     }
 
-    extension Storage {
+    augmentation Storage {
         target axiom:AxiomTypeDefinition;
 
         item type {

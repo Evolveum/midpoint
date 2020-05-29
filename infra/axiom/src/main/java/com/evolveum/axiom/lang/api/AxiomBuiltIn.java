@@ -204,7 +204,7 @@ public class AxiomBuiltIn {
                     Item.ID_SPACE
                 ));
         public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
-        public static final Type EXTENSION_DEFINITION = new Type("AxiomExtensionDefinition");
+        public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition");
 
         private final AxiomName identifier;
         private final AxiomTypeDefinition superType;

@@ -52,7 +52,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
     @Test
     public void axiomTestInheritance() throws IOException, AxiomSyntaxException {
         AxiomSchemaContext schemaContext = loadModel();
-        AxiomTypeDefinition langExtDef = schemaContext.getType(Type.EXTENSION_DEFINITION.name()).get();
+        AxiomTypeDefinition langExtDef = schemaContext.getType(Type.AUGMENTATION_DEFINITION.name()).get();
         assertTrue(!langExtDef.identifierDefinitions().isEmpty());
 
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(DERIVED_PERSON);

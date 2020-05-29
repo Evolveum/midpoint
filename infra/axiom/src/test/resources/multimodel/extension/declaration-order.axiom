@@ -8,7 +8,7 @@ model test-person {
         }
     }
     
-    extension PersonExtension {
+    augmentation PersonExtension {
         target Person;
         item fullName {
             type string;

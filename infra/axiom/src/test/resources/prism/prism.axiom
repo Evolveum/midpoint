@@ -10,7 +10,7 @@ model prism {
         type PrismModel;
     }
 
-    extension PrismModelExtension {
+    augmentation PrismModelExtension {
       target axiom:AxiomModel;
 
       item object {
@@ -33,7 +33,7 @@ model prism {
         }
     }
 
-    extension PrismTypeDefinitionAnnotation {
+    augmentation PrismTypeDefinitionAnnotation {
         target axiom:AxiomTypeDefinition;
         // TODO move to prism schema
         item object {

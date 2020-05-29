@@ -62,8 +62,8 @@ model axiom-lang {
         }
 
         // FIXME: should be augmentation
-        item extension {
-            type AxiomExtensionDefinition;
+        item augmentation {
+            type AxiomAugmentationDefinition;
             documentation """
                 Declaration of augmentation. Augmentation adds new items
                 to already existing type, which can be defined in other
@@ -283,7 +283,7 @@ model axiom-lang {
         extends AxiomTypeDefinition;
     }
 
-    type AxiomExtensionDefinition {
+    type AxiomAugmentationDefinition {
         extends AxiomMixinDefinition;
         item target {
             type AxiomTypeReference;
