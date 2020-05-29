@@ -192,7 +192,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         switch (item.getType()) {
             case REFERENCE:
                 //TODO change probably to another component
-                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"){
+                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"){
                     private static final long serialVersionUID = 1L;
 
                     @Override
