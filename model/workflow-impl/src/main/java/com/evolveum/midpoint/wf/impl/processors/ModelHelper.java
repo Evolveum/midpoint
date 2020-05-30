@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+import java.util.List;
+import java.util.Locale;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
@@ -20,22 +33,10 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import org.jetbrains.annotations.NotNull;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Locale;
-
-import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 
 /**
  * Helper class intended to facilitate processing of model invocation.
@@ -45,7 +46,6 @@ public class ModelHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelHelper.class);
 
-    @Autowired private WorkflowEngine workflowEngine;
     @Autowired private LocalizationService localizationService;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
@@ -63,10 +63,8 @@ public class ModelHelper {
      * Creates a root job creation instruction.
      *
      * @param changeProcessor reference to the change processor responsible for the whole operation
-     * @param modelContext model context that should be put into the root task (might be different from the modelContext)
-     * @param task task in which the original model operation is carried out
+     * @param contextForRootCase model context that should be put into the root task (might be different from the modelContext)
      * @return the job creation instruction
-     * @throws SchemaException
      */
     public StartInstruction createInstructionForRoot(ChangeProcessor changeProcessor, @NotNull ModelInvocationContext<?> ctx,
             ModelContext<?> contextForRootCase, OperationResult result) throws SchemaException {
@@ -91,17 +89,25 @@ public class ModelHelper {
         if (focusContext != null && focusContext.getPrimaryDelta() != null
                 && focusContext.getPrimaryDelta().getChangeType() != null) {
             switch (focusContext.getPrimaryDelta().getChangeType()) {
-                case ADD: operationKey = CREATION_OF_KEY; break;
-                case DELETE: operationKey = DELETION_OF_KEY; break;
-                case MODIFY: operationKey = CHANGE_OF_KEY; break;
-                default: throw new IllegalStateException();
+                case ADD:
+                    operationKey = CREATION_OF_KEY;
+                    break;
+                case DELETE:
+                    operationKey = DELETION_OF_KEY;
+                    break;
+                case MODIFY:
+                    operationKey = CHANGE_OF_KEY;
+                    break;
+                default:
+                    throw new IllegalStateException();
             }
         } else {
             operationKey = CHANGE_OF_KEY;
         }
         ObjectType focus = ctx.getFocusObjectNewOrOld();
-        DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
-        String time = formatter.print(System.currentTimeMillis());
+        String time = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
+                .withLocale(Locale.getDefault())
+                .format(ZonedDateTime.now());
 
         return new LocalizableMessageBuilder()
                 .key(APPROVING_AND_EXECUTING_KEY + operationKey)
@@ -116,9 +122,7 @@ public class ModelHelper {
      *
      * @param rootInstruction instruction to use
      * @param task (potential) parent task
-     * @param result
      * @return reference to a newly created job
-     * @throws SchemaException
      */
     public CaseType addRoot(StartInstruction rootInstruction, Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
@@ -128,7 +132,8 @@ public class ModelHelper {
         return rootCase;
     }
 
-    public void logJobsBeforeStart(CaseType rootCase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public void logJobsBeforeStart(CaseType rootCase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
@@ -161,8 +166,8 @@ public class ModelHelper {
 
     /**
      * TODO
-     * @param instruction the wf task creation instruction
      *
+     * @param instruction the wf task creation instruction
      */
     public CaseType addCase(StartInstruction instruction, Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
