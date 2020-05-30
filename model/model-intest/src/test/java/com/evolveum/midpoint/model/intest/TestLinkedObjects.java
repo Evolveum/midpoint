@@ -13,6 +13,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -51,8 +52,10 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<UserType> USER_GRAMMI = new TestResource<>(TEST_DIR, "user-grammi.xml", "041d0c03-c322-4e0d-89ba-a2d49b732674");
     private static final TestResource<UserType> USER_CUBBY = new TestResource<>(TEST_DIR, "user-cubby.xml", "7b8f2e00-a49e-40ff-a4bd-11b70bac89d3");
 
-    // Separate scenario
+    // Separate scenario (projects and sub-orgs)
     private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT = new TestResource<>(TEST_DIR, "archetype-project.xml", "4d3280a1-6514-4984-ac2c-7e56c05af258");
+    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT_USERS = new TestResource<>(TEST_DIR, "archetype-project-users.xml", "3af67ba4-183f-45e7-887e-4ae5ddff4cdf");
+    private static final TestResource<ArchetypeType> ARCHETYPE_PROJECT_GROUPS = new TestResource<>(TEST_DIR, "archetype-project-groups.xml", "a85bddc9-4ff0-475f-8ccc-17f9038d4ce1");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -77,6 +80,8 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(USER_CUBBY, initTask, initResult);
 
         addObject(ARCHETYPE_PROJECT, initTask, initResult);
+        addObject(ARCHETYPE_PROJECT_USERS, initTask, initResult);
+        addObject(ARCHETYPE_PROJECT_GROUPS, initTask, initResult);
 
 //        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
@@ -482,7 +487,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
      * Creates a project. Two children should be created automatically.
      */
     @Test
-    public void test900CreateProject() throws Exception {
+    public void test700CreateProject() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -508,5 +513,58 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         assertOrgByName("ariane_groups", "after")
                 .display()
                 .assertParentOrgRefs(ariane.getOid());
+    }
+
+    /**
+     * Renames a project. Children should be renamed automatically.
+     */
+    @Test
+    public void test710RenameProject() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        PrismObject<OrgType> ariane = assertSingleObjectByName(OrgType.class, "ariane", task, result);
+        ObjectDelta<OrgType> delta = deltaFor(OrgType.class)
+                .item(OrgType.F_NAME).replace(PolyString.fromOrig("ariane5"))
+                .asObjectDelta(ariane.getOid());
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertOrgAfter(ariane.getOid())
+                .assertName("ariane5");
+
+        assertOrgByName("ariane5_users", "after")
+                .display()
+                .assertParentOrgRefs(ariane.getOid());
+
+        assertOrgByName("ariane5_groups", "after")
+                .display()
+                .assertParentOrgRefs(ariane.getOid());
+    }
+
+    /**
+     * Deletes a project. Children should be deleted automatically.
+     */
+    @Test
+    public void test720DeleteProject() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        PrismObject<OrgType> ariane5 = assertSingleObjectByName(OrgType.class, "ariane5", task, result);
+        deleteObject(OrgType.class, ariane5.getOid(), task, result);
+
+        then();
+        assertSuccess(result);
+
+        assertNoObjectByName(OrgType.class, "ariane5", task, result);
+        assertNoObjectByName(OrgType.class, "ariane5_users", task, result);
+        assertNoObjectByName(OrgType.class, "ariane5_groups", task, result);
     }
 }
