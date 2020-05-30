@@ -43,18 +43,18 @@
 
                                         users = new OrgType(prismContext)
                                                 .beginAssignment()
-                                                .targetRef(input.oid, OrgType.COMPLEX_TYPE)
+                                                    .targetRef(input.oid, OrgType.COMPLEX_TYPE)
                                                 .end()
                                                 .beginAssignment()
-                                                .targetRef(ARCHETYPE_USERS_OID, ArchetypeType.COMPLEX_TYPE)
+                                                    .targetRef(ARCHETYPE_USERS_OID, ArchetypeType.COMPLEX_TYPE)
                                                 .end()
 
                                         groups = new OrgType(prismContext)
                                                 .beginAssignment()
-                                                .targetRef(input.oid, OrgType.COMPLEX_TYPE)
+                                                    .targetRef(input.oid, OrgType.COMPLEX_TYPE)
                                                 .end()
                                                 .beginAssignment()
-                                                .targetRef(ARCHETYPE_GROUPS_OID, ArchetypeType.COMPLEX_TYPE)
+                                                    .targetRef(ARCHETYPE_GROUPS_OID, ArchetypeType.COMPLEX_TYPE)
                                                 .end()
 
                                         [users, groups] // Returning two objects - they will be created in the second action
