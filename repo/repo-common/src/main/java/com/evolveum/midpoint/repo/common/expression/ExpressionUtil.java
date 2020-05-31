@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,36 +120,49 @@ public class ExpressionUtil {
             return (O) inputVal;
         }
 
-        Object intermediateVal;
+        Object intermediateInputVal = treatGString(inputVal);
+        intermediateInputVal = treatEncryption(finalExpectedJavaType, intermediateInputVal, protector);
+        intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
+
+        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
+        PrismUtil.recomputeRealValue(convertedVal, prismContext);
+        return convertedVal;
+    }
+
+    private static Object treatGString(Object inputVal) {
+        if (inputVal instanceof GString) {
+            return inputVal.toString();
+        } else {
+            return inputVal;
+        }
+    }
+
+    private static <I, O> Object treatEncryption(Class<O> finalExpectedJavaType, I inputVal, Protector protector) {
         if (finalExpectedJavaType == ProtectedStringType.class) {
-            String valueToEncrypt;
-            if (inputVal instanceof String) {
-                valueToEncrypt = (String) inputVal;
-            } else {
-                valueToEncrypt = JavaTypeConverter.convert(String.class, inputVal);
-            }
             try {
-                intermediateVal = protector.encryptString(valueToEncrypt);
+                // We know that input is not ProtectedStringType
+                return protector.encryptString(JavaTypeConverter.convert(String.class, inputVal));
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else if (inputVal instanceof ProtectedStringType) {
             try {
-                intermediateVal = protector.decryptString((ProtectedStringType) inputVal);
+                // We know that expected java type is not ProtectedStringType
+                return protector.decryptString((ProtectedStringType) inputVal);
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
-            intermediateVal = inputVal;
+            return inputVal;
         }
+    }
 
+    private static <I> Object treatAdditionalConvertor(Function<Object, Object> additionalConvertor, Object inputVal) {
         if (additionalConvertor != null) {
-            intermediateVal = additionalConvertor.apply(intermediateVal);
+            return additionalConvertor.apply(inputVal);
+        } else {
+            return inputVal;
         }
-
-        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
-        PrismUtil.recomputeRealValue(convertedVal, prismContext);
-        return convertedVal;
     }
 
     // TODO: do we need this?
@@ -758,6 +772,7 @@ public class ExpressionUtil {
                 shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
         PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -801,6 +816,7 @@ public class ExpressionUtil {
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate 'old' state
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -809,7 +825,7 @@ public class ExpressionUtil {
             return null;
         }
         Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             return null;
         }
 

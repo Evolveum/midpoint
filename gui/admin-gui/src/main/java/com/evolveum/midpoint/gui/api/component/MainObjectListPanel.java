@@ -16,11 +16,19 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -34,6 +42,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -245,7 +255,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
                 isRawOrNoFetchOption(getOptions());
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
+        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting, getSearchModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -258,6 +268,94 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             protected String getFilename() {
                 return getType().getSimpleName() +
                         "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+            }
+
+            @Override
+            protected void createReportPerformed(SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target) {
+                PrismContext prismContext = getPageBase().getPrismContext();
+                PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
+                PrismObject<ReportType> obj = null;
+                try {
+                    obj = def.instantiate();
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't instantiate new report", e);
+                    getPageBase().error(getString("MainObjectListPanel.message.error.instantiateNewReport"));
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
+                ReportType report = obj.asObjectable();
+                String oid = UUID.randomUUID().toString();
+                report.setOid(oid);
+                String name = getPageBase().createStringResource("ObjectTypeGuiDescriptor.report").getString()+ "-" + oid;
+                report.setName(WebComponentUtil.createPolyFromOrigString(name));
+                report.setReportEngine(ReportEngineSelectionType.COLLECTION);
+                ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
+                objectCollection.setUseOnlyReportView(true);
+                CompiledObjectCollectionView view = getObjectCollectionView();
+                if (view == null) {
+                    objectCollection.setView(resolveSelectedColumn(indexOfColumns, getDefaultView()));
+                } else {
+                    objectCollection.setView(resolveSelectedColumn(indexOfColumns, view.toGuiObjectListViewType()));
+                }
+                CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
+                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                    if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                        collection.setBaseCollectionRef(view.getCollection());
+                    } else {
+                        CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
+                        try {
+                            baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
+                            collection.setBaseCollectionRef(baseCollection);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Couldn't create filter for archetype");
+                            getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
+                            target.add(getPageBase().getFeedbackPanel());
+                        }
+                    }
+                }
+                if (filter != null) {
+                    collection.setFilter(filter);
+                } else if (view.getCollection() == null) {
+                    try {
+                        SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
+                        collection.setFilter(allFilter);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create all filter");
+                        getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
+                        target.add(getPageBase().getFeedbackPanel());
+                        return;
+                    }
+                }
+                objectCollection.setCollection(collection);
+                report.setObjectCollection(objectCollection);
+                Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+                ObjectDelta<ReportType> delta = DeltaFactory.Object.createAddDelta(report.asPrismObject());
+                deltas.add(delta);
+                Collection<ObjectDeltaOperation<? extends ObjectType>> ret = null;
+                try {
+                    Task task = getPageBase().createSimpleTask("Create report");
+                    ret = getPageBase().getModelService().executeChanges(deltas, null, task, task.getResult());
+                } catch (Exception e) {
+                    LOGGER.error("Couldn't create report", e);
+                    getPageBase().error(getString("MainObjectListPanel.message.error.createReport"));
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
+                if (ret != null) {
+                    Task task = getPageBase().createSimpleTask("Run report");
+                    PrismObject<ReportType> prismReport = (PrismObject<ReportType>) ret.iterator().next().getObjectDelta().getObjectToAdd();
+                    try {
+                        getPageBase().getReportManager().runReport(prismReport, null, task, task.getResult());
+                    } catch (Exception e) {
+                        LOGGER.error("Couldn't run report", e);
+                        getPageBase().error(getString("MainObjectListPanel.message.error.runReport"));
+                        task.getResult().recordFatalError(e);
+                    } finally {
+                        task.getResult().computeStatusIfUnknown();
+                    }
+                    getPageBase().showResult(task.getResult());
+                    target.add(getPageBase().getFeedbackPanel());
+                }
             }
 
         };
@@ -305,6 +403,26 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         buttonsList.add(playPauseIcon);
 
         return buttonsList;
+    }
+
+    private GuiObjectListViewType resolveSelectedColumn(List<Integer> indexOfColumns, GuiObjectListViewType view){
+        List<GuiObjectColumnType> newColumns = new ArrayList<>();
+        List<GuiObjectColumnType> oldColumns;
+        if (view.getColumn().isEmpty()) {
+            oldColumns = getDefaultView().getColumn();
+        } else {
+            oldColumns = view.getColumn();
+        }
+        for (Integer index : indexOfColumns) {
+            newColumns.add(oldColumns.get(index-2).clone());
+        }
+        view.getColumn().clear();
+        view.getColumn().addAll(newColumns);
+        return view;
+    }
+
+    protected GuiObjectListViewType getDefaultView(){
+        return DefaultColumnUtils.getDefaultView(getType());
     }
 
     private IModel<String> getRefreshPausePlayButtonModel() {

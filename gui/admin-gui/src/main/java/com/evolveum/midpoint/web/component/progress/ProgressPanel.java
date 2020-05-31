@@ -9,15 +9,12 @@ package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -449,11 +446,11 @@ public class ProgressPanel extends BasePanel {
             deltasProperty.setRealValues(deltasBeans.toArray(new ObjectDeltaType[0]));
             task.addExtensionProperty(deltasProperty);
             if (options != null) {
-                PrismPropertyDefinition<ModelExecuteOptionsType> optionsDefinition = page.getPrismContext().getSchemaRegistry()
-                        .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-                PrismProperty<ModelExecuteOptionsType> optionsProperty = optionsDefinition.instantiate();
-                optionsProperty.setRealValue(options.toModelExecutionOptionsType());
-                task.addExtensionProperty(optionsProperty);
+                PrismContainerDefinition<ModelExecuteOptionsType> optionsDefinition = page.getPrismContext().getSchemaRegistry()
+                        .findContainerDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+                PrismContainer<ModelExecuteOptionsType> optionsContainer = optionsDefinition.instantiate();
+                optionsContainer.setRealValue(options.toModelExecutionOptionsType());
+                task.setExtensionContainer(optionsContainer);
             }
             task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);

@@ -10,13 +10,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObjectValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -180,16 +174,12 @@ public class ReportUtils {
         return formatDate.format(createDate);
     }
 
-    public static ExportType getExport(ReportType report) {
-        JasperReportEngineConfigurationType jasperConfig = report.getJasper();
-        if (jasperConfig == null) {
-            return report.getExport();
-        } else {
-            return jasperConfig.getExport();
-        }
+    public static JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
+        return jasperConfig.getExport();
     }
 
     public static String getReportOutputFilePath(ReportType reportType) {
+        JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         File exportDir = getExportDir();
         if (!exportDir.exists() || !exportDir.isDirectory()) {
             if (!exportDir.mkdir()) {
@@ -199,7 +189,7 @@ public class ReportUtils {
 
         String output = new File(exportDir, reportType.getName().getOrig() + " " + getDateTime()).getPath();
 
-        switch (reportType.getExport()) {
+        switch (jasperConfig.getExport()) {
             case PDF:
                 output = output + ".pdf";
                 break;
@@ -804,8 +794,8 @@ public class ReportUtils {
                 break;
 
             case ADD:
-                ObjectType objectToAdd = (ObjectType) delta.getObjectToAdd();
-                if (objectToAdd != null) {
+                if (delta.getObjectToAdd() != null) {
+                    Objectable objectToAdd = delta.getObjectToAdd().asObjectable();
                     sb.append(printChangeType(objectName, delta.getObjectTypeClass().getSimpleName(), delta.getOid(), "Add", resourceName));
                     if (objectToAdd.getName() != null) {
                         sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));

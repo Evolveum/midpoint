@@ -37,7 +37,6 @@ public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable 
 
     /**
      * Returns segment specified by index. Negative indexes work in reverse direction.
-     * @throws IndexOutOfBoundsException
      */
     AssignmentPathSegment getSegment(int index);
 

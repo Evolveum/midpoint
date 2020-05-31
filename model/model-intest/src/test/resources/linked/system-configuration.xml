@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--
+     Configuration to be used for tests derived from AbstractEmptyModelIntegrationTest.
+
+     If we'll find something that must be in really _all_ the tests, we will put it here.
+     But currently it seems we can go with really empty configuration. (No configuration would
+     be OK as well but in any running midPoint there is a system configuration object, so let's
+     keep the situation close to the reality.)
+-->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <name>SystemConfiguration</name>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="241afdcc-26eb-4417-a4df-a8c1add06e84" />
+    </defaultObjectPolicyConfiguration>
+
+    <globalPolicyRule>
+        <focusSelector>
+            <type>UserType</type>
+            <!-- or also archetype -->
+        </focusSelector>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkTarget>
+                        <changeSituation>changed</changeSituation> <!-- just for testing -->
+                        <archetypeRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" /> <!-- device -->
+                    </linkTarget>
+                </object>
+                <executeScript>
+                    <s:recompute/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+    </globalPolicyRule>
+
+    <globalPolicyRule>
+        <focusSelector>
+            <type>OrgType</type>
+            <archetypeRef oid="4d3280a1-6514-4984-ac2c-7e56c05af258" /> <!-- project -->
+        </focusSelector>
+        <name>delete-children-on-project-deletion</name>
+        <documentation>
+            Deletes children when project is deleted.
+        </documentation>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkSource>
+                        <type>OrgType</type>
+                        <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf"/> <!-- users -->
+                        <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
+                    </linkSource>
+                </object>
+                <executeScript>
+                    <s:delete/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+    </globalPolicyRule>
+
+</systemConfiguration>

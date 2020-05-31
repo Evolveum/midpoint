@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -113,7 +112,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
         for (PipelineItem item : input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
 
             context.checkTaskStop();
             long started;
@@ -134,7 +133,7 @@ public abstract class BaseActionExecutor implements ActionExecutor {
                 Throwable exception = processActionException(ex, getActionName(), value, context);
                 writer.write(value, exception);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult);
+            operationsHelper.trimAndCloneResult(result, item.getResult());
         }
     }
 

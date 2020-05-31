@@ -267,10 +267,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
         LOGGER.trace("Recomputing focus {}", focus);
         // We want reconcile option here. There may be accounts that are in wrong activation state.
         // We will not notice that unless we go with reconcile.
-        LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, ModelExecuteOptions.createReconcile(), workerTask, result);
+        LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, new ModelExecuteOptions(prismContext).reconcile(), workerTask, result);
         TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
         if (hasNotifyAction(workerTask) && constraint != null) {
-            EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, prismContext);
+            EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, null, prismContext);
             policyRule.computeEnabledActions(null, focus, expressionFactory, prismContext, workerTask, result);
             EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                     Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,

@@ -11,71 +11,44 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <form method="post" class="form-horizontal" wicket:id="form">
+        <div class="form-group">
+            <label class="col-md-4 col-lg-4 control-label">
+                <wicket:message key="PageLogin.username"/>
+            </label>
 
-    <div class="row">
-        <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
-            <div class="panel panel-default" style="margin-top: 120px;">
-                <div class="panel-body">
-<!--                    <form method="post" class="form-horizontal" action="spring_security_login">-->
-                    <form method="post" class="form-horizontal" wicket:id="form">
-                        <div class="form-group">
-                            <label class="col-md-4 col-lg-4 control-label">
-                                <wicket:message key="PageLogin.username"/>
-                            </label>
-
-                            <div class="col-md-8 col-lg-8">
-                                <input name="username" type="text" class="form-control input-sm focus-username"
-                                       wicket:message="placeholder:PageLogin.username" >
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-md-4 col-lg-4 control-label">
-                                <wicket:message key="PageLogin.password"/>
-                            </label>
-
-                            <div class="col-md-8 col-lg-8">
-                                <input name="password" type="password" class="form-control input-sm"
-                                       wicket:message="placeholder:PageLogin.password" >
-                            </div>
-                        </div>
-
-                        <div wicket:id="csrfField"/>
-
-                        <wicket:link>
-                            <a class="btn" role="button" href="forgetpassword" wicket:id="forgetpassword">
-                                <wicket:message key="PageLogin.forgetPassword"/>
-                            </a>
-                        </wicket:link>
-
-                        <div class="pull-right">
-                            <a class="btn btn-default" role="button" wicket:id="selfRegistration">
-                                <wicket:message key="PageLogin.selfRegistration"/>
-                            </a>
-
-                            <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
-                        </div>
-                    </form>
-                </div>
+            <div class="col-md-8 col-lg-8">
+                <input name="username" type="text" class="form-control input-sm focus-username"
+                        wicket:message="placeholder:PageLogin.username" >
             </div>
         </div>
-    </div>
+        <div class="form-group">
+            <label class="col-md-4 col-lg-4 control-label">
+                <wicket:message key="PageLogin.password"/>
+            </label>
 
+            <div class="col-md-8 col-lg-8">
+                <input name="password" type="password" class="form-control input-sm"
+                        wicket:message="placeholder:PageLogin.password" >
+            </div>
+        </div>
 
-    <script type="text/javascript">
-        $(".focus-username").focus();
-    </script>
+        <div wicket:id="csrfField"/>
 
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
+        <wicket:link>
+            <a class="btn" role="button" href="forgetpassword" wicket:id="forgetpassword">
+                <wicket:message key="PageLogin.forgetPassword"/>
+            </a>
+        </wicket:link>
 
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
+        <div class="pull-right">
+            <a class="btn btn-default" role="button" wicket:id="selfRegistration">
+                <wicket:message key="PageLogin.selfRegistration"/>
+            </a>
+
+            <input type="submit" class="btn btn-primary" wicket:message="value:PageLogin.signIn"/>
+        </div>
+    </form>
 </wicket:extend>
 
 </body>

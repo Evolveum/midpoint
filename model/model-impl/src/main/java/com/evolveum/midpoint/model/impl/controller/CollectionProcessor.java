@@ -8,12 +8,18 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +33,10 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluationOrderImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluationOrderImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -54,21 +60,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionStatsPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -113,13 +104,22 @@ public class CollectionProcessor {
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, @NotNull AssignmentType assignmentType, @NotNull PolicyRuleType policyRuleType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
-        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(
-                collection.asObjectable(), "object collection "+collection, assignmentType, true, relationRegistry, prismContext);
-        assignmentPathSegment.setEvaluationOrder(EvaluationOrderImpl.zero(relationRegistry));
-        assignmentPathSegment.setEvaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry));
+        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
+                .source(collection.asObjectable())
+                .sourceDescription("object collection "+collection)
+                .assignment(assignmentType)
+                .isAssignment(true)
+                .relationRegistry(relationRegistry)
+                .prismContext(prismContext)
+                .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
+                .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
+                .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
+                .pathToSourceValid(true)
+                .sourceRelativityMode(PlusMinusZero.ZERO)
+                .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, prismContext);
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null, prismContext);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {
@@ -343,15 +343,137 @@ public class CollectionProcessor {
             existingView.setFilter(combinedFilter);
         }
 
+        compileView(existingView, objectCollectionType.getDefaultView(), false);
+
+    }
+
+    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        compileView(existingView, objectListViewType, true);
+    }
+
+    private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        if (objectListViewType != null) {
+            compileObjectType(existingView, objectListViewType);
+            compileActions(existingView, objectListViewType);
+            compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
+            compileColumns(existingView, objectListViewType);
+            compileDisplay(existingView, objectListViewType, replaceIfExist);
+            compileDistinct(existingView, objectListViewType, replaceIfExist);
+            compileSorting(existingView, objectListViewType, replaceIfExist);
+            compileCounting(existingView, objectListViewType, replaceIfExist);
+            compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
+            compileSearchBox(existingView, objectListViewType, replaceIfExist);
+            compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
+        }
     }
 
     @Nullable
-    private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+    public ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();      // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
+    }
+
+    private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        if (existingView.getObjectType() == null) {
+            existingView.setObjectType(objectListViewType.getType());
+        }
+    }
+
+    private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        List<GuiActionType> newActions = objectListViewType.getAction();
+        for (GuiActionType newAction: newActions) {
+            // TODO: check for action duplication/override
+            existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
+        }
+
+    }
+
+    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
+        if (newAdditionalPanels == null) {
+            return;
+        }
+        // TODO: later: merge additional panel definitions
+        if (existingView.getAdditionalPanels() == null || replaceIfExist) {
+            existingView.setAdditionalPanels(newAdditionalPanels);
+        }
+    }
+
+    private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        List<GuiObjectColumnType> newColumns = objectListViewType.getColumn();
+        if (newColumns == null || newColumns.isEmpty()) {
+            return;
+        }
+        // Not very efficient algorithm. But must do for now.
+        List<GuiObjectColumnType> existingColumns = existingView.getColumns();
+        existingColumns.addAll(newColumns);
+        List<GuiObjectColumnType> orderedList = MiscSchemaUtil.orderCustomColumns(existingColumns);
+        existingColumns.clear();
+        existingColumns.addAll(orderedList);
+    }
+
+    private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        DisplayType newDisplay = objectListViewType.getDisplay();
+        if (newDisplay == null) {
+            return;
+        }
+        if (existingView.getDisplay() == null) {
+            existingView.setDisplay(newDisplay);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
+        }
+    }
+
+    private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        DistinctSearchOptionType newDistinct = objectListViewType.getDistinct();
+        if (newDistinct == null) {
+            return;
+        }
+        if (existingView.getDistinct() == null || replaceIfExist) {
+            existingView.setDistinct(newDistinct);
+        }
+    }
+
+    private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Boolean newDisableSorting = objectListViewType.isDisableSorting();
+        if (newDisableSorting != null && (existingView.getDisableSorting() == null || replaceIfExist)) {
+            existingView.setDisableSorting(newDisableSorting);
+        }
+    }
+
+    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Integer refreshInterval = objectListViewType.getRefreshInterval();
+        if (refreshInterval != null && (existingView.getRefreshInterval() == null || replaceIfExist)) {
+            existingView.setRefreshInterval(refreshInterval);
+        }
+    }
+
+    private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Boolean newDisableCounting = objectListViewType.isDisableCounting();
+        if (newDisableCounting != null && (existingView.isDisableCounting() == null || replaceIfExist)) {
+            existingView.setDisableCounting(newDisableCounting);
+        }
+    }
+
+    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist){
+        Integer newDisplayOrder = objectListViewType.getDisplayOrder();
+        if (newDisplayOrder != null && (existingView.getDisplayOrder() == null || replaceIfExist)){
+            existingView.setDisplayOrder(newDisplayOrder);
+        }
+    }
+
+    private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        SearchBoxConfigurationType newSearchBoxConfig = objectListViewType.getSearchBoxConfiguration();
+        if (newSearchBoxConfig == null) {
+            return;
+        }
+        // TODO: merge
+        if (existingView.getSearchBoxConfiguration() == null || replaceIfExist) {
+            existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        }
     }
 
 }

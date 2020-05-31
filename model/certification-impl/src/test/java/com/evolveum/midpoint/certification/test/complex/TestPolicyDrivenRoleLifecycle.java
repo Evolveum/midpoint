@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createPartialProcessing;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -192,7 +191,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         // WHEN+THEN
         when();
         then();
-        ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+        ModelExecuteOptions noApprovals = executeOptions().partialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectOid, SchemaConstants.ORG_OWNER, noApprovals, task, result);
 
@@ -266,7 +265,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         // WHEN+THEN
         when();
         then();
-        ModelExecuteOptions noApprovals = createPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+        ModelExecuteOptions noApprovals = executeOptions().partialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(userJackOid, roleCorrectHighRiskOid, SchemaConstants.ORG_APPROVER, noApprovals, task, result);
         assignRole(USER_ADMINISTRATOR_OID, roleCorrectHighRiskOid, SchemaConstants.ORG_OWNER, noApprovals, task, result);

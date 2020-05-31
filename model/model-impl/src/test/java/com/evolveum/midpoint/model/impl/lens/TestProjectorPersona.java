@@ -8,6 +8,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static org.testng.AssertJUnit.*;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -24,7 +25,7 @@ public class ScriptingDataUtil {
         } else if (value instanceof PrismValue) {
             return getRealValue((PrismValue) value, clazz);
         } else
-            return cast(value, clazz);
+            return MiscUtil.cast(value, clazz);
     }
 
     public static <T> T getRealValue(PrismValue prismValue, Class<T> clazz) throws SchemaException {
@@ -35,19 +36,9 @@ public class ScriptingDataUtil {
             if (realValue == null) {
                 throw new SchemaException("Real value of 'null' embedded in " + prismValue);
             } else {
-                return cast(realValue, clazz);
+                return MiscUtil.cast(realValue, clazz);
             }
         }
     }
 
-    static <T> T cast(Object value, Class<T> expectedClass) throws SchemaException {
-        if (value == null) {
-            return null;
-        } else if (!expectedClass.isAssignableFrom(value.getClass())) {
-            throw new SchemaException("Expected '" + expectedClass.getName() + "' but got '" + value.getClass().getName() + "'");
-        } else {
-            //noinspection unchecked
-            return (T) value;
-        }
-    }
 }

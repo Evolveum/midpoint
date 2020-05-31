@@ -24,7 +24,7 @@ public class TestRbacLightInitialProjection extends TestRbac {
 
     @Override
     protected ModelExecuteOptions getDefaultOptions() {
-        return ModelExecuteOptions.createInitialPartialProcessing(
+        return executeOptions().initialPartialProcessing(
                 new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
     }
 }

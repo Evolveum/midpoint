@@ -6,13 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -20,36 +21,34 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author katka
@@ -60,9 +59,7 @@ public class AssignmentCollector {
 
     private final static Trace LOGGER = TraceManager.getTrace(AssignmentCollector.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private RelationRegistry relationRegistry;
@@ -73,29 +70,30 @@ public class AssignmentCollector {
     @Autowired private ActivationComputer activationComputer;
     @Autowired private Clock clock;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private ContextLoader contextLoader;
 
-    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> assignmentHolder,
+    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> focus,
             boolean loginMode, Task task, OperationResult result) throws SchemaException {
 
-        LensContext<AH> lensContext = createAuthenticationLensContext(assignmentHolder, result);
+        LensContext<AH> lensContext = createAuthenticationLensContext(focus, result);
 
-        AH assignmentHolderType = assignmentHolder.asObjectable();
+        AH focusBean = focus.asObjectable();
         Collection<AssignmentType> forcedAssignments;
         try {
             forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(),
-                    assignmentHolderType.getLifecycleState(), objectResolver, prismContext, task, result);
+                    focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
         } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
                 | ExpressionEvaluationException e1) {
-            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", assignmentHolderType.getLifecycleState(), e1);
+            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", focusBean.getLifecycleState(), e1);
             forcedAssignments = null;
         }
         Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
 
-        if (!assignmentHolderType.getAssignment().isEmpty() || forcedAssignments != null) {
+        if (!focusBean.getAssignment().isEmpty() || forcedAssignments != null) {
             AssignmentEvaluator.Builder<AH> builder =
                     new AssignmentEvaluator.Builder<AH>()
-                            .repository(repositoryService)
-                            .focusOdo(new ObjectDeltaObject<>(assignmentHolder, null, assignmentHolder, assignmentHolder.getDefinition()))
+                            .referenceResolver(referenceResolver)
+                            .focusOdo(new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition()))
                             .channel(null)
                             .objectResolver(objectResolver)
                             .systemObjectCache(systemObjectCache)
@@ -103,6 +101,7 @@ public class AssignmentCollector {
                             .prismContext(prismContext)
                             .mappingFactory(mappingFactory)
                             .mappingEvaluator(mappingEvaluator)
+                            .contextLoader(contextLoader)
                             .activationComputer(activationComputer)
                             .now(clock.currentTimeXMLGregorianCalendar())
                             // We do need only authorizations + gui config. Therefore we not need to evaluate
@@ -116,17 +115,17 @@ public class AssignmentCollector {
 
             AssignmentEvaluator<AH> assignmentEvaluator = builder.build();
 
-            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, assignmentHolderType.getAssignment(),
+            evaluatedAssignments.addAll(evaluateAssignments(focusBean, focusBean.getAssignment(),
                     AssignmentOrigin.createInObject(), assignmentEvaluator,task, result));
 
-            evaluatedAssignments.addAll(evaluateAssignments(assignmentHolderType, forcedAssignments,
+            evaluatedAssignments.addAll(evaluateAssignments(focusBean, forcedAssignments,
                     AssignmentOrigin.createVirtual(), assignmentEvaluator, task, result));
         }
 
         return evaluatedAssignments;
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH assignmentHolder,
+    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH focus,
             Collection<AssignmentType> assignments, AssignmentOrigin origin, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 
         List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
@@ -142,11 +141,11 @@ public class AssignmentCollector {
                             assignmentType.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
                     ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi =
                             new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
-                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), origin, task, result);
+                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
                     evaluatedAssignments.add(assignment);
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-                            assignmentHolder, e.getMessage(), assignmentType, e);
+                            focus, e.getMessage(), assignmentType, e);
                 }
             }
         } finally {

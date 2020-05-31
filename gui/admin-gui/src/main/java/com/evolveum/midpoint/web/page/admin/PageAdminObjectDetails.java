@@ -993,7 +993,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @NotNull
     protected ModelExecuteOptions getOptions(boolean previewOnly) {
-        ModelExecuteOptions options = mainPanel.getExecuteChangeOptionsDto().createOptions();
+        ModelExecuteOptions options = mainPanel.getExecuteChangeOptionsDto().createOptions(getPrismContext());
         if (previewOnly) {
             options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
         }

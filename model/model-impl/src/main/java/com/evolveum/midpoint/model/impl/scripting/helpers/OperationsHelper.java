@@ -87,13 +87,13 @@ public class OperationsHelper {
         Boolean skipApprovals = expressionHelper.getArgumentAsBoolean(action.getParameter(), PARAM_SKIP_APPROVALS, input, context, null, PARAM_SKIP_APPROVALS, result);
 
         if (Boolean.TRUE.equals(raw)) {
-            options.setRaw(true);
+            options.raw(true);
         }
         if (Boolean.TRUE.equals(skipApprovals)) {
             if (options.getPartialProcessing() != null) {
                 options.getPartialProcessing().setApprovals(SKIP);
             } else {
-                options.setPartialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
+                options.partialProcessing(new PartialProcessingOptionsType().approvals(SKIP));
             }
         }
         return options;
@@ -109,7 +109,7 @@ public class OperationsHelper {
         if (optionsBean != null) {
             return ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean);
         } else {
-            return new ModelExecuteOptions();
+            return ModelExecuteOptions.create(prismContext);
         }
     }
 
@@ -206,20 +206,21 @@ public class OperationsHelper {
         }
     }
 
-    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor) {
-        OperationResult result = new OperationResult(executor.getClass().getName() + "." + "execute");
+    public OperationResult createActionResult(PipelineItem item, ActionExecutor executor, OperationResult globalResult) {
+        OperationResult result = globalResult.createMinorSubresult(executor.getClass().getName() + "." + "execute");
         if (item != null) {
             result.addParam("value", String.valueOf(item.getValue()));
-            item.getResult().addSubresult(result);
         }
         return result;
     }
 
-    public void trimAndCloneResult(OperationResult result, OperationResult globalResult) {
+    public void trimAndCloneResult(OperationResult result, OperationResult itemResultParent) {
         result.computeStatusIfUnknown();
         // TODO make this configurable
         result.getSubresults().forEach(OperationResult::setMinor);
         result.cleanupResult();
-        globalResult.addSubresult(result.clone());
+        if (itemResultParent != null) {
+            itemResultParent.addSubresult(result.clone());
+        }
     }
 }

@@ -102,6 +102,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                 List<SearchItemDefinition> availableDefs = initSearchableItems(model.getObject());
 
                 Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
+                search.setCanConfigure(true);
                 return search;
             }
 

@@ -115,10 +115,10 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     public PageSecurityQuestions() {
         answerModel = Model.of();
         questionsModel = new ListModel<SecurityQuestionDto>(new ArrayList<SecurityQuestionDto>());
-        initLayout();
     }
 
-    private void initLayout() {
+    @Override
+    protected void initCustomLayer() {
         Form form = new Form(ID_MAIN_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
@@ -409,49 +409,5 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         String key = "web.security.flexAuth.unsupported.auth.type";
         error(getString(key));
         return "/midpoint/spring_security_login";
-    }
-
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
-            return;
-        }
-
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        clearBreadcrumbs();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        if (SecurityUtils.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
     }
 }

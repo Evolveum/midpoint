@@ -1,0 +1,75 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="fefa9261-b897-439c-ad79-15f10d547bba">
+    <name>club</name>
+
+    <inducement>
+        <policyRule>
+            <documentation>
+                When club name or displayName changes, members must be recomputed
+                (but only if requested by an execution option).
+            </documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>displayName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute>
+                            <!--
+                                We use optimized triggers because we expect that members will be recomputed during
+                                reconciliation of 'clubs' resource. Reconciliation can result in modification of
+                                a number of clubs at approximately the same time. So it's better to avoid repeated
+                                recomputation of individual members by using triggers - or even better, optimizing
+                                delayed triggers.
+                            -->
+                            <s:triggered>
+                                <fireAfter>PT1M</fireAfter>
+                            </s:triggered>
+                        </s:recompute>
+                    </executeScript>
+                    <asynchronousExecution>
+                        <taskCustomizer>
+                            <script>
+                                <code>import com.evolveum.prism.xml.ns._public.types_3.PolyStringType
+
+                                // Using worker threads when (only) setting triggers is maybe not necessary.
+                                // But we use it here e.g. to demonstrate how we can set the number of worker
+                                // threads using execute options in synchronization reaction.
+
+                                preparedTask.name = PolyStringType.fromOrig('Trigger club members recomputation')
+                                basic.setTaskWorkerThreads(preparedTask, midpoint.getExtensionOptionRealValue('memberRecomputationWorkerThreads'))
+                                preparedTask
+                                </code>
+                            </script>
+                        </taskCustomizer>
+                    </asynchronousExecution>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <condition>
+            <expression>
+                <script>
+                    <code>midpoint.extensionOptionIsTrue('recomputeMembers')</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</archetype>

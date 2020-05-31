@@ -23,6 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 import org.apache.commons.lang.BooleanUtils;

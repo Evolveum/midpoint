@@ -53,7 +53,7 @@ public class ReencryptExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue) {
                 @SuppressWarnings({"unchecked", "raw"})
@@ -85,7 +85,7 @@ public class ReencryptExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult);
+            operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;
     }

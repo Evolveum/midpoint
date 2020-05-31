@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="90a3a6a0-07ea-4b2d-b800-ccdf4e7dea78">
+    <name>axe</name>
+    <assignment>
+        <targetRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" type="ArchetypeType" /> <!-- archetype-device -->
+    </assignment>
+</service>

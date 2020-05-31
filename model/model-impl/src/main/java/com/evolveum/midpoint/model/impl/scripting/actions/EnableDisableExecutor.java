@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import static com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingBeansUtil.getActionType;
+import static com.evolveum.midpoint.schema.util.ScriptingBeansUtil.getActionType;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
 
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingBeansUtil;
-import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingDataUtil;
 
 import org.springframework.stereotype.Component;
 

@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import org.apache.commons.lang3.StringUtils;
@@ -62,6 +63,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -258,7 +261,27 @@ public abstract class InfoBoxPanel extends Panel{
                 if(pageType == null) {
                     return null;
                 }
-                return getPageBase().createWebPage(pageType, null);
+                PageParameters parameters = new PageParameters();
+                CompiledObjectCollectionView existingCompiledView = getPageBase().getCompiledGuiProfile()
+                        .findObjectCollectionView(collection.getType(), model.getObject().getIdentifier());
+                if (existingCompiledView == null || !existingCompiledView.getViewIdentifier().equals(model.getObject().getIdentifier())) {
+                    Task task = getPageBase().createSimpleTask("Compiling collection view");
+                    try {
+                        @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
+                                .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
+                        if (!isViewOfWidgetNull(model)) {
+                            getPageBase().getModelInteractionService().applyView(compiledView, model.getObject().getPresentation().getView());
+                        }
+                        compiledView.setCollection(model.getObject().getData().getCollection());
+                        compiledView.setViewIdentifier(model.getObject().getIdentifier());
+                        getPageBase().getCompiledGuiProfile().getObjectCollectionViews().add(compiledView);
+                    } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
+                            | ObjectNotFoundException e) {
+                        LOGGER.error("Couldn't compile collection " + collection.getName(), e);
+                    }
+                }
+                parameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, model.getObject().getIdentifier());
+                return getPageBase().createWebPage(pageType, parameters);
             }  else {
                 LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
             }
@@ -327,6 +350,25 @@ public abstract class InfoBoxPanel extends Panel{
     private boolean isDataNull(IModel<DashboardWidgetType> model) {
         if(model.getObject().getData() == null) {
             LOGGER.error("Data is not found in widget " + model.getObject().getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isPresentationNull(IModel<DashboardWidgetType> model) {
+        if(model.getObject().getPresentation() == null) {
+            LOGGER.error("Presentation is not found in widget " + model.getObject().getIdentifier());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isViewOfWidgetNull(IModel<DashboardWidgetType> model) {
+        if(isPresentationNull(model)) {
+            return true;
+        }
+        if(model.getObject().getPresentation().getView() == null) {
+            LOGGER.error("View of presentation is not found in widget " + model.getObject().getIdentifier());
             return true;
         }
         return false;

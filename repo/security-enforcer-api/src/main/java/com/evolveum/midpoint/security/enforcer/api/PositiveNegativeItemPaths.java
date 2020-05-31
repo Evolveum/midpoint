@@ -22,8 +22,8 @@ import static com.evolveum.midpoint.prism.path.ItemPath.*;
  */
 public class PositiveNegativeItemPaths implements ShortDumpable {
 
-    private List<ItemPath> includedItems = new ArrayList<>();
-    private List<ItemPath> excludedItems = new ArrayList<>();
+    private final List<ItemPath> includedItems = new ArrayList<>();
+    private final List<ItemPath> excludedItems = new ArrayList<>();
     private boolean allItems = false;
 
     public boolean isAllItems() {
@@ -38,7 +38,7 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
         return excludedItems;
     }
 
-    public void collectItemPaths(Collection<? extends ItemPath> newIncludedItems, Collection<? extends ItemPath> newExcludedItems) {
+    protected void collectItemPaths(Collection<? extends ItemPath> newIncludedItems, Collection<? extends ItemPath> newExcludedItems) {
         if (allItems) {
             return;
         }
@@ -113,7 +113,6 @@ public class PositiveNegativeItemPaths implements ShortDumpable {
         }
         return true;
     }
-
 
     @Override
     public String toString() {

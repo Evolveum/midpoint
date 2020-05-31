@@ -6,9 +6,10 @@
   -->
 
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
            oid="e7bff8d1-cebd-4fbe-b935-64cfc2f22f52">
     <name>token</name>
-    <documentation>A token has some special characteristics:
+    <documentation>A magic token has some special characteristics:
 
         1. It is held by at most single user at given time.
 
@@ -17,10 +18,24 @@
 
         3. On the other hand, it knows who holds it by storing the holder's `name` and `fullName` in
         its `description` property.
+
+        Note that points 2 and 3 are implemented by induced mappings for this particular archetype.
+        This means that they work only for active tokens. This is fully in accord with the magical
+        character of the token: if it's inactive (e.g. disabled) it loses all its powers.
+
+        (But what about triggering the changes? They obviously will stop for disabled tokens.)
+
+        For a different approach please see the "device" archetype.
     </documentation>
+
+    <!-- Part 1: Data transfer itself: Mappings that - when evaluated - cause data to flow between objects. -->
+
+    <!-- 1a: token -> user -->
+
     <inducement>
         <focusMappings>
             <mapping>
+                <documentation>From token to user: putting 'T holders' into organizationalUnit.</documentation>
                 <strength>strong</strength>
                 <expression>
                     <script>
@@ -29,22 +44,29 @@
                 </expression>
                 <target>
                     <path>organizationalUnit</path>
+                    <set>
+                        <predefined>all</predefined>
+                    </set>
                 </target>
             </mapping>
         </focusMappings>
         <order>2</order> <!-- executes on token holder -->
         <focusType>UserType</focusType>
     </inducement>
+
+    <!-- 1b: user -> token -->
+
     <inducement>
         <focusMappings>
             <mapping>
+                <documentation>From user to token: putting 'Held by ...' into token description.</documentation>
                 <strength>strong</strength>
                 <expression>
                     <script>
                         <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
 
-                        assignee = midpoint.findAssignee(UserType.class)
-                        assignee != null ? 'Held by ' + assignee.name + ' (' + assignee.fullName + ')' : 'Not held'</code>
+                        linkedSource = midpoint.findLinkedSource(UserType.class)
+                        linkedSource != null ? 'Held by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not held'</code>
                     </script>
                 </expression>
                 <target>
@@ -53,5 +75,95 @@
             </mapping>
         </focusMappings>
         <order>1</order> <!-- executes on token object -->
+    </inducement>
+
+    <!-- Part 2: Triggering data transfer: Policy rules that cause recomputation of relevant objects when needed. -->
+
+    <!-- 2a: token -> user -->
+
+    <inducement>
+        <policyRule>
+            <name>recompute-holder-on-token-name-change</name>
+            <documentation>
+                Recomputes a user when token name is changed. (Note that user is recomputed
+                automatically when token is assigned or unassigned.)
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>1</order> <!-- assigned to token object, so executes when token is modified -->
+    </inducement>
+
+    <!-- 2b: user -> token -->
+
+    <inducement>
+        <policyRule>
+            <name>recompute-token-on-membership-change</name>
+            <documentation>
+                Recomputes all tokens whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-token-on-holder-name-change</name>
+            <documentation>Recomputes a token when user's name or fullName changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>fullName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
     </inducement>
 </archetype>

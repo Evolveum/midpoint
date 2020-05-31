@@ -108,7 +108,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
 
     private void executeForWholeInput(PipelineData input, PipelineData output, Parameters parameters, ExecutionContext context,
             OperationResult globalResult) throws ScriptExecutionException {
-        OperationResult result = operationsHelper.createActionResult(null, this);
+        OperationResult result = operationsHelper.createActionResult(null, this, globalResult);
         context.checkTaskStop();
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
@@ -130,7 +130,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
             Throwable exception = processActionException(ex, NAME, null, context); // TODO value for error reporting (3rd parameter)
             context.println("Failed to execute script on the pipeline" + exceptionSuffix(exception));
         }
-        operationsHelper.trimAndCloneResult(result, globalResult);
+        operationsHelper.trimAndCloneResult(result, null);
     }
 
     private void processItem(ExecutionContext context, Parameters parameters,

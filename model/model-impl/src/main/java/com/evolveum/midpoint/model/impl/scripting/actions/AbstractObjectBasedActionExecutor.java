@@ -43,7 +43,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
             throws ScriptExecutionException {
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             try {
                 context.checkTaskStop();
                 PrismObject<T> object = castToObject(value, getObjectType(), context);
@@ -59,7 +59,7 @@ abstract class AbstractObjectBasedActionExecutor<T extends ObjectType> extends B
                         writer.write(object, exception);
                     }
                 }
-                operationsHelper.trimAndCloneResult(result, globalResult);
+                operationsHelper.trimAndCloneResult(result, item.getResult());
             } catch (Throwable t) {
                 result.recordFatalError(t);
                 throw t;

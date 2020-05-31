@@ -66,9 +66,9 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
         } else {
             deltas = deltasProperty.getRealValues();
         }
-        PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-        ModelExecuteOptions options = optionsProperty != null ?
-                ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
+        ModelExecuteOptionsType optionsBean = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        ModelExecuteOptions options = optionsBean != null ?
+                ModelExecuteOptions.fromModelExecutionOptionsType(optionsBean) : null;
 
         try {
             Collection<ObjectDelta<?>> objectDeltas = new ArrayList<>();

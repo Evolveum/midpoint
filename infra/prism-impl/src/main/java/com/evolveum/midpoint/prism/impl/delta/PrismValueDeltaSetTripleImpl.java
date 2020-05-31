@@ -206,7 +206,11 @@ public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSet
 
         Processor<V> processor = pval -> {
             if (pval.getParent() != null) {
-                throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTripleImpl.this+" has parent, looks like it was not cloned properly");
+                if (pval instanceof PrismObjectValue) {
+                    // Object values are exceptions from this rule. They could have a parent. TODO reconsider this.
+                } else {
+                    throw new IllegalStateException("Value " + pval + " in triple " + PrismValueDeltaSetTripleImpl.this + " has parent, looks like it was not cloned properly");
+                }
             }
         };
         foreach(processor);

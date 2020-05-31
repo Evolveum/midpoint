@@ -277,7 +277,7 @@ public class TestMapping extends AbstractMappingTest {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME,
                 PrismTestUtil.createPolyString(CAPTAIN_JACK_FULL_NAME));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, result);
 
         // THEN
         then();
@@ -2281,7 +2281,7 @@ public class TestMapping extends AbstractMappingTest {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
                 PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions options = executeOptions().reconcile();
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN
@@ -2712,7 +2712,7 @@ public class TestMapping extends AbstractMappingTest {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_GUYBRUSH_OID, UserType.F_LOCALITY,
                 PrismTestUtil.createPolyString(LOCALITY_SCABB_ISLAND));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions options = executeOptions().reconcile();
         modelService.executeChanges(deltas, options, task, result);
 
         // THEN

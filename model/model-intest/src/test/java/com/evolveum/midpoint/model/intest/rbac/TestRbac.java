@@ -2358,7 +2358,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.create(getDefaultOptions(), prismContext).reconcile(), task, result);
 
         // THEN
         then();
@@ -2610,7 +2610,7 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        recomputeUser(USER_JACK_OID, ModelExecuteOptions.createReconcile(getDefaultOptions()), task, result);
+        recomputeUser(USER_JACK_OID, ModelExecuteOptions.create(getDefaultOptions(), prismContext).reconcile(), task, result);
 
         // THEN
         then();

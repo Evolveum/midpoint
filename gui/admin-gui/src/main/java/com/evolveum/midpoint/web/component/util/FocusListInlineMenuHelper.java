@@ -303,7 +303,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                         .createEmptyModifyDelta(objectClass, object.getOid()
                         );
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
-                parentPage.getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
+                parentPage.getModelService().executeChanges(deltas, parentPage.executeOptions().reconcile(), task, opResult);
                 opResult.computeStatusIfUnknown();
             } catch (CommonException|RuntimeException ex) {
                 opResult.recomputeStatus();

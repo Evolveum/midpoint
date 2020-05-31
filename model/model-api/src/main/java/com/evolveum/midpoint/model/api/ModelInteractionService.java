@@ -83,7 +83,7 @@ public interface ModelInteractionService {
      * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.
      * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
      * any resulting secondary changes.
-     *
+     * <p>
      * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore
      * this method is safe to use anytime. However it is reading the data from the repository and possibly also from the resources
      * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
@@ -156,16 +156,16 @@ public interface ModelInteractionService {
     /**
      * Returns filter for lookup of donors of power of attorney. The donors are the users that have granted
      * the power of attorney to the currently logged-in user.
-     *
+     * <p>
      * TODO: authorization limitations
      *
      * @param searchResultType type of the expected search results
      * @param origFilter original filter (e.g. taken from GUI search bar)
      * @param targetAuthorizationAction Authorization action that the attorney is trying to execute
-     *                 on behalf of donor. Only donors for which the use of this authorization was
-     *                 not limited will be returned (that does not necessarily mean that the donor
-     *                 is able to execute this action, it may be limited by donor's authorizations).
-     *                 If the parameter is null then all donors are returned.
+     * on behalf of donor. Only donors for which the use of this authorization was
+     * not limited will be returned (that does not necessarily mean that the donor
+     * is able to execute this action, it may be limited by donor's authorizations).
+     * If the parameter is null then all donors are returned.
      * @param task task
      * @param parentResult operation result
      * @return original filter with AND clause limiting the search.
@@ -177,10 +177,10 @@ public interface ModelInteractionService {
      * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
      *
      * @param includeSpecial include special authorizations, such as "self". If set to false those authorizations
-     *                       will be ignored. This is a good way to avoid interference of "self" when checking for
-     *                       authorizations such as ability to display role members.
+     * will be ignored. This is a good way to avoid interference of "self" when checking for
+     * authorizations such as ability to display role members.
      */
-    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result)  throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException ;
+    <T extends ObjectType, O extends ObjectType> boolean canSearch(Class<T> resultType, Class<O> objectType, String objectOid, boolean includeSpecial, ObjectQuery query, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
@@ -189,7 +189,7 @@ public interface ModelInteractionService {
      * @param object object of the operation (user)
      * @param target target of the operation (role, org, service that is being assigned)
      */
-    <O extends ObjectType,R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    <O extends ObjectType, R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     <F extends FocusType> SecurityPolicyType getSecurityPolicy(PrismObject<F> focus, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -197,7 +197,6 @@ public interface ModelInteractionService {
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
      * during registration process or reset password process.
      * security questions, etc).
-     *
      *
      * @param task
      * @param parentResult
@@ -217,7 +216,8 @@ public interface ModelInteractionService {
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    @Deprecated // Remove in 4.4 (or sooner?)
+    @Deprecated
+    // Remove in 4.4 (or sooner?)
     RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
@@ -283,7 +283,7 @@ public interface ModelInteractionService {
      * This method is NOT SUPPOSED to be used to validate password on login. This method is supposed to check
      * old password when the password is changed by the user. We assume that the user already passed normal
      * system authentication.
-     *
+     * <p>
      * Note: no authorizations are checked in the implementation. It is assumed that authorizations will be
      * enforced at the page level.
      *
@@ -308,11 +308,11 @@ public interface ModelInteractionService {
 
     <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * TEMPORARY. Need to find out better way how to deal with generated values
@@ -338,7 +338,7 @@ public interface ModelInteractionService {
 
     /**
      * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
-     *
+     * <p>
      * MAY NOT CHECK AUTHORIZATIONS (uses repository directly, at least at some places) - TODO
      * TODO parameterize on limitation kind
      */
@@ -401,7 +401,7 @@ public interface ModelInteractionService {
      * This is a "one stop" method for archetype policy in the GUI. The method returns archetype policy even
      * for "legacy" situations, e.g. if the policy needs to be determined from system configuration using legacy subtype.
      * GUI should not need to to any other processing to determine archetype information.
-     *
+     * <p>
      * This method is invoked very often, usually when any object is displayed (including display of object lists
      * and search results). Therefore this method is supposed to be very efficient.
      * It should be using caching as much as possible.
@@ -410,10 +410,10 @@ public interface ModelInteractionService {
 
     /**
      * Returns data structure that contains information about possible assignment targets for a particular holder object.
-     *
+     * <p>
      * This method should be used when editing assignment holder (e.g. user) and looking for available assignment target.
      * The determineAssignmentHolderSpecification is a "reverse" version of this method.
-     *
+     * <p>
      * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
      * It should use cached archetype information.
      */
@@ -428,10 +428,10 @@ public interface ModelInteractionService {
 
     /**
      * Returns data structure that contains information about possible assignment holders for a particular target object.
-     *
+     * <p>
      * This method should be used when editing assignment target (role, org, service) and looking for object that
      * can be potential members. The determineAssignmentTargetSpecification is a "reverse" version of this method.
-     *
+     * <p>
      * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
      * It should use cached archetype information.
      */
@@ -455,18 +455,22 @@ public interface ModelInteractionService {
             ExpressionEvaluationException, ObjectNotFoundException;
 
     @Experimental
-    @NotNull
-    <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
+    @NotNull <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
     /**
-     *
      * @param object
      * @param task
      * @param parentResult
      * @param <O>
      * @return virtual containers sepcification if present. Merge virtual container specification from archetype policy
-     *  for concrete object with global settings in systemConfiguration/adminGuiConfig
+     * for concrete object with global settings in systemConfiguration/adminGuiConfig
      */
-    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull  OperationResult parentResult);
+    <O extends ObjectType> Collection<VirtualContainersSpecificationType> determineVirtualContainers(PrismObject<O> object, @NotNull Task task, @NotNull OperationResult parentResult);
+
+    /**
+     * Applying all GuiObjectListViewsType to CompiledObjectCollectionView
+     */
+    @Experimental
+    void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewsType);
 }

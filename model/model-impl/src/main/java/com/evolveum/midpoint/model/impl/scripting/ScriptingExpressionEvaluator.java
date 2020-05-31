@@ -14,7 +14,7 @@ import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.expressions.FilterContentEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.expressions.SelectEvaluator;
-import com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingBeansUtil;
+import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBElement;
 import java.util.List;
 
-import static com.evolveum.midpoint.model.impl.scripting.helpers.ScriptingBeansUtil.getActionType;
+import static com.evolveum.midpoint.schema.util.ScriptingBeansUtil.getActionType;
 
 /**
  * Main entry point for evaluating scripting expressions.
@@ -64,13 +64,6 @@ public class ScriptingExpressionEvaluator {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired public ScriptingActionExecutorRegistry actionExecutorRegistry;
 
-    // TODO implement more nicely
-    public static ExecuteScriptType createExecuteScriptCommand(ScriptingExpressionType expression) {
-        ExecuteScriptType executeScriptCommand = new ExecuteScriptType();
-        executeScriptCommand.setScriptingExpression(ScriptingBeansUtil.toJaxbElement(expression));
-        return executeScriptCommand;
-    }
-
     /**
      * Asynchronously executes any scripting expression.
      *
@@ -80,7 +73,7 @@ public class ScriptingExpressionEvaluator {
      *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
      */
     public void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
-        evaluateExpressionInBackground(createExecuteScriptCommand(expression), task, parentResult);
+        evaluateExpressionInBackground(ScriptingBeansUtil.createExecuteScriptCommand(expression), task, parentResult);
     }
 
     public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException {
@@ -139,7 +132,7 @@ public class ScriptingExpressionEvaluator {
      * Convenience method (if we don't have full ExecuteScriptType).
      */
     public ExecutionContext evaluateExpression(ScriptingExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(createExecuteScriptCommand(expression), VariablesMap.emptyMap(), false, task, result);
+        return evaluateExpression(ScriptingBeansUtil.createExecuteScriptCommand(expression), VariablesMap.emptyMap(), false, task, result);
     }
 
     private ExecutionContext evaluateExpression(@NotNull ExecuteScriptType executeScript, VariablesMap initialVariables,
@@ -159,6 +152,9 @@ public class ScriptingExpressionEvaluator {
         } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             result.recordFatalError("Couldn't execute script", e);
             throw new ScriptExecutionException("Couldn't execute script: " + e.getMessage(), e);
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't execute script", t);
+            throw t;
         }
     }
 
@@ -177,26 +173,33 @@ public class ScriptingExpressionEvaluator {
             CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         context.checkTaskStop();
         OperationResult globalResult = parentResult.createMinorSubresult(DOT_CLASS + "evaluateExpression");
-        PipelineData output;
-        if (value instanceof ExpressionPipelineType) {
-            output = executePipeline((ExpressionPipelineType) value, input, context, globalResult);
-        } else if (value instanceof ExpressionSequenceType) {
-            output = executeSequence((ExpressionSequenceType) value, input, context, globalResult);
-        } else if (value instanceof SelectExpressionType) {
-            output = selectEvaluator.evaluate((SelectExpressionType) value, input, context, globalResult);
-        } else if (value instanceof FilterContentExpressionType) {
-            output = filterContentEvaluator.evaluate((FilterContentExpressionType) value, input, context, globalResult);
-        } else if (value instanceof SearchExpressionType) {
-            output = searchEvaluator.evaluate((SearchExpressionType) value, input, context, globalResult);
-        } else if (value instanceof ActionExpressionType) {
-            output = executeAction((ActionExpressionType) value, input, context, globalResult);
-        } else {
-            throw new IllegalArgumentException("Unsupported expression type: " + (value==null?"(null)":value.getClass()));
+        try {
+            PipelineData output;
+            if (value instanceof ExpressionPipelineType) {
+                output = executePipeline((ExpressionPipelineType) value, input, context, globalResult);
+            } else if (value instanceof ExpressionSequenceType) {
+                output = executeSequence((ExpressionSequenceType) value, input, context, globalResult);
+            } else if (value instanceof SelectExpressionType) {
+                output = selectEvaluator.evaluate((SelectExpressionType) value, input, context, globalResult);
+            } else if (value instanceof FilterContentExpressionType) {
+                output = filterContentEvaluator.evaluate((FilterContentExpressionType) value, input, context, globalResult);
+            } else if (value instanceof SearchExpressionType) {
+                output = searchEvaluator.evaluate((SearchExpressionType) value, input, context, globalResult);
+            } else if (value instanceof ActionExpressionType) {
+                output = executeAction((ActionExpressionType) value, input, context, globalResult);
+            } else {
+                throw new IllegalArgumentException("Unsupported expression type: " + (value == null ? "(null)" : value.getClass()));
+            }
+            globalResult.computeStatusIfUnknown();
+            globalResult.setSummarizeSuccesses(true);
+            globalResult.summarize();
+            return output;
+        } catch (Throwable t) {
+            globalResult.recordFatalError(t);
+            throw t;
+        } finally {
+            globalResult.computeStatusIfUnknown();
         }
-        globalResult.computeStatusIfUnknown();
-        globalResult.setSummarizeSuccesses(true);
-        globalResult.summarize();
-        return output;
     }
 
     private PipelineData executeAction(@NotNull ActionExpressionType action, PipelineData input, ExecutionContext context,

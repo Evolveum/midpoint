@@ -340,6 +340,10 @@
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency> <!-- not sure why this must be in compile scope -->
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

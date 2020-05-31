@@ -25,7 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType
  */
 public class AuthorizationParameters<O extends ObjectType, T extends ObjectType> implements ShortDumpable {
 
-    @SuppressWarnings("rawtypes")
     public static final AuthorizationParameters<ObjectType,ObjectType> EMPTY = new AuthorizationParameters<>(null, null, null, null);
 
     // ODO specifies authorization object with delta

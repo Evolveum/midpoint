@@ -55,7 +55,7 @@ public class ValidateExecutor extends BaseActionExecutor {
 
         for (PipelineItem item: input.getData()) {
             PrismValue value = item.getValue();
-            OperationResult result = operationsHelper.createActionResult(item, this);
+            OperationResult result = operationsHelper.createActionResult(item, this, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ResourceType) {
                 PrismObject<ResourceType> resourceTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -81,7 +81,7 @@ public class ValidateExecutor extends BaseActionExecutor {
                 //noinspection ThrowableNotThrown
                 processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
-            operationsHelper.trimAndCloneResult(result, globalResult);
+            operationsHelper.trimAndCloneResult(result, item.getResult());
         }
         return output;
     }

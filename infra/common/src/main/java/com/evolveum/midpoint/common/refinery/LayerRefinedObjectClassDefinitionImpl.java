@@ -318,8 +318,8 @@ public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefined
     }
 
     @Override
-    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
-        return refinedObjectClassDefinition.createBlankShadow(definition);
+    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition, String tag) {
+        return refinedObjectClassDefinition.createBlankShadow(definition, tag);
     }
 
     @Override

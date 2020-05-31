@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -85,7 +86,8 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
         return variables.put(key, typedValue);
     }
 
-    public void registerAlias(String alias, String realName) {
+    // mainVariable of "null" means the default source
+    public void registerAlias(String alias, @Nullable String realName) {
         if (isAlias(realName)) {
             throw new IllegalArgumentException("Trying to put alias definition: " + alias + "->" + realName + ", but " + realName + " is itself an alias");
         }

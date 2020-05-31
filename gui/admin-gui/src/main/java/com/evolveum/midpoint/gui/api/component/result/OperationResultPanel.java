@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -258,6 +260,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
         });
+        downloadXml.add(new VisibleBehaviour(() -> getModelObject().isParent()));
         downloadXml.setDeleteAfterDownload(true);
         box.add(downloadXml);
     }

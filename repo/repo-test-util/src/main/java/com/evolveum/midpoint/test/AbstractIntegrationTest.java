@@ -2054,6 +2054,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return task;
     }
 
+    protected void assertSuccess(Task task) {
+        assertSuccess(task.getResult());
+    }
+
     protected void assertSuccess(OperationResult result) {
         if (result.isUnknown()) {
             result.computeStatus();
