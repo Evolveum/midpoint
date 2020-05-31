@@ -26,8 +26,7 @@ public class NoEmptyValueContainerWrapperFactoryImpl<C extends Containerable> ex
     public boolean match(ItemDefinition<?> def) {
         return def instanceof PrismContainerDefinition && def.isMultiValue()
                 || AbstractWorkItemOutputType.COMPLEX_TYPE.equals(def.getTypeName())
-                || ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())
-                || CollectionRefSpecificationType.COMPLEX_TYPE.equals(def.getTypeName());
+                || ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName());
     }
 
     @Override
