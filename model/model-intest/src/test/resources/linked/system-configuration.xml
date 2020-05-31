@@ -48,4 +48,35 @@
             </scriptExecution>
         </policyActions>
     </globalPolicyRule>
+
+    <globalPolicyRule>
+        <focusSelector>
+            <type>OrgType</type>
+            <archetypeRef oid="4d3280a1-6514-4984-ac2c-7e56c05af258" /> <!-- project -->
+        </focusSelector>
+        <name>delete-children-on-project-deletion</name>
+        <documentation>
+            Deletes children when project is deleted.
+        </documentation>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkSource>
+                        <type>OrgType</type>
+                        <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf"/> <!-- users -->
+                        <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
+                    </linkSource>
+                </object>
+                <executeScript>
+                    <s:delete/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+    </globalPolicyRule>
+
 </systemConfiguration>

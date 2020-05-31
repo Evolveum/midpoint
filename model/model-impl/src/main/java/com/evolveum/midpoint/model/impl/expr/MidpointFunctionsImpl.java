@@ -2063,6 +2063,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return BooleanUtils.isNotFalse(getBooleanExtensionOption(localName));
     }
 
+    public boolean extensionOptionIsTrue(String localName) {
+        return BooleanUtils.isTrue(getBooleanExtensionOption(localName));
+    }
+
     public Boolean getBooleanExtensionOption(String localName) {
         return getExtensionOptionRealValue(localName, Boolean.class);
     }

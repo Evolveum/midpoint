@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -193,7 +194,7 @@ public class PasswordPanel extends InputPanel {
                     || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
                     return false;
                 }
-                if (pageBase instanceof PageUser && !((PageUser) pageBase).isLoggedInUserPage()
+                if (pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
                         && model.getObject() != null){
                     return true;
                 }

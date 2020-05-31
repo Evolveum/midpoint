@@ -39,7 +39,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="memberRecomputationWorkerThreads" type="xsd:boolean">
+    <xsd:element name="memberRecomputationWorkerThreads" type="xsd:int">
         <xsd:annotation>
             <xsd:documentation>
                 Specifies the number of worker threads for "member recompute" tasks. Used by abstract

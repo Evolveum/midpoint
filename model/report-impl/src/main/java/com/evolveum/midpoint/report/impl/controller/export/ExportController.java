@@ -6,9 +6,16 @@
  */
 package com.evolveum.midpoint.report.impl.controller.export;
 
+import java.text.SimpleDateFormat;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import com.google.common.collect.ImmutableSet;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -29,12 +36,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 /**
  * @author skublik
  */
@@ -47,20 +48,11 @@ public abstract class ExportController {
     protected static final String NUMBER_COLUMN = "number";
     protected static final String STATUS_COLUMN = "status";
 
-    private ReportServiceImpl reportService;
-    private ExportConfigurationType exportConfiguration;
+    private final static Set<String> HEADS_OF_WIDGET =
+            ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
-    private static Set<String> headsOfWidget;
-
-    static {
-        headsOfWidget = new LinkedHashSet<String>() {
-            {
-                add(LABEL_COLUMN);
-                add(NUMBER_COLUMN);
-                add(STATUS_COLUMN);
-            }
-        };
-    }
+    private final ReportServiceImpl reportService;
+    private final ExportConfigurationType exportConfiguration;
 
     public ExportController(ExportConfigurationType exportConfiguration, ReportServiceImpl reportService) {
         this.exportConfiguration = exportConfiguration;
@@ -76,7 +68,7 @@ public abstract class ExportController {
     }
 
     protected static Set<String> getHeadsOfWidget() {
-        return headsOfWidget;
+        return HEADS_OF_WIDGET;
     }
 
     public abstract byte[] processDashboard(DashboardReportEngineConfigurationType dashboardConfig, Task task, OperationResult result) throws Exception;
@@ -98,10 +90,7 @@ public abstract class ExportController {
     public abstract String getType();
 
     protected String getMessage(Enum e) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(e.getDeclaringClass().getSimpleName()).append('.');
-        sb.append(e.name());
-        return getMessage(sb.toString());
+        return getMessage(e.getDeclaringClass().getSimpleName() + '.' + e.name());
     }
 
     protected String getMessage(String key) {
@@ -150,7 +139,7 @@ public abstract class ExportController {
                 }
             }
         }
-        if(expression != null) {
+        if (expression != null) {
             return evaluateExpression(expression, valueObject, task, result);
         }
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
@@ -178,15 +167,15 @@ public abstract class ExportController {
                 appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
-                Object realObject = ((PrismPropertyValue) value).getRealValue();
-                if (realObject == null){
-                    realObject =  "";
+                Object realObject = value.getRealValue();
+                if (realObject == null) {
+                    realObject = "";
                 } else if (realObject instanceof Enum) {
-                    realObject = getMessage((Enum)realObject);
+                    realObject = getMessage((Enum) realObject);
                 }
                 sb.append(realObject);
             } else if (value instanceof PrismReferenceValue) {
-                sb.append(getObjectNameFromRef(((PrismReferenceValue)value).getRealValue()));
+                sb.append(getObjectNameFromRef(((PrismReferenceValue) value).getRealValue()));
             }
         });
         return sb.toString();
@@ -215,7 +204,7 @@ public abstract class ExportController {
 
     private String evaluateExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;
-        if(valueObject == null) {
+        if (valueObject == null) {
             object = null;
         } else {
             object = valueObject.getRealValue();
@@ -226,7 +215,7 @@ public abstract class ExportController {
     private String evaluateExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
         ExpressionVariables variables = new ExpressionVariables();
-        if(valueObject == null) {
+        if (valueObject == null) {
             variables.put(ExpressionConstants.VAR_OBJECT, null, Object.class);
         } else {
             variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
@@ -239,15 +228,14 @@ public abstract class ExportController {
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (values == null || values.isEmpty()){
+        if (values == null || values.isEmpty()) {
             return "";
         }
-        if(values.size() != 1) {
+        if (values.size() != 1) {
             throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
         }
         return values.iterator().next();
     }
-
 
 //    private String getStyleForColumn(String column) {
 //        switch (column) {
@@ -306,7 +294,7 @@ public abstract class ExportController {
 
     protected String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path,
             ExpressionType expression, Task task, OperationResult result) {
-        if(expression == null) {
+        if (expression == null) {
             return getStringValueByAuditColumn(record, path);
         }
         Object object;
@@ -332,7 +320,7 @@ public abstract class ExportController {
             case AuditConstants.TARGET_COLUMN:
                 return record.getTarget() == null ? "" : getObjectNameFromRef(record.getTarget().getRealValue());
             case AuditConstants.TARGET_OWNER_COLUMN:
-                return record.getTargetOwner() == null ? "" :record.getTargetOwner().getName().getOrig();
+                return record.getTargetOwner() == null ? "" : record.getTargetOwner().getName().getOrig();
             case AuditConstants.CHANNEL_COLUMN:
                 return record.getChannel() == null ? "" : QNameUtil.uriToQName(record.getChannel()).getLocalPart();
             case AuditConstants.OUTCOME_COLUMN:
@@ -350,7 +338,7 @@ public abstract class ExportController {
                 while (iterator.hasNext()) {
                     ObjectDeltaOperation delta = iterator.next();
                     sbDelta.append(ReportUtils.printDelta(delta));
-                    if ((index+1)!=deltas.size()) {
+                    if ((index + 1) != deltas.size()) {
                         sbDelta.append("\n");
                     }
                     index++;
@@ -366,22 +354,22 @@ public abstract class ExportController {
                 return record.getResult() == null ? "" : record.getResult();
             case AuditConstants.RESOURCE_OID_COLUMN:
                 Set<String> resourceOids = record.getResourceOids();
-                if(resourceOids == null || resourceOids.isEmpty()) {
+                if (resourceOids == null || resourceOids.isEmpty()) {
                     return "";
                 }
                 StringBuilder sb = new StringBuilder();
                 int i = 1;
-                for(String oid : resourceOids) {
+                for (String oid : resourceOids) {
                     sb.append(oid);
-                    if(i != resourceOids.size()) {
+                    if (i != resourceOids.size()) {
                         sb.append("\n");
                     }
                     i++;
                 }
                 return sb.toString();
             default:
-                if(record.getCustomColumnProperty().containsKey(path)) {
-                    return record.getCustomColumnProperty().get(path);
+                if (record.getCustomColumnProperty().containsKey(path.toString())) {
+                    return record.getCustomColumnProperty().get(path.toString());
                 } else {
                     LOGGER.error("Unknown name of column for AuditReport " + path);
                     throw new IllegalArgumentException("Unknown name of column for AuditReport " + path);

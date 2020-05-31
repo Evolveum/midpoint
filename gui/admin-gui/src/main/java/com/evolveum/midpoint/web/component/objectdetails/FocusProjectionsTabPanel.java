@@ -296,7 +296,34 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return new CompositedIconBuilder().build();
                 }
-                return WebComponentUtil.createAccountIcon(rowModel.getObject().getRealValue(), getPageBase());
+                ShadowType shadow = rowModel.getObject().getRealValue();
+                try {
+                    PrismPropertyWrapper<Boolean> dead = rowModel.getObject().findProperty(ShadowType.F_DEAD);
+                    if (dead != null && !dead.isEmpty()) {
+                        shadow.setDead(dead.getValue().getRealValue());
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find property " + ShadowType.F_DEAD);
+                }
+                try {
+                    PrismContainerWrapper<ActivationType> activation = rowModel.getObject().findContainer(ShadowType.F_ACTIVATION);
+                    if (activation != null && !activation.isEmpty()) {
+                        shadow.setActivation(activation.getValue().getRealValue());
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find container " + ShadowType.F_ACTIVATION);
+                }
+                try {
+                    PrismContainerWrapper<TriggerType> triggers = rowModel.getObject().findContainer(ShadowType.F_TRIGGER);
+                    if (triggers != null && !triggers.isEmpty()) {
+                        for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
+                            shadow.getTrigger().add(trigger.getRealValue());
+                        }
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find container " + ShadowType.F_TRIGGER);
+                }
+                return WebComponentUtil.createAccountIcon(shadow, getPageBase());
             }
 
         });
