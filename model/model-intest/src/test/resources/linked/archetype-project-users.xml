@@ -12,6 +12,18 @@
         "Users" sub-org for project org.
     </documentation>
 
+    <archetypePolicy>
+        <links>
+            <targetLink>
+                <name>parent</name>
+                <selector>
+                    <type>OrgType</type>
+                    <archetypeRef oid="4d3280a1-6514-4984-ac2c-7e56c05af258" /> <!-- project -->
+                </selector>
+            </targetLink>
+        </links>
+    </archetypePolicy>
+
     <inducement>
         <focusMappings>
             <mapping>
@@ -19,10 +31,7 @@
                 <expression>
                     <script>
                         <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
-
-                            ARCHETYPE_PROJECT_OID = '4d3280a1-6514-4984-ac2c-7e56c05af258'
-                            parent = midpoint.findLinkedTarget(OrgType.class, ARCHETYPE_PROJECT_OID)
+                            parent = midpoint.findLinkedTarget('parent')
                             parent ? parent.name + '_users' : null
                         </code>
                     </script>

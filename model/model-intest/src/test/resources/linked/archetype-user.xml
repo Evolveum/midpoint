@@ -8,6 +8,18 @@
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            oid="c46b1bcc-af43-44ee-a107-71f36e952cc5">
     <name>user</name>
+    <archetypePolicy>
+        <links>
+            <targetLink>
+                <name>devices</name>
+                <selector>
+                    <type>ServiceType</type>
+                    <archetypeRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" /> <!-- device -->
+                </selector>
+            </targetLink>
+        </links>
+    </archetypePolicy>
+
     <inducement>
         <focusMappings>
             <mapping>

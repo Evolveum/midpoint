@@ -15,10 +15,10 @@
             <strength>strong</strength>
             <expression>
                 <script>
-                    <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
-
-                    linkedSource = midpoint.findLinkedSource(UserType.class)
-                    linkedSource != null ? 'Used by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not used'</code>
+                    <code>
+                        linkedSource = midpoint.findLinkedSource('user')
+                        linkedSource != null ? 'Used by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not used'
+                    </code>
                 </script>
             </expression>
             <target>

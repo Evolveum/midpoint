@@ -2749,7 +2749,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<>(id, model, settings);
+        return new PrismContainerValuePanel<>(id, model, settings) {
+            @Override
+            protected boolean isRemoveButtonVisible() {
+                return false;
+            }
+        };
     }
 
     public Clock getClock() {

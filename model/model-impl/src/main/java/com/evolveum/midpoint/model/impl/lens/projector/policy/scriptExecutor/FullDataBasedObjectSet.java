@@ -26,9 +26,8 @@ class FullDataBasedObjectSet extends ObjectSet<PrismObjectValue<?>> {
     @Override
     void collectLinkSources() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
-        assert objectSpec != null;
         try (LinkSourceFinder sourceFinder = new LinkSourceFinder(actx, result)) {
-            addObjects(sourceFinder.getSourcesAsObjects(objectSpec.getLinkSource()));
+            addObjects(sourceFinder.getSourcesAsObjects());
         }
     }
 

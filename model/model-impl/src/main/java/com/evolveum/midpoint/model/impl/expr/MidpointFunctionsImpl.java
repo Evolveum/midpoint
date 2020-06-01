@@ -1996,10 +1996,23 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Experimental
+    public <T extends AssignmentHolderType> T findLinkedSource(String linkType) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedSource(linkType);
+    }
+
+    @Experimental
     public <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         return linkedObjectsFunctions.findLinkedSources(type);
+    }
+
+    @Experimental
+    public <T extends AssignmentHolderType> List<T> findLinkedSources(String linkTypeName) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedSources(linkTypeName);
     }
 
     // Should be used after assignment evaluation!
@@ -2012,11 +2025,34 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     // Should be used after assignment evaluation!
     @Experimental
+    public <T extends AssignmentHolderType> T findLinkedTarget(String linkTypeName)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedTarget(linkTypeName);
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
     @NotNull
     public <T extends AssignmentHolderType> List<T> findLinkedTargets(Class<T> type, String archetypeOid)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return linkedObjectsFunctions.findLinkedTargets(type, archetypeOid);
+    }
+
+    // Should be used after assignment evaluation!
+    @Experimental
+    @NotNull
+    public <T extends AssignmentHolderType> List<T> findLinkedTargets(String linkTypeName)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.findLinkedTargets(linkTypeName);
+    }
+
+    @Experimental
+    public <T extends AssignmentHolderType> T createLinkedSource(String linkType) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        return linkedObjectsFunctions.createLinkedSource(linkType);
     }
 
     @Experimental

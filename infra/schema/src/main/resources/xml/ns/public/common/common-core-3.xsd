@@ -15084,8 +15084,112 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="links" type="tns:LinkTypeDefinitionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definitions of link types for objects having this archetype.
+                            EXPERIMENTAL. UNSTABLE. DO NOT USE.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="LinkTypeDefinitionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definitions of link types for objects having this archetype.
+                EXPERIMENTAL. UNSTABLE. DO NOT USE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sourceLink" type="c:LinkTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of inbound link. Specifies source objects that can have this (archetyped) object assigned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetLink" type="c:LinkTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of outbound link. Specifies target objects that can be assigned to this (archetyped) object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definitions of a link type.
+                EXPERIMENTAL. UNSTABLE. DO NOT USE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the named link.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selector" type="c:LinkedObjectSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the objects on the other side of the link (sources or targets).
+                        It can be also missing or empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkedObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked ones (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Link matches if it has any of the relation specified.
+                                (If no relation is specified, all links match.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkedObjectSelectorType" type="c:LinkedObjectSelectorType" />
 
     <xsd:simpleType name="AssignmentRelationApproachType">
         <xsd:annotation>
