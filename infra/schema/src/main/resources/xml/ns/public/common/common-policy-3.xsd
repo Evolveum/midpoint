@@ -2631,8 +2631,20 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Objects linked form this one, matching given selector(s).
+                            Objects linked from this one, matching given selector(s).
                             TODO find better name.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="namedLinkTarget" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Objects linked from this one, with the specified link type name.
+                            It is actually a shortcut for linkTarget with linkType set.
+
+                            EXPERIMENTAL. UNSTABLE. DO NOT USE.
                         </p>
                     </xsd:documentation>
                 </xsd:annotation>
@@ -2647,38 +2659,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="namedLinkSource" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Objects linked to this one, with the specified link type name.
+                            It is actually a shortcut for linkSource with linkType set.
+
+                            EXPERIMENTAL. UNSTABLE. DO NOT USE.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="scriptExecutionObject" type="tns:ScriptExecutionObjectType" />
-
-    <xsd:complexType name="LinkedObjectSelectorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Selects objects among linked ones (for this object).
-                EXPERIMENTAL
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.2</a:since>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="c:ObjectSelectorType">
-                <xsd:sequence>
-                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Link matches if it has any of the relation specified.
-                                (If no relation is specified, all links match.)
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
 
     <xsd:complexType name="LinkSourceObjectSelectorType">
         <xsd:annotation>
@@ -2693,9 +2688,21 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:LinkedObjectSelectorType"/>
+            <xsd:extension base="c:LinkedObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="linkType" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the link type. Not to be mixed with other linked object selector items.
+                                EXPERIMENTAL. UNSTABLE. DO NOT USE.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="linkSourceObjectSelector" type="tns:LinkSourceObjectSelectorType" />
 
     <xsd:complexType name="LinkTargetObjectSelectorType">
         <xsd:annotation>
@@ -2716,6 +2723,14 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                  In what situations (change-related) does the link match?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="linkType" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the link type. Not to be mixed with other linked object selector items.
+                                EXPERIMENTAL. UNSTABLE. DO NOT USE.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

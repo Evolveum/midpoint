@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.RunAsRunner;
@@ -65,6 +66,7 @@ public class PolicyRuleScriptExecutor {
     @Autowired ExpressionFactory expressionFactory;
     @Autowired ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     @Autowired RunAsRunnerFactory runAsRunnerFactory;
+    @Autowired LinkManager linkManager;
 
     public void execute(@NotNull LensContext<?> context, Task task, OperationResult parentResult)
             throws SchemaException {

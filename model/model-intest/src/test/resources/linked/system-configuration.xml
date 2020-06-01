@@ -66,11 +66,8 @@
         <policyActions>
             <scriptExecution>
                 <object>
-                    <linkSource>
-                        <type>OrgType</type>
-                        <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf"/> <!-- users -->
-                        <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
-                    </linkSource>
+                    <namedLinkSource>usersOrg</namedLinkSource>
+                    <namedLinkSource>groupsOrg</namedLinkSource>
                 </object>
                 <executeScript>
                     <s:delete/>

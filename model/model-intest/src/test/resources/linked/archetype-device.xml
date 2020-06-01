@@ -26,6 +26,14 @@
 
     <archetypePolicy>
         <objectTemplateRef oid="e0d5d585-da74-4523-b4f5-78cb54c0dccd" /> <!-- template-device -->
+        <links>
+            <sourceLink>
+                <name>user</name>
+                <selector>
+                    <type>UserType</type>
+                </selector>
+            </sourceLink>
+        </links>
     </archetypePolicy>
 
     <!-- Part 2: Triggering data transfer: Policy rules that cause recomputation of relevant objects when needed. -->
@@ -47,7 +55,9 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <linkSource/>
+                        <linkSource>
+                            <linkType>user</linkType>
+                        </linkSource>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -78,8 +88,7 @@
                 <scriptExecution>
                     <object>
                         <linkTarget>
-                            <!-- i.e. all objects that brought this policy rule to the focus -->
-                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                            <linkType>devices</linkType>
                         </linkTarget>
                     </object>
                     <executeScript>
@@ -105,8 +114,7 @@
                     <object>
                         <linkTarget>
                             <changeSituation>changed</changeSituation>
-                            <!-- i.e. all objects that brought this policy rule to the focus -->
-                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                            <linkType>devices</linkType>
                         </linkTarget>
                     </object>
                     <executeScript>

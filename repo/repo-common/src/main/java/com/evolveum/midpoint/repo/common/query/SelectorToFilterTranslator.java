@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,14 +39,15 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  *
  * See also SecurityEnforcerImpl#computeSecurityFilterPhase.
  */
+@Experimental
 public class SelectorToFilterTranslator {
 
     @NotNull private final ObjectSelectorType selector;
     @NotNull private final List<ObjectFilter> components = new ArrayList<>();
     @NotNull private final String contextDescription;
 
-    @NotNull private final PrismContext prismContext;
-    @NotNull private final QueryFactory queryFactory;
+    @NotNull final PrismContext prismContext;
+    @NotNull final QueryFactory queryFactory;
     @NotNull private final ExpressionFactory expressionFactory;
 
     @NotNull private final Task task;
