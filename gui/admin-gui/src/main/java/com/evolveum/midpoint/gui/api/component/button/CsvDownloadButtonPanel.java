@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -97,6 +98,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 return super.wrapModel(model);
             }
         };
+        IModel<String> name = Model.of("");
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
             private static final long serialVersionUID = 1L;
 
@@ -106,7 +108,10 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             }
 
             public String getFileName() {
-                return CsvDownloadButtonPanel.this.getFilename();
+                if (StringUtils.isEmpty(name.getObject())) {
+                    return CsvDownloadButtonPanel.this.getFilename();
+                }
+                return name.getObject();
             }
         };
 
@@ -146,7 +151,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 }
                 exportableColumnsIndex.clear();
                 ExportingPanel exportingPanel = new ExportingPanel(getPageBase().getMainPopupBodyId(),
-                        getDataTable(), exportableColumnsIndex, useExportSizeLimit, search) {
+                        getDataTable(), exportableColumnsIndex, useExportSizeLimit, search, name) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -155,8 +160,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     }
 
                     @Override
-                    protected void createReportPerformed(SearchFilterType filter, AjaxRequestTarget target) {
-                        CsvDownloadButtonPanel.this.createReportPerformed(filter, exportableColumnsIndex, target);
+                    protected void createReportPerformed(String name, SearchFilterType filter, AjaxRequestTarget target) {
+                        CsvDownloadButtonPanel.this.createReportPerformed(name, filter, exportableColumnsIndex, target);
                     }
                 };
                 getPageBase().showMainPopup(exportingPanel, target);
@@ -178,6 +183,6 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
     protected abstract String getFilename();
 
-    protected abstract void createReportPerformed(SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target);
+    protected abstract void createReportPerformed(String name, SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target);
 
 }
