@@ -214,21 +214,9 @@ public class PropertyComplexValueFilterType
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
-        {
-            Element thePath;
-            thePath = this.getPath();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "path", thePath), currentHashCode, thePath);
-        }
-        {
-            ValueType theValue;
-            theValue = this.getValue();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "value", theValue), currentHashCode, theValue);
-        }
-        {
-            Object theAny;
-            theAny = this.getAny();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "any", theAny), currentHashCode, theAny);
-        }
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "path", this.getPath()), currentHashCode, this.getPath());
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "value", this.getValue()), currentHashCode, this.getValue());
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "any", this.getAny()), currentHashCode, this.getAny());
         return currentHashCode;
     }
 
@@ -248,32 +236,26 @@ public class PropertyComplexValueFilterType
             return false;
         }
         final PropertyComplexValueFilterType that = ((PropertyComplexValueFilterType) object);
-        {
-            Element lhsPath;
-            lhsPath = this.getPath();
-            Element rhsPath;
-            rhsPath = that.getPath();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "path", lhsPath), LocatorUtils.property(thatLocator, "path", rhsPath), lhsPath, rhsPath)) {
-                return false;
-            }
+        Element lhsPath;
+        lhsPath = this.getPath();
+        Element rhsPath;
+        rhsPath = that.getPath();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "path", lhsPath), LocatorUtils.property(thatLocator, "path", rhsPath), lhsPath, rhsPath)) {
+            return false;
         }
-        {
-            ValueType lhsValue;
-            lhsValue = this.getValue();
-            ValueType rhsValue;
-            rhsValue = that.getValue();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "value", lhsValue), LocatorUtils.property(thatLocator, "value", rhsValue), lhsValue, rhsValue)) {
-                return false;
-            }
+        ValueType lhsValue;
+        lhsValue = this.getValue();
+        ValueType rhsValue;
+        rhsValue = that.getValue();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "value", lhsValue), LocatorUtils.property(thatLocator, "value", rhsValue), lhsValue, rhsValue)) {
+            return false;
         }
-        {
-            Object lhsAny;
-            lhsAny = this.getAny();
-            Object rhsAny;
-            rhsAny = that.getAny();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "any", lhsAny), LocatorUtils.property(thatLocator, "any", rhsAny), lhsAny, rhsAny)) {
-                return false;
-            }
+        Object lhsAny;
+        lhsAny = this.getAny();
+        Object rhsAny;
+        rhsAny = that.getAny();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "any", lhsAny), LocatorUtils.property(thatLocator, "any", rhsAny), lhsAny, rhsAny)) {
+            return false;
         }
         return true;
     }
@@ -679,17 +661,15 @@ public class PropertyComplexValueFilterType
      */
     @Override
     public PropertyComplexValueFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final PropertyComplexValueFilterType clone = ((PropertyComplexValueFilterType) super.clone());
-            // CWildcardTypeInfo: org.w3c.dom.Element
-            clone.path = ((this.path == null)?null:((this.getPath() == null)?null:((Element) this.getPath().cloneNode(true))));
-            // CClassInfo: com.evolveum.prism.xml.ns._public.query_3.ValueType
-            clone.value = ((this.value == null)?null:((this.getValue() == null)?null:this.getValue().clone()));
-            // CBuiltinLeafInfo: java.lang.Object
-            clone.any = ((this.any == null)?null:copyOf(this.getAny()));
-            return clone;
-        }
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        final PropertyComplexValueFilterType clone = ((PropertyComplexValueFilterType) super.clone());
+        // CWildcardTypeInfo: org.w3c.dom.Element
+        clone.path = ((this.path == null)?null:((this.getPath() == null)?null:((Element) this.getPath().cloneNode(true))));
+        // CClassInfo: com.evolveum.prism.xml.ns._public.query_3.ValueType
+        clone.value = ((this.value == null)?null:((this.getValue() == null)?null:this.getValue().clone()));
+        // CBuiltinLeafInfo: java.lang.Object
+        clone.any = ((this.any == null)?null:copyOf(this.getAny()));
+        return clone;
     }
 
 }
