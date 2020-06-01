@@ -11,6 +11,7 @@ import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.ex.ElementShould;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
@@ -422,11 +423,23 @@ public class BasicPage {
         mainMenu.shouldBe(Condition.visible);
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();
-        if (!mainMenuLi.has(Condition.cssClass("active"))) {
-            mainMenu.click();
-            mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_MEDIUM_6_S).shouldHave(Condition.cssClass("active"));
+
+        // this is not a very clean and clear code. needs review and rewrite.
+        // it seems that after adminLTE upgrade, top menu items doesn't have 'active' css class but 'menu-open' css class.
+        try {
+            checkCssClass(mainMenuLi, mainMenu, "menu-open"); //try first for top level e.g. Users, Roles, ...
+        } catch (ElementShould e) {
+            checkCssClass(mainMenuLi, mainMenu, "active"); //if doesn't exists, try for subitems, e.g All users, New user,...
         }
+
         return mainMenu;
+    }
+
+    private void checkCssClass(SelenideElement mainMenuLi, SelenideElement mainMenu, String cssClass) {
+        if (!mainMenuLi.has(Condition.cssClass(cssClass))) {
+            mainMenu.click();
+            mainMenuLi.waitUntil(Condition.cssClass(cssClass),MidPoint.TIMEOUT_MEDIUM_6_S).shouldHave(Condition.cssClass(cssClass));
+        }
     }
 
     public String getCurrentUrl() {
