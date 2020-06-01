@@ -271,7 +271,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             @Override
-            protected void createReportPerformed(SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target) {
+            protected void createReportPerformed(String name, SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target) {
                 PrismContext prismContext = getPageBase().getPrismContext();
                 PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
                 PrismObject<ReportType> obj = null;
@@ -286,41 +286,43 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 ReportType report = obj.asObjectable();
                 String oid = UUID.randomUUID().toString();
                 report.setOid(oid);
-                String name = getPageBase().createStringResource("ObjectTypeGuiDescriptor.report").getString()+ "-" + oid;
+                if (StringUtils.isEmpty(name)) {
+                    name = getPageBase().createStringResource("ObjectTypeGuiDescriptor.report").getString() + "-" + oid;
+                }
                 report.setName(WebComponentUtil.createPolyFromOrigString(name));
                 report.setReportEngine(ReportEngineSelectionType.COLLECTION);
                 ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
                 objectCollection.setUseOnlyReportView(true);
                 CompiledObjectCollectionView view = getObjectCollectionView();
+                CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
                 if (view == null) {
                     objectCollection.setView(resolveSelectedColumn(indexOfColumns, getDefaultView()));
                 } else {
                     objectCollection.setView(resolveSelectedColumn(indexOfColumns, view.toGuiObjectListViewType()));
-                }
-                CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
-                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
-                    if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                        collection.setBaseCollectionRef(view.getCollection());
-                    } else {
-                        CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
-                        try {
-                            baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
-                            collection.setBaseCollectionRef(baseCollection);
-                        } catch (SchemaException e) {
-                            LOGGER.error("Couldn't create filter for archetype");
-                            getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
-                            target.add(getPageBase().getFeedbackPanel());
+                    if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                        if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                            collection.setBaseCollectionRef(view.getCollection());
+                        } else {
+                            CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
+                            try {
+                                baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
+                                collection.setBaseCollectionRef(baseCollection);
+                            } catch (SchemaException e) {
+                                LOGGER.error("Couldn't create filter for archetype");
+                                getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
                         }
                     }
                 }
                 if (filter != null) {
                     collection.setFilter(filter);
-                } else if (view.getCollection() == null) {
+                } else if (view == null || view.getCollection() == null) {
                     try {
                         SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
                         collection.setFilter(allFilter);
                     } catch (SchemaException e) {
-                        LOGGER.error("Couldn't create all filter");
+                        LOGGER.error("Couldn't create all filter", e);
                         getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
                         target.add(getPageBase().getFeedbackPanel());
                         return;

@@ -608,7 +608,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     }
 
                     @Override
-                    protected void createReportPerformed(SearchFilterType filter, List<Integer> object, AjaxRequestTarget target) {
+                    protected void createReportPerformed(String name, SearchFilterType filter, List<Integer> object, AjaxRequestTarget target) {
 
                     }
 

@@ -42,7 +42,6 @@ public class ExportingFilterTabPanel extends BasePanel {
     private static final String ID_FILTER_FIELD = "filter";
 
     private LoadableModel<Search> search;
-    private SearchFilterType filter;
     private FeedbackAlerts feedbackList;
 
     private IModel<Boolean> check = new IModel<Boolean>() {
@@ -75,13 +74,7 @@ public class ExportingFilterTabPanel extends BasePanel {
                 return;
             }
 
-            try {
-                filter = getPageBase().getPrismContext().parserFor(object).parseRealValue(SearchFilterType.class);
-                value = object;
-            } catch (Exception e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-                getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilter"));
-            }
+            value = object;
         }
     };
 
@@ -111,7 +104,6 @@ public class ExportingFilterTabPanel extends BasePanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(feedbackList);
             }
         });
         filterField.add(new VisibleEnableBehaviour(){
@@ -127,21 +119,24 @@ public class ExportingFilterTabPanel extends BasePanel {
         add(checkPanel);
     }
 
-    public SearchFilterType getFilter() {
+    public SearchFilterType getFilter() throws Exception {
         if (check.getObject()) {
             ObjectQuery query = search.getObject().createObjectQuery(getPageBase().getPrismContext());
             if (query == null) {
                 return null;
             }
             ObjectFilter filter = query.getFilter();
-            SearchFilterType origSearchFilter = null;
-            try {
-                origSearchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't create filter from search panel", e);
-            }
+            SearchFilterType origSearchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
             return origSearchFilter;
         }
-        return filter;
+        if (!StringUtils.isEmpty(searchFilter.getObject())) {
+            SearchFilterType filter = getPageBase().getPrismContext().parserFor(searchFilter.getObject()).parseRealValue(SearchFilterType.class);
+            return filter;
+        }
+        return null;
+    }
+
+    public boolean useFilterFromSearchPanel() {
+        return Boolean.TRUE.equals(check.getObject());
     }
 }
