@@ -434,10 +434,13 @@
                 <artifactId>janino</artifactId>
                 <version>3.0.10</version>
             </dependency>
+            <!-- Needed for OpenDJ in tests -->
             <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
+                <!-- upgrade to 18.x is not possible with currently used OpenDJ -->
+                <!--<version>18.3.12</version>-->
             </dependency>
             <!--
             TODO: we should get rid of xalan/xerces if possible.
@@ -837,11 +840,6 @@
                 <groupId>org.codehaus.woodstox</groupId>
                 <artifactId>stax2-api</artifactId>
                 <version>3.1.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.osgi.core</artifactId>
-                <version>1.4.0</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.opendj</groupId>
@@ -1565,6 +1563,17 @@
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
             <url>https://repo.spring.io/milestone</url>
+        </repository>
+
+        <!--
+        We need this for Sleepycat JE, version 5.0.73 is released OK, but newer versions
+        (like 5.0.103) is in Maven central plugin repository, which is obviously wrong.
+        So we need Oracle's repo too.
+        -->
+        <repository>
+            <id>oracle</id>
+            <name>Oracle</name>
+            <url>https://download.oracle.com/maven/</url>
         </repository>
     </repositories>
     <pluginRepositories>
