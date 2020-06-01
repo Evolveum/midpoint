@@ -238,6 +238,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
+    public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
+    public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";

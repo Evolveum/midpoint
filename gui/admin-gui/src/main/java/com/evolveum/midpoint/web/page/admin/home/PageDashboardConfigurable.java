@@ -105,7 +105,12 @@ public class PageDashboardConfigurable extends PageDashboard {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
                 item.add(new SmallInfoBoxPanel(ID_WIDGET, item.getModel(),
-                        PageDashboardConfigurable.this));
+                        PageDashboardConfigurable.this) {
+                    @Override
+                    public String getDashboardOid() {
+                        return dashboardModel.getObject().getOid();
+                    }
+                });
             }
         });
     }
