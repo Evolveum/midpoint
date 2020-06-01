@@ -257,6 +257,7 @@
                                 <a:since>4.2</a:since>
                                 <a:experimental>true</a:experimental>
                                 <a:elaborate>true</a:elaborate>
+                                <a:displayName>PolicyConstraintsType.alwaysTrue</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -269,6 +270,7 @@
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:elaborate>true</a:elaborate>
+                                <a:displayName>PolicyConstraintsType.and</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -281,6 +283,7 @@
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:elaborate>true</a:elaborate>
+                                <a:displayName>PolicyConstraintsType.or</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -292,6 +295,7 @@
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:elaborate>true</a:elaborate>
+                                <a:displayName>PolicyConstraintsType.not</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
