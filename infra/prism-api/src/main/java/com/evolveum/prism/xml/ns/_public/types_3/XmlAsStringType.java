@@ -7,11 +7,11 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.JaxbVisitable;
-import com.evolveum.midpoint.prism.JaxbVisitor;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.annotation.*;
+
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -20,14 +20,11 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 /**
  * A class used to hold string represented either as plain string or as XML markup. (Useful e.g. for jasper templates.)
@@ -40,12 +37,11 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
 
     private final static long serialVersionUID = 201105211233L;
     @XmlMixed
-    @XmlAnyElement(lax = false)             // JAXB should not try to unmarshal inner elements
+    @XmlAnyElement(lax = false) // JAXB should not try to unmarshal inner elements
     protected List<Object> content;
 
     /**
      * Creates a new {@code XmlAsStringType} instance.
-     *
      */
     public XmlAsStringType() {
     }
@@ -70,7 +66,7 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
             } else if (object instanceof Node) {
                 sb.append(DOMUtil.serializeDOMToString((Node) object));
             } else {
-                throw new IllegalStateException("Unexpected content in XmlAsStringType: " + (object!=null?object.getClass():"(null)"));
+                throw new IllegalStateException("Unexpected content in XmlAsStringType: " + (object != null ? object.getClass() : "(null)"));
             }
         }
         return sb.toString();
@@ -78,11 +74,9 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
-        {
-            List<Object> theContent;
-            theContent = (((this.content!= null)&&(!this.content.isEmpty()))?this.getContent():null);
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "content", theContent), currentHashCode, theContent);
-        }
+        List<Object> theContent;
+        theContent = this.content != null && !this.content.isEmpty() ? this.getContent() : null;
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "content", theContent), currentHashCode, theContent);
         return currentHashCode;
     }
 
@@ -98,19 +92,18 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
         if (this == object) {
             return true;
         }
-        final XmlAsStringType that = ((XmlAsStringType) object);
-        {
-            List<Object> lhsContent;
-            lhsContent = (((this.content!= null)&&(!this.content.isEmpty()))?this.getContent():null);
-            List<Object> rhsContent;
-            rhsContent = (((that.content!= null)&&(!that.content.isEmpty()))?that.getContent():null);
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "content", lhsContent), LocatorUtils.property(thatLocator, "content", rhsContent), lhsContent, rhsContent)) {
-                return false;
-            }
+        final XmlAsStringType that = (XmlAsStringType) object;
+        List<Object> lhsContent;
+        lhsContent = this.content != null && !this.content.isEmpty() ? this.getContent() : null;
+        List<Object> rhsContent;
+        rhsContent = that.content != null && !that.content.isEmpty() ? that.getContent() : null;
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "content", lhsContent), LocatorUtils.property(thatLocator, "content", rhsContent), lhsContent, rhsContent)) {
+            return false;
         }
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -119,14 +112,13 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
     /**
      * Creates and returns a deep copy of this object.
      *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public XmlAsStringType clone() {
         final XmlAsStringType clone;
         try {
-            clone = ((XmlAsStringType) super.clone());
+            clone = (XmlAsStringType) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new IllegalStateException("Couldn't clone object's superclass", e);
         }
@@ -138,7 +130,7 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
                 } else if (o instanceof Node) {
                     clone.content.add(((Node) o).cloneNode(true));
                 } else {
-                    throw new IllegalStateException("XmlAsStringType.clone: unexpected item in content: " + (o!=null?o.getClass():"(null)"));
+                    throw new IllegalStateException("XmlAsStringType.clone: unexpected item in content: " + (o != null ? o.getClass() : "(null)"));
                 }
             }
         }
