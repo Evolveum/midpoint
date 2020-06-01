@@ -8,13 +8,13 @@ package com.evolveum.midpoint.model.common.util;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.Nullable;
-import org.joda.time.format.DateTimeFormat;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.common.LocalizationService;
@@ -334,8 +334,11 @@ public class DefaultColumnUtils {
             if (itemPath.equivalent(TaskType.F_COMPLETION_TIMESTAMP)) {
                 XMLGregorianCalendar timestamp = task.getCompletionTimestamp();
                 if (timestamp != null && task.getExecutionStatus().equals(TaskExecutionStatusType.CLOSED)) {
-                    String pattern = DateTimeFormat.patternForStyle("SM", Locale.getDefault());
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+                    // Do we want default locale or default locale for FORMAT category?
+                    // For latter no .withLocale() would be needed.
+                    DateTimeFormatter formatter = DateTimeFormatter
+                            .ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.MEDIUM)
+                            .withLocale(Locale.getDefault());
                     ZonedDateTime time = timestamp.toGregorianCalendar().toZonedDateTime();
                     String dateTime = formatter.format(time);
                     String key = "pageTasks.task.closedAt";

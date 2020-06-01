@@ -16,7 +16,11 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;
 
-    $('<div id="' + editorId + '" class="aceEditor"></div>').insertAfter($('#' + textAreaId));
+    var newHeight = height;
+    if (resize) {
+        newHeight = getMaxSizeHeight(minHeight);
+    }
+    $('<div id="' + editorId + '" class="aceEditor" style="height: ' + newHeight + 'px;"></div>').insertAfter($('#' + textAreaId));
 
     $(jqEditor).text($(jqTextArea).val());
     $(jqTextArea).hide();
@@ -64,29 +68,42 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
 
     //todo handle readonly for text area [lazyman] add "disabled" class to .ace_scroller
 
-    $(document).ready(function () {
-        if (height < minHeight) {
-            height = minHeight;
-        }
-
-        if (resize) {
-            resizeToMaxHeight(editorId, minHeight);
-        } else {
-            resizeToFixedHeight(editorId, height);
-        }
-    });
+    // $(document).ready(function () {
+    //     if (height < minHeight) {
+    //         height = minHeight;
+    //     }
+    //
+    //     if (resize) {
+    //         resizeToMaxHeight(editorId, minHeight);
+    //     } else {
+    //         resizeToFixedHeight(editorId, height);
+    //     }
+    // });
 }
 
 function resizeToMaxHeight(editorId, minHeight) {
     //38 + 1 + 21 is menu outer height
-    var newHeight = $(document).innerHeight() - $('section.content-header').outerHeight(true)
-        - $('section.content').outerHeight(true) - $('footer.main-footer').outerHeight(true)
-        - $('header.main-header').outerHeight(true);
+    var newHeight = getMaxSizeHeight(minHeight);
+
+    resizeToFixedHeight(editorId, newHeight);
+}
+
+function getMaxSizeHeight(minHeight) {
+    var newHeight = $(document).innerHeight()
+        - $('footer.main-footer').outerHeight(true) - $('header.main-header').outerHeight(true);
+
+    var boxHeader = $('div.box-header').outerHeight(true);
+    var buttonsBar = $('div.main-button-bar').outerHeight(true);
+    if (buttonsBar){
+        newHeight = newHeight - buttonsBar;
+    }
+    if (boxHeader){
+        newHeight = newHeight - boxHeader;
+    }
     if (newHeight < minHeight) {
         newHeight = minHeight;
     }
-
-    resizeToFixedHeight(editorId, newHeight);
+    return newHeight;
 }
 
 function resizeToFixedHeight(editorId, height) {
@@ -108,6 +125,15 @@ function refreshReadonly(textAreaId, readonly) {
 }
 
 function setReadonly(jqEditor, editor, readonly) {
+    editor.setReadOnly(readonly);
+    if (readonly) {
+        $(jqEditor).addClass(DISABLED_CLASS);
+    } else {
+        $(jqEditor).removeClass(DISABLED_CLASS);
+    }
+}
+
+function reloadTextarea(editor) {
     editor.setReadOnly(readonly);
     if (readonly) {
         $(jqEditor).addClass(DISABLED_CLASS);

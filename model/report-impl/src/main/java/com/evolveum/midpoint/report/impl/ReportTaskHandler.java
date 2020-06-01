@@ -162,7 +162,9 @@ public class ReportTaskHandler implements TaskHandler {
         if (reportType.getDescription() != null) {
             reportOutputType.setDescription(reportType.getDescription() + " - " + exportController.getType());
         }
-        reportOutputType.setExportType(exportController.getExportConfiguration());
+        if (exportController != null && exportController.getExportConfiguration() != null) {
+            reportOutputType.setExportType(exportController.getExportConfiguration().getType());
+        }
 
 
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(NodeType.class, reportService.getPrismContext()

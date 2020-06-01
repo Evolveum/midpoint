@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-$(window).load(function() {
+$(window).on('load', function() {
     //dom not only ready, but everything is loaded MID-3668
     $("body").removeClass("custom-hold-transition");
 

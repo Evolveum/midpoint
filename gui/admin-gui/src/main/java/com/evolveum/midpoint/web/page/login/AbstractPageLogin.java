@@ -84,7 +84,8 @@ public abstract class AbstractPageLogin extends PageBase {
         if (authentication instanceof MidpointAuthentication) {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             AuthenticationSequenceType sequence = mpAuthentication.getSequence();
-            if (sequence != null) {
+            if (sequence != null && sequence.getChannel() != null
+                    && !Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
                 return sequence.getDisplayName() != null ? sequence.getDisplayName() : sequence.getName();
             }
         }

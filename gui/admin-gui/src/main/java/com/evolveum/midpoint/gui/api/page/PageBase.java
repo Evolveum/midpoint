@@ -776,7 +776,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             skinCssString = info.getSkin();
         }
 
-        String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
+        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
         response.render(CssHeaderItem.forReference(
                 new CssResourceReference(
                         PageBase.class, skinCssPath)
@@ -2747,7 +2747,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<>(id, model, settings);
+        return new PrismContainerValuePanel<>(id, model, settings) {
+            @Override
+            protected boolean isRemoveButtonVisible() {
+                return false;
+            }
+        };
     }
 
     public Clock getClock() {

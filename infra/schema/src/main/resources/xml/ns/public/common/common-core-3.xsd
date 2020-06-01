@@ -23660,7 +23660,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportConfigurationType"/>
+                    <xsd:element name="exportType" type="tns:ExportType"/>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
