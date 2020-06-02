@@ -7,16 +7,11 @@
 package com.evolveum.prism.xml.ns._public.query_3;
 
 import java.io.Serializable;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jvnet.jaxb2_commons.lang.Equals;
@@ -25,6 +20,9 @@ import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 /**
  * <p>Java class for LogicalOperatorFilterType complex type.
@@ -43,20 +41,18 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "LogicalOperatorFilterType")
 @XmlSeeAlso({
-    NAryLogicalOperatorFilterType.class,
-    UnaryLogicalOperatorFilterType.class
+        NAryLogicalOperatorFilterType.class,
+        UnaryLogicalOperatorFilterType.class
 })
 public abstract class LogicalOperatorFilterType
-    extends FilterClauseType
-    implements Serializable, Cloneable, Equals, HashCode
-{
+        extends FilterClauseType
+        implements Serializable, Cloneable, Equals, HashCode {
 
     private final static long serialVersionUID = 201105211233L;
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "LogicalOperatorFilterType");
 
     /**
      * Creates a new {@code LogicalOperatorFilterType} instance.
-     *
      */
     public LogicalOperatorFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -66,11 +62,8 @@ public abstract class LogicalOperatorFilterType
     /**
      * Creates a new {@code LogicalOperatorFilterType} instance by deeply copying a given {@code LogicalOperatorFilterType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public LogicalOperatorFilterType(final LogicalOperatorFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -83,7 +76,6 @@ public abstract class LogicalOperatorFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
     @Override
     public String toString() {
@@ -91,8 +83,7 @@ public abstract class LogicalOperatorFilterType
     }
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
-        int currentHashCode = super.hashCode(locator, strategy);
-        return currentHashCode;
+        return super.hashCode(locator, strategy);
     }
 
     public int hashCode() {
@@ -113,6 +104,7 @@ public abstract class LogicalOperatorFilterType
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -121,17 +113,11 @@ public abstract class LogicalOperatorFilterType
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public LogicalOperatorFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final LogicalOperatorFilterType clone = ((LogicalOperatorFilterType) super.clone());
-            return clone;
-        }
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        return ((LogicalOperatorFilterType) super.clone());
     }
-
 }
