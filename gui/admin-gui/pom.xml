@@ -51,13 +51,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
-            <exclusions>
-                <!-- in favor of Jakarta version -->
-                <!--<exclusion>-->
-                <!--    <groupId>javax.annotation</groupId>-->
-                <!--    <artifactId>javax.annotation-api</artifactId>-->
-                <!--</exclusion>-->
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -745,11 +738,6 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- testing dependencies -->
