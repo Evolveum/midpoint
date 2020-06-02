@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="30b59b40-2875-410d-8731-482743eb6de2">
+    <name>gruffy</name>
+    <assignment>
+        <targetRef oid="c46b1bcc-af43-44ee-a107-71f36e952cc5" type="ArchetypeType"/> <!-- user -->
+    </assignment>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
+    <fullName>Gruffy Gummi</fullName>
+</user>

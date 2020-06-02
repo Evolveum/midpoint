@@ -13,12 +13,13 @@
 <wicket:extend>
 
     <div class="row">
-        <div class="col-md-12" style="float: left; font-weight: 600;">
-            <span wicket:id="sequence"/>
-        </div>
         <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
             <div class="panel panel-default" style="margin-top: 120px;">
                 <div class="panel-body">
+                    <div class="col-md-12" style="text-align: right;padding-bottom: 30px; padding-right: 0px;">
+                        <span wicket:id="sequence" style="padding-right: 30px;"/>
+                        <a class="btn btn-default" wicket:id="switchToDefaultSequence" />
+                    </div>
                     <wicket:child/>
                 </div>
             </div>

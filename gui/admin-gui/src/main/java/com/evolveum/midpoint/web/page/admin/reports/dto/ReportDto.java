@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 
@@ -44,7 +47,7 @@ public class ReportDto implements Serializable {
     private Integer maxPages;
     private Integer timeout;
     private ReportEngineSelectionType reportEngineType;
-    private ObjectReferenceType dashboardRef;
+    private IModel<PrismObjectWrapper<ReportType>> newReportModel;
 
 //    private PrismObject<ReportType> object;
     private ReportType reportType;
@@ -63,15 +66,10 @@ public class ReportDto implements Serializable {
         this.reportType = reportType;
         this.searchOnResource = false;
         this.reportEngineType = reportType.getReportEngine();
-        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-            DashboardReportEngineConfigurationType dashboardConfig = reportType.getDashboard();
-            if(dashboardConfig != null) {
-                dashboardRef = dashboardConfig.getDashboardRef();
-            }
-        } else {
+        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
             this.exportType = jasperConfig.getExport();
-        //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+            //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
             this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
             this.templateStyle = jasperConfig.getTemplateStyle();
             this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
@@ -79,6 +77,9 @@ public class ReportDto implements Serializable {
             this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
             this.maxPages = jasperConfig.getMaxPages();
             this.timeout = jasperConfig.getTimeout();
+
+        } else {
+            this.reportType = reportType;
         }
     }
 
@@ -114,11 +115,8 @@ public class ReportDto implements Serializable {
         reportType.setName(new PolyStringType(name));
         reportType.setDescription(description);
         reportType.setReportEngine(reportEngineType);
-        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-            DashboardReportEngineConfigurationType dashboardEngine = new DashboardReportEngineConfigurationType();
-            dashboardEngine.setDashboardRef(dashboardRef);
-            reportType.setDashboard(dashboardEngine);
-        } else {
+        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
+
             JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
             jasperConfig.setExport(exportType);
             jasperConfig.setTemplate(jasperReportDto.getTemplate());
@@ -220,11 +218,11 @@ public class ReportDto implements Serializable {
         this.timeout = timeout;
     }
 
-    public ObjectReferenceType getDashboardRef() {
-        return dashboardRef;
+    public IModel<PrismObjectWrapper<ReportType>> getNewReportModel() {
+        return newReportModel;
     }
 
-    public void setDashboardRef(ObjectReferenceType dashboardRef) {
-        this.dashboardRef = dashboardRef;
+    public void setNewReportModel(IModel<PrismObjectWrapper<ReportType>> newReportModel) {
+        this.newReportModel = newReportModel;
     }
 }

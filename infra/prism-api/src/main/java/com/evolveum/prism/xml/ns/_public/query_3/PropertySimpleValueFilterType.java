@@ -6,17 +6,7 @@
  */
 package com.evolveum.prism.xml.ns._public.query_3;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InvalidClassException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OptionalDataException;
-import java.io.Serializable;
-import java.io.StreamCorruptedException;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -25,13 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.Currency;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.UUID;
-
+import java.util.*;
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 import javax.xml.bind.JAXBElement;
@@ -43,11 +27,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.Raw;
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
-
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
@@ -57,6 +36,10 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.Raw;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 /**
  * <p>Java class for PropertySimpleValueFilterType complex type.
@@ -78,19 +61,16 @@ import org.w3c.dom.Element;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PropertySimpleValueFilterType", propOrder = {
-    "property",
-    "value",
-    "any"
+        "property",
+        "value",
+        "any"
 })
 public class PropertySimpleValueFilterType
-    extends FilterClauseType
-    implements Serializable, Cloneable, Equals, HashCode
-{
+        extends FilterClauseType
+        implements Serializable, Cloneable, Equals, HashCode {
 
     private final static long serialVersionUID = 201105211233L;
     @XmlAnyElement
@@ -104,7 +84,6 @@ public class PropertySimpleValueFilterType
 
     /**
      * Creates a new {@code PropertySimpleValueFilterType} instance.
-     *
      */
     public PropertySimpleValueFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -114,11 +93,8 @@ public class PropertySimpleValueFilterType
     /**
      * Creates a new {@code PropertySimpleValueFilterType} instance by deeply copying a given {@code PropertySimpleValueFilterType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public PropertySimpleValueFilterType(final PropertySimpleValueFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -127,20 +103,18 @@ public class PropertySimpleValueFilterType
             throw new NullPointerException("Cannot create a copy of 'PropertySimpleValueFilterType' from 'null'.");
         }
         // CWildcardTypeInfo: org.w3c.dom.Element
-        this.property = ((o.property == null)?null:((o.getProperty() == null)?null:((Element) o.getProperty().cloneNode(true))));
+        this.property = o.property == null ? null : o.getProperty() == null ? null : (Element) o.getProperty().cloneNode(true);
         // CBuiltinLeafInfo: java.lang.Object
-        this.value = ((o.value == null)?null:copyOf(o.getValue()));
+        this.value = o.value == null ? null : copyOf(o.getValue());
         // CBuiltinLeafInfo: java.lang.Object
-        this.any = ((o.any == null)?null:copyOf(o.getAny()));
+        this.any = o.any == null ? null : copyOf(o.getAny());
     }
 
     /**
      * Gets the value of the property property.
      *
-     * @return
-     *     possible object is
-     *     {@link Element }
-     *
+     * @return possible object is
+     * {@link Element }
      */
     public Element getProperty() {
         return property;
@@ -149,10 +123,8 @@ public class PropertySimpleValueFilterType
     /**
      * Sets the value of the property property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link Element }
-     *
+     * @param value allowed object is
+     * {@link Element }
      */
     public void setProperty(Element value) {
         this.property = value;
@@ -161,10 +133,8 @@ public class PropertySimpleValueFilterType
     /**
      * Gets the value of the value property.
      *
-     * @return
-     *     possible object is
-     *     {@link Object }
-     *
+     * @return possible object is
+     * {@link Object }
      */
     public Object getValue() {
         return value;
@@ -173,10 +143,8 @@ public class PropertySimpleValueFilterType
     /**
      * Sets the value of the value property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link Object }
-     *
+     * @param value allowed object is
+     * {@link Object }
      */
     public void setValue(Object value) {
         this.value = value;
@@ -185,10 +153,8 @@ public class PropertySimpleValueFilterType
     /**
      * Gets the value of the any property.
      *
-     * @return
-     *     possible object is
-     *     {@link Object }
-     *
+     * @return possible object is
+     * {@link Object }
      */
     public Object getAny() {
         return any;
@@ -197,10 +163,8 @@ public class PropertySimpleValueFilterType
     /**
      * Sets the value of the any property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link Object }
-     *
+     * @param value allowed object is
+     * {@link Object }
      */
     public void setAny(Object value) {
         this.any = value;
@@ -209,7 +173,6 @@ public class PropertySimpleValueFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
     @Override
     public String toString() {
@@ -218,21 +181,9 @@ public class PropertySimpleValueFilterType
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
-        {
-            Element theProperty;
-            theProperty = this.getProperty();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "property", theProperty), currentHashCode, theProperty);
-        }
-        {
-            Object theValue;
-            theValue = this.getValue();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "value", theValue), currentHashCode, theValue);
-        }
-        {
-            Object theAny;
-            theAny = this.getAny();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "any", theAny), currentHashCode, theAny);
-        }
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "property", this.getProperty()), currentHashCode, this.getProperty());
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "value", this.getValue()), currentHashCode, this.getValue());
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "any", this.getAny()), currentHashCode, this.getAny());
         return currentHashCode;
     }
 
@@ -251,37 +202,26 @@ public class PropertySimpleValueFilterType
         if (!super.equals(thisLocator, thatLocator, object, strategy)) {
             return false;
         }
-        final PropertySimpleValueFilterType that = ((PropertySimpleValueFilterType) object);
-        {
-            Element lhsProperty;
-            lhsProperty = this.getProperty();
-            Element rhsProperty;
-            rhsProperty = that.getProperty();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "property", lhsProperty), LocatorUtils.property(thatLocator, "property", rhsProperty), lhsProperty, rhsProperty)) {
-                return false;
-            }
+        final PropertySimpleValueFilterType that = (PropertySimpleValueFilterType) object;
+        Element lhsProperty = this.getProperty();
+        Element rhsProperty = that.getProperty();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "property", lhsProperty), LocatorUtils.property(thatLocator, "property", rhsProperty), lhsProperty, rhsProperty)) {
+            return false;
         }
-        {
-            Object lhsValue;
-            lhsValue = this.getValue();
-            Object rhsValue;
-            rhsValue = that.getValue();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "value", lhsValue), LocatorUtils.property(thatLocator, "value", rhsValue), lhsValue, rhsValue)) {
-                return false;
-            }
+        Object lhsValue = this.getValue();
+        Object rhsValue = that.getValue();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "value", lhsValue), LocatorUtils.property(thatLocator, "value", rhsValue), lhsValue, rhsValue)) {
+            return false;
         }
-        {
-            Object lhsAny;
-            lhsAny = this.getAny();
-            Object rhsAny;
-            rhsAny = that.getAny();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "any", lhsAny), LocatorUtils.property(thatLocator, "any", rhsAny), lhsAny, rhsAny)) {
-                return false;
-            }
+        Object lhsAny = this.getAny();
+        Object rhsAny = that.getAny();
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "any", lhsAny), LocatorUtils.property(thatLocator, "any", rhsAny), lhsAny, rhsAny)) {
+            return false;
         }
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -290,16 +230,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given object.
      *
-     * @param o
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code o} or {@code null} if {@code o} is {@code null}.
+     * @param o The instance to copy or {@code null}.
+     * @return A deep copy of {@code o} or {@code null} if {@code o} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static Object copyOf(final Object o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         try {
-            if (o!= null) {
+            if (o != null) {
                 if (o.getClass().isPrimitive()) {
                     return o;
                 }
@@ -385,84 +322,66 @@ public class PropertySimpleValueFilterType
                     return ((Locale) o).clone();
                 }
                 if (o instanceof Element) {
-                    return ((Element)((Element) o).cloneNode(true));
+                    return ((Element) o).cloneNode(true);
                 }
                 if (o instanceof JAXBElement) {
-                    return copyOf(((JAXBElement) o));
+                    return copyOf((JAXBElement) o);
                 }
                 try {
-                    return o.getClass().getMethod("clone", ((Class[]) null)).invoke(o, ((Object[]) null));
+                    return o.getClass().getMethod("clone", (Class[]) null).invoke(o, (Object[]) null);
                 } catch (NoSuchMethodException e) {
                     if (o instanceof Serializable) {
-                        return copyOf(((Serializable) o));
+                        return copyOf((Serializable) o);
                     }
                     // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (IllegalAccessException e) {
+                    throw new AssertionError("Unexpected instance during copying object '" + o + "'.", e);
+                } catch (IllegalAccessException | ExceptionInInitializerError | IllegalArgumentException | SecurityException | InvocationTargetException e) {
                     // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (InvocationTargetException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (SecurityException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (IllegalArgumentException e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-                } catch (ExceptionInInitializerError e) {
-                    // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                    throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
+                    throw new AssertionError("Unexpected instance during copying object '" + o + "'.", e);
                 }
             }
             return null;
-        } catch (URISyntaxException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        } catch (MalformedURLException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        } catch (MimeTypeParseException e) {
-            throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
+        } catch (URISyntaxException | MimeTypeParseException | MalformedURLException e) {
+            throw new AssertionError("Unexpected instance during copying object '" + o + "'.", e);
         }
     }
 
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static Object copyOfArray(final Object array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
+        if (array != null) {
             if (array.getClass() == boolean[].class) {
-                return copyOf(((boolean[]) array));
+                return copyOf((boolean[]) array);
             }
             if (array.getClass() == byte[].class) {
-                return copyOf(((byte[]) array));
+                return copyOf((byte[]) array);
             }
             if (array.getClass() == char[].class) {
-                return copyOf(((char[]) array));
+                return copyOf((char[]) array);
             }
             if (array.getClass() == double[].class) {
-                return copyOf(((double[]) array));
+                return copyOf((double[]) array);
             }
             if (array.getClass() == float[].class) {
-                return copyOf(((float[]) array));
+                return copyOf((float[]) array);
             }
             if (array.getClass() == int[].class) {
-                return copyOf(((int[]) array));
+                return copyOf((int[]) array);
             }
             if (array.getClass() == long[].class) {
-                return copyOf(((long[]) array));
+                return copyOf((long[]) array);
             }
             if (array.getClass() == short[].class) {
-                return copyOf(((short[]) array));
+                return copyOf((short[]) array);
             }
             final int len = Array.getLength(array);
             final Object copy = Array.newInstance(array.getClass().getComponentType(), len);
-            for (int i = (len- 1); (i >= 0); i--) {
+            for (int i = len - 1; i >= 0; i--) {
                 Array.set(copy, i, copyOf(Array.get(array, i)));
             }
             return copy;
@@ -473,15 +392,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static boolean[] copyOf(final boolean[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final boolean[] copy = ((boolean[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final boolean[] copy = (boolean[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -491,15 +408,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static byte[] copyOf(final byte[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final byte[] copy = ((byte[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final byte[] copy = (byte[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -509,15 +424,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static char[] copyOf(final char[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final char[] copy = ((char[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final char[] copy = (char[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -527,15 +440,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static double[] copyOf(final double[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final double[] copy = ((double[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final double[] copy = (double[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -545,15 +456,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static float[] copyOf(final float[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final float[] copy = ((float[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final float[] copy = (float[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -563,15 +472,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static int[] copyOf(final int[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final int[] copy = ((int[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final int[] copy = (int[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -581,15 +488,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static long[] copyOf(final long[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final long[] copy = ((long[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final long[] copy = (long[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -599,15 +504,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given array.
      *
-     * @param array
-     *     The array to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
+     * @param array The array to copy or {@code null}.
+     * @return A deep copy of {@code array} or {@code null} if {@code array} is {@code null}.
      */
     private static short[] copyOf(final short[] array) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (array!= null) {
-            final short[] copy = ((short[]) Array.newInstance(array.getClass().getComponentType(), array.length));
+        if (array != null) {
+            final short[] copy = (short[]) Array.newInstance(array.getClass().getComponentType(), array.length);
             System.arraycopy(array, 0, copy, 0, array.length);
             return copy;
         }
@@ -617,15 +520,13 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given {@code JAXBElement} instance.
      *
-     * @param element
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code element} or {@code null} if {@code element} is {@code null}.
+     * @param element The instance to copy or {@code null}.
+     * @return A deep copy of {@code element} or {@code null} if {@code element} is {@code null}.
      */
     @SuppressWarnings("unchecked")
     private static JAXBElement copyOf(final JAXBElement element) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (element!= null) {
+        if (element != null) {
             final JAXBElement copy = new JAXBElement(element.getName(), element.getDeclaredType(), element.getScope(), element.getValue());
             copy.setNil(element.isNil());
             copy.setValue(copyOf(copy.getValue()));
@@ -637,14 +538,12 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
      *
-     * @param serializable
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code serializable} or {@code null} if {@code serializable} is {@code null}.
+     * @param serializable The instance to copy or {@code null}.
+     * @return A deep copy of {@code serializable} or {@code null} if {@code serializable} is {@code null}.
      */
     private static Serializable copyOf(final Serializable serializable) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (serializable!= null) {
+        if (serializable != null) {
             try {
                 final ByteArrayOutputStream byteArrayOutput = new ByteArrayOutputStream();
                 final ObjectOutputStream out = new ObjectOutputStream(byteArrayOutput);
@@ -652,23 +551,11 @@ public class PropertySimpleValueFilterType
                 out.close();
                 final ByteArrayInputStream byteArrayInput = new ByteArrayInputStream(byteArrayOutput.toByteArray());
                 final ObjectInputStream in = new ObjectInputStream(byteArrayInput);
-                final Serializable copy = ((Serializable) in.readObject());
+                final Serializable copy = (Serializable) in.readObject();
                 in.close();
                 return copy;
-            } catch (SecurityException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (ClassNotFoundException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (InvalidClassException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (NotSerializableException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (StreamCorruptedException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (OptionalDataException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
-            } catch (IOException e) {
-                throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ serializable)+"'.")).initCause(e));
+            } catch (ClassNotFoundException | SecurityException | IOException e) {
+                throw new AssertionError("Unexpected instance during copying object '" + serializable + "'.", e);
             }
         }
         return null;
@@ -677,23 +564,18 @@ public class PropertySimpleValueFilterType
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public PropertySimpleValueFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final PropertySimpleValueFilterType clone = ((PropertySimpleValueFilterType) super.clone());
-            // CWildcardTypeInfo: org.w3c.dom.Element
-            clone.property = ((this.property == null)?null:((this.getProperty() == null)?null:((Element) this.getProperty().cloneNode(true))));
-            // CBuiltinLeafInfo: java.lang.Object
-            clone.value = ((this.value == null)?null:copyOf(this.getValue()));
-            // CBuiltinLeafInfo: java.lang.Object
-            clone.any = ((this.any == null)?null:copyOf(this.getAny()));
-            return clone;
-        }
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        final PropertySimpleValueFilterType clone = (PropertySimpleValueFilterType) super.clone();
+        // CWildcardTypeInfo: org.w3c.dom.Element
+        clone.property = this.property == null ? null : this.getProperty() == null ? null : (Element) this.getProperty().cloneNode(true);
+        // CBuiltinLeafInfo: java.lang.Object
+        clone.value = this.value == null ? null : copyOf(this.getValue());
+        // CBuiltinLeafInfo: java.lang.Object
+        clone.any = this.any == null ? null : copyOf(this.getAny());
+        return clone;
     }
-
 }

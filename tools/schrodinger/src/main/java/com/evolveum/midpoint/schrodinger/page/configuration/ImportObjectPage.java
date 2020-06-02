@@ -145,39 +145,45 @@ public class ImportObjectPage extends BasicPage {
 
     public ImportObjectPage setEditorXmlText(String text) {
         $(By.xpath("/html/body/div[2]/div/section/form/div[4]/div/div[1]/div/button[1]")).click();
-        int lastIndex = 0;
         SelenideElement aceEditor = $(By.className("ace_text-input"));
-        while (lastIndex < text.length() && text.substring(lastIndex, text.length()-1).contains("<")) {
-            text = text.substring(lastIndex, text.length());
-            int actualIndex = text.indexOf("<");
-            if (actualIndex != 0) {
-                aceEditor.setValue(text.substring(0, actualIndex));
-            }
-            lastIndex = actualIndex;
-            text = text.substring(actualIndex);
-            if (text.startsWith("</")) {
-                lastIndex = text.indexOf(">") + 1;
-                aceEditor.setValue(text.substring(0, lastIndex));
-            } else if (text.startsWith("<?")) {
-                lastIndex = text.indexOf("?>") + 2;
-                aceEditor.setValue(text.substring(0, lastIndex));
-            } else if (text.startsWith("<!--")) {
-                lastIndex = text.indexOf("-->") + 3;
-                aceEditor.setValue(text.substring(0, lastIndex));
-            } else {
+        aceEditor.setValue(text);
+        aceEditor.screenshot();
 
-                lastIndex = text.indexOf(">") + 1;
-                String tag = text.substring(0, lastIndex);
-                aceEditor.setValue(tag);
-                String endTag = "</" + tag.substring(1, (tag.contains(" ") ? (tag.indexOf(" ")) : (tag.length()-1))) + ">";
-                for (int i = 0; i < endTag.length(); i++) {
-                    aceEditor.sendKeys(Keys.DELETE);
-                }
-
-            }
-        }
-
-
+        //uncomment the following peace of code if the value is set to ace editor incorrectly
+        // (e.g. multiple close tags present)
+//           int lastIndex = 0;
+//           while (lastIndex < text.length() && text.substring(lastIndex, text.length()-1).contains("<")) {
+//            text = text.substring(lastIndex, text.length());
+//            int actualIndex = text.indexOf("<");
+//            if (actualIndex != 0) {
+//                aceEditor.setValue(text.substring(0, actualIndex));
+//            }
+//            lastIndex = actualIndex;
+//            text = text.substring(actualIndex);
+//            if (text.startsWith("</")) {
+//                lastIndex = text.indexOf(">") + 1;
+//                aceEditor.setValue(text.substring(0, lastIndex));
+//            } else if (text.startsWith("<?")) {
+//                lastIndex = text.indexOf("?>") + 2;
+//                aceEditor.setValue(text.substring(0, lastIndex));
+//            } else if (text.startsWith("<!--")) {
+//                lastIndex = text.indexOf("-->") + 3;
+//                aceEditor.setValue(text.substring(0, lastIndex));
+//            } else {
+//
+//                lastIndex = text.indexOf(">") + 1;
+//                String tag = text.substring(0, lastIndex);
+//                aceEditor.setValue(tag);
+//                String endTag = "</" + tag.substring(1, (tag.contains(" ") ? (tag.indexOf(" ")) : (tag.length()-1))) + ">";
+//                for (int i = 0; i < endTag.length(); i++) {
+//                    aceEditor.sendKeys(Keys.DELETE);
+//                }
+//
+//            }
+//        }
+//
+//        obviously this peace of code was used as experimental, needs to be cleaned up
+//
 //        executeJavaScript(
 //                "const ta = document.querySelector(\"textarea\"); " +
 //                        "ta.value = \"asdf\";" +

@@ -30,9 +30,8 @@ class QueryBasedObjectSet extends PartlyReferenceBasedObjectSet {
     @Override
     void collectLinkSources() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
-        assert objectSpec != null;
         try (LinkSourceFinder sourceFinder = new LinkSourceFinder(actx, result)) {
-            linkedSourcesQuery = sourceFinder.getSourcesAsQuery(objectSpec.getLinkSource());
+            linkedSourcesQuery = sourceFinder.getSourcesAsQuery();
         }
     }
 

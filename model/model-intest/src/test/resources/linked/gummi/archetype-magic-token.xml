@@ -1,0 +1,128 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="e7bff8d1-cebd-4fbe-b935-64cfc2f22f52">
+    <name>magic-token</name>
+    <documentation>
+        A magic token has some special characteristics:
+
+        1. It is held by at most single user at given time.
+
+        2. It gives its holder some properties, e.g. the `organizationalUnit` obtains value of
+        `T holders` for any token T held.
+
+        3. On the other hand, it knows who holds it by storing the holder's `name` and `fullName` in
+        its `description` property.
+    </documentation>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <documentation>From user to token: putting 'Held by ...' into token description.</documentation>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <code>import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                        linkedSource = midpoint.findLinkedSource(UserType.class)
+                        linkedSource != null ? 'Held by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not held'</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>1</order> <!-- executes on token object -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-holder-on-token-name-change</name>
+            <documentation>
+                Recomputes a user when token name is changed. (Note that user is recomputed
+                automatically when token is assigned or unassigned.)
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource/>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>1</order> <!-- assigned to token object, so executes when token is modified -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-token-on-membership-change</name>
+            <documentation>
+                Recomputes all tokens whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-token-on-holder-name-change</name>
+            <documentation>Recomputes a token when user's name or fullName changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>fullName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+</archetype>

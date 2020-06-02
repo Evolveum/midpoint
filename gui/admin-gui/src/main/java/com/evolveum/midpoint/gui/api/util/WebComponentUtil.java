@@ -85,7 +85,6 @@ import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
@@ -2228,8 +2227,6 @@ public final class WebComponentUtil {
         Page page = component.getPage();
         if (page instanceof PageBase) {
             return (PageBase) page;
-        } else if (page instanceof PageDialog) {
-            return ((PageDialog) page).getPageBase();
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
         }
