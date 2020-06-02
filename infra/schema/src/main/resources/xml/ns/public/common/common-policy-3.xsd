@@ -2890,7 +2890,7 @@
             <xsd:element name="taskCustomizer" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Task customizer: an expression that takes a task and customizes its content.
+                        An expression that takes a task and customizes its content.
 
                         Input variable: preparedTask (of TaskType).
                         Output: TaskType that should be used. (It is possible to modify preparedTask and return it.)
@@ -2922,7 +2922,7 @@
             <xsd:enumeration value="iterative">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uses iterative scripting handler. This is the default.
+                        Uses iterative scripting handler, i.e. object query with a script that processes every object found. This is the default.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ITERATIVE"/>

@@ -1,0 +1,109 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="21575364-d869-4b96-ac3f-b7b26e0e8540">
+    <name>hw-token</name>
+    <documentation>
+        A hardware token has some special characteristics:
+
+        1. It is held by at most single user at given time.
+
+        2. It has a projection on a "hw-tokens" resource where it provides (among other things)
+        the name and email address of its holder.
+    </documentation>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <script>
+                        <code>"hw-token-${(int) (Math.random() * 100000000)}"</code>
+                    </script>
+                </expression>
+                <target>
+                    <path>name</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+
+    <inducement>
+        <construction>
+            <resourceRef oid="2730a64c-73fc-4c67-8bac-e40b4437931c" /> <!-- hw-tokens -->
+            <kind>entitlement</kind>
+            <intent>hw-token</intent>
+        </construction>
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-hw-token-on-membership-change</name>
+            <documentation>
+                Recomputes all tokens (of given user) whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-hw-token-on-holder-change</name>
+            <documentation>Recomputes a token when user's name or emailAddress changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <!-- We can restrict operation to 'modify' because 1) the ADD user operation
+                         is covered by previous rule, 2) the DELETE operation should be covered as
+                         well, but isn't because of not considering assignments on object delete.
+                         So we must use global policy rule to do that. -->
+                    <modification>
+                        <operation>modify</operation>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <operation>modify</operation>
+                        <item>emailAddress</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <!-- i.e. all objects that brought this policy rule to the focus -->
+                            <matchesRuleAssignment>true</matchesRuleAssignment>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+        <order>2</order> <!-- assigned to the user -->
+    </inducement>
+
+</archetype>

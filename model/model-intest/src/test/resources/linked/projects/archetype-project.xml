@@ -22,14 +22,14 @@
                 <name>usersOrg</name>
                 <selector>
                     <type>OrgType</type>
-                    <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf" /> <!-- users -->
+                    <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf" /> <!-- project-users -->
                 </selector>
             </sourceLink>
             <sourceLink>
                 <name>groupsOrg</name>
                 <selector>
                     <type>OrgType</type>
-                    <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
+                    <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- project-groups -->
                 </selector>
             </sourceLink>
         </links>
@@ -67,7 +67,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
     <!--
@@ -97,7 +96,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
     <inducement>
@@ -124,7 +122,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
 </archetype>
