@@ -174,9 +174,6 @@ model axiom-lang {
             minOccurs 0;
         }
 
-        item itemName {
-            type AxiomItemDefinition;
-        }
     }
 
     type AxiomName {
