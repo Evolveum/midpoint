@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402">
+    <name>device</name>
+    <documentation>
+        A device has some special characteristics:
+
+        1. It is held by at most single user at given time.
+
+        2. It gives its holder some properties, e.g. the `organization` obtains value of
+        `D users` for any device D held.
+
+        3. On the other hand, it knows who uses it by storing the user's `name` and `fullName` in
+        its `description` property.
+    </documentation>
+
+    <archetypePolicy>
+        <links>
+            <sourceLink>
+                <name>user</name>
+                <selector>
+                    <type>UserType</type>
+                </selector>
+            </sourceLink>
+        </links>
+    </archetypePolicy>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <documentation>From user to device: putting 'Used by ...' into device description.</documentation>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <code>
+                            linkedSource = midpoint.findLinkedSource('user')
+                            linkedSource != null ? 'Used by ' + linkedSource.name + ' (' + linkedSource.fullName + ')' : 'Not used'
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>description</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-user-on-device-name-change</name>
+            <documentation>
+                Recomputes a user when device name is changed. (Note that user is recomputed
+                automatically when device is assigned or unassigned.)
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource>
+                            <linkType>user</linkType>
+                        </linkSource>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+</archetype>

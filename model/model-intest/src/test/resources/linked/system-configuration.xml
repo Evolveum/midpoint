@@ -19,15 +19,13 @@
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
     <name>SystemConfiguration</name>
-    <defaultObjectPolicyConfiguration>
-        <type>UserType</type>
-        <objectTemplateRef oid="241afdcc-26eb-4417-a4df-a8c1add06e84" />
-    </defaultObjectPolicyConfiguration>
 
+    <!-- HW tokens scenario -->
+
+    <!-- This role is here because of assignments not being applied on object deletion. -->
     <globalPolicyRule>
         <focusSelector>
             <type>UserType</type>
-            <!-- or also archetype -->
         </focusSelector>
         <policyConstraints>
             <modification>
@@ -38,8 +36,8 @@
             <scriptExecution>
                 <object>
                     <linkTarget>
-                        <changeSituation>changed</changeSituation> <!-- just for testing -->
-                        <archetypeRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" /> <!-- device -->
+                        <type>ServiceType</type>
+                        <archetypeRef oid="21575364-d869-4b96-ac3f-b7b26e0e8540"/> <!-- hw-token -->
                     </linkTarget>
                 </object>
                 <executeScript>
@@ -49,6 +47,34 @@
         </policyActions>
     </globalPolicyRule>
 
+    <!-- Gummi scenario -->
+
+    <!-- This role is here because of assignments not being applied on object deletion. -->
+    <globalPolicyRule>
+        <focusSelector>
+            <type>UserType</type>
+            <archetypeRef oid="c46b1bcc-af43-44ee-a107-71f36e952cc5" /> <!-- gummi-user -->
+        </focusSelector>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <namedLinkTarget>devices</namedLinkTarget>
+                </object>
+                <executeScript>
+                    <s:recompute/>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+    </globalPolicyRule>
+
+    <!-- Projects scenario -->
+
+    <!-- This role is here because of assignments not being applied on object deletion. -->
     <globalPolicyRule>
         <focusSelector>
             <type>OrgType</type>
