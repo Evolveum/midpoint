@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,10 +29,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LinkSourceObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Finds link sources based on a collection of selectors.
@@ -60,22 +58,20 @@ class LinkSourceFinder implements AutoCloseable {
         this.result = parentResult.createMinorSubresult(OP_GET_SOURCES);
     }
 
-    List<PrismObject<? extends ObjectType>> getSourcesAsObjects(List<LinkSourceObjectSelectorType> sourceSelectors) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException {
+    List<PrismObject<? extends ObjectType>> getSourcesAsObjects() throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            return searchForSources(getSourcesAsQuery(sourceSelectors));
+            return searchForSources(getSourcesAsQuery());
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         }
     }
 
-    List<PrismReferenceValue> getSourcesAsReferences(List<LinkSourceObjectSelectorType> sourceSelectors) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException {
+    List<PrismReferenceValue> getSourcesAsReferences() throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            return searchForSourceReferences(getSourcesAsQuery(sourceSelectors));
+            return searchForSourceReferences(getSourcesAsQuery());
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -83,10 +79,9 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     @NotNull
-    CompleteQuery<?> getSourcesAsQuery(List<LinkSourceObjectSelectorType> sourceSelectors) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        ObjectQuery query = createQuery(sourceSelectors);
+    CompleteQuery<?> getSourcesAsQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = createQuery();
         Class<? extends AssignmentHolderType> objectType = getSourceType();
         CompleteQuery<? extends AssignmentHolderType> completeQuery = new CompleteQuery<>(objectType, query, null);
 
@@ -94,18 +89,68 @@ class LinkSourceFinder implements AutoCloseable {
         return completeQuery;
     }
 
-    private ObjectQuery createQuery(List<LinkSourceObjectSelectorType> sourceSelectors) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+    @NotNull
+    private List<LinkedObjectSelectorType> collectSourceSelectors() throws SchemaException, ConfigurationException {
+        ScriptExecutionObjectType objectSpec = actx.action.getObject();
+        assert objectSpec != null;
+        List<LinkedObjectSelectorType> selectors = new ArrayList<>();
+        selectors.addAll(resolveLinkTypes(objectSpec.getLinkSource()));
+        selectors.addAll(resolveNamedLinkSources(objectSpec.getNamedLinkSource()));
+        return selectors;
+    }
+
+    private List<LinkedObjectSelectorType> resolveNamedLinkSources(List<String> linkTypeNames)
+            throws SchemaException, ConfigurationException {
+        List<LinkedObjectSelectorType> resolvedSelectors = new ArrayList<>();
+        for (String linkTypeName : linkTypeNames) {
+            resolvedSelectors.add(resolveSourceSelector(linkTypeName));
+        }
+        return resolvedSelectors;
+    }
+
+    private List<LinkedObjectSelectorType> resolveLinkTypes(List<LinkSourceObjectSelectorType> selectors)
+            throws SchemaException, ConfigurationException {
+        List<LinkedObjectSelectorType> resolvedSelectors = new ArrayList<>();
+        for (LinkSourceObjectSelectorType selector : selectors) {
+            if (selector.getLinkType() != null) {
+                LinkedObjectSelectorType resolvedSelector = resolveSourceSelector(selector.getLinkType());
+                LinkSourceObjectSelectorType mergedSelector = mergeSelectors(selector, resolvedSelector);
+                resolvedSelectors.add(mergedSelector);
+            } else {
+                resolvedSelectors.add(selector);
+            }
+        }
+        return resolvedSelectors;
+    }
+
+    private LinkSourceObjectSelectorType mergeSelectors(LinkSourceObjectSelectorType base, LinkedObjectSelectorType additional)
+            throws SchemaException {
+        LinkSourceObjectSelectorType merged = base.clone();
+        merged.setLinkType(null);
+        ((PrismContainerValue<?>) merged.asPrismContainerValue()).mergeContent(additional.asPrismContainerValue(), emptyList());
+        return merged;
+    }
+
+    private LinkedObjectSelectorType resolveSourceSelector(String linkTypeName)
+            throws SchemaException, ConfigurationException {
+        LinkTypeDefinitionType definition = actx.beans.linkManager.getSourceLinkTypeDefinitionRequired(
+                linkTypeName, actx.focusContext.getObjectAny(), result);
+        return definition.getSelector() != null ?
+                definition.getSelector() : new LinkSourceObjectSelectorType(actx.beans.prismContext);
+    }
+
+    private ObjectQuery createQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        List<LinkedObjectSelectorType> sourceSelectors = collectSourceSelectors();
         List<ObjectFilter> convertedSelectors = new ArrayList<>(sourceSelectors.size());
-        for (LinkSourceObjectSelectorType sourceSelector : sourceSelectors) {
+        for (LinkedObjectSelectorType sourceSelector : sourceSelectors) {
             convertedSelectors.add(createFilter(sourceSelector));
         }
         return queryFactory.createQuery(
                 queryFactory.createOrOptimized(convertedSelectors));
     }
 
-    private ObjectFilter createFilter(LinkSourceObjectSelectorType sourceSelector) throws CommunicationException,
+    private ObjectFilter createFilter(LinkedObjectSelectorType sourceSelector) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         SelectorToFilterTranslator translator = new SelectorToFilterTranslator(sourceSelector, AssignmentHolderType.class,
@@ -122,7 +167,7 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     @NotNull
-    private List<PrismReferenceValue> createExpectedReferenceValues(LinkSourceObjectSelectorType sourceSelector) {
+    private List<PrismReferenceValue> createExpectedReferenceValues(LinkedObjectSelectorType sourceSelector) {
         List<PrismReferenceValue> values = new ArrayList<>(sourceSelector.getRelation().size());
         if (sourceSelector.getRelation().isEmpty()) {
             values.add(new ObjectReferenceType().oid(focusOid).asReferenceValue());

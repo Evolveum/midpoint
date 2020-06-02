@@ -73,14 +73,17 @@ abstract class ObjectSet<IO extends PrismValue> {
                     addObject(focus);
                 }
             }
-            if (!objectSpec.getLinkTarget().isEmpty()) {
+            if (!objectSpec.getLinkTarget().isEmpty() || !objectSpec.getNamedLinkTarget().isEmpty()) {
                 try (LinkTargetFinder targetFinder = new LinkTargetFinder(actx, result)) {
                     for (LinkTargetObjectSelectorType linkTargetSelector : objectSpec.getLinkTarget()) {
                         addObjects(targetFinder.getTargets(linkTargetSelector));
                     }
+                    for (String namedLinkTarget : objectSpec.getNamedLinkTarget()) {
+                        addObjects(targetFinder.getTargets(namedLinkTarget));
+                    }
                 }
             }
-            if (!objectSpec.getLinkSource().isEmpty()) {
+            if (!objectSpec.getLinkSource().isEmpty() || !objectSpec.getNamedLinkSource().isEmpty()) {
                 collectLinkSources();
             }
         }

@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -17,6 +18,9 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.objectReferenceLi
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.apache.commons.collections4.SetUtils;
 import org.jetbrains.annotations.NotNull;
@@ -54,13 +58,60 @@ class LinkTargetFinder implements AutoCloseable {
         this.result = parentResult.createMinorSubresult(OP_GET_TARGETS);
     }
 
-    List<PrismObject<? extends ObjectType>> getTargets(LinkTargetObjectSelectorType selector) {
+    List<PrismObject<? extends ObjectType>> getTargets(LinkTargetObjectSelectorType selector)
+            throws SchemaException, ConfigurationException {
         try {
-            return getTargetsInternal(selector);
+            return getTargetsInternal(resolveLinkType(selector));
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         }
+    }
+
+    List<PrismObject<? extends ObjectType>> getTargets(String namedLinkTarget)
+            throws SchemaException, ConfigurationException {
+        try {
+            return getTargetsInternal(resolveLinkType(namedLinkTarget));
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
+    }
+
+    @NotNull
+    private LinkTargetObjectSelectorType resolveLinkType(LinkTargetObjectSelectorType selector)
+            throws SchemaException, ConfigurationException {
+        String linkTypeName = selector.getLinkType();
+        if (linkTypeName == null) {
+            return selector;
+        } else {
+            LinkTargetObjectSelectorType mergedSelector = new LinkTargetObjectSelectorType(beans.prismContext);
+            LinkedObjectSelectorType linkSelector = resolveLinkTypeInternal(linkTypeName);
+            if (linkSelector != null) {
+                ((PrismContainerValue<?>) mergedSelector.asPrismContainerValue()).mergeContent(linkSelector.asPrismContainerValue(), emptyList());
+            }
+            ((PrismContainerValue<?>) mergedSelector.asPrismContainerValue()).mergeContent(selector.asPrismContainerValue(), emptyList());
+            mergedSelector.setLinkType(null);
+            return mergedSelector;
+        }
+    }
+
+    @NotNull
+    private LinkTargetObjectSelectorType resolveLinkType(String linkTypeName)
+            throws SchemaException, ConfigurationException {
+        LinkTargetObjectSelectorType resultingSelector = new LinkTargetObjectSelectorType(beans.prismContext);
+        LinkedObjectSelectorType linkSelector = resolveLinkTypeInternal(linkTypeName);
+        if (linkSelector != null) {
+            ((PrismContainerValue<?>) resultingSelector.asPrismContainerValue()).mergeContent(linkSelector.asPrismContainerValue(), emptyList());
+        }
+        return resultingSelector;
+    }
+
+    private LinkedObjectSelectorType resolveLinkTypeInternal(String linkTypeName)
+            throws SchemaException, ConfigurationException {
+        LinkTypeDefinitionType definition = actx.beans.linkManager.getTargetLinkTypeDefinitionRequired(
+                linkTypeName, actx.focusContext.getObjectAny(), result);
+        return definition.getSelector();
     }
 
     private List<PrismObject<? extends ObjectType>> getTargetsInternal(LinkTargetObjectSelectorType selector) {
@@ -133,7 +184,7 @@ class LinkTargetFinder implements AutoCloseable {
 
     private void applyObjectType(Set<PrismReferenceValue> links, QName type) {
         Class<?> clazz = getClassForType(type);
-        links.removeIf(link -> beans.prismContext.getSchemaRegistry().isAssignableFrom(clazz, link.getTargetType()));
+        links.removeIf(link -> !beans.prismContext.getSchemaRegistry().isAssignableFrom(clazz, link.getTargetType()));
     }
 
     @NotNull

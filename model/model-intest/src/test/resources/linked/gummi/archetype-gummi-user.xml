@@ -1,0 +1,124 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="c46b1bcc-af43-44ee-a107-71f36e952cc5">
+    <name>gummi-user</name>
+    <archetypePolicy>
+        <links>
+            <targetLink>
+                <name>devices</name>
+                <selector>
+                    <type>ServiceType</type>
+                    <archetypeRef oid="d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402" /> <!-- device -->
+                </selector>
+            </targetLink>
+            <targetLink>
+                <name>magic-tokens</name>
+                <selector>
+                    <type>ServiceType</type>
+                    <archetypeRef oid="e7bff8d1-cebd-4fbe-b935-64cfc2f22f52" /> <!-- magic-token -->
+                </selector>
+            </targetLink>
+        </links>
+    </archetypePolicy>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            midpoint.findLinkedTargets('devices').collect { basic.stringify(it.name) + ' users' }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>organization</path>
+                    <set>
+                        <predefined>all</predefined>
+                    </set>
+                </target>
+            </mapping>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            midpoint.findLinkedTargets('magic-tokens').collect { basic.stringify(it.name) + ' holders' }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>organizationalUnit</path>
+                    <set>
+                        <predefined>all</predefined>
+                    </set>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-user-name-change</name>
+            <documentation>Recomputes a device when user's name or fullName changes.</documentation>
+            <policyConstraints>
+                <or>
+                    <modification>
+                        <item>name</item>
+                    </modification>
+                    <modification>
+                        <item>fullName</item>
+                    </modification>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <linkType>devices</linkType>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-device-on-membership-change</name>
+            <documentation>
+                Recomputes all devices whose membership has changed.
+            </documentation>
+            <policyConstraints>
+                <alwaysTrue/>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkTarget>
+                            <changeSituation>changed</changeSituation>
+                            <linkType>devices</linkType>
+                        </linkTarget>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+</archetype>

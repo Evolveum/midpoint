@@ -16,6 +16,25 @@
         3. They need to be renamed when project is renamed.
     </documentation>
 
+    <archetypePolicy>
+        <links>
+            <sourceLink>
+                <name>usersOrg</name>
+                <selector>
+                    <type>OrgType</type>
+                    <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf" /> <!-- project-users -->
+                </selector>
+            </sourceLink>
+            <sourceLink>
+                <name>groupsOrg</name>
+                <selector>
+                    <type>OrgType</type>
+                    <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- project-groups -->
+                </selector>
+            </sourceLink>
+        </links>
+    </archetypePolicy>
+
     <inducement>
         <policyRule>
             <name>create-children-on-new-project-creation</name>
@@ -35,29 +54,9 @@
                             <s:execute>
                                 <s:script>
                                     <code>
-                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType
-                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
-
-                                        ARCHETYPE_USERS_OID = '3af67ba4-183f-45e7-887e-4ae5ddff4cdf'
-                                        ARCHETYPE_GROUPS_OID = 'a85bddc9-4ff0-475f-8ccc-17f9038d4ce1'
-
-                                        users = new OrgType(prismContext)
-                                                .beginAssignment()
-                                                    .targetRef(input.oid, OrgType.COMPLEX_TYPE)
-                                                .end()
-                                                .beginAssignment()
-                                                    .targetRef(ARCHETYPE_USERS_OID, ArchetypeType.COMPLEX_TYPE)
-                                                .end()
-
-                                        groups = new OrgType(prismContext)
-                                                .beginAssignment()
-                                                    .targetRef(input.oid, OrgType.COMPLEX_TYPE)
-                                                .end()
-                                                .beginAssignment()
-                                                    .targetRef(ARCHETYPE_GROUPS_OID, ArchetypeType.COMPLEX_TYPE)
-                                                .end()
-
-                                        [users, groups] // Returning two objects - they will be created in the second action
+                                        // Returning two objects - they will be created in the second action
+                                        [midpoint.createLinkedSource('usersOrg'),
+                                         midpoint.createLinkedSource('groupsOrg')]
                                     </code>
                                 </s:script>
                                 <s:outputTypeName>OrgType</s:outputTypeName>
@@ -68,7 +67,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
     <!--
@@ -89,11 +87,8 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <linkSource>
-                            <type>OrgType</type>
-                            <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf"/> <!-- users -->
-                            <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
-                        </linkSource>
+                        <namedLinkSource>usersOrg</namedLinkSource>
+                        <namedLinkSource>groupsOrg</namedLinkSource>
                     </object>
                     <executeScript>
                         <s:delete/>
@@ -101,7 +96,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
     <inducement>
@@ -119,11 +113,8 @@
             <policyActions>
                 <scriptExecution>
                     <object>
-                        <linkSource>
-                            <type>OrgType</type>
-                            <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf"/> <!-- users -->
-                            <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- groups -->
-                        </linkSource>
+                        <namedLinkSource>usersOrg</namedLinkSource>
+                        <namedLinkSource>groupsOrg</namedLinkSource>
                     </object>
                     <executeScript>
                         <s:recompute/>
@@ -131,7 +122,6 @@
                 </scriptExecution>
             </policyActions>
         </policyRule>
-        <order>1</order> <!-- assigned to project -->
     </inducement>
 
 </archetype>
