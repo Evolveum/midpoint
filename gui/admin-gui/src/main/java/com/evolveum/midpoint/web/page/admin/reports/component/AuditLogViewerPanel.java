@@ -616,6 +616,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     protected DataTable<?, ?> getDataTable() {
                         return getAuditLogViewerTable().getDataTable();
                     }
+
+                    @Override
+                    public boolean isVisibleCreateReportOption() {
+                        return false;
+                    }
                 };
 
                 return exportDataLink;
@@ -659,7 +664,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER,
-                AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER) {
+                AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override

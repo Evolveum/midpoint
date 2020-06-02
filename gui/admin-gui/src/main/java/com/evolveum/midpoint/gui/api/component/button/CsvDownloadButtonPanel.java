@@ -163,6 +163,11 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     protected void createReportPerformed(String name, SearchFilterType filter, AjaxRequestTarget target) {
                         CsvDownloadButtonPanel.this.createReportPerformed(name, filter, exportableColumnsIndex, target);
                     }
+
+                    @Override
+                    public boolean isVisibleCreateReportOption() {
+                        return CsvDownloadButtonPanel.this.isVisibleCreateReportOption();
+                    }
                 };
                 getPageBase().showMainPopup(exportingPanel, target);
             }
@@ -184,5 +189,9 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     protected abstract String getFilename();
 
     protected abstract void createReportPerformed(String name, SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target);
+
+    public boolean isVisibleCreateReportOption() {
+        return true;
+    }
 
 }
