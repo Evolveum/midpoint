@@ -227,18 +227,6 @@
                 <artifactId>relaxng-datatype</artifactId>
                 <version>${relaxng-datatype.version}</version>
             </dependency>
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${javax-jaxb.version}</version>
-                <exclusions>
-                    <!-- in favor of Jakarta version -->
-                    <exclusion>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>javax.activation-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
 
             <dependency>
                 <groupId>org.reflections</groupId>
@@ -1356,6 +1344,10 @@
                         <groupId>javax.annotation</groupId>
                         <artifactId>javax.annotation-api</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1705,6 +1697,8 @@
                                         jaxb-xjc replaced by Glassfish jaxb-xjc + xsom + codemodel
                                         -->
                                         <exclude>com.sun.xml.bind:*</exclude>
+                                        <!-- in favor of jakarta.xml.bind:jakarta.xml.bind-api -->
+                                        <exclude>javax.xml.bind:jaxb-api</exclude>
                                         <!-- in favor of jakarta.activation:jakarta.activation-api -->
                                         <exclude>javax.activation:javax.activation-api</exclude>
                                         <!-- in favor of com.sun.activation:jakarta.activation -->
