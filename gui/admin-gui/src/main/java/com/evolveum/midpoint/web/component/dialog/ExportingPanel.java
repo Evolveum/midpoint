@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.search.Search;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.Component;
@@ -165,6 +166,12 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 ((PageBase) getPage()).hideMainPopup(target);
             }
         };
+        createReport.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return isVisibleCreateReportOption();
+            }
+        });
         panel.add(createReport);
         AjaxButton exportSelected = new AjaxButton(ID_EXPORT,
                 new StringResourceModel("ExportingPopupPanel.exportSelected", this, null)) {
@@ -218,6 +225,8 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 return createTable(panelId, dataTable);
             }
         });
+
+
         tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.filter")) {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -227,6 +236,11 @@ public class ExportingPanel extends BasePanel implements Popupable {
                         return ExportingPanel.this.getPageBase();
                     }
                 };
+            }
+
+            @Override
+            public boolean isVisible() {
+                return isVisibleCreateReportOption();
             }
         });
         return tabs;
@@ -362,6 +376,10 @@ public class ExportingPanel extends BasePanel implements Popupable {
     @Override
     public Component getComponent() {
         return this;
+    }
+
+    public boolean isVisibleCreateReportOption() {
+        return true;
     }
 
 }
