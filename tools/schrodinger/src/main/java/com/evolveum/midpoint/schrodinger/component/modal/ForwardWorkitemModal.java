@@ -22,7 +22,7 @@ public class ForwardWorkitemModal<T> extends ModalBox<T> {
                 getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", name))
                         .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
-                box.waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
+//                box.waitUntil(Condition.disappears, MidPoint.TIMEOUT_DEFAULT_2_S);
 
                 return getParent().getParent();
             }

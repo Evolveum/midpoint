@@ -250,9 +250,7 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .table()
                 .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
 
-        Assert.assertTrue(workitemDetailsPanel
-                .forwardOperationUserSelectionPerformed()
-                .clickYes()
+        Assert.assertTrue(allRequestsPage
                 .feedback()
                 .isSuccess());
 

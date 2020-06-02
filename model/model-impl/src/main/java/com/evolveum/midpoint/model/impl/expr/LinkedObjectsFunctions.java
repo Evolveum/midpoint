@@ -13,10 +13,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.common.LinkManager;
@@ -136,7 +134,7 @@ public class LinkedObjectsFunctions {
             ConfigurationException, ExpressionEvaluationException {
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMemberRelation = membership.stream()
-                .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                .filter(ref -> relationRegistry.isMember(ref.getRelation()) && objectTypeMatches(ref, type))
                 .collect(Collectors.toList());
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
@@ -158,7 +156,6 @@ public class LinkedObjectsFunctions {
     <T extends AssignmentHolderType> List<T> findLinkedTargets(String linkTypeName)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        Task currentTask = midpointFunctions.getCurrentTask();
         OperationResult currentResult = midpointFunctions.getCurrentResult();
         LensFocusContext<?> focusContext = (LensFocusContext<?>) midpointFunctions.getFocusContext();
         if (focusContext == null) {
@@ -169,9 +166,11 @@ public class LinkedObjectsFunctions {
             throw new IllegalStateException("No definition for target link type " + linkTypeName + " for " + focusContext);
         }
 
+        Class<?> expectedClasses = getExpectedClass(definition.getSelector());
+
         Set<PrismReferenceValue> membership = getMembership();
         List<PrismReferenceValue> assignedWithMatchingRelation = membership.stream()
-                .filter(ref -> relationMatches(ref, definition.getSelector()))
+                .filter(ref -> relationMatches(ref, definition.getSelector()) && objectTypeMatches(ref, expectedClasses))
                 .collect(Collectors.toList());
         // TODO deduplicate w.r.t. member/manager
         // TODO optimize matching
@@ -185,6 +184,14 @@ public class LinkedObjectsFunctions {
             }
         }
         return objects;
+    }
+
+    private Class<?> getExpectedClass(LinkedObjectSelectorType selector) {
+        if (selector == null || selector.getType() == null) {
+            return null;
+        } else {
+            return prismContext.getSchemaRegistry().determineClassForTypeRequired(selector.getType());
+        }
     }
 
     @NotNull
@@ -221,6 +228,17 @@ public class LinkedObjectsFunctions {
         }
     }
 
+    private boolean objectTypeMatches(PrismReferenceValue ref, Class<?> expectedClass) {
+        if (expectedClass == null) {
+            return true;
+        } else {
+            Class<?> refTargetClass = prismContext.getSchemaRegistry().determineClassForTypeRequired(
+                    Objects.requireNonNull(
+                            ref.getTargetType(), "no target type"));
+            return expectedClass.isAssignableFrom(refTargetClass);
+        }
+    }
+
     private boolean relationMatches(PrismReferenceValue ref, LinkedObjectSelectorType selector) {
         return selector == null ||
                 selector.getRelation().isEmpty() ||
@@ -228,11 +246,11 @@ public class LinkedObjectsFunctions {
     }
 
     private <T extends AssignmentHolderType> boolean objectMatches(AssignmentHolderType targetObject, Class<T> type, String archetypeOid) {
-        return type.isAssignableFrom(targetObject.getClass())
+        return (type == null || type.isAssignableFrom(targetObject.getClass()))
                 && (archetypeOid == null || hasArchetype(targetObject, archetypeOid));
     }
 
-    private <T extends AssignmentHolderType> boolean objectMatches(AssignmentHolderType targetObject, ObjectSelectorType selector)
+    private boolean objectMatches(AssignmentHolderType targetObject, ObjectSelectorType selector)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         return selector == null ||
