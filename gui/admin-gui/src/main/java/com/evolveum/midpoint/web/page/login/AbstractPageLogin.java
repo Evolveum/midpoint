@@ -7,46 +7,29 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.LoginFormModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
  * @author lskublik
@@ -57,6 +40,7 @@ public abstract class AbstractPageLogin extends PageBase {
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageLogin.class);
 
     private static final String ID_SEQUENCE = "sequence";
+    private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
 
     public AbstractPageLogin() {
     }
@@ -68,14 +52,29 @@ public abstract class AbstractPageLogin extends PageBase {
     }
 
     private void initLayer() {
-        Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", getSequenceName()));
+        String sequenceName = getSequenceName();
+        Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return !StringUtils.isEmpty(getSequenceName());
+                return !StringUtils.isEmpty(sequenceName);
             }
         });
         add(sequence);
+        AjaxButton toDefault = new AjaxButton(ID_SWITCH_TO_DEFAULT_SEQUENCE, createStringResource("AbstractPageLogin.switchToDefault")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setResponsePage(getMidpointApplication().getHomePage());
+            }
+        };
+        toDefault.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !StringUtils.isEmpty(sequenceName);
+            }
+        });
+        add(toDefault);
         initCustomLayer();
     }
 
@@ -85,7 +84,8 @@ public abstract class AbstractPageLogin extends PageBase {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             AuthenticationSequenceType sequence = mpAuthentication.getSequence();
             if (sequence != null && sequence.getChannel() != null
-                    && !Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
+                    && !Boolean.TRUE.equals(sequence.getChannel().isDefault())
+                    && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(sequence.getChannel().getChannelId())) {
                 return sequence.getDisplayName() != null ? sequence.getDisplayName() : sequence.getName();
             }
         }

@@ -40,10 +40,10 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
     protected void initLayout() {
         ReportEngineSelectionType reportEngineType = getModel().getObject().getReportEngineType();
 
-        if(ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
-            add(new DashboardReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
-        } else {
+        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
             add(new JasperReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
+        } else {
+            add(new DashboardReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
         }
     }
 }

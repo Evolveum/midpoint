@@ -10,17 +10,33 @@
 
     <div class="row">
         <h3 style="margin-left: 20px;"><wicket:message key="ReportConfigurationPanel.title.basic"/></h3>
-
-        <div class="form-group col-md-12" wicket:id="name" />
-        <div class="form-group col-md-12" wicket:id="description" />
-        <div class="form-group col-md-12">
-            <div class=" control-label  col-md-2">
-                <span>
-                    <wicket:message key="DashboardReportBasicConfigurationPanel.label.dashboard"/>
-                </span>
+        <div class="top-level-prism-container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div wicket:id="panel" />
+                    <div>
+                        <div wicket:id="export" />
+                    </div>
+                    <div>
+                        <div wicket:id="dashboard" />
+                    </div>
+                    <div>
+                        <div wicket:id="collection" />
+                    </div>
+                </div>
             </div>
-            <div class="col-md-10" wicket:id="dashboard" />
         </div>
+
+<!--        <div class="form-group col-md-12" wicket:id="name" />-->
+<!--        <div class="form-group col-md-12" wicket:id="description" />-->
+<!--        <div class="form-group col-md-12">-->
+<!--            <div class=" control-label  col-md-2">-->
+<!--                <span>-->
+<!--                    <wicket:message key="DashboardReportBasicConfigurationPanel.label.dashboard"/>-->
+<!--                </span>-->
+<!--            </div>-->
+<!--            <div class="col-md-10" wicket:id="dashboard" />-->
+<!--        </div>-->
     </div>
 
 </wicket:panel>

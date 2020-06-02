@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -133,7 +136,7 @@ public class PageReport extends PageAdmin {
                 return new ReportConfigurationPanel(panelId, model);
             }
         });
-        if(!ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
+        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
             tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
                 private static final long serialVersionUID = 1L;
@@ -283,17 +286,22 @@ public class PageReport extends PageAdmin {
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
             ObjectDelta<ReportType> delta = null;
-            if (newReport.getOid() == null) {
-                getPrismContext().adopt(newReport);
-                delta = DeltaFactory.Object.createAddDelta(newReport);
-                delta.setPrismContext(getPrismContext());
-            } else {
-                PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,
-                        newReport.getOid(), this, task, result);
+            if(ReportEngineSelectionType.JASPER.equals(model.getObject().getReportEngineType())) {
+                if (newReport.getOid() == null) {
+                    getPrismContext().adopt(newReport);
+                    delta = DeltaFactory.Object.createAddDelta(newReport);
+                    delta.setPrismContext(getPrismContext());
+                } else {
+                    PrismObject<ReportType> oldReport = WebModelServiceUtils.loadObject(ReportType.class,
+                            newReport.getOid(), this, task, result);
 
-                if (oldReport != null) {
-                    delta = oldReport.diff(newReport);
+                    if (oldReport != null) {
+                        delta = oldReport.diff(newReport);
+                    }
                 }
+            } else {
+                IModel<PrismObjectWrapper<ReportType>> newPrismReport = model.getObject().getNewReportModel();
+                delta = newPrismReport.getObject().getObjectDelta();
             }
             if (delta != null) {
                             getPrismContext().adopt(delta);

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schrodinger.component.Component;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.interactions.Coordinates;
 
 import static com.codeborne.selenide.Selectors.byText;
 
@@ -35,8 +37,10 @@ public class Search<T> extends Component<T> {
     }
 
     public Search<T> updateSearch(){
-        getParentElement().$(Schrodinger.byDataId("searchSimple"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        SelenideElement simpleSearchButton = getParentElement().$(Schrodinger.byDataId("searchSimple"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        Actions builder = new Actions(WebDriverRunner.getWebDriver());
+        builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
         return this;
     }
 
