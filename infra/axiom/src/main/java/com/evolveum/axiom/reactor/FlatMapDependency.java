@@ -2,7 +2,7 @@ package com.evolveum.axiom.reactor;
 
 import java.util.function.Function;
 
-public class FlatMapDependency<I,O> extends Dependency.Delegated<O> {
+public class FlatMapDependency<I,O> extends DelegatedDependency<O> {
 
     private Dependency delegate;
     private Function<I, Dependency<O>> mapping;

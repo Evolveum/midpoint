@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
-class Deffered<T> extends Dependency.Delegated<T> {
+class Deffered<T> extends DelegatedDependency<T> {
 
     private Object ret;
 

@@ -2,7 +2,7 @@ package com.evolveum.axiom.reactor;
 
 import java.util.function.Function;
 
-public class MapDependency<I,O> extends Dependency.Delegated<O> {
+public class MapDependency<I,O> extends DelegatedDependency<O> {
 
     private Dependency<I> delegate;
     private Function<I, O> mapping;

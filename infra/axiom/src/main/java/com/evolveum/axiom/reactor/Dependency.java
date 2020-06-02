@@ -5,8 +5,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.google.common.base.Preconditions;
-
 
 public interface Dependency<T> {
 
@@ -50,29 +48,7 @@ public interface Dependency<T> {
 
     }
 
-    public static abstract class Abstract<V> implements Dependency<V> {
-
-
-        private Supplier<? extends Exception> errorMessage;
-
-        @Override
-        public Dependency<V> unsatisfied(Supplier<? extends Exception> unsatisfiedMessage) {
-            errorMessage = unsatisfiedMessage;
-            return this;
-        }
-
-
-        @Override
-        public Exception errorMessage() {
-            if(errorMessage != null) {
-                return errorMessage.get();
-            }
-            return null;
-        }
-    }
-
-
-    public static final class Immediate<V> extends Abstract<V> {
+    public static final class Immediate<V> extends AbstractDependency<V> {
 
         private final V value;
 
@@ -93,7 +69,7 @@ public interface Dependency<T> {
 
     }
 
-    public static final class Suppliable<V> extends Abstract<V> {
+    public static final class Suppliable<V> extends AbstractDependency<V> {
 
         private final Supplier<V> value;
 
@@ -114,7 +90,7 @@ public interface Dependency<T> {
 
     }
 
-    public static final class Unsatified<V>  extends Abstract<V> {
+    public static final class Unsatified<V>  extends AbstractDependency<V> {
 
         @Override
         public boolean isSatisfied() {
@@ -127,34 +103,7 @@ public interface Dependency<T> {
         }
     }
 
-    public abstract class Delegated<T>  extends Abstract<T>  {
-
-        abstract Dependency<T> delegate();
-
-        @Override
-        public boolean isSatisfied() {
-            return delegate().isSatisfied();
-        }
-
-        @Override
-        public boolean isRequired() {
-            return delegate().isRequired();
-        }
-
-        @Override
-        public T get() {
-            Preconditions.checkState(isSatisfied(), "Requirement was not satisfied");
-            return delegate().get();
-        }
-
-        @Override
-        public Exception errorMessage() {
-            Exception maybe = super.errorMessage();
-            return maybe != null ? maybe : delegate().errorMessage();
-        }
-    }
-
-    public final class OptionalDep<T> extends Delegated<T> {
+    public final class OptionalDep<T> extends DelegatedDependency<T> {
 
         private final Dependency<T> delegate;
 
@@ -175,53 +124,8 @@ public interface Dependency<T> {
 
     }
 
-    public final class RetriableDelegate<T> extends Delegated<T> implements Search<T> {
-
-        private Object maybeDelegate;
-        private Supplier<? extends Exception> notFound;
-
-        public RetriableDelegate(Supplier<Dependency<T>> lookup) {
-            maybeDelegate = lookup;
-        }
-
-        @Override
-        Dependency<T> delegate() {
-            if(maybeDelegate instanceof Dependency<?>) {
-                return (Dependency) maybeDelegate;
-            }
-            if(maybeDelegate instanceof Supplier<?>) {
-                Dependency<?> result = ((Supplier<Dependency<?>>) maybeDelegate).get();
-                if(result != null) {
-                    maybeDelegate = result;
-                    return (Dependency) result;
-                }
-
-            }
-            return Dependency.unsatisfied();
-        }
-
-        @Override
-        public Search<T> notFound(Supplier<? extends Exception> unsatisfiedMessage) {
-            notFound = unsatisfiedMessage;
-            return this;
-        }
-
-        @Override
-        public Exception errorMessage() {
-            if(maybeDelegate instanceof Supplier && notFound != null) {
-                return notFound.get();
-            }
-            Exception maybeFound = super.errorMessage();
-            if(maybeFound == null && maybeDelegate instanceof Dependency<?>) {
-                maybeFound = ((Dependency<?>)maybeDelegate).errorMessage();
-            }
-            return maybeFound;
-        }
-
-    }
-
     static <T> Search<T> retriableDelegate(Supplier<Dependency<T>> lookup) {
-        return new RetriableDelegate(lookup);
+        return new RetriableDependency(lookup);
     }
 
     static <T> Dependency<T> from(Optional<T> maybe) {

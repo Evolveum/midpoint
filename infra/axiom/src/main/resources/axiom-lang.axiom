@@ -32,8 +32,8 @@ model axiom-lang {
             type AxiomImportDeclaration;
             documentation """
                 Declaration of model imports.
-                
-                Type definitions from imported models are referencable and 
+
+                Type definitions from imported models are referencable and
                 visible to all definition contained in this model.
             """;
         }
@@ -160,6 +160,11 @@ model axiom-lang {
             minOccurs 0;
         }
 
+        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
+        item itemName {
+            type AxiomName;
+        }
+
         item item {
             type AxiomItemDefinition;
             identifier name;
@@ -167,6 +172,10 @@ model axiom-lang {
                 Definition of child items
             """;
             minOccurs 0;
+        }
+
+        item itemName {
+            type AxiomItemDefinition;
         }
     }
 
@@ -191,7 +200,7 @@ model axiom-lang {
             type AxiomTypeReference;
             documentation """
                 Value type.
-                
+
                 All values must be instances or referenced type or it's subtypes.
             """;
             minOccurs 1;
@@ -238,7 +247,7 @@ model axiom-lang {
             type AxiomName;
             documentation """
                 Name of referenced type definition.
-                The value must be name of existing type definition, which is 
+                The value must be name of existing type definition, which is
                 available (visible) to model using this type reference.
             """;
             minOccurs 1;
