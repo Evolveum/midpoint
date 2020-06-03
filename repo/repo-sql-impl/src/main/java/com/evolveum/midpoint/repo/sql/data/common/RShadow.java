@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.Objects;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -20,20 +28,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Objects;
-
-/**
- * @author lazyman
- */
 @Entity
 @Table(name = "m_shadow", indexes = {
         @javax.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
@@ -52,11 +48,10 @@ import java.util.Objects;
         })
 @ForeignKey(name = "fk_shadow")
 @QueryEntity(anyElements = {
-        @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES)})
+        @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES) })
 @Persister(impl = MidPointJoinedPersister.class)
-public class RShadow<T extends ShadowType> extends RObject implements OperationResult {
+public class RShadow extends RObject implements OperationResult {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString nameCopy;
 
     private String objectClass;
@@ -220,25 +215,24 @@ public class RShadow<T extends ShadowType> extends RObject implements OperationR
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         RShadow that = (RShadow) o;
 
-        if (!Objects.equals(nameCopy, that.nameCopy)) return false;
-        if (!Objects.equals(attemptNumber, that.attemptNumber))
-            return false;
-        if (failedOperationType != that.failedOperationType) return false;
-        if (!Objects.equals(objectClass, that.objectClass)) return false;
-        if (!Objects.equals(primaryIdentifierValue, that.primaryIdentifierValue)) return false;
-        if (!Objects.equals(resourceRef, that.resourceRef)) return false;
-        if (!Objects.equals(intent, that.intent)) return false;
-        if (!Objects.equals(synchronizationSituation, that.synchronizationSituation)) return false;
-        if (!Objects.equals(kind, that.kind)) return false;
-        if (!Objects.equals(exists, that.exists)) return false;
-        if (status != that.status) return false;
-        if (!Objects.equals(pendingOperationCount, that.pendingOperationCount)) return false;
+        if (!Objects.equals(nameCopy, that.nameCopy)) { return false; }
+        if (!Objects.equals(attemptNumber, that.attemptNumber)) { return false; }
+        if (failedOperationType != that.failedOperationType) { return false; }
+        if (!Objects.equals(objectClass, that.objectClass)) { return false; }
+        if (!Objects.equals(primaryIdentifierValue, that.primaryIdentifierValue)) { return false; }
+        if (!Objects.equals(resourceRef, that.resourceRef)) { return false; }
+        if (!Objects.equals(intent, that.intent)) { return false; }
+        if (!Objects.equals(synchronizationSituation, that.synchronizationSituation)) { return false; }
+        if (!Objects.equals(kind, that.kind)) { return false; }
+        if (!Objects.equals(exists, that.exists)) { return false; }
+        if (status != that.status) { return false; }
+        if (!Objects.equals(pendingOperationCount, that.pendingOperationCount)) { return false; }
 
         return true;
     }
@@ -262,7 +256,7 @@ public class RShadow<T extends ShadowType> extends RObject implements OperationR
     }
 
     // dynamically called
-    public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
+    public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 

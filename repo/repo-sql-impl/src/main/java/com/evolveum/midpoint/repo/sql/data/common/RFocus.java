@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.*;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -22,15 +32,6 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.*;
-
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -39,7 +40,7 @@ import java.util.Set;
         @VirtualCollection(jaxbName = @JaxbName(localPart = "assignment"), jaxbType = Set.class,
                 jpaName = "assignments", jpaType = Set.class, additionalParams = {
                 @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
-                        value = "FOCUS")}, collectionType = RAssignment.class)})
+                        value = "FOCUS") }, collectionType = RAssignment.class) })
 @Entity
 @ForeignKey(name = "fk_focus")
 @Table(indexes = {
@@ -50,7 +51,7 @@ import java.util.Set;
         @Index(name = "iFocusValidTo", columnList = "validTo")
 })
 @Persister(impl = MidPointJoinedPersister.class)
-public abstract class RFocus<T extends FocusType> extends RObject {
+public abstract class RFocus extends RObject {
 
     private Set<RObjectReference<RShadow>> linkRef;                         // FocusType
     private Set<RObjectReference<RFocus>> personaRef;                       // FocusType
@@ -72,7 +73,7 @@ public abstract class RFocus<T extends FocusType> extends RObject {
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RShadow>> getLinkRef() {
         if (linkRef == null) {
             linkRef = new HashSet<>();
@@ -83,7 +84,7 @@ public abstract class RFocus<T extends FocusType> extends RObject {
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 10")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getPersonaRef() {
         if (personaRef == null) {
             personaRef = new HashSet<>();
@@ -101,7 +102,7 @@ public abstract class RFocus<T extends FocusType> extends RObject {
     @CollectionTable(name = "m_focus_policy_situation", joinColumns = {
             @JoinColumn(name = "focus_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getPolicySituation() {
         return policySituation;
     }
@@ -186,24 +187,27 @@ public abstract class RFocus<T extends FocusType> extends RObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         RFocus other = (RFocus) o;
 
-        if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
-        if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
-        if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) return false;
-        if (localityFocus != null ? !localityFocus.equals(other.localityFocus) : other.localityFocus != null) return false;
-        if (costCenter != null ? !costCenter.equals(other.costCenter) : other.costCenter != null) return false;
-        if (emailAddress != null ? !emailAddress.equals(other.emailAddress) : other.emailAddress != null) return false;
-        if (telephoneNumber != null ? !telephoneNumber.equals(other.telephoneNumber) : other.telephoneNumber != null)
+        if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) { return false; }
+        if (activation != null ? !activation.equals(other.activation) : other.activation != null) { return false; }
+        if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) {
             return false;
-        if (locale != null ? !locale.equals(other.locale) : other.locale != null) return false;
+        }
+        if (localityFocus != null ? !localityFocus.equals(other.localityFocus) : other.localityFocus != null) { return false; }
+        if (costCenter != null ? !costCenter.equals(other.costCenter) : other.costCenter != null) { return false; }
+        if (emailAddress != null ? !emailAddress.equals(other.emailAddress) : other.emailAddress != null) { return false; }
+        if (telephoneNumber != null ? !telephoneNumber.equals(other.telephoneNumber) : other.telephoneNumber != null) {
+            return false;
+        }
+        if (locale != null ? !locale.equals(other.locale) : other.locale != null) { return false; }
         if (preferredLanguage != null ? !preferredLanguage.equals(other.preferredLanguage) :
-                other.preferredLanguage != null) return false;
-        if (timezone != null ? !timezone.equals(other.timezone) : other.timezone != null) return false;
+                other.preferredLanguage != null) { return false; }
+        if (timezone != null ? !timezone.equals(other.timezone) : other.timezone != null) { return false; }
 
         return true;
     }
@@ -221,7 +225,7 @@ public abstract class RFocus<T extends FocusType> extends RObject {
         return result;
     }
 
-    public static <T extends FocusType> void copyFocusInformationFromJAXB(FocusType jaxb, RFocus<T> repo, RepositoryContext repositoryContext,
+    public static void copyFocusInformationFromJAXB(FocusType jaxb, RFocus repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -261,7 +265,7 @@ public abstract class RFocus<T extends FocusType> extends RObject {
     //   (2) even querying of m_focus_photo table on RFocus merge
     // (see comments in SqlRepositoryServiceImpl.modifyObjectAttempt)
     @OneToMany(mappedBy = "owner", orphanRemoval = false)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RFocusPhoto> getJpegPhoto() {
         if (jpegPhoto == null) {
             jpegPhoto = new HashSet<>();

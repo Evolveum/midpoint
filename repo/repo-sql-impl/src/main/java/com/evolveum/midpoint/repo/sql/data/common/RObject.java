@@ -614,7 +614,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return result;
     }
 
-    static <T extends ObjectType> void copyAssignmentHolderInformationFromJAXB(AssignmentHolderType jaxb, RObject repo,
+    static void copyAssignmentHolderInformationFromJAXB(AssignmentHolderType jaxb, RObject repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
 
         copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -636,9 +636,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         }
     }
 
-    static <T extends ObjectType> void copyObjectInformationFromJAXB(ObjectType jaxb, RObject repo,
-            RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult)
+    static void copyObjectInformationFromJAXB(ObjectType jaxb, RObject repo,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");

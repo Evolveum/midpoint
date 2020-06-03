@@ -33,7 +33,7 @@ import java.util.Set;
 @Table(indexes = {
         @Index(name = "iServiceNameOrig", columnList = "name_orig"),
         @Index(name = "iServiceNameNorm", columnList = "name_norm")})
-public class RService extends RAbstractRole<ServiceType> {
+public class RService extends RAbstractRole {
 
     private RPolyString nameCopy;
     @Deprecated //todo remove collection in 3.9

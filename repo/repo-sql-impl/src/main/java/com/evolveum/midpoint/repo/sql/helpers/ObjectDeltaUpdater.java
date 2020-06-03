@@ -162,7 +162,7 @@ public class ObjectDeltaUpdater {
         handleObjectCommonAttributes(type, narrowedModifications, prismObject, object, idGenerator);
 
         if (shadowPendingOperationModified) {
-            ((RShadow<?>) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
+            ((RShadow) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
         }
 
         LOGGER.trace("Entity changes applied");
@@ -233,7 +233,7 @@ public class ObjectDeltaUpdater {
             throw new SystemException("Bean is not instance of " + RFocus.class + ", shouldn't happen");
         }
 
-        RFocus<?> focus = (RFocus<?>) bean;
+        RFocus focus = (RFocus) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
         if (isDelete(delta)) {
