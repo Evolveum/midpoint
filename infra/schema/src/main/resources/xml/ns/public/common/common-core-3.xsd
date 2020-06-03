@@ -16943,6 +16943,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="selectorOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options to use when executing the search.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>

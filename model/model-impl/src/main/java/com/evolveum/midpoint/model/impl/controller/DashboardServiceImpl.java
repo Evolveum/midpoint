@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -379,9 +381,10 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         SearchFilterType searchFilter;
         SearchFilterType searchFilterForMerge = null;
+        Collection<SelectorOptions<GetOperationOptions>> options = defaultOptions;
         Class<ObjectType> type;
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
@@ -397,6 +400,9 @@ public class DashboardServiceImpl implements DashboardService {
             type = (Class<ObjectType>) prismContext.getSchemaRegistry()
                     .getCompileTimeClassForObjectType(collection.getType());
             searchFilter = collection.getFilter();
+            if (collection.getSelectorOptions() != null) {
+                options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
+            }
         } else {
             searchFilter = collectionConfig.getFilter();
             if (collectionConfig.getBaseCollectionRef() != null &&
@@ -411,6 +417,9 @@ public class DashboardServiceImpl implements DashboardService {
                     searchFilterForMerge = collection.getFilter();
                     typeFromBaseCollection = (Class<ObjectType>) prismContext.getSchemaRegistry()
                             .getCompileTimeClassForObjectType(collection.getType());
+                    if (collection.getSelectorOptions() != null) {
+                        options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
+                    }
                 } else {
                     searchFilterForMerge = collectionConfig.getBaseCollectionRef().getFilter();
                 }

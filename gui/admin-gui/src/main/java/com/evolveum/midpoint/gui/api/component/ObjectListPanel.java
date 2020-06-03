@@ -536,6 +536,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 return isCountingEnabled();
             }
         };
+        provider.setOptions(createOptions(options));
+        setDefaultSorting(provider);
+        provider.setQuery(getQuery());
+
+        return provider;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> createOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
+                && !getObjectCollectionView().getOptions().isEmpty()) {
+            return getObjectCollectionView().getOptions();
+        }
+
         if (options == null){
             if (ResourceType.class.equals(type.getClassDefinition())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -545,12 +559,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
                 root.setNoFetch(Boolean.TRUE);
             }
-            provider.setOptions(options);
         }
-        setDefaultSorting(provider);
-        provider.setQuery(getQuery());
-
-        return provider;
+        return options;
     }
 
     protected String getTableIdKeyValue(){

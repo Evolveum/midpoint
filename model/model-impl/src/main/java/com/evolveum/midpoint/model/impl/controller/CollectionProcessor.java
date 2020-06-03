@@ -207,21 +207,16 @@ public class CollectionProcessor {
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass();
-        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), task, result));
-        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), task, result));
+        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), collectionView.getOptions(), task, result));
+        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), collectionView.getDomainOptions(), task, result));
         return stats;
     }
 
 
-    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         if (filter == null) {
             return null;
         }
-        Collection<SelectorOptions<GetOperationOptions>> options = null;
-        if (ShadowType.class.isAssignableFrom(targetTypeClass)){
-            options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-        }
-
         return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), options, task, result);
     }
 
@@ -327,6 +322,7 @@ public class CollectionProcessor {
                 } else {
                     existingView.setDomainFilter(domainView.getFilter());
                 }
+                existingView.setDomainOptions(domainView.getOptions());
             }
         }
 
@@ -341,6 +337,7 @@ public class CollectionProcessor {
         CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
         if (baseCollectionSpec == null) {
             existingView.setFilter(collectionFilter);
+            existingView.setOptions(MiscSchemaUtil.optionsTypeToOptions(objectCollectionType.getSelectorOptions(), prismContext));
         } else {
             compileObjectCollectionView(existingView, baseCollectionSpec, targetTypeClass, task, result);
             ObjectFilter baseFilter = existingView.getFilter();

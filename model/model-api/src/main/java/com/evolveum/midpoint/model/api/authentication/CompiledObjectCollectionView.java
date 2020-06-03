@@ -8,10 +8,13 @@ package com.evolveum.midpoint.model.api.authentication;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private ObjectFilter domainFilter;
     private Integer displayOrder;
     private Integer refreshInterval;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
+    private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
 
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
@@ -210,6 +215,22 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 
     public Integer getRefreshInterval() {
         return refreshInterval;
+    }
+
+    public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        this.options = options;
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
+    }
+
+    public void setDomainOptions(Collection<SelectorOptions<GetOperationOptions>> domainOptions) {
+        this.domainOptions = domainOptions;
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getDomainOptions() {
+        return domainOptions;
     }
 
     @Override
