@@ -182,14 +182,14 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         if(result instanceof ValueContext.Result) {
             return ((ValueContext<V>.Result) result).value;
         }
-        return get().get();
+        return get().value();
     }
 
     @Override
     public void mergeItem(AxiomItem<?> axiomItem) {
         ItemContext<?> item = startItem(axiomItem.name(), SourceLocation.runtime());
         for(AxiomValue<?> value : axiomItem.values()) {
-            ValueContext<?> valueCtx = item.startValue(value.get(),SourceLocation.runtime());
+            ValueContext<?> valueCtx = item.startValue(value.value(),SourceLocation.runtime());
             valueCtx.replace(value);
             valueCtx.endValue(SourceLocation.runtime());
         }
@@ -222,7 +222,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
             if(result instanceof ValueContext.Result) {
                 return ((ValueContext.Result) result).getItem(item);
             }
-            return Dependency.from(result.get().item(item));
+            return Dependency.from(result.get().asComplex().get().item(item));
 
         });
     }
@@ -284,7 +284,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
                 if(result instanceof ValueContext.Result) {
                     item = ((ValueContext.Result) result).getItem(definition.name());
                 } else {
-                    item = result.flatMap(v -> Dependency.from(v.item(definition)));
+                    item = result.flatMap(v -> Dependency.from(v.asComplex().get().item(definition)));
                 }
                 if(item instanceof ItemContext) {
                     return ((ItemContext) item).onlyValue0();
@@ -345,7 +345,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public Dependency<V> finalValue() {
-            return map(v -> v.get());
+            return map(v -> v.value());
         }
 
         @Override

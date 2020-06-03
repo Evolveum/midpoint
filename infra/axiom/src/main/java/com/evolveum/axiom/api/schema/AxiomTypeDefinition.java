@@ -11,22 +11,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<AxiomTypeDefinition> {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue<AxiomTypeDefinition> {
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
 
 
-    @Override
-    default AxiomTypeDefinition get() {
-        return this;
-    }
 
     @Override
     default Optional<AxiomTypeDefinition> type() {
@@ -84,6 +81,10 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
             current = current.get().superType();
         }
         return false;
+    }
+
+    default boolean isComplex() {
+        return !itemDefinitions().isEmpty();
     }
 
 }

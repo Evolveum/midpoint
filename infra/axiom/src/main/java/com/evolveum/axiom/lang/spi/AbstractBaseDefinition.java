@@ -1,5 +1,6 @@
 package com.evolveum.axiom.lang.spi;
 
+import java.util.Collection;
 import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomName;
@@ -14,10 +15,10 @@ public class AbstractBaseDefinition<V> extends ItemValueImpl<V> implements Axiom
     private final AxiomName name;
     private final  String documentation;
 
-    public AbstractBaseDefinition(AxiomTypeDefinition type, V value, Map<AxiomName, AxiomItem<?>> items) {
+    public AbstractBaseDefinition(AxiomTypeDefinition type, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> items) {
         super(type, value, items);
-        name = (AxiomName) item(Item.NAME).get().onlyValue().get();
-        documentation = item(Item.DOCUMENTATION).map(i -> i.onlyValue().get().toString()).orElse(null); //
+        name = (AxiomName) item(Item.NAME).get().onlyValue().value();
+        documentation = item(Item.DOCUMENTATION).map(i -> i.onlyValue().value().toString()).orElse(null); //
     }
 
     @Override

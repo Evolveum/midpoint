@@ -3,6 +3,7 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Collection;
 import java.util.Map;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
@@ -14,29 +15,31 @@ import com.google.common.collect.ImmutableList;
 
 public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifierDefinition> implements AxiomIdentifierDefinition {
 
-    public static final AxiomValueFactory<AxiomIdentifierDefinition,AxiomIdentifierDefinition> FACTORY = AxiomIdentifierDefinitionImpl::new ;
+    public static final AxiomValueFactory<Collection<AxiomItem<?>>,AxiomComplexValue<?>> FACTORY = AxiomIdentifierDefinitionImpl::new ;
 
     private final Collection<AxiomName> components;
 
 
-    public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, AxiomIdentifierDefinition value, Map<AxiomName, AxiomItem<?>> items) {
+    public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> items) {
         super(axiomItemDefinition, value, items);
 
         ImmutableList.Builder<AxiomName> components = ImmutableList.builder();
         for (AxiomValue<AxiomName> val : this.<AxiomName>item(Item.ID_MEMBER.name()).get().values()) {
-            components.add(val.get());
+            components.add(val.value());
         }
         this.components = components.build();
     }
 
     @Override
-    public AxiomIdentifierDefinition get() {
-        return this;
-    }
-
-    @Override
     public Collection<AxiomName> components() {
         return components;
+    }
+
+    public static AxiomIdentifierDefinition from(AxiomValue<?> value) {
+        if (value instanceof AxiomIdentifierDefinition) {
+            return (AxiomIdentifierDefinition) value;
+        }
+        return new AxiomIdentifierDefinitionImpl(value.type().get(), null, value.asComplex().get().itemMap());
     }
 
 }

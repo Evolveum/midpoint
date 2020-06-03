@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
@@ -59,7 +60,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             Dependency<AxiomName> typeName = action.require(context.child(Item.NAME, AxiomName.class)
-                    .map(v -> v.onlyValue().get()))
+                    .map(v -> v.onlyValue().value()))
                     .unsatisfied(() -> action.error("Type does not have name defined."));
             action.apply(ctx -> {
                 ctx.register(AxiomTypeDefinition.SPACE, AxiomIdentifierDefinition.Scope.GLOBAL, AxiomTypeDefinition.identifier(typeName.get()));
@@ -71,7 +72,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             Dependency<AxiomName> typeName = action.require(context.child(Item.NAME, AxiomName.class)
-                    .map(v -> v.onlyValue().get()))
+                    .map(v -> v.onlyValue().value()))
                     .unsatisfied(() -> action.error("Type does not have name defined."));
             action.apply(ctx -> {
                 ctx.register(AxiomItemDefinition.ROOT_SPACE, AxiomIdentifierDefinition.Scope.GLOBAL, AxiomItemDefinition.identifier(typeName.get()));
@@ -110,7 +111,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
             Dependency<AxiomValueReference<?>> typeDef = action.require(context.child(Item.NAME, AxiomName.class)
                 .unsatisfied(() -> action.error("type name is missing."))
-                .map(v -> v.onlyValue().get())
+                .map(v -> v.onlyValue().value())
                 .flatMap(name ->
                     context.reference(AxiomTypeDefinition.SPACE,AxiomTypeDefinition.identifier(name))
                         .notFound(() ->  action.error("type '%s' was not found.", name))
@@ -126,13 +127,13 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Dependency<AxiomTypeDefinition> typeDef =
+            Dependency<AxiomComplexValue<?>> typeDef =
                     action.require(
                             context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
-                            .map(v -> v.get()));
+                            .map(v -> v.asComplex().get()));
             typeDef.unsatisfied(() -> action.error("Supertype is not complete."));
             action.apply(superTypeValue -> {
-                addFromType(typeDef.get(), superTypeValue.parentValue(), typeDef.get().name());
+                addFromType(typeDef.get(), superTypeValue.parentValue());
             });
         }
     },
@@ -140,13 +141,13 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Dependency<AxiomTypeDefinition> typeDef =
+            Dependency<AxiomComplexValue<?>> typeDef =
                     action.require(
                             context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
-                            .map(v -> v.get()));
+                            .map(v -> v.asComplex().get()));
             typeDef.unsatisfied(() -> action.error("Supertype is not complete."));
             action.apply(superTypeValue -> {
-                addFromType(typeDef.get(), superTypeValue.parentValue(), typeDef.get().name());
+                addFromType(typeDef.get(), superTypeValue.parentValue());
             });
         }
     },
@@ -164,7 +165,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Dependency<String> namespace = action.require(context.child(Item.NAMESPACE, String.class).map(v -> v.onlyValue().get()));
+            Dependency<String> namespace = action.require(context.child(Item.NAMESPACE, String.class).map(v -> v.onlyValue().value()));
             action.apply(ctx -> {
                 ctx.root().exportIdentifierSpace(namespaceId(namespace.get()));
             });
@@ -175,9 +176,9 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             Dependency<NamespaceContext> namespace = action.require(context.child(Item.NAMESPACE, String.class)
-                    .map(item -> item.onlyValue())
-                    .flatMap(uri -> context.namespace(Item.NAMESPACE.name(), namespaceId(uri.get()))
-                    .unsatisfied(() -> action.error("Namespace %s not found.", uri.get()))
+                    .map(item -> item.onlyValue().value())
+                    .flatMap(uri -> context.namespace(Item.NAMESPACE.name(), namespaceId(uri))
+                    .unsatisfied(() -> action.error("Namespace %s not found.", uri))
                     ));
             action.apply((ctx) -> {
                 ctx.root().importIdentifierSpace(namespace.get());
@@ -195,15 +196,16 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             Dependency<AxiomValueContext<?>> targetRef = action.require(context.child(Item.TARGET, AxiomName.class)
-                    .map(v -> v.onlyValue().item(Item.NAME).get()))
+                    .map(v -> v.onlyValue().asComplex().get().item(Item.NAME).get().onlyValue()))
                     .flatMap(item ->
-                        context.modify(AxiomTypeDefinition.SPACE, AxiomTypeDefinition.identifier((AxiomName) item.onlyValue().get()))
-                        .unsatisfied(() -> action.error("Target %s not found.",item.onlyValue().get())
+                        context.modify(AxiomTypeDefinition.SPACE, AxiomTypeDefinition.identifier((AxiomName) item.value()))
+                        .unsatisfied(() -> action.error("Target %s not found.",item.value())
                     ));
             Dependency<AxiomItem<AxiomItemDefinition>> itemDef = action.require(context.child(Item.ITEM_DEFINITION, AxiomItemDefinition.class));
             action.apply(ext -> {
                 for(AxiomValue<AxiomItemDefinition> item : itemDef.get().values()) {
-                    targetRef.get().mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item.get().notInherited()));
+                    // FIXME: Add inheritance metadata
+                    targetRef.get().mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item));
                 }
             });
         }
@@ -221,7 +223,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
     static IdentifierSpaceKey keyFrom(Map<AxiomName,Dependency<AxiomValue<Object>>> ctx) {
         ImmutableMap.Builder<AxiomName, Object> components = ImmutableMap.builder();
         for(Entry<AxiomName, Dependency<AxiomValue<Object>>> entry : ctx.entrySet()) {
-            components.put(entry.getKey(), entry.getValue().get().get());
+            components.put(entry.getKey(), entry.getValue().get().value());
         }
         return IdentifierSpaceKey.from(components.build());
     }
@@ -267,22 +269,15 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomValue<?> source, AxiomValueContext<?> target, AxiomName targetName) {
-        AxiomTypeDefinition superType = (AxiomTypeDefinition) source.get();
-        Preconditions.checkState(!(superType instanceof AxiomBuiltIn.Type));
-        // FIXME: Add namespace change if necessary
-        // Copy Identifiers
-        Optional<AxiomItem<?>> identifiers = superType.item(Item.IDENTIFIER_DEFINITION);
+    public static void addFromType(AxiomComplexValue<?> source, AxiomValueContext<?> target) {
+        Optional<AxiomItem<?>> identifiers = source.item(Item.IDENTIFIER_DEFINITION);
         if(identifiers.isPresent()) {
             target.mergeItem(identifiers.get());
         }// Copy Items
-        Collection<AxiomItemDefinition> itemDefs = ImmutableList.copyOf(superType.itemDefinitions().values());
-        for (AxiomItemDefinition item : superType.itemDefinitions().values()) {
-            if(item.inherited()) {
-                final AxiomName derivedName = Inheritance.adapt(targetName, item);
-                item = item.derived(derivedName);
-            }
-            target.mergeItem(AxiomItem.from(Item.ITEM_DEFINITION, item));
+
+        Optional<AxiomItem<?>> itemDefs = source.item(Item.ITEM_DEFINITION);
+        if(itemDefs.isPresent()) {
+            target.mergeItem(itemDefs.get());
         }
     }
 

@@ -5,18 +5,17 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-public class ItemValueImpl<V> implements AxiomValue<V> {
+public class ItemValueImpl<V> implements AxiomComplexValue<V> {
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static final AxiomValueFactory FACTORY = ItemValueImpl::new;
+    private static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomComplexValue<?>> FACTORY = ItemValueImpl::new;
     private final AxiomTypeDefinition type;
-    private final V value;
     private final Map<AxiomName, AxiomItem<?>> items;
 
 
@@ -24,16 +23,15 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
         return value.get();
     }
 
-    public ItemValueImpl(AxiomTypeDefinition type, V value, Map<AxiomName, AxiomItem<?>> items) {
+    public ItemValueImpl(AxiomTypeDefinition type, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> items) {
         super();
         this.type = type;
-        this.value = value;
         this.items = items;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <V> AxiomValueFactory<V,AxiomValue<V>> factory() {
-        return FACTORY;
+        return (AxiomValueFactory) FACTORY;
     }
 
     @Override
@@ -42,13 +40,8 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
     }
 
     @Override
-    public V get() {
-        return value;
-    }
-
-    @Override
     public Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
-        return AxiomValue.super.item(def);
+        return AxiomComplexValue.super.item(def);
     }
 
     @Override
@@ -56,8 +49,12 @@ public class ItemValueImpl<V> implements AxiomValue<V> {
         return Optional.ofNullable((AxiomItem<T>) items.get(name));
     }
 
-    @Override
     public Collection<AxiomItem<?>> items() {
         return items.values();
+    }
+
+    @Override
+    public Map<AxiomName, AxiomItem<?>> itemMap() {
+        return items;
     }
 }

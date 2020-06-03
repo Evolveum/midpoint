@@ -4,12 +4,14 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
@@ -27,7 +29,7 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
     }
 
     public static <V> AxiomValueBuilder<V, AxiomValue<V>> from(AxiomTypeDefinition type) {
-        return new AxiomValueBuilder(type, ItemValueImpl.factory());
+        return new AxiomValueBuilder(type, type.isComplex() ? ItemValueImpl.factory() : SimpleValue.factory());
     }
 
     public V getValue() {
@@ -52,12 +54,16 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
 
     @Override
     public T get() {
-        Builder<AxiomName, AxiomItem<?>> builder = ImmutableMap.builder();
-        for(Entry<AxiomName, Supplier<? extends AxiomItem<?>>> entry : children.entrySet()) {
-            AxiomItem<?> item = entry.getValue().get();
-            builder.put(entry.getKey(), entry.getValue().get());
+        if(type.isComplex()) {
+            Builder<AxiomName, AxiomItem<?>> builder = ImmutableMap.builder();
+            for(Entry<AxiomName, Supplier<? extends AxiomItem<?>>> entry : children.entrySet()) {
+                AxiomItem<?> item = entry.getValue().get();
+                builder.put(entry.getKey(), entry.getValue().get());
+            }
+            return factory.create(type, null, builder.build());
         }
-        return factory.create(type, value, builder.build());
+        Preconditions.checkState(children.isEmpty(), "%s does not have items. Items found %s", type.name(), children.keySet());
+        return factory.create(type, value, Collections.emptyMap());
     }
 
     public static <T,V extends AxiomValue<T>> AxiomValueBuilder<T,V> create(AxiomTypeDefinition type, AxiomValueFactory<T, V> factory) {

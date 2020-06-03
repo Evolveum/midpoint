@@ -3,16 +3,12 @@ package com.evolveum.axiom.api.schema;
 import java.util.Collection;
 import java.util.Set;
 
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.ImmutableSet;
 
-public interface AxiomIdentifierDefinition extends AxiomValue<AxiomIdentifierDefinition> {
-
-    @Override
-    default AxiomIdentifierDefinition get() {
-        return this;
-    }
+public interface AxiomIdentifierDefinition extends AxiomComplexValue<AxiomIdentifierDefinition> {
 
     Collection<AxiomName> components();
 

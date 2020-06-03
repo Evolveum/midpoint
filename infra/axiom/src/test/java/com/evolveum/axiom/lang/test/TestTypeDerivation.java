@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
@@ -68,9 +69,9 @@ public class TestTypeDerivation extends AbstractReactorTest {
         stream.stream(target);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
-        AxiomValue<?> person = root.onlyValue();
-        assertEquals(person.item(NAME).get().onlyValue().get(), "John Doe");
-        assertEquals(person.item(FIRST_NAME).get().onlyValue().get(), "John");
+        AxiomComplexValue<?> person = root.onlyValue().asComplex().get();
+        assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
+        assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
 
 
     }

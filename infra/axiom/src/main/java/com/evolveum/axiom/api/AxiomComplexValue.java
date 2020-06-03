@@ -1,0 +1,45 @@
+package com.evolveum.axiom.api;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+
+public interface AxiomComplexValue<V> extends AxiomValue<Collection<AxiomItem<?>>> {
+
+
+    @Override
+    default Collection<AxiomItem<?>> value() {
+        return itemMap().values();
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    default Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
+        return (Optional) item(def.name());
+    }
+
+    @SuppressWarnings("unchecked")
+    default <T> Optional<AxiomItem<T>> item(AxiomName name) {
+        return Optional.ofNullable((AxiomItem<T>) itemMap().get(name));
+    }
+
+    static <V> AxiomValue<V> from(AxiomTypeDefinition typeDefinition, V value) {
+        return new SimpleValue<V>(typeDefinition, value);
+    }
+
+   default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
+        Optional<AxiomValue<?>> current = Optional.of(this);
+        for(AxiomItemDefinition name : components) {
+            current = current.get().asComplex().flatMap(c -> c.item(name)).map(i -> i.onlyValue()); // map(v -> v.onlyValue().asComplex());
+            if(!current.isPresent()) {
+                return Optional.empty();
+            }
+        }
+        return (Optional) current;
+    }
+
+    Map<AxiomName, AxiomItem<?>> itemMap();
+
+}

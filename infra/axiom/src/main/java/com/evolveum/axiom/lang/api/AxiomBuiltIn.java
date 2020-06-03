@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
+import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -127,11 +128,6 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public AxiomItemDefinition get() {
-            return this;
-        }
-
-        @Override
         public AxiomTypeDefinition definingType() {
             return null;
         }
@@ -140,12 +136,18 @@ public class AxiomBuiltIn {
         public Optional<AxiomIdentifierDefinition> identifierDefinition() {
             return Optional.empty();
         }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> itemMap() {
+            return null;
+        }
     }
 
     public static class Type implements AxiomTypeDefinition {
         public static final Type UUID = new Type("uuid");
         public static final Type STRING = new Type("string");
         public static final Type IDENTIFIER = new Type("AxiomName");
+
         public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference", null, () -> Item.NAME, () -> itemDefs(
                     Item.NAME,
                     Item.REF_TARGET
@@ -280,6 +282,18 @@ public class AxiomBuiltIn {
             return "typedef " + name();
         }
 
+        @Override
+        public Map<AxiomName, AxiomItem<?>> itemMap() {
+            return null;
+        }
+
+        @Override
+        public boolean isComplex() {
+            if(superType != null && superType.isComplex()) {
+                return true;
+            }
+            return !itemDefinitions().isEmpty();
+        }
     }
 
 

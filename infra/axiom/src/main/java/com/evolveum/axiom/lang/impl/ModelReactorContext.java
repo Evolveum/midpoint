@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
+import com.evolveum.axiom.api.SimpleValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -180,8 +181,7 @@ public class ModelReactorContext extends
             }
             current = current.get().superType();
         } while (current.isPresent());
-
-        return ItemValueImpl.factory();
+        return statementType.isComplex() ? ItemValueImpl.factory() : SimpleValue.factory();
     }
 
     public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {

@@ -70,7 +70,7 @@ public class TestAxiomExtension extends AbstractReactorTest {
     @Test
     public void axiomTestLanguageExtension() throws IOException, AxiomSyntaxException {
 
-        assertTrue(Type.AUGMENTATION_DEFINITION.isSubtypeOf(Type.TYPE_DEFINITION.get()));
+        assertTrue(Type.AUGMENTATION_DEFINITION.isSubtypeOf(Type.TYPE_DEFINITION));
 
         ModelReactorContext context = ModelReactorContext.defaultReactor();
         context.loadModelFromSource(source(LANG_EXT));
@@ -87,7 +87,7 @@ public class TestAxiomExtension extends AbstractReactorTest {
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());
 
-        AxiomItem<Object> extension = personDef.get().item(STORAGE).get();
+        AxiomItem<Object> extension = personDef.get().asComplex().get().item(STORAGE).get();
 
         assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());

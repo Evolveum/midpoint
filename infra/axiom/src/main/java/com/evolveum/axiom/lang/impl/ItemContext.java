@@ -99,7 +99,7 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     @Override
     public V onlyValue() {
         Preconditions.checkState(values.size() == 1);
-        return values.iterator().next().get().get();
+        return values.iterator().next().get().value();
     }
 
     @Override

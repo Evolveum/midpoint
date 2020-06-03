@@ -8,23 +8,18 @@ package com.evolveum.axiom.api.schema;
 
 import java.util.Optional;
 
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomValue<AxiomItemDefinition> {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexValue<AxiomItemDefinition> {
 
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
     AxiomName NAME = AxiomName.axiom("name");
     AxiomName VALUE_SPACE = AxiomName.axiom("value");
-
-    @Override
-    default AxiomItemDefinition get() {
-        return this;
-    }
 
     AxiomTypeDefinition typeDefinition();
 

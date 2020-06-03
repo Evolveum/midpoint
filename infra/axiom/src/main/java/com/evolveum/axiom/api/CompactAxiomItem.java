@@ -26,7 +26,7 @@ class CompactAxiomItem<V> extends AbstractAxiomItem<V> implements AxiomValue<V> 
     }
 
     @Override
-    public V get() {
+    public V value() {
         return value;
     }
 
