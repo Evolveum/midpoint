@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RNode extends RObject<NodeType> {
+public class RNode extends RObject {
 
     private RPolyString nameCopy;
     private String nodeIdentifier;

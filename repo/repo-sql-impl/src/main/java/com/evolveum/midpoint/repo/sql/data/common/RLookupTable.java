@@ -36,7 +36,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RLookupTable extends RObject<LookupTableType> {
+public class RLookupTable extends RObject {
 
     private RPolyString nameCopy;
     private Set<RLookupTableRow> rows;

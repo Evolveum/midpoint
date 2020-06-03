@@ -54,7 +54,7 @@ import java.util.Objects;
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES)})
 @Persister(impl = MidPointJoinedPersister.class)
-public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
+public class RShadow<T extends ShadowType> extends RObject implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString nameCopy;

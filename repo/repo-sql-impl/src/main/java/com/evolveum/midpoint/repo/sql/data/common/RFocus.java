@@ -50,7 +50,7 @@ import java.util.Set;
         @Index(name = "iFocusValidTo", columnList = "validTo")
 })
 @Persister(impl = MidPointJoinedPersister.class)
-public abstract class RFocus<T extends FocusType> extends RObject<T> {
+public abstract class RFocus<T extends FocusType> extends RObject {
 
     private Set<RObjectReference<RShadow>> linkRef;                         // FocusType
     private Set<RObjectReference<RFocus>> personaRef;                       // FocusType

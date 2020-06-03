@@ -35,7 +35,7 @@ import java.util.Set;
 @Table(indexes = {
         @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
         @Index(name = "iConnectorNameNorm", columnList = "name_norm")})
-public class RConnector extends RObject<ConnectorType> {
+public class RConnector extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
     private RPolyString nameCopy;

@@ -451,7 +451,7 @@ public class RAnyConverter {
     }
 
     // TODO fix this! (add support for other types)
-    private static Collection<? extends ROExtValue<?>> getAllExtValues(RObject<?> rObject, ItemDefinition<?> itemDef) {
+    private static Collection<? extends ROExtValue<?>> getAllExtValues(RObject rObject, ItemDefinition<?> itemDef) {
         if (DOMUtil.XSD_STRING.equals(itemDef.getTypeName())) {
             return rObject.getStrings();
         } else {

@@ -32,7 +32,7 @@ import java.util.Objects;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RForm extends RObject<FormType> {
+public class RForm extends RObject {
 
     private RPolyString nameCopy;
 
