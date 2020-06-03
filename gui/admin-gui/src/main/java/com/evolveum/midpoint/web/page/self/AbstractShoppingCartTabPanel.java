@@ -463,9 +463,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private ObjectFilter getAssignableRolesFilter() {
-        if (getRoleCatalogStorage().isMultiUserRequest()){
-            return null;
-        }
+        // When multiple users are selected, filter the roles by targeting one of them
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
         UserType targetUser = targetUserModel.getObject();
