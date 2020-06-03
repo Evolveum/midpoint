@@ -40,7 +40,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
 
    private static final long serialVersionUID = 1L;
 
-    private static final String ID_TEXT_INPUT = "textInput";
+    private static final String ID_TEXT_INPUT = "input";
 
     private static final int MAX_ITEMS = 10;
 
