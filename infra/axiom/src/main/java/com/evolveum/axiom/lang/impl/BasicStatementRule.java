@@ -127,7 +127,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Dependency<AxiomComplexValue<?>> typeDef =
+            Dependency<AxiomComplexValue> typeDef =
                     action.require(
                             context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
                             .map(v -> v.asComplex().get()));
@@ -141,7 +141,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-            Dependency<AxiomComplexValue<?>> typeDef =
+            Dependency<AxiomComplexValue> typeDef =
                     action.require(
                             context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
                             .map(v -> v.asComplex().get()));
@@ -269,7 +269,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomComplexValue<?> source, AxiomValueContext<?> target) {
+    public static void addFromType(AxiomComplexValue source, AxiomValueContext<?> target) {
         Optional<AxiomItem<?>> identifiers = source.item(Item.IDENTIFIER_DEFINITION);
         if(identifiers.isPresent()) {
             target.mergeItem(identifiers.get());

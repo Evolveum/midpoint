@@ -7,7 +7,7 @@ import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-class LazyValue<V> implements AxiomValue<V>{
+class LazyValue<V> implements AxiomValue<V>  {
 
     private final AxiomTypeDefinition type;
     private Object delegate;
@@ -28,7 +28,7 @@ class LazyValue<V> implements AxiomValue<V>{
     }
 
     @Override
-    public Optional<AxiomComplexValue<V>> asComplex() {
+    public Optional<AxiomComplexValue> asComplex() {
         return delegate().asComplex();
     }
 

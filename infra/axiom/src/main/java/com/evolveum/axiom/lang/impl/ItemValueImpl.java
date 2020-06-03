@@ -12,9 +12,9 @@ import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-public class ItemValueImpl<V> implements AxiomComplexValue<V> {
+public class ItemValueImpl implements AxiomComplexValue {
 
-    private static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomComplexValue<?>> FACTORY = ItemValueImpl::new;
+    private static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomComplexValue> FACTORY = ItemValueImpl::new;
     private final AxiomTypeDefinition type;
     private final Map<AxiomName, AxiomItem<?>> items;
 

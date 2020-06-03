@@ -18,9 +18,9 @@ public interface AxiomValue<V> {
 
     V value();
 
-    default Optional<AxiomComplexValue<V>> asComplex() {
+    default Optional<AxiomComplexValue> asComplex() {
         if(this instanceof AxiomComplexValue)  {
-            return Optional.of((AxiomComplexValue<V>) this);
+            return Optional.of((AxiomComplexValue) this);
         }
         return Optional.empty();
     }

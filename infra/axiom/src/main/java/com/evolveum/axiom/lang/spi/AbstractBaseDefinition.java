@@ -10,7 +10,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 
-public class AbstractBaseDefinition<V> extends ItemValueImpl<V> implements AxiomNamedDefinition {
+public class AbstractBaseDefinition extends ItemValueImpl implements AxiomNamedDefinition {
 
     private final AxiomName name;
     private final  String documentation;

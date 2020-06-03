@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-public interface AxiomComplexValue<V> extends AxiomValue<Collection<AxiomItem<?>>> {
+public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> {
 
 
     @Override

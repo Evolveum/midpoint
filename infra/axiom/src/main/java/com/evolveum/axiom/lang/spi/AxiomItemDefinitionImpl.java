@@ -13,7 +13,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 
-public class AxiomItemDefinitionImpl extends AbstractBaseDefinition<AxiomItemDefinition> implements AxiomItemDefinition {
+public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements AxiomItemDefinition {
 
     public static final AxiomValueFactory<Collection<AxiomItem<?>>,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
     private final AxiomValue<AxiomTypeDefinition> valueType;

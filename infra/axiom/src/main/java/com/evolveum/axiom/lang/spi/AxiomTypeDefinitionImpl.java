@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 
 
-public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDefinition> implements AxiomTypeDefinition {
+public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements AxiomTypeDefinition {
 
     public static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomTypeDefinition> FACTORY =AxiomTypeDefinitionImpl::new;
 
@@ -47,7 +47,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition<AxiomTypeDef
                  AxiomIdentifierDefinitionImpl::from);
     }
 
-    public static AxiomTypeDefinition from(AxiomComplexValue<?> value) {
+    public static AxiomTypeDefinition from(AxiomComplexValue value) {
         if(value instanceof AxiomTypeDefinition) {
             return (AxiomTypeDefinition) value;
         }

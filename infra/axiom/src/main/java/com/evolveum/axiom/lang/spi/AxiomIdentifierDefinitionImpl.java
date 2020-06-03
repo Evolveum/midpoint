@@ -13,9 +13,9 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ItemValueImpl;
 import com.google.common.collect.ImmutableList;
 
-public class AxiomIdentifierDefinitionImpl extends ItemValueImpl<AxiomIdentifierDefinition> implements AxiomIdentifierDefinition {
+public class AxiomIdentifierDefinitionImpl extends ItemValueImpl implements AxiomIdentifierDefinition {
 
-    public static final AxiomValueFactory<Collection<AxiomItem<?>>,AxiomComplexValue<?>> FACTORY = AxiomIdentifierDefinitionImpl::new ;
+    public static final AxiomValueFactory<Collection<AxiomItem<?>>,AxiomComplexValue> FACTORY = AxiomIdentifierDefinitionImpl::new ;
 
     private final Collection<AxiomName> components;
 

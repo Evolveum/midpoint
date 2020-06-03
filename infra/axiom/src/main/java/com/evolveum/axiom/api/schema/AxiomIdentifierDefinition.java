@@ -8,7 +8,7 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.ImmutableSet;
 
-public interface AxiomIdentifierDefinition extends AxiomComplexValue<AxiomIdentifierDefinition> {
+public interface AxiomIdentifierDefinition extends AxiomComplexValue {
 
     Collection<AxiomName> components();
 

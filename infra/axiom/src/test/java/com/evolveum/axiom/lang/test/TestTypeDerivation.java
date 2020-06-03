@@ -69,7 +69,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
         stream.stream(target);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
-        AxiomComplexValue<?> person = root.onlyValue().asComplex().get();
+        AxiomComplexValue person = root.onlyValue().asComplex().get();
         assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
         assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
 

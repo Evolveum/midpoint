@@ -18,7 +18,7 @@ import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue<AxiomTypeDefinition> {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue {
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
