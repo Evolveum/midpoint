@@ -38,7 +38,7 @@ public interface AxiomValue<V> extends Supplier<V> {
         Optional<AxiomValue<?>> current = Optional.of(this);
         for(AxiomItemDefinition name : components) {
             current = current.get().item(name).map(v -> v.onlyValue());
-            if(current.isEmpty()) {
+            if(!current.isPresent()) {
                 return Optional.empty();
             }
         }

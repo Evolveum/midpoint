@@ -49,7 +49,10 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomValue<Ax
         if(maybe == null && child.namespace().isEmpty()) {
             maybe = itemDefinitions().get(name().localName(child.localName()));
         }
-        return Optional.ofNullable(maybe).or(() -> superType().flatMap(s -> s.itemDefinition(child)));
+        if(maybe != null) {
+            return Optional.of(maybe);
+        }
+        return superType().flatMap(s -> s.itemDefinition(child));
     }
 
     static IdentifierSpaceKey identifier(AxiomName name) {
