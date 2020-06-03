@@ -10,7 +10,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -139,7 +139,7 @@ public class CsvExporterController extends ExportController {
         }
 
         byte[] csvFile;
-        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null ? true : false;
+        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null;
         if (!isAuditCollection) {
             csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection, task, result);
         } else {

@@ -57,7 +57,7 @@ import static org.springframework.security.saml.util.StringUtils.stripSlashes;
 @PageDescriptor(urls = {
         @Url(mountUrl = "/login", matchUrlForSecurity = "/login")
 }, permitAll = true, loginPage = true)
-public class PageLogin extends PageBase {
+public class PageLogin extends AbstractPageLogin {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageLogin.class);
@@ -72,7 +72,10 @@ public class PageLogin extends PageBase {
     private static final String OPERATION_LOAD_REGISTRATION_POLICY = DOT_CLASS + "loadRegistrationPolicy";
 
     public PageLogin() {
+    }
 
+    @Override
+    protected void initCustomLayer() {
         Form form = new Form(ID_FORM);
         form.add(AttributeModifier.replace("action", new IModel<String>() {
             @Override
@@ -114,7 +117,7 @@ public class PageLogin extends PageBase {
             }
         });
         if (securityPolicy != null && securityPolicy.getCredentialsReset() != null
-            && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
+                && StringUtils.isNotBlank(securityPolicy.getCredentialsReset().getAuthenticationSequenceName())) {
             AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
             if (sequence != null) {
 //                throw new IllegalArgumentException("Couldn't find sequence with name " + securityPolicy.getCredentialsReset().getAuthenticationSequenceName());
@@ -132,14 +135,6 @@ public class PageLogin extends PageBase {
         }
         form.add(link);
 
-//        AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                setResponsePage(PageSelfRegistration.class);
-//            }
-//        };
         BookmarkablePageLink<String> registration = new BookmarkablePageLink<>(ID_SELF_REGISTRATION, PageSelfRegistration.class);
         registration.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -203,49 +198,5 @@ public class PageLogin extends PageBase {
         }
 
         return "/midpoint/spring_security_login";
-    }
-
-    @Override
-    protected void onConfigure() {
-        super.onConfigure();
-
-        ServletWebRequest req = (ServletWebRequest) RequestCycle.get().getRequest();
-        HttpServletRequest httpReq = req.getContainerRequest();
-        HttpSession httpSession = httpReq.getSession();
-
-        Exception ex = (Exception) httpSession.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-        if (ex == null) {
-            return;
-        }
-
-        String msg = ex.getMessage();
-        if (StringUtils.isEmpty(msg)) {
-            msg = "web.security.provider.unavailable";
-        }
-
-        String[] msgs = msg.split(";");
-        for (String message : msgs) {
-            message = getLocalizationService().translate(message, null, getLocale(), message);
-            error(message);
-        }
-
-        httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        clearBreadcrumbs();
-    }
-
-    @Override
-    protected void createBreadcrumb() {
-        //don't create breadcrumb for login page
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        if (SecurityUtils.getPrincipalUser() != null) {
-            MidPointApplication app = getMidpointApplication();
-            throw new RestartResponseException(app.getHomePage());
-        }
     }
 }

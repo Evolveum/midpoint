@@ -17,13 +17,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.search.Search;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -33,7 +36,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExpo
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -64,19 +66,23 @@ public class ExportingPanel extends BasePanel implements Popupable {
     private static final String ID_EXPORT = "export";
     private static final String ID_CANCEL = "cancelButton";
     private static final String ID_TAB = "tabPanel";
+    private static final String ID_NAME = "name";
 
     private DataTable<?,?> dataTable;
     private List<Integer> exportedColumnsIndex;
     private Long exportSizeLimit;
     private LoadableModel<Search> search;
+    private final IModel<String> nameModel;
 
     public ExportingPanel(String id, DataTable<?, ?> dataTable, List<Integer> exportedColumnsIndex,
-            Long exportSizeLimit, LoadableModel<Search> search) {
+            Long exportSizeLimit, LoadableModel<Search> search, IModel<String> name) {
         super(id);
         this.dataTable = dataTable;
         this.exportedColumnsIndex = exportedColumnsIndex;
         this.exportSizeLimit = exportSizeLimit;
         this.search = search;
+        this.nameModel = name;
+        nameModel.setObject("");
     }
 
     @Override
@@ -97,6 +103,15 @@ public class ExportingPanel extends BasePanel implements Popupable {
         feedbackList.setOutputMarkupId(true);
         feedbackList.setOutputMarkupPlaceholderTag(true);
         panel.add(feedbackList);
+
+        TextPanel<String> nameField = new TextPanel<String>(ID_NAME, nameModel);
+        panel.add(nameField);
+        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
 
         TabbedPanel<ITab> tabPanel = new TabbedPanel(ID_TAB, createTabs(feedbackList)){
             @Override
@@ -133,12 +148,30 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 }
                 SearchFilterType filter = null;
                 if (filterTabPanel.getPanel() != null) {
-                    filter = ((ExportingFilterTabPanel)filterTabPanel.getPanel()).getFilter();
+                    try {
+                        filter = ((ExportingFilterTabPanel)filterTabPanel.getPanel()).getFilter();
+                    } catch (Exception e) {
+                        if (((ExportingFilterTabPanel) filterTabPanel.getPanel()).useFilterFromSearchPanel()) {
+                            LOGGER.error("Couldn't create filter from search panel", e);
+                            getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilterFromSearch"));
+                        } else {
+                            LOGGER.error("Couldn't create filter", e);
+                            getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilter"));
+                        }
+                        target.add(feedbackList);
+                        return;
+                    }
                 }
-                createReportPerformed(filter, target);
+                createReportPerformed(nameModel.getObject(), filter, target);
                 ((PageBase) getPage()).hideMainPopup(target);
             }
         };
+        createReport.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return isVisibleCreateReportOption();
+            }
+        });
         panel.add(createReport);
         AjaxButton exportSelected = new AjaxButton(ID_EXPORT,
                 new StringResourceModel("ExportingPopupPanel.exportSelected", this, null)) {
@@ -174,12 +207,13 @@ public class ExportingPanel extends BasePanel implements Popupable {
     }
 
     private void performSelectedColumns(PanelTab columnTabPanel, AjaxRequestTarget target) {
+        exportedColumnsIndex.clear();
         BoxedTablePanel<SelectableBean<Integer>> table = (BoxedTablePanel<SelectableBean<Integer>>) columnTabPanel.getPanel();
         List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedObjects();
         exportedColumnsIndex.addAll(availableData);
     }
 
-    protected void createReportPerformed(SearchFilterType filter, AjaxRequestTarget target) {
+    protected void createReportPerformed(String name, SearchFilterType filter, AjaxRequestTarget target) {
 
     }
 
@@ -191,6 +225,8 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 return createTable(panelId, dataTable);
             }
         });
+
+
         tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.filter")) {
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -200,6 +236,11 @@ public class ExportingPanel extends BasePanel implements Popupable {
                         return ExportingPanel.this.getPageBase();
                     }
                 };
+            }
+
+            @Override
+            public boolean isVisible() {
+                return isVisibleCreateReportOption();
             }
         });
         return tabs;
@@ -335,6 +376,10 @@ public class ExportingPanel extends BasePanel implements Popupable {
     @Override
     public Component getComponent() {
         return this;
+    }
+
+    public boolean isVisibleCreateReportOption() {
+        return true;
     }
 
 }

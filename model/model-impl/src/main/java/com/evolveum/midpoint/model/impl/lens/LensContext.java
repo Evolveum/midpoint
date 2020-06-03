@@ -276,6 +276,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return focusContext;
     }
 
+    public boolean hasFocusContext() {
+        return focusContext != null;
+    }
+
     @Override
     @NotNull
     public LensFocusContext<F> getFocusContextRequired() {

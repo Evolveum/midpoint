@@ -6,19 +6,11 @@
  */
 package com.evolveum.midpoint.report.impl;
 
-import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.annotation.PostConstruct;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.DashboardEngineController;
@@ -26,60 +18,31 @@ import com.evolveum.midpoint.report.impl.controller.engine.EngineController;
 import com.evolveum.midpoint.report.impl.controller.export.CsvExporterController;
 import com.evolveum.midpoint.report.impl.controller.export.ExportController;
 import com.evolveum.midpoint.report.impl.controller.export.HtmlExportController;
-import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import j2html.TagCreator;
-import j2html.tags.ContainerTag;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.interaction.DashboardService;
-import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.model.api.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author skublik
  */
-
 @Component
 public class ReportTaskHandler implements TaskHandler {
 
@@ -199,7 +162,9 @@ public class ReportTaskHandler implements TaskHandler {
         if (reportType.getDescription() != null) {
             reportOutputType.setDescription(reportType.getDescription() + " - " + exportController.getType());
         }
-        reportOutputType.setExportType(exportController.getExportConfiguration());
+        if (exportController != null && exportController.getExportConfiguration() != null) {
+            reportOutputType.setExportType(exportController.getExportConfiguration().getType());
+        }
 
 
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(NodeType.class, reportService.getPrismContext()

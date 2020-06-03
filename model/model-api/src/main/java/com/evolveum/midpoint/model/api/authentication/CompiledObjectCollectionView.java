@@ -85,10 +85,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return viewIdentifier;
     }
 
-    public void setViewIdentifier(String viewIdentifier) {
-        this.viewIdentifier = viewIdentifier;
-    }
-
     @NotNull
     public List<GuiActionType> getActions() {
         return actions;

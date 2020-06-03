@@ -142,6 +142,7 @@ public interface ModelService {
      *             unknown error from underlying layers or other unexpected
      *             state
      */
+    @NotNull
     <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException;

@@ -40,7 +40,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class PageAuthenticationBase extends PageBase {
+public abstract class PageAuthenticationBase extends AbstractPageLogin {
 
     private static final long serialVersionUID = 1L;
     private static final String DOT_CLASS = PageAuthenticationBase.class.getName() + ".";

@@ -238,6 +238,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
+    public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
+    public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
@@ -776,7 +778,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             skinCssString = info.getSkin();
         }
 
-        String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
+        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
         response.render(CssHeaderItem.forReference(
                 new CssResourceReference(
                         PageBase.class, skinCssPath)
@@ -2747,7 +2749,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<>(id, model, settings);
+        return new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>(id, model, settings) {
+            @Override
+            protected boolean isRemoveButtonVisible() {
+                return false;
+            }
+        };
     }
 
     public Clock getClock() {

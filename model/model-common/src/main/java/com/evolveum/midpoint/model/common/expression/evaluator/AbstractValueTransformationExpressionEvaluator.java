@@ -394,7 +394,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
                     SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
                     String name = sourceTriple.getName().getLocalPart();
                     ItemDefinition definition = sourceTriple.getSource().getDefinition();
-                    if (definition == null) {
+                    if (definition == null) { // TODO reconsider @NotNull annotation on getDefinition
                         LOGGER.error("Source '{}' without a definition; came from a source triple: {}", name, sourceTriple);
                         throw new IllegalArgumentException("Source '"+name+"' without a definition");
                     }
@@ -420,10 +420,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
                     }
                 }
 
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Processing value combination {} in {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}",
-                            dumpValueCombination(pvalues, sourceTriples), contextDescription, hasPlus, hasZero, hasMinus, skipEvaluationPlus, skipEvaluationMinus);
-                }
+                LOGGER.trace("Processing value combination {} in {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}",
+                        dumpValueCombination(pvalues, sourceTriples), contextDescription, hasPlus, hasZero, hasMinus, skipEvaluationPlus, skipEvaluationMinus);
 
                 if (!hasPlus && !hasMinus && !hasZero && !MiscUtil.isAllNull(pvalues)) {
                     throw new IllegalStateException("Internal error! The impossible has happened! pvalues="+pvalues+"; source triples: "+sourceTriples+"; in "+contextDescription);

@@ -565,6 +565,7 @@ public class PageDebugList extends PageAdminConfiguration {
         Search search = dto.getSearch();
         if (search == null) {
             search = SearchFactory.createSearch(type.getClassDefinition(), this);
+            search.setCanConfigure(true);
         }
         dto.setSearch(search);
     }

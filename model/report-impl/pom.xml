@@ -175,6 +175,11 @@
             <artifactId>commons-csv</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>

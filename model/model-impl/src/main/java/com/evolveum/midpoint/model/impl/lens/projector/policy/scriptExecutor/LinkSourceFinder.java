@@ -7,35 +7,35 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LinkSourceObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.repo.api.query.CompleteQuery;
+import com.evolveum.midpoint.repo.common.query.SelectorToFilterTranslator;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
-import javax.xml.namespace.QName;
+import static java.util.Collections.emptyList;
 
 /**
  * Finds link sources based on a collection of selectors.
  *
- * Preliminary implementation. It is not optimizing link source search.
- * Instead of creating a sophisticated query filter based on object constraints it simply
- * finds all the sources and applies the constraints afterwards.
- * So: TODO optimize this class
- *
- * TODO think if we should use model or repository when looking for objects
+ * TODO Think if we should use model or repository when looking for objects. Currently we use the repo.
  */
 class LinkSourceFinder implements AutoCloseable {
 
@@ -43,24 +43,35 @@ class LinkSourceFinder implements AutoCloseable {
 
     private static final String OP_GET_SOURCES = LinkSourceFinder.class.getName() + ".getSources";
 
-    private final PolicyRuleScriptExecutor beans;
-    private final LensContext<?> context;
+    @NotNull private final ActionContext actx;
+    @NotNull private final PolicyRuleScriptExecutor beans;
+    private final QueryFactory queryFactory;
+    private final String focusOid;
     private final OperationResult result;
+    private final Set<Class<?>> narrowedSourceTypes = new HashSet<>();
 
-    LinkSourceFinder(PolicyRuleScriptExecutor policyRuleScriptExecutor, LensContext<?> context,
-            OperationResult parentResult) {
-        this.beans = policyRuleScriptExecutor;
-        this.context = context;
+    LinkSourceFinder(ActionContext actx, OperationResult parentResult) {
+        this.actx = actx;
+        this.beans = actx.beans;
+        this.queryFactory = beans.prismContext.queryFactory();
+        this.focusOid = actx.focusContext.getOid();
         this.result = parentResult.createMinorSubresult(OP_GET_SOURCES);
     }
 
-    List<PrismObject<? extends ObjectType>> getSources(List<LinkSourceObjectSelectorType> sourceSelectors) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
-            ExpressionEvaluationException {
+    List<PrismObject<? extends ObjectType>> getSourcesAsObjects() throws SchemaException, ConfigurationException,
+            ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         try {
-            List<PrismObject<? extends AssignmentHolderType>> allSources = getAllSources(context.getFocusContextRequired().getOid());
-            // noinspection unchecked
-            return (List) filterObjects(allSources, sourceSelectors);
+            return searchForSources(getSourcesAsQuery());
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
+    }
+
+    List<PrismReferenceValue> getSourcesAsReferences() throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        try {
+            return searchForSourceReferences(getSourcesAsQuery());
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -68,46 +79,131 @@ class LinkSourceFinder implements AutoCloseable {
     }
 
     @NotNull
-    private List<PrismObject<? extends AssignmentHolderType>> getAllSources(String focusOid) throws SchemaException {
-        if (focusOid == null) {
-            LOGGER.warn("No focus object OID, no assignees can be found");
-            return Collections.emptyList();
-        } else {
-            ObjectQuery query = beans.prismContext.queryFor(AssignmentHolderType.class)
-                    .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(focusOid)
-                    .build();
-            //noinspection unchecked
-            return (List) beans.repositoryService.searchObjects(AssignmentHolderType.class, query, null, result);
-        }
+    CompleteQuery<?> getSourcesAsQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = createQuery();
+        Class<? extends AssignmentHolderType> objectType = getSourceType();
+        CompleteQuery<? extends AssignmentHolderType> completeQuery = new CompleteQuery<>(objectType, query, null);
+
+        LOGGER.trace("Sources as query:\n{}", completeQuery.debugDumpLazily());
+        return completeQuery;
     }
 
-    private List<PrismObject<? extends AssignmentHolderType>> filterObjects(List<PrismObject<? extends AssignmentHolderType>> objects, List<LinkSourceObjectSelectorType> selectors)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends AssignmentHolderType>> all = new ArrayList<>();
+    @NotNull
+    private List<LinkedObjectSelectorType> collectSourceSelectors() throws SchemaException, ConfigurationException {
+        ScriptExecutionObjectType objectSpec = actx.action.getObject();
+        assert objectSpec != null;
+        List<LinkedObjectSelectorType> selectors = new ArrayList<>();
+        selectors.addAll(resolveLinkTypes(objectSpec.getLinkSource()));
+        selectors.addAll(resolveNamedLinkSources(objectSpec.getNamedLinkSource()));
+        return selectors;
+    }
+
+    private List<LinkedObjectSelectorType> resolveNamedLinkSources(List<String> linkTypeNames)
+            throws SchemaException, ConfigurationException {
+        List<LinkedObjectSelectorType> resolvedSelectors = new ArrayList<>();
+        for (String linkTypeName : linkTypeNames) {
+            resolvedSelectors.add(resolveSourceSelector(linkTypeName));
+        }
+        return resolvedSelectors;
+    }
+
+    private List<LinkedObjectSelectorType> resolveLinkTypes(List<LinkSourceObjectSelectorType> selectors)
+            throws SchemaException, ConfigurationException {
+        List<LinkedObjectSelectorType> resolvedSelectors = new ArrayList<>();
         for (LinkSourceObjectSelectorType selector : selectors) {
-            all.addAll(filterObjects(objects, selector));
-        }
-        return all;
-    }
-
-    private List<PrismObject<? extends AssignmentHolderType>> filterObjects(List<PrismObject<? extends AssignmentHolderType>> objects, LinkSourceObjectSelectorType selector)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        List<PrismObject<? extends AssignmentHolderType>> matching = new ArrayList<>();
-        for (PrismObject<? extends AssignmentHolderType> object : objects) {
-            if (beans.repositoryService.selectorMatches(selector, object,
-                    null, LOGGER, "script object evaluation") &&
-                    relationMatches(object, selector.getRelation())) {
-                matching.add(object);
+            if (selector.getLinkType() != null) {
+                LinkedObjectSelectorType resolvedSelector = resolveSourceSelector(selector.getLinkType());
+                LinkSourceObjectSelectorType mergedSelector = mergeSelectors(selector, resolvedSelector);
+                resolvedSelectors.add(mergedSelector);
+            } else {
+                resolvedSelectors.add(selector);
             }
         }
-        return matching;
+        return resolvedSelectors;
     }
 
-    private boolean relationMatches(PrismObject<? extends AssignmentHolderType> linkSource, List<QName> relations) {
-        return relations.isEmpty() || linkSource.asObjectable().getRoleInfluenceRef().stream()
-                .anyMatch(ref -> beans.prismContext.relationMatches(relations, ref.getRelation()));
+    private LinkSourceObjectSelectorType mergeSelectors(LinkSourceObjectSelectorType base, LinkedObjectSelectorType additional)
+            throws SchemaException {
+        LinkSourceObjectSelectorType merged = base.clone();
+        merged.setLinkType(null);
+        ((PrismContainerValue<?>) merged.asPrismContainerValue()).mergeContent(additional.asPrismContainerValue(), emptyList());
+        return merged;
+    }
+
+    private LinkedObjectSelectorType resolveSourceSelector(String linkTypeName)
+            throws SchemaException, ConfigurationException {
+        LinkTypeDefinitionType definition = actx.beans.linkManager.getSourceLinkTypeDefinitionRequired(
+                linkTypeName, actx.focusContext.getObjectAny(), result);
+        return definition.getSelector() != null ?
+                definition.getSelector() : new LinkSourceObjectSelectorType(actx.beans.prismContext);
+    }
+
+    private ObjectQuery createQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        List<LinkedObjectSelectorType> sourceSelectors = collectSourceSelectors();
+        List<ObjectFilter> convertedSelectors = new ArrayList<>(sourceSelectors.size());
+        for (LinkedObjectSelectorType sourceSelector : sourceSelectors) {
+            convertedSelectors.add(createFilter(sourceSelector));
+        }
+        return queryFactory.createQuery(
+                queryFactory.createOrOptimized(convertedSelectors));
+    }
+
+    private ObjectFilter createFilter(LinkedObjectSelectorType sourceSelector) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        SelectorToFilterTranslator translator = new SelectorToFilterTranslator(sourceSelector, AssignmentHolderType.class,
+                "link source selector in rule script executor", beans.prismContext, beans.expressionFactory,
+                actx.task, result);
+        ObjectFilter selectorFilter = translator.createFilter();
+        Class<? extends ObjectType> narrowedSourceType = translator.getNarrowedTargetType();
+        ObjectFilter allSourcesFilter = beans.prismContext.queryFor(narrowedSourceType)
+                .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(createExpectedReferenceValues(sourceSelector))
+                .buildFilter();
+
+        narrowedSourceTypes.add(narrowedSourceType);
+        return ObjectQueryUtil.simplify(queryFactory.createAnd(allSourcesFilter, selectorFilter), beans.prismContext);
+    }
+
+    @NotNull
+    private List<PrismReferenceValue> createExpectedReferenceValues(LinkedObjectSelectorType sourceSelector) {
+        List<PrismReferenceValue> values = new ArrayList<>(sourceSelector.getRelation().size());
+        if (sourceSelector.getRelation().isEmpty()) {
+            values.add(new ObjectReferenceType().oid(focusOid).asReferenceValue());
+        } else {
+            for (QName relation : sourceSelector.getRelation()) {
+                values.add(new ObjectReferenceType().oid(focusOid).relation(relation).asReferenceValue());
+            }
+        }
+        return values;
+    }
+
+    @NotNull
+    private List<PrismObject<? extends ObjectType>> searchForSources(CompleteQuery<?> completeQuery) throws SchemaException {
+        //noinspection unchecked
+        return (List) beans.repositoryService.searchObjects(completeQuery.getType(),
+                completeQuery.getQuery(), completeQuery.getOptions(), result);
+    }
+
+    @NotNull
+    private List<PrismReferenceValue> searchForSourceReferences(CompleteQuery<?> completeQuery) throws SchemaException {
+        List<PrismReferenceValue> references = new ArrayList<>();
+        beans.repositoryService.searchObjectsIterative(completeQuery.getType(), completeQuery.getQuery(),
+                (object, parentResult) ->
+                        references.add(ObjectTypeUtil.createObjectRef(object, beans.prismContext).asReferenceValue()),
+                completeQuery.getOptions(), false, result);
+        return references;
+    }
+
+    private Class<? extends AssignmentHolderType> getSourceType() {
+        Class<?> ancestor = MiscUtil.determineCommonAncestor(narrowedSourceTypes);
+        if (ancestor == null || !AssignmentHolderType.class.isAssignableFrom(ancestor)) {
+            return AssignmentHolderType.class;
+        } else {
+            //noinspection unchecked
+            return (Class<? extends AssignmentHolderType>) ancestor;
+        }
     }
 
     @Override

@@ -12,6 +12,12 @@
         <p align="center">
             <div wicket:id="warningMessage"/>
             <div wicket:id="feedback"/>
+            <div class="col-md-12" style="padding: 0px; padding-bottom: 10px; border-radius: 3px; background: #ffffff; border-bottom: 2px solid #d2d6de; margin-bottom: 5px;">
+                <div class="col-md-2 col-sm-12" style="padding-top: 4px;">
+                    <wicket:message key="ExportingPanel.nameOfReport"/>
+                </div>
+                <div class="col-md-10 col-sm-12" wicket:id="name"/>
+            </div>
             <div wicket:id="tabPanel" style="padding: 5px;" />
             <a class="btn btn-primary btn-sm" wicket:id="createReport"/>
             <a class="btn btn-primary btn-sm" wicket:id="export"/>

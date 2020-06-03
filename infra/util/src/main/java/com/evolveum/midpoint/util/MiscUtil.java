@@ -10,6 +10,8 @@ import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -31,6 +33,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,6 +43,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+
+import org.springframework.util.ClassUtils;
 
 import static java.util.Collections.*;
 
@@ -796,6 +801,39 @@ public class MiscUtil {
         } else {
             //noinspection unchecked
             return (T) value;
+        }
+    }
+
+    public static Class<?> determineCommonAncestor(Collection<Class<?>> classes) {
+        if (!classes.isEmpty()) {
+            Iterator<Class<?>> iterator = classes.iterator();
+            Class<?> currentCommonAncestor = iterator.next();
+            while (iterator.hasNext()) {
+                currentCommonAncestor = ClassUtils.determineCommonAncestor(currentCommonAncestor, iterator.next());
+            }
+            return currentCommonAncestor;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Re-throws the original exception wrapped in the same class (e.g. SchemaException as SchemaException)
+     * but with additional message. It is used to preserve meaning of the exception but adding some contextual
+     * information.
+     */
+    @Experimental
+    public static <T extends Throwable> void throwAsSame(Throwable original, String message) throws T {
+        try {
+            Constructor<? extends Throwable> constructor = original.getClass().getConstructor(String.class, Throwable.class);
+            //noinspection unchecked
+            throw (T) constructor.newInstance(message, original);
+        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            // We won't try to be smart. Not possible to instantiate the exception, so won't bother.
+            // E.g. if it would not be possible to enclose inner exception in outer one, it's better to keep the original
+            // to preserve the stack trace.
+            //noinspection unchecked
+            throw (T) original;
         }
     }
 }

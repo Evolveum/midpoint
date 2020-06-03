@@ -11,57 +11,30 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+    <form class="form-horizontal" action="ignore" wicket:id="mainForm">
+        <div class="form-group" wicket:id="staticLayout">
+            <label class="col-md-4 col-lg-4 control-label">
+                <wicket:message key="PageForgetPassword.email"/>
+            </label>
 
-    <div class="row">
-        <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
-            <div class="panel panel-default" style="margin-top: 120px;">
-                <div class="panel-body">
-
-                    <form class="form-horizontal" action="ignore" wicket:id="mainForm">
-                        <div class="form-group" wicket:id="staticLayout">
-                            <label class="col-md-4 col-lg-4 control-label">
-                                <wicket:message key="PageForgetPassword.email"/>
-                            </label>
-
-                            <div class="col-md-8 col-lg-8">
-                                <input name="email" type="text" class="form-control input-sm focus-username"
-                                       wicket:message="placeholder:PageForgetPassword.email" wicket:id="email">
-                            </div>
-                        </div>
-
-                        <div wicket:id="dynamicLayout">
-                            <div wicket:id="dynamicForm"/>
-                        </div>
-
-                            <div class="pull-right">
-                                <a class="btn btn-default" wicket:id="back"><wicket:message key="PageBase.button.back"/></a>
-                                <a class="btn btn-primary" wicket:id="submit"/>
-                            </div>
-                    </form>
-                    <div style="text-align: center">
-                        <h2 wicket:id="resetPasswordInfo"></h2>
-                    </div>
-                </div>
+            <div class="col-md-8 col-lg-8">
+                <input name="email" type="text" class="form-control input-sm focus-username"
+                        wicket:message="placeholder:PageForgetPassword.email" wicket:id="email">
             </div>
         </div>
+
+        <div wicket:id="dynamicLayout">
+            <div wicket:id="dynamicForm"/>
+        </div>
+
+        <div class="pull-right">
+            <a class="btn btn-default" wicket:id="back"><wicket:message key="PageBase.button.back"/></a>
+            <a class="btn btn-primary" wicket:id="submit"/>
+        </div>
+    </form>
+    <div style="text-align: center">
+        <h2 wicket:id="resetPasswordInfo"></h2>
     </div>
-
-
-    <script type="text/javascript">
-        $(".focus-username").focus();
-    </script>
-
-    <wicket:remove>This css is used to hide sidebar menu</wicket:remove>
-    <style type="text/css">
-        .content-wrapper, .right-side, .main-footer {
-            margin-left: 0px;
-
-            -moz-transition: none;
-            -webkit-transition: none;
-            -o-transition: color 0 ease-in;
-            transition: none;
-        }
-    </style>
 </wicket:extend>
 
 </body>

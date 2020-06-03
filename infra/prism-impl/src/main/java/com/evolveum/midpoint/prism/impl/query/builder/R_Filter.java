@@ -186,6 +186,12 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public S_AtomicFilterExit undefined() {
         return addSubfilter(UndefinedFilterImpl.createUndefined());
     }
+
+    @Override
+    public S_AtomicFilterExit filter(ObjectFilter filter) {
+        return addSubfilter(filter);
+    }
+
     // TODO .............................................
 
     @Override

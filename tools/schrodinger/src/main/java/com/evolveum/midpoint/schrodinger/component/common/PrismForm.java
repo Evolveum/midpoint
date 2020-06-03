@@ -101,7 +101,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> showEmptyAttributes(String containerName) {
-        $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "class", "prism-properties", containerName))
+        $(Schrodinger.byAncestorPrecedingSiblingDescendantOrSelfElementEnclosedValue("div", "data-s-id", "showEmptyButton", "data-s-id", "valueContainer", containerName))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         return this;
@@ -109,7 +109,24 @@ public class PrismForm<T> extends Component<T> {
 
     public Boolean compareInputAttributeValue(String name, String expectedValue) {
         SelenideElement property = findProperty(name);
-        SelenideElement value = property.parent().$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        SelenideElement value = property.parent().$(By.xpath(".//input[contains(@class,\"form-control\")]"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+        String valueElement = value.getValue();
+
+        if (!valueElement.isEmpty()) {
+            return valueElement.equals(expectedValue);
+        } else {
+            return expectedValue.isEmpty();
+        }
+
+    }
+
+    //seems that the property fields in new container are wrapped to extra parent, that is why we need one extra parent() call
+    //needs to be checked
+    public Boolean compareInputAttributeValueInNewContainer(String name, String expectedValue) {
+        SelenideElement property = findProperty(name);
+        SelenideElement value = property.parent().parent().$(By.xpath(".//input[contains(@class,\"form-control\")]"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         String valueElement = value.getValue();
 
         if (!valueElement.isEmpty()) {
@@ -365,12 +382,17 @@ public class PrismForm<T> extends Component<T> {
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
 
-        panelHeader
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+
+        SelenideElement newContainerElement = panelHeader
                 .parent()
                 .parent()
-                .$(By.linkText(newContainerHeaderKey))
-                .shouldBe(Condition.visible)
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .$(Schrodinger.byElementValue("a", newContainerHeaderKey));
+
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+
+        newContainerElement.scrollTo();
+        newContainerElement.screenshot();
 
         return this;
     }

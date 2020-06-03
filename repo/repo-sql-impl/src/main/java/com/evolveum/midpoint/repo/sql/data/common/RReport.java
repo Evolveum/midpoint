@@ -37,7 +37,7 @@ public class RReport extends RObject<ReportType> {
 
     private RPolyString nameCopy;
     private ROrientationType orientation;
-    private RExportType exportType;
+    private RExportType export;
     private Boolean parent;
     private Boolean useHibernateSession;
 
@@ -68,12 +68,12 @@ public class RReport extends RObject<ReportType> {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true)
-    public RExportType getExportType() {
-        return exportType;
+    public RExportType getExport() {
+        return export;
     }
 
-    public void setExportType(RExportType export) {
-        this.exportType = export;
+    public void setExport(RExportType export) {
+        this.export = export;
     }
 
     @Index(name = "iReportParent")
@@ -105,7 +105,7 @@ public class RReport extends RObject<ReportType> {
             return false;
         if (orientation != null ? !orientation.equals(rReport.orientation) : rReport.orientation != null)
             return false;
-        if (exportType != null ? !exportType.equals(rReport.exportType) : rReport.exportType != null)
+        if (export != null ? !export.equals(rReport.export) : rReport.export != null)
             return false;
         if (parent != null ? !parent.equals(rReport.parent) : rReport.parent != null)
             return false;
@@ -119,7 +119,7 @@ public class RReport extends RObject<ReportType> {
         int result = super.hashCode();
         result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (orientation != null ? orientation.hashCode() : 0);
-        result = 31 * result + (exportType != null ? exportType.hashCode() : 0);
+        result = 31 * result + (export != null ? export.hashCode() : 0);
         result = 31 * result + (parent != null ? parent.hashCode() : 0);
         result = 31 * result + (useHibernateSession != null ? useHibernateSession.hashCode() : 0);
 
@@ -133,7 +133,7 @@ public class RReport extends RObject<ReportType> {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         ExportConfigurationType exportConfig = jaxb.getExport();
         if (exportConfig != null) {
-            repo.setExportType(RUtil.getRepoEnumValue(exportConfig.getType(), RExportType.class));
+            repo.setExport(RUtil.getRepoEnumValue(exportConfig.getType(), RExportType.class));
         }
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));

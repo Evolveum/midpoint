@@ -345,23 +345,27 @@ public class CollectionProcessor {
             existingView.setFilter(combinedFilter);
         }
 
-        compileView(existingView, objectCollectionType.getDefaultView());
+        compileView(existingView, objectCollectionType.getDefaultView(), false);
 
     }
 
     public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        compileView(existingView, objectListViewType, true);
+    }
+
+    private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         if (objectListViewType != null) {
             compileObjectType(existingView, objectListViewType);
             compileActions(existingView, objectListViewType);
-            compileAdditionalPanels(existingView, objectListViewType);
+            compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
             compileColumns(existingView, objectListViewType);
-            compileDisplay(existingView, objectListViewType);
-            compileDistinct(existingView, objectListViewType);
-            compileSorting(existingView, objectListViewType);
-            compileCounting(existingView, objectListViewType);
-            compileDisplayOrder(existingView, objectListViewType);
-            compileSearchBox(existingView, objectListViewType);
-            compileRefreshInterval(existingView, objectListViewType);
+            compileDisplay(existingView, objectListViewType, replaceIfExist);
+            compileDistinct(existingView, objectListViewType, replaceIfExist);
+            compileSorting(existingView, objectListViewType, replaceIfExist);
+            compileCounting(existingView, objectListViewType, replaceIfExist);
+            compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
+            compileSearchBox(existingView, objectListViewType, replaceIfExist);
+            compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
         }
     }
 
@@ -389,13 +393,15 @@ public class CollectionProcessor {
 
     }
 
-    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
         if (newAdditionalPanels == null) {
             return;
         }
         // TODO: later: merge additional panel definitions
-        existingView.setAdditionalPanels(newAdditionalPanels);
+        if (existingView.getAdditionalPanels() == null || replaceIfExist) {
+            existingView.setAdditionalPanels(newAdditionalPanels);
+        }
     }
 
     private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -411,60 +417,65 @@ public class CollectionProcessor {
         existingColumns.addAll(orderedList);
     }
 
-    private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         DisplayType newDisplay = objectListViewType.getDisplay();
         if (newDisplay == null) {
             return;
         }
         if (existingView.getDisplay() == null) {
             existingView.setDisplay(newDisplay);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
         }
-        MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
     }
 
-    private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         DistinctSearchOptionType newDistinct = objectListViewType.getDistinct();
         if (newDistinct == null) {
             return;
         }
-        existingView.setDistinct(newDistinct);
+        if (existingView.getDistinct() == null || replaceIfExist) {
+            existingView.setDistinct(newDistinct);
+        }
     }
 
-    private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         Boolean newDisableSorting = objectListViewType.isDisableSorting();
-        if (newDisableSorting != null) {
+        if (newDisableSorting != null && (existingView.getDisableSorting() == null || replaceIfExist)) {
             existingView.setDisableSorting(newDisableSorting);
         }
     }
 
-    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         Integer refreshInterval = objectListViewType.getRefreshInterval();
-        if (refreshInterval != null) {
+        if (refreshInterval != null && (existingView.getRefreshInterval() == null || replaceIfExist)) {
             existingView.setRefreshInterval(refreshInterval);
         }
     }
 
-    private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         Boolean newDisableCounting = objectListViewType.isDisableCounting();
-        if (newDisableCounting != null) {
+        if (newDisableCounting != null && (existingView.isDisableCounting() == null || replaceIfExist)) {
             existingView.setDisableCounting(newDisableCounting);
         }
     }
 
-    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType){
+    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist){
         Integer newDisplayOrder = objectListViewType.getDisplayOrder();
-        if (newDisplayOrder != null){
+        if (newDisplayOrder != null && (existingView.getDisplayOrder() == null || replaceIfExist)){
             existingView.setDisplayOrder(newDisplayOrder);
         }
     }
 
-    private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+    private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
         SearchBoxConfigurationType newSearchBoxConfig = objectListViewType.getSearchBoxConfiguration();
         if (newSearchBoxConfig == null) {
             return;
         }
         // TODO: merge
-        existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        if (existingView.getSearchBoxConfiguration() == null || replaceIfExist) {
+            existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        }
     }
 
 }

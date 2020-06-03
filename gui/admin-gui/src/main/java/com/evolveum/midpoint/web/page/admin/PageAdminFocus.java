@@ -167,7 +167,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 wrapper.setLoadWithNoFetch(noFetch);
 
                 if (wrapper != null) {
-                    list.add((ShadowWrapper)wrapper);
+                    list.add(wrapper);
                 } else {
                     showResult(subResult, "pageAdminFocus.message.shadowWrapperIsNull");
                     LOGGER.error("ShadowWrapper is null");
@@ -862,5 +862,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
     protected boolean isSelfProfile(){
         return false;
+    }
+
+    public boolean isLoggedInFocusPage(){
+        return getObjectWrapper() != null && getObjectWrapper().getObject() != null &&
+                org.apache.commons.lang3.StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
+                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
     }
 }

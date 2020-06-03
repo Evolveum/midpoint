@@ -102,7 +102,7 @@ public class TestCsvReport extends BasicNewReportTest {
 
     private void setExpectedValueForDashboardReport() {
         expectedColumns = 3;
-        expectedRow = 8;
+        expectedRow = 7;
     }
 
     @Override

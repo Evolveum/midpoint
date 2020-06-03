@@ -64,6 +64,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -76,7 +77,7 @@ import javax.xml.namespace.QName;
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
-                label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description")})
+                label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description") })
 public class PageAbout extends PageAdminConfiguration {
     private static final long serialVersionUID = 1L;
 
@@ -125,9 +126,9 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_NODE_ID = "nodeId";
     private static final String ID_NODE_URL = "nodeUrl";
 
-    private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
+    private static final String[] PROPERTIES = new String[] { "file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
-            "os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name"};
+            "os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name" };
 
     private IModel<RepositoryDiag> repoDiagModel;
     private IModel<ProvisioningDiag> provisioningDiagModel;
@@ -194,7 +195,7 @@ public class PageAbout extends PageAdminConfiguration {
         addLabel(ID_REPOSITORY_URL, "repositoryUrl");
 
         ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
-            new PropertyModel<>(repoDiagModel, "additionalDetails")) {
+                new PropertyModel<>(repoDiagModel, "additionalDetails")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -213,7 +214,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(additionalDetails);
 
         ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
-            new PropertyModel<>(provisioningDiagModel, "additionalDetails")) {
+                new PropertyModel<>(provisioningDiagModel, "additionalDetails")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -388,7 +389,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(factoryDefault);
     }
 
-    private void copyEnvironmentInfoPerformed(AjaxRequestTarget target){
+    private void copyEnvironmentInfoPerformed(AjaxRequestTarget target) {
         StringBuilder sb = new StringBuilder("var $tempInput = document.createElement('INPUT');\n");
         sb.append("document.body.appendChild($tempInput);\n");
         sb.append("$tempInput.setAttribute('value', '" + getEnvironmentInfo() + "');\n");
@@ -398,7 +399,7 @@ public class PageAbout extends PageAdminConfiguration {
         target.appendJavaScript(sb.toString());
     }
 
-    private String getEnvironmentInfo(){
+    private String getEnvironmentInfo() {
         String nodesCount = createStringResource("PageAbout.environmentInfo.nodesCount",
                 WebModelServiceUtils.countObjects(NodeType.class, null, PageAbout.this)).getString();
         Runtime runtime = Runtime.getRuntime();
@@ -513,7 +514,7 @@ public class PageAbout extends PageAdminConfiguration {
             task.setName("Reindex repository objects");
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());
-        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+        } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -572,7 +573,7 @@ public class PageAbout extends PageAdminConfiguration {
         final String taskOidToRemoving = taskOid;
 
         try {
-            while(!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
+            while (!getTaskManager().getTaskPlain(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
 
             runPrivileged(new Producer<Object>() {
 
@@ -584,7 +585,7 @@ public class PageAbout extends PageAdminConfiguration {
                     OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
                     ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object()
                             .createDeleteDelta(TaskType.class, taskOidToRemoving);
-                    Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
+                    Collection<ObjectDelta<? extends ObjectType>> deltaCollection = Collections.singletonList(delta);
                     try {
                         getModelService().executeChanges(deltaCollection, null, task, result);
                     } catch (Exception ex) {
@@ -596,7 +597,6 @@ public class PageAbout extends PageAdminConfiguration {
                     result.computeStatus();
                     return null;
                 }
-
             });
 
             InitialDataImport initialDataImport = new InitialDataImport();
@@ -612,8 +612,6 @@ public class PageAbout extends PageAdminConfiguration {
             getModelService().shutdown();
 
             getModelService().postInit(result);
-
-
         } catch (Exception ex) {
             result.recomputeStatus();
             result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);

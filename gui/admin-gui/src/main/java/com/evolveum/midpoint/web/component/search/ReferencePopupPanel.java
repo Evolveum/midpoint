@@ -12,6 +12,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -32,6 +35,7 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
     private static final String ID_OID = "oid";
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION = "relation";
+    private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
 //    private List<QName> allowedRelations;
 
@@ -60,6 +64,7 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
             }
         });
         oidField.setOutputMarkupId(true);
+        oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(oidField);
 
         DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".type"),
@@ -75,10 +80,10 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
                 return getSupportedTargetList().size() > 1;
             }
         });
-
+        type.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(type);
 
-        if (getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
+        if (getModelObject() != null && getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
             getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
         }
         List<QName> allowedRelations = new ArrayList<QName>();
@@ -99,7 +104,24 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
                 return getAllowedRelations().size() > 1;
             }
         });
+        relation.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(relation);
+
+        AjaxButton confirm = new AjaxButton(ID_CONFIRM_BUTTON, createStringResource("Button.ok")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                confirmPerformed(target);
+            }
+        };
+        add(confirm);
+
+    }
+
+    protected void confirmPerformed(AjaxRequestTarget target){
+
     }
 
     protected List<QName> getAllowedRelations() {

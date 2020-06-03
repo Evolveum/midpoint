@@ -105,25 +105,25 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<>();
     private ReportOutputType currentReport;
 
-    private static Map<JasperExportType, String> reportExportTypeMap = new HashMap<>();
+    private static Map<ExportType, String> reportExportTypeMap = new HashMap<>();
     private Map<String, String> reportTypeMal = new HashMap<>();
 
     private AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = null;
 
     static {
-        reportExportTypeMap.put(JasperExportType.CSV, "text/csv; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.HTML, "text/html; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.PDF, "application/pdf; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.PPTX, "application/vnd.openxmlformats-officedocument.presentationml.presentation; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.RTF, "application/rtf; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.XHTML, "application/xhtml+xml; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.XLS, "application/vnd.ms-excel; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.XLSX, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.XML, "application/xml; charset=UTF-8");
-        reportExportTypeMap.put(JasperExportType.XML_EMBED, "text/xml; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.CSV, "text/csv; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.DOCX, "application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8");
+        reportExportTypeMap.put(ExportType.HTML, "text/html; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.ODS, "application/vnd.oasis.opendocument.spreadsheet; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.ODT, "application/vnd.oasis.opendocument.text; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.PDF, "application/pdf; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.PPTX, "application/vnd.openxmlformats-officedocument.presentationml.presentation; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.RTF, "application/rtf; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.XHTML, "application/xhtml+xml; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.XLS, "application/vnd.ms-excel; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.XLSX, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.XML, "application/xml; charset=UTF-8");
+//        reportExportTypeMap.put(JasperExportType.XML_EMBED, "text/xml; charset=UTF-8");
 
     }
 

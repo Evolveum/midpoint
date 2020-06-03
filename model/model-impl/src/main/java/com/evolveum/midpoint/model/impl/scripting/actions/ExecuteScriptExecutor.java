@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -280,7 +281,8 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         externalVariables.forEach((k, v) -> variables.put(k, cloneIfNecessary(k, v)));
         variables.registerAliasesFrom(externalVariables);
 
-        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);
+        LensContext<?> lensContext = getLensContext(externalVariables);
+        List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '"+NAME+"' action", context.getTask(), result);
 
         if (rv == null || rv.size() == 0) {
             return null;
@@ -289,6 +291,13 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         } else {
             return rv; // shouldn't occur; would cause problems
         }
+    }
+
+    // TODO implement seriously! This implementation requires custom modelContext variable that might or might not be present
+    //  (it is set e.g. for policy rule script execution)
+    private LensContext<?> getLensContext(VariablesMap externalVariables) {
+        TypedValue modelContextTypedValue = externalVariables.get(ExpressionConstants.VAR_MODEL_CONTEXT);
+        return modelContextTypedValue != null ? (LensContext<?>) modelContextTypedValue.getValue() : null;
     }
 
     @Override

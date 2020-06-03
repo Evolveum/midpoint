@@ -1,0 +1,127 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+           oid="4d3280a1-6514-4984-ac2c-7e56c05af258">
+    <name>project</name>
+    <documentation>
+        A project has two child objects: users and groups.
+        1. These are to be created when project is created.
+        2. They need to be deleted when project is deleted.
+        3. They need to be renamed when project is renamed.
+    </documentation>
+
+    <archetypePolicy>
+        <links>
+            <sourceLink>
+                <name>usersOrg</name>
+                <selector>
+                    <type>OrgType</type>
+                    <archetypeRef oid="3af67ba4-183f-45e7-887e-4ae5ddff4cdf" /> <!-- project-users -->
+                </selector>
+            </sourceLink>
+            <sourceLink>
+                <name>groupsOrg</name>
+                <selector>
+                    <type>OrgType</type>
+                    <archetypeRef oid="a85bddc9-4ff0-475f-8ccc-17f9038d4ce1"/> <!-- project-groups -->
+                </selector>
+            </sourceLink>
+        </links>
+    </archetypePolicy>
+
+    <inducement>
+        <policyRule>
+            <name>create-children-on-new-project-creation</name>
+            <documentation>
+                Creates children when new project is created.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <operation>add</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <!-- no object spec, so executed on the object itself -->
+                    <executeScript>
+                        <s:pipeline>
+                            <s:execute>
+                                <s:script>
+                                    <code>
+                                        // Returning two objects - they will be created in the second action
+                                        [midpoint.createLinkedSource('usersOrg'),
+                                         midpoint.createLinkedSource('groupsOrg')]
+                                    </code>
+                                </s:script>
+                                <s:outputTypeName>OrgType</s:outputTypeName>
+                            </s:execute>
+                            <s:add/> <!-- creates objects prepared above -->
+                        </s:pipeline>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+    <!--
+     Actually, this one is fake: assignments/inducements are NOT evaluated on object deletion (yet).
+     So the same rule is included as a global policy rule in system configuration.
+     -->
+    <inducement>
+        <policyRule>
+            <name>delete-children-on-project-deletion</name>
+            <documentation>
+                Deletes children when project is deleted.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <operation>delete</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <namedLinkSource>usersOrg</namedLinkSource>
+                        <namedLinkSource>groupsOrg</namedLinkSource>
+                    </object>
+                    <executeScript>
+                        <s:delete/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+    <inducement>
+        <policyRule>
+            <name>recompute-children-on-project-rename</name>
+            <documentation>
+                Recomputes children when the project is renamed.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                    <item>name</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <namedLinkSource>usersOrg</namedLinkSource>
+                        <namedLinkSource>groupsOrg</namedLinkSource>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
+
+</archetype>

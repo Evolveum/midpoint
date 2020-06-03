@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
@@ -14,6 +16,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.testng.annotations.Test;
 
@@ -82,5 +86,54 @@ public class TestMiscUtil extends AbstractUnitTest {
         // THEN
         System.out.println(combinations);
         assertEquals("Wrong number of results", 24, combinations.size());
+    }
+
+    @SuppressWarnings({ "NumericOverflow", "divzero", "unused" })
+    @Test
+    public void testThrowAsSameForArithmeticException() {
+        try {
+            try {
+                int a = 1/0;
+            } catch (ArithmeticException e) {
+                MiscUtil.throwAsSame(e, "Exception in processing: " + e.getMessage());
+            }
+            fail("Unexpected success");
+        } catch (Throwable t) {
+            assertThat(t).as("Exception").isExactlyInstanceOf(ArithmeticException.class);
+            assertThat(t.getMessage()).as("Message").isEqualTo("/ by zero"); // no wrapping
+            t.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testThrowAsSameForIllegalStateException() {
+        try {
+            try {
+                throw new IllegalStateException("Hi");
+            } catch (IllegalStateException e) {
+                MiscUtil.throwAsSame(e, "Exception in processing: " + e.getMessage());
+            }
+            fail("Unexpected success");
+        } catch (Throwable t) {
+            assertThat(t).as("Exception").isExactlyInstanceOf(IllegalStateException.class);
+            assertThat(t.getMessage()).as("Message").isEqualTo("Exception in processing: Hi");
+            t.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testThrowAsSameForObjectNotFoundException() {
+        try {
+            try {
+                throw new ObjectNotFoundException("Hi");
+            } catch (ObjectNotFoundException e) {
+                MiscUtil.throwAsSame(e, "Exception in processing: " + e.getMessage());
+            }
+            fail("Unexpected success");
+        } catch (Throwable t) {
+            assertThat(t).as("Exception").isExactlyInstanceOf(ObjectNotFoundException.class);
+            assertThat(t.getMessage()).as("Message").isEqualTo("Exception in processing: Hi");
+            t.printStackTrace();
+        }
     }
 }

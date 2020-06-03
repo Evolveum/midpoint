@@ -278,25 +278,8 @@ public abstract class InfoBoxPanel extends Panel{
                 if(pageType == null) {
                     return null;
                 }
-                CompiledObjectCollectionView existingCompiledView = getPageBase().getCompiledGuiProfile()
-                        .findObjectCollectionView(collection.getType(), model.getObject().getIdentifier());
-                if (existingCompiledView == null || !existingCompiledView.getViewIdentifier().equals(model.getObject().getIdentifier())) {
-                    Task task = getPageBase().createSimpleTask("Compiling collection view");
-                    try {
-                        @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
-                                .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
-                        if (!isViewOfWidgetNull(model)) {
-                            getPageBase().getModelInteractionService().applyView(compiledView, model.getObject().getPresentation().getView());
-                        }
-                        compiledView.setCollection(model.getObject().getData().getCollection());
-                        compiledView.setViewIdentifier(model.getObject().getIdentifier());
-                        getPageBase().getCompiledGuiProfile().getObjectCollectionViews().add(compiledView);
-                    } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
-                            | ObjectNotFoundException e) {
-                        LOGGER.error("Couldn't compile collection " + collection.getName(), e);
-                    }
-                }
-                parameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, model.getObject().getIdentifier());
+                parameters.add(PageBase.PARAMETER_DASHBOARD_TYPE_OID, getDashboardOid());
+                parameters.add(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME, model.getObject().getIdentifier());
                 return getPageBase().createWebPage(pageType, parameters);
             }  else {
                 LOGGER.error("CollectionType from collectionRef is null in widget " + model.getObject().getIdentifier());
@@ -531,4 +514,6 @@ public abstract class InfoBoxPanel extends Panel{
         }
         return object;
     }
+
+    public abstract String getDashboardOid();
 }

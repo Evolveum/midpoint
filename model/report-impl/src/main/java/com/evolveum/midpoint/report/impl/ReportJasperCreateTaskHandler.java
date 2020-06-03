@@ -426,7 +426,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException {
         JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
         String destinationFileName = getDestinationFileName(reportType);
-        switch (getExport(jasperConfig)) {
+        switch (getExport(reportType, jasperConfig)) {
             case PDF:
                 JasperExportManager.exportReportToPdfFile(jasperPrint, destinationFileName);
                 break;
@@ -446,7 +446,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             case DOCX:
             case XLSX:
             case PPTX:
-                Exporter exporter = createExporter(getExport(jasperConfig), jasperPrint, destinationFileName);
+                Exporter exporter = createExporter(getExport(reportType, jasperConfig), jasperPrint, destinationFileName);
                 if (exporter != null) {
                     exporter.exportReport();
                 }
@@ -522,7 +522,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         String fileNamePrefix = reportType.getName().getOrig() + " " + getDateTime();
         String fileName;
         JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
-        JasperExportType export = getExport(jasperConfig);
+        JasperExportType export = getExport(reportType, jasperConfig);
         if (export == JasperExportType.XML_EMBED) {
             fileName = fileNamePrefix + "_embed.xml";
         } else {
@@ -535,7 +535,7 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
         String fileName = FilenameUtils.getBaseName(filePath);
         JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
-        JasperExportType export = getExport(jasperConfig);
+        JasperExportType export = getExport(reportType, jasperConfig);
         String reportOutputName = fileName + " - " + export.value();
 
         ReportOutputType reportOutputType = new ReportOutputType();
@@ -545,7 +545,9 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
         reportOutputType.setName(new PolyStringType(reportOutputName));
         reportOutputType.setDescription(reportType.getDescription() + " - " + export.value());
-//        reportOutputType.setExportType(export);
+        if (reportType.getExport() != null) {
+            reportOutputType.setExportType(reportType.getExport().getType());
+        }
 
 
         SearchResultList<PrismObject<NodeType>> nodes = modelService.searchObjects(NodeType.class, prismContext
@@ -614,7 +616,14 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         return TaskCategory.REPORT;
     }
 
-    protected JasperExportType getExport(JasperReportEngineConfigurationType jasperConfig) {
+    protected JasperExportType getExport(ReportType report, JasperReportEngineConfigurationType jasperConfig) {
+        if (report.getExport() != null && report.getExport().getType() != null) {
+            if (report.getExport().getType().equals(ExportType.CSV)) {
+                return JasperExportType.CSV;
+            } else if (report.getExport().getType().equals(ExportType.HTML)) {
+                return JasperExportType.HTML;
+            }
+        }
         return ReportUtils.getExport(jasperConfig);
     }
 

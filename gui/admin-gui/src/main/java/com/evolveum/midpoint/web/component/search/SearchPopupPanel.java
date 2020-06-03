@@ -29,7 +29,11 @@ abstract class SearchPopupPanel<T extends Serializable> extends BasePanel<Displa
 
     public SearchPopupPanel(String id, IModel<DisplayableValue<T>> model) {
         super(id, model);
+    }
 
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initButtons();
     }
 

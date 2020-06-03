@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
+import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
+import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
+
+import java.io.File;
+import java.io.IOException;
+
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -17,11 +24,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Creates empty but functional environment for model integration tests - but without all the configured objects
@@ -31,6 +36,8 @@ import java.io.IOException;
  *  - empty system configuration
  *  - administrator user (from common dir)
  *  - superuser role (from common dir)
+ *
+ * There are some standard archetypes defined, but not imported. Individual tests should import them if necessary.
  */
 @Experimental
 public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelIntegrationTest {
@@ -46,7 +53,7 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     protected PrismObject<UserType> userAdministrator;
 
     @Override
-    public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
 
         // We want logging config from logback-test.xml and not from system config object (unless suppressed)
@@ -87,5 +94,24 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
     protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult)
             throws IOException, CommonException, EncryptionException {
         return null;
+    }
+
+    // To be used when needed
+    @SuppressWarnings("WeakerAccess")
+    protected void importTaskArchetypes(OperationResult initResult) throws SchemaException,
+            ObjectAlreadyExistsException, EncryptionException, IOException {
+        repoAdd(ARCHETYPE_TASK_ITERATIVE_BULK_ACTION, initResult);
+        repoAdd(ARCHETYPE_TASK_SINGLE_BULK_ACTION, initResult);
+    }
+
+    /**
+     * Runs "trigger scanner on demand" task: starts it and waits for its completion.
+     *
+     * Note that the task must be imported before using this method. This method can be then run
+     * repeatedly.
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected Task runTriggerScannerOnDemand(OperationResult result) throws CommonException {
+        return rerunTask(TASK_TRIGGER_SCANNER_ON_DEMAND.oid, result);
     }
 }

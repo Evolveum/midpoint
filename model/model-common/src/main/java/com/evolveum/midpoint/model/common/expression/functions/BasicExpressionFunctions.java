@@ -17,6 +17,7 @@ import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1200,4 +1201,9 @@ public class BasicExpressionFunctions {
         return DebugUtil.debugDump(o, indent);
     }
 
+    public void setTaskWorkerThreads(TaskType task, Integer value) throws SchemaException {
+        Objects.requireNonNull(task, "task is not specified");
+        ObjectTypeUtil.setExtensionPropertyRealValues(prismContext, task.asPrismContainerValue(),
+                SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, value);
+    }
 }

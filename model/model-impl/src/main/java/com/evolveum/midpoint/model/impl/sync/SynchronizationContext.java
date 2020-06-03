@@ -288,6 +288,10 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
         return null;
     }
 
+    public ModelExecuteOptionsType getExecuteOptions() {
+        return reaction.getExecuteOptions();
+    }
+
     public Boolean isLimitPropagation() {
         if (StringUtils.isNotBlank(channel)) {
             QName channelQName = QNameUtil.uriToQName(channel);

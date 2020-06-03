@@ -11,6 +11,8 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
+import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.SearchItemField;
 import com.evolveum.midpoint.schrodinger.component.configuration.AdminGuiTab;
 import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -77,23 +79,26 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
                 .$(Schrodinger.byDataId("edit"))
                 .click();
 
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+
         SelenideElement modalWindow = $(By.className("wicket-modal"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
         ObjectBrowserModal objectBrowserModal = new ObjectBrowserModal<>(prismForm, modalWindow);
-        objectBrowserModal
+        SearchItemField<Search<ObjectBrowserModal>> nameSearchField = objectBrowserModal
                 .selectType("Archetype")
                 .table()
                     .search()
-                        .byName()
-                        .inputValue(ARCHETYPE_OBJECT_NAME)
-                        .updateSearch();
+                        .byName();
+        nameSearchField
+                .inputValue(ARCHETYPE_OBJECT_NAME)
+                .updateSearch();
         objectBrowserModal
                 .table()
                     .clickByName(ARCHETYPE_OBJECT_NAME);
 
         Assert.assertTrue(prismForm
-                .compareInputAttributeValue(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
+                .compareInputAttributeValueInNewContainer(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
 
         adminGuiTab
                 .getParent()

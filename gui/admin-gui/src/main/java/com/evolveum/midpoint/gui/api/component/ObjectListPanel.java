@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -723,7 +724,44 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
     }
 
+    private CompiledObjectCollectionView dashboardWidgetView;
+
     protected CompiledObjectCollectionView getObjectCollectionView() {
+        if (dashboardWidgetView != null) {
+            return dashboardWidgetView;
+        }
+        PageParameters parameters = getPageBase().getPageParameters();
+        String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
+        String dashboardWidgetName = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
+
+        if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
+            Task task = getPageBase().createSimpleTask("Create view from dashboard");
+            @NotNull DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
+            if (dashboard != null) {
+                for (DashboardWidgetType widget :dashboard.getWidget()) {
+                    if (widget.getIdentifier().equals(dashboardWidgetName)
+                            && widget.getData() != null && widget.getData().getCollection() != null
+                            && widget.getData().getCollection().getCollectionRef() != null) {
+                        ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
+                        ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
+                                getPageBase(), task, task.getResult()).getRealValue();
+                        try {
+                            @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
+                                    .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
+                            if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
+                                getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
+                            }
+                            compiledView.setCollection(widget.getData().getCollection());
+                            dashboardWidgetView = compiledView;
+                        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
+                                | ObjectNotFoundException e) {
+                            LOGGER.error("Couldn't compile collection " + collection.getName(), e);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         String collectionName = getCollectionNameParameterValue().toString();
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }

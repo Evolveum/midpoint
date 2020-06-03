@@ -608,13 +608,18 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     }
 
                     @Override
-                    protected void createReportPerformed(SearchFilterType filter, List<Integer> object, AjaxRequestTarget target) {
+                    protected void createReportPerformed(String name, SearchFilterType filter, List<Integer> object, AjaxRequestTarget target) {
 
                     }
 
                     @Override
                     protected DataTable<?, ?> getDataTable() {
                         return getAuditLogViewerTable().getDataTable();
+                    }
+
+                    @Override
+                    public boolean isVisibleCreateReportOption() {
+                        return false;
                     }
                 };
 
@@ -659,7 +664,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER,
-                AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER) {
+                AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override

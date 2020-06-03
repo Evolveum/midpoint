@@ -588,11 +588,10 @@ public class ModelImplUtils {
             variables.registerAlias(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION);
             variables.registerAlias(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
             variables.put(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), projCtx.getResource().asPrismObject().getDefinition());
+            variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
+            variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
+            variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
         }
-
-        variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
-        variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
-        variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
 
         variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
         return variables;

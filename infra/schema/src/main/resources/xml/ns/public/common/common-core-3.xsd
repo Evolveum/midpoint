@@ -11444,6 +11444,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="executeOptions" type="c:ModelExecuteOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Model execute options that will be used when invoking this reaction.
+                        Options explicitly specified here take precedence over any options derived
+                        from the context or other parameters (like "recompute"). So please use with care.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -15071,8 +15084,112 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="links" type="tns:LinkTypeDefinitionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Definitions of link types for objects having this archetype.
+                            EXPERIMENTAL. UNSTABLE. DO NOT USE.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="LinkTypeDefinitionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definitions of link types for objects having this archetype.
+                EXPERIMENTAL. UNSTABLE. DO NOT USE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="sourceLink" type="c:LinkTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of inbound link. Specifies source objects that can have this (archetyped) object assigned.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetLink" type="c:LinkTypeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of outbound link. Specifies target objects that can be assigned to this (archetyped) object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkTypeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definitions of a link type.
+                EXPERIMENTAL. UNSTABLE. DO NOT USE.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the named link.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="selector" type="c:LinkedObjectSelectorType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specification of the objects on the other side of the link (sources or targets).
+                        It can be also missing or empty.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LinkedObjectSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects objects among linked ones (for this object).
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectSelectorType">
+                <xsd:sequence>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Link matches if it has any of the relation specified.
+                                (If no relation is specified, all links match.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="linkedObjectSelectorType" type="c:LinkedObjectSelectorType" />
 
     <xsd:simpleType name="AssignmentRelationApproachType">
         <xsd:annotation>
@@ -17162,7 +17279,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:displayName>CollectionSpecificationType.collectionRef</a:displayName>
+                                <a:displayName>CollectionSpecificationType.baseCollectionRef</a:displayName>
+                                <a:elaborate>true</a:elaborate>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -22956,6 +23074,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:displayName>ReportType.reportEngine</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -22977,6 +23096,7 @@
                                 Configuration for dashboard-based reports. Only applicable if reportEngine=dashboard.
                             </xsd:documentation>
                             <xsd:appinfo>
+                                <a:displayName>ReportType.dashboard</a:displayName>
                                 <a:since>4.0</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -22988,7 +23108,8 @@
                                 Configuration for object collection-based reports. Only applicable if reportEngine=objectCollection.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.0</a:since>
+                                <a:displayName>ReportType.objectCollection</a:displayName>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23001,6 +23122,7 @@
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
+                                <a:displayName>ReportType.export</a:displayName>
                                 <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -23082,14 +23204,40 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="tns:ExportType" minOccurs="0"/>
+            <xsd:element name="type" type="tns:ExportType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of export file.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ExportConfigurationType.type</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:choice>
                 <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Configuration for CSV type.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>ExportConfigurationType.csv</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Configuration for HTML type.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>ExportConfigurationType.html</a:displayName>
+                        </xsd:appinfo>
+                    </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
         </xsd:sequence>
@@ -23126,6 +23274,7 @@
                 Supertype of report export types.
             </xsd:documentation>
             <xsd:appinfo>
+                <a:since>4.2</a:since>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
@@ -23138,21 +23287,112 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AbstractExportType">
                 <xsd:sequence>
-                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=","/>
-                    <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=";"/>
-                    <xsd:element name="escape" type="xsd:string" minOccurs="0" maxOccurs="1" default="\"/>
-                    <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="1" default="&quot;"/>
-                    <xsd:element name="quoteMode" type="tns:QuoteModeType" minOccurs="0" maxOccurs="1" default="nonNumeric"/>
-                    <xsd:element name="recordSeparator" type="xsd:string" minOccurs="0" maxOccurs="1" default="&#13;&#10;"/>
-                    <xsd:element name="trailingDelimiter" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-                    <xsd:element name="trim" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
-                    <xsd:element name="createHeader" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true"/>
-                    <xsd:element name="encoding" type="xsd:string" minOccurs="0" maxOccurs="1" default="utf-8"/>
+                    <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=",">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delimiter for multivalue property.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.multivalueDelimiter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="fieldDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=";">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delimiter for field of csv file.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.fieldDelimiter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="escape" type="xsd:string" minOccurs="0" maxOccurs="1" default="\">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The escape character of the format.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.escape</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="1" default="&quot;">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Character for the quote.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.quote</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="quoteMode" type="tns:QuoteModeType" minOccurs="0" maxOccurs="1" default="nonNumeric">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Quote Mode for records. Possible values is all, allNonNull, minimal, nonNumeric and none.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.quoteMode</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="recordSeparator" type="xsd:string" minOccurs="0" maxOccurs="1" default="&#13;&#10;">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Separator of line of record.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.recordSeparator</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="trailingDelimiter" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define, whether to add a trailing delimiter.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.trailingDelimiter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="trim" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Define, whether to trim leading and trailing blanks.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.trim</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="createHeader" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Create header in csv output file.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.createHeader</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="encoding" type="xsd:string" minOccurs="0" maxOccurs="1" default="utf-8">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Encoding of csv file.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CsvExportType.encoding</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -23552,7 +23792,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportConfigurationType"/>
+                    <xsd:element name="exportType" type="tns:ExportType"/>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>

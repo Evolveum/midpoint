@@ -324,8 +324,8 @@ public class GuiProfileCompiler {
 //        compileDisplayOrder(existingView, objectListViewType);
 //        compileSearchBox(existingView, objectListViewType);
 //        compileRefreshInterval(existingView, objectListViewType);
-        compileCollection(existingView, objectListViewType, task, result);
         collectionProcessor.compileView(existingView, objectListViewType);
+        compileCollection(existingView, objectListViewType, task, result);
     }
 
     private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)

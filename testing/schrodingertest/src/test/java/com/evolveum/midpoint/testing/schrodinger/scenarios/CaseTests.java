@@ -11,6 +11,11 @@ import java.io.File;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+
+import com.evolveum.midpoint.schrodinger.component.common.Search;
+import com.evolveum.midpoint.schrodinger.component.common.SearchItemField;
+import com.evolveum.midpoint.schrodinger.component.modal.ObjectBrowserModal;
+
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -234,19 +239,18 @@ public class CaseTests extends AbstractSchrodingerTest {
                 .clickByName(ASSIGNING_ROLE_CASE_NAME + FORWARD_WORKITEM_TEST_USER_NAME);
 
         ForwardWorkitemModal forwardWorkitemModal = workitemDetailsPanel.forwardButtonClick();
-        forwardWorkitemModal
+        SearchItemField<Search<ForwardWorkitemModal>> nameSearchField = forwardWorkitemModal
                 .table()
                 .search()
-                .byName()
+                .byName();
+        nameSearchField
                 .inputValue(FORWARD_WORKITEM_TO_USER_NAME)
                 .updateSearch();
         forwardWorkitemModal
                 .table()
                 .clickByName(FORWARD_WORKITEM_TO_USER_NAME);
 
-        Assert.assertTrue(workitemDetailsPanel
-                .forwardOperationUserSelectionPerformed()
-                .clickYes()
+        Assert.assertTrue(allRequestsPage
                 .feedback()
                 .isSuccess());
 

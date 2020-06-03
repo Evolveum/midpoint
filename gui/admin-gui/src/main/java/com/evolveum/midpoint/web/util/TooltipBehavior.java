@@ -43,17 +43,20 @@ public class TooltipBehavior extends Behavior {
     public void renderHead(Component component, IHeaderResponse response) {
         super.renderHead(component, response);
 
-        StringBuilder componentSb = new StringBuilder();
-        componentSb.append("$('#");
-        componentSb.append(component.getMarkupId());
-        componentSb.append("')");
+        StringBuilder componentSb = new StringBuilder("$('#").append(component.getMarkupId()).append("')");
+        String componentSelector = componentSb.toString();
 
         StringBuilder sb = new StringBuilder();
         sb.append("if (typeof ");
-        sb.append(componentSb.toString());
-        sb.append(".tooltip === \"function\"){");
-        sb.append(componentSb.toString());
-        sb.append(".tooltip({html:true");
+        sb.append(componentSelector);
+        sb.append(".tooltip === \"function\") {\n");
+        sb.append("var wl = $.fn.tooltip.Constructor.DEFAULTS.whiteList;\n");
+        sb.append("wl['xsd:documentation'] = [];\n");
+
+        sb.append(componentSelector);
+        sb.append(".tooltip({html: true");
+        sb.append(", whiteList: wl");
+
 
         if(!isInsideModal()){
             sb.append(", 'container':'body'");
@@ -63,7 +66,7 @@ public class TooltipBehavior extends Behavior {
             sb.append("'");
         }
 
-        sb.append("});");
+        sb.append("});\n");
         sb.append("}");
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
