@@ -16,7 +16,7 @@ import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
@@ -44,14 +44,14 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return prefix != null ? prefix.getText() : "";
     }
 
+
     @Override
-    public final T visitStatement(StatementContext ctx) {
+    public T visitItem(ItemContext ctx) {
         AxiomName identifier = statementIdentifier(ctx.identifier());
         if(canEmit(identifier)) {
             SourceLocation start = sourceLocation(ctx.identifier().start);
             delegate().startItem(identifier, start);
-
-            ArgumentContext argument = ctx.argument();
+            ArgumentContext argument = ctx.value().argument();
             final Object value;
             final SourceLocation valueStart;
             if(argument != null) {
@@ -62,7 +62,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
                 valueStart = start;
             }
             delegate().startValue(value, valueStart);
-            T ret = super.visitStatement(ctx);
+            T ret = super.visitItem(ctx);
             delegate().endValue(sourceLocation(ctx.stop));
             delegate().endItem(sourceLocation(ctx.stop));
             return ret;

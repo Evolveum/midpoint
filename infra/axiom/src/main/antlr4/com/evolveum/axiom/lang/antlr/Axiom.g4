@@ -17,7 +17,13 @@ fragment ESC : '\\';
 STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
 STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
 
-statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
+
+
+//statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
+
+
+item : SEP* identifier SEP* value; 
+value: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item)* SEP* RIGHT_BRACE SEP*) SEP*;
 
 identifier : (prefix COLON)? localIdentifier;
 prefix : IDENTIFIER;

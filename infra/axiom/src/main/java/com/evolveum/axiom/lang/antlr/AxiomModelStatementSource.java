@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
-import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
@@ -42,12 +42,12 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     }
 
     public static AxiomModelStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
-        StatementContext statement = AxiomAntlrStatementSource.contextFrom(sourceName, stream);
-        String name = statement.argument().identifier().localIdentifier().getText();
-        return new AxiomModelStatementSource(sourceName, statement, name, namespace(statement), imports(statement));
+        ItemContext root = AxiomAntlrStatementSource.contextFrom(sourceName, stream);
+        String name = root.value().argument().identifier().localIdentifier().getText();
+        return new AxiomModelStatementSource(sourceName, root, name, namespace(root.value()), imports(root.value()));
     }
 
-    private AxiomModelStatementSource(String sourceName, StatementContext statement, String namespace, String name, Map<String, String> imports) {
+    private AxiomModelStatementSource(String sourceName, ItemContext statement, String namespace, String name, Map<String, String> imports) {
         super(sourceName, statement);
         this.name = name;
         this.imports = imports;
@@ -73,21 +73,21 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
         return imports;
     }
 
-    public static Map<String,String> imports(AxiomParser.StatementContext root) {
+    public static Map<String,String> imports(AxiomParser.ValueContext root) {
         Map<String,String> prefixMap = new HashMap<>();
-        root.statement().stream().filter(s -> IMPORT.equals(s.identifier().getText())).forEach(c -> {
-            String prefix = c.argument().identifier().localIdentifier().getText();
-            String namespace = namespace(c);
+        root.item().stream().filter(s -> IMPORT.equals(s.identifier().getText())).forEach(c -> {
+            String prefix = c.value().argument().identifier().localIdentifier().getText();
+            String namespace = namespace(c.value());
             prefixMap.put(prefix, namespace);
         });
         prefixMap.put("",namespace(root));
         return prefixMap;
     }
 
-    private static String namespace(StatementContext c) {
-        return AxiomAntlrVisitor.convert(c.statement()
+    private static String namespace(AxiomParser.ValueContext c) {
+        return AxiomAntlrVisitor.convert(c.item()
                 .stream().filter(s -> NAMESPACE.equals(s.identifier().getText()))
-                .findFirst().get().argument().string());
+                .findFirst().get().value().argument().string());
     }
 
     @Override

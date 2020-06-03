@@ -32,7 +32,7 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
    default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
         Optional<AxiomValue<?>> current = Optional.of(this);
         for(AxiomItemDefinition name : components) {
-            current = current.get().asComplex().flatMap(c -> c.item(name)).map(i -> i.onlyValue()); // map(v -> v.onlyValue().asComplex());
+            current = current.get().asComplex().flatMap(c -> c.item(name)).map(i -> i.onlyValue());
             if(!current.isPresent()) {
                 return Optional.empty();
             }

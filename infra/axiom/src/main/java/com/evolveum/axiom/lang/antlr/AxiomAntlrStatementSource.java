@@ -17,37 +17,37 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
-import com.evolveum.axiom.lang.antlr.AxiomParser.StatementContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class AxiomAntlrStatementSource {
 
-    private final StatementContext root;
+    private final ItemContext root;
     private final String sourceName;
 
     public static AxiomAntlrStatementSource from(String sourceName, InputStream stream) throws IOException, AxiomSyntaxException {
         return from(sourceName, CharStreams.fromStream(stream));
     }
 
-    public static StatementContext contextFrom(String sourceName, CharStream stream) {
+    public static ItemContext contextFrom(String sourceName, CharStream stream) {
         AxiomLexer lexer = new AxiomLexer(stream);
         AxiomParser parser = new AxiomParser(new CommonTokenStream(lexer));
         lexer.removeErrorListeners();
         parser.removeErrorListeners();
         AxiomErrorListener errorListener = new AxiomErrorListener(sourceName);
         parser.addErrorListener(errorListener);
-        StatementContext statement = parser.statement();
+        ItemContext statement = parser.item();
         errorListener.validate();
         return statement;
     }
 
     public static AxiomAntlrStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
-        StatementContext statement = contextFrom(sourceName, stream);
+        ItemContext statement = contextFrom(sourceName, stream);
         return new AxiomAntlrStatementSource(sourceName, statement);
     }
 
-    protected AxiomAntlrStatementSource(String sourceName, StatementContext statement) {
+    protected AxiomAntlrStatementSource(String sourceName, ItemContext statement) {
         this.sourceName = sourceName;
         this.root = statement;
     }
@@ -56,7 +56,7 @@ public class AxiomAntlrStatementSource {
         return sourceName;
     }
 
-    protected final StatementContext root() {
+    protected final ItemContext root() {
         return root;
     }
 
