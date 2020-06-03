@@ -43,8 +43,8 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
     public static AxiomModelStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
         ItemContext root = AxiomAntlrStatementSource.contextFrom(sourceName, stream);
-        String name = root.value().argument().identifier().localIdentifier().getText();
-        return new AxiomModelStatementSource(sourceName, root, name, namespace(root.value()), imports(root.value()));
+        String name = root.itemBody().value().argument().identifier().localIdentifier().getText();
+        return new AxiomModelStatementSource(sourceName, root, name, namespace(root.itemBody().value()), imports(root.itemBody().value()));
     }
 
     private AxiomModelStatementSource(String sourceName, ItemContext statement, String namespace, String name, Map<String, String> imports) {
@@ -75,9 +75,9 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
     public static Map<String,String> imports(AxiomParser.ValueContext root) {
         Map<String,String> prefixMap = new HashMap<>();
-        root.item().stream().filter(s -> IMPORT.equals(s.identifier().getText())).forEach(c -> {
-            String prefix = c.value().argument().identifier().localIdentifier().getText();
-            String namespace = namespace(c.value());
+        root.item().stream().filter(s -> IMPORT.equals(s.itemBody().identifier().getText())).forEach(c -> {
+            String prefix = c.itemBody().value().argument().identifier().localIdentifier().getText();
+            String namespace = namespace(c.itemBody().value());
             prefixMap.put(prefix, namespace);
         });
         prefixMap.put("",namespace(root));
@@ -86,8 +86,8 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
     private static String namespace(AxiomParser.ValueContext c) {
         return AxiomAntlrVisitor.convert(c.item()
-                .stream().filter(s -> NAMESPACE.equals(s.identifier().getText()))
-                .findFirst().get().value().argument().string());
+                .stream().filter(s -> NAMESPACE.equals(s.itemBody().identifier().getText()))
+                .findFirst().get().itemBody().value().argument().string());
     }
 
     @Override

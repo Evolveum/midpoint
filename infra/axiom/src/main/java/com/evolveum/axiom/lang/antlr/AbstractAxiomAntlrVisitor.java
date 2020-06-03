@@ -16,13 +16,23 @@ import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemBodyContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.MetadataContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private final Optional<Set<AxiomName>> limit;
     private final String sourceName;
+
+    private interface StartDelegate {
+        void start(AxiomName identifier, SourceLocation location);
+    }
+    private interface EndDelegate {
+        void end(SourceLocation location);
+    }
+
 
     public AbstractAxiomAntlrVisitor(String name, Set<AxiomName> limit) {
         this.sourceName = name;
@@ -47,27 +57,42 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     @Override
     public T visitItem(ItemContext ctx) {
-        AxiomName identifier = statementIdentifier(ctx.identifier());
+        AxiomName identifier = statementIdentifier(ctx.itemBody().identifier());
+        return processItemBody(identifier, ctx.itemBody(), delegate()::startItem, delegate()::endItem);
+    }
+
+    public T processItemBody(AxiomName identifier, ItemBodyContext ctx, StartDelegate start, EndDelegate end) {
         if(canEmit(identifier)) {
-            SourceLocation start = sourceLocation(ctx.identifier().start);
-            delegate().startItem(identifier, start);
+
+            SourceLocation startLoc = sourceLocation(ctx.identifier().start);
+            start.start(identifier, startLoc);
+
             ArgumentContext argument = ctx.value().argument();
             final Object value;
             final SourceLocation valueStart;
+
             if(argument != null) {
                 value = convert(argument);
                 valueStart = sourceLocation(argument.start);
             } else {
                 value = null;
-                valueStart = start;
+                valueStart = startLoc;
             }
+
             delegate().startValue(value, valueStart);
-            T ret = super.visitItem(ctx);
+            T ret = visitItemBody(ctx);
             delegate().endValue(sourceLocation(ctx.stop));
-            delegate().endItem(sourceLocation(ctx.stop));
+            end.end(sourceLocation(ctx.stop));
             return ret;
         }
         return defaultResult();
+    }
+
+
+    @Override
+    public T visitMetadata(MetadataContext ctx) {
+        AxiomName identifier = statementIdentifier(ctx.itemBody().identifier());
+        return processItemBody(identifier, ctx.itemBody(), delegate()::startMetadata, delegate()::endMetadata);
     }
 
     private Object convert(ArgumentContext ctx) {

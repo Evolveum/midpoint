@@ -13,6 +13,7 @@ import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 
+@Deprecated
 public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
 
     private final AxiomIdentifierResolver statements;
