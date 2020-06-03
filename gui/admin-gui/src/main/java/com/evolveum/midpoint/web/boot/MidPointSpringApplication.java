@@ -24,9 +24,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.actuate.autoconfigure.web.server.ManagementWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.embedded.JettyWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.embedded.TomcatWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.embedded.UndertowWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -39,6 +46,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -169,27 +177,12 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
     @Component
     @EnableConfigurationProperties(ServerProperties.class)
-    public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+    public class ServerCustomization implements WebServerFactoryCustomizer<MidPointTomcatServletWebServerFactory> {
 
         @Value("${server.servlet.session.timeout}")
         private int sessionTimeout;
         @Value("${server.servlet.context-path}")
         private String servletPath;
-
-        @Value("${server.use-forward-headers:false}")
-        private Boolean useForwardHeaders;
-
-        @Value("${server.tomcat.internal-proxies:@null}")
-        private String internalProxies;
-
-        @Value("${server.tomcat.protocol-header:@null}")
-        private String protocolHeader;
-
-        @Value("${server.tomcat.protocol-header-https-value:@null}")
-        private String protocolHeaderHttpsValue;
-
-        @Value("${server.tomcat.port-header:@null}")
-        private String portHeader;
 
         @Autowired
         private ServerProperties serverProperties;
@@ -197,11 +190,17 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         @Autowired
         private TaskManager taskManager;
 
-        @Override
-        public void customize(ConfigurableServletWebServerFactory serverFactory) {
+        @Autowired
+        private Environment env;
 
-            ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
-            servletWebServerFactoryCustomizer.customize(serverFactory);
+
+        @Override
+        public void customize(MidPointTomcatServletWebServerFactory serverFactory) {
+
+            ServletWebServerFactoryCustomizer webServletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
+            webServletWebServerFactoryCustomizer.customize(serverFactory);
+            TomcatWebServerFactoryCustomizer tomcatWebServerFactoryCustomizer = new TomcatWebServerFactoryCustomizer(env, serverProperties);
+            tomcatWebServerFactoryCustomizer.customize(serverFactory);
 
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED, "/error/401"));
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN, "/error/403"));
@@ -214,47 +213,24 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             serverFactory.setSession(session);
 
             if (serverFactory instanceof TomcatServletWebServerFactory) {
-                customizeTomcat((TomcatServletWebServerFactory) serverFactory);
+                TomcatContextCustomizer contextCustomizer = new TomcatContextCustomizer() {
+                    @Override
+                    public void customize(Context context) {
+                        setTomcatContext(context);
+                    }
+                };
+                List<TomcatContextCustomizer> contextCustomizers = new ArrayList<>();
+                contextCustomizers.add(contextCustomizer);
+                serverFactory.setTomcatContextCustomizers(contextCustomizers);
+
+                // Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
+                // See comments in TomcatRootValve
+                Valve rootValve = new TomcatRootValve(servletPath);
+                serverFactory.addEngineValves(rootValve);
+
+                Valve nodeIdHeaderValve = new NodeIdHeaderValve(taskManager);
+                serverFactory.addEngineValves(nodeIdHeaderValve);
             }
         }
-
-        private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
-            // set tomcat context.
-            TomcatContextCustomizer contextCustomizer = new TomcatContextCustomizer() {
-                @Override
-                public void customize(Context context) {
-                    setTomcatContext(context);
-                }
-            };
-            List<TomcatContextCustomizer> contextCustomizers = new ArrayList<>();
-            contextCustomizers.add(contextCustomizer);
-            tomcatFactory.setTomcatContextCustomizers(contextCustomizers);
-
-            // Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
-            // See comments in TomcatRootValve
-            Valve rootValve = new TomcatRootValve(servletPath);
-            tomcatFactory.addEngineValves(rootValve);
-
-            Valve nodeIdHeaderValve = new NodeIdHeaderValve(taskManager);
-            tomcatFactory.addEngineValves(nodeIdHeaderValve);
-
-            if (useForwardHeaders) {
-                RemoteIpValve remoteIpValve = new RemoteIpValve();
-                if (StringUtils.isNotEmpty(internalProxies)) {
-                    remoteIpValve.setInternalProxies(internalProxies);
-                }
-                if (StringUtils.isNotEmpty(protocolHeader)) {
-                    remoteIpValve.setProtocolHeader(protocolHeader);
-                }
-                if (StringUtils.isNotEmpty(protocolHeaderHttpsValue)) {
-                    remoteIpValve.setProtocolHeaderHttpsValue(protocolHeaderHttpsValue);
-                }
-                if (StringUtils.isNotEmpty(portHeader)) {
-                    remoteIpValve.setPortHeader(portHeader);
-                }
-                tomcatFactory.addEngineValves(remoteIpValve);
-            }
-        }
-
     }
 }
