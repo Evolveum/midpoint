@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -28,13 +27,7 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.Freezable;
-import com.evolveum.midpoint.prism.JaxbVisitable;
-import com.evolveum.midpoint.prism.JaxbVisitor;
-import com.evolveum.midpoint.prism.ParsingContext;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -49,11 +42,10 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 @XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
 @XmlType(name = "SearchFilterType", propOrder = {       // no prop order, because we serialize this class manually
-                                                        // BTW, the order is the following: description, filterClause
+        // BTW, the order is the following: description, filterClause
 })
 
-public class SearchFilterType extends AbstractFreezable implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable
-{
+public class SearchFilterType extends AbstractFreezable implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable {
     private final static long serialVersionUID = 201303040000L;
 
     @XmlElement
@@ -67,7 +59,6 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
 
     /**
      * Creates a new {@code QueryType} instance.
-     *
      */
     public SearchFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -77,11 +68,8 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
     /**
      * Creates a new {@code QueryType} instance by deeply copying a given {@code QueryType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public SearchFilterType(final SearchFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -99,7 +87,6 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         checkMutable();
         this.description = description;
     }
-
 
     public boolean containsFilterClause() {
         return filterClauseXNode != null && !filterClauseXNode.isEmpty();
@@ -152,13 +139,13 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
             this.description = null;
         } else {
             if (!(xnode instanceof MapXNode)) {
-                throw new SchemaException("Cannot parse filter from "+xnode);
+                throw new SchemaException("Cannot parse filter from " + xnode);
             }
-            MapXNode xmap = (MapXNode)xnode;
+            MapXNode xmap = (MapXNode) xnode;
             XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
             if (xdesc != null) {
                 if (xdesc instanceof PrimitiveXNode<?>) {
-                    String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
+                    String desc = ((PrimitiveXNode<String>) xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
                     setDescription(desc);
                 } else {
                     throw new SchemaException("Description must have a primitive value");
@@ -197,7 +184,6 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
     @Override
     public String toString() {
@@ -206,11 +192,8 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
-        {
-            MapXNode theFilter;
-            theFilter = this.filterClauseXNode;
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
-        }
+        MapXNode theFilter = this.filterClauseXNode;
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
         return currentHashCode;
     }
 
@@ -230,10 +213,8 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         final SearchFilterType that = ((SearchFilterType) object);
 
         if (filterClauseXNode == null) {
-            if (that.filterClauseXNode != null)
-                return false;
-        } else if (!filterClauseXNode.equals(that.filterClauseXNode))
-            return false;
+            if (that.filterClauseXNode != null) { return false; }
+        } else if (!filterClauseXNode.equals(that.filterClauseXNode)) { return false; }
 
         return true;
     }
@@ -247,9 +228,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
@@ -257,7 +236,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         final SearchFilterType clone;
         try {
             clone = this.getClass().newInstance();          // TODO fix this using super.clone()
-        } catch (InstantiationException|IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Couldn't instantiate " + this.getClass() + ": " + e.getMessage(), e);
         }
         clone.description = this.description;

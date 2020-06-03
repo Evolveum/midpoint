@@ -8,8 +8,13 @@
 
 package com.evolveum.midpoint.prism.foo;
 
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlType;
+
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -17,14 +22,8 @@ import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 /**
  * <p>Java class for EventOperationFilterType complex type.
@@ -42,24 +41,20 @@ import java.util.List;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EventOperationFilterType", propOrder = {
-    "operation"
+        "operation"
 })
 public class EventOperationFilterType
-    extends EventHandlerType
-    implements Serializable, Cloneable, Equals, HashCode
-{
+        extends EventHandlerType
+        implements Serializable, Cloneable, Equals, HashCode {
 
     private final static long serialVersionUID = 201105211233L;
     protected List<String> operation;
 
     /**
      * Creates a new {@code EventOperationFilterType} instance.
-     *
      */
     public EventOperationFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -69,11 +64,8 @@ public class EventOperationFilterType
     /**
      * Creates a new {@code EventOperationFilterType} instance by deeply copying a given {@code EventOperationFilterType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public EventOperationFilterType(final EventOperationFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -82,7 +74,7 @@ public class EventOperationFilterType
             throw new NullPointerException("Cannot create a copy of 'EventOperationFilterType' from 'null'.");
         }
         // 'Operation' collection.
-        if (o.operation!= null) {
+        if (o.operation != null) {
             copyOperation(o.getOperation(), this.getOperation());
         }
     }
@@ -106,8 +98,6 @@ public class EventOperationFilterType
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link EventOperationType }
-     *
-     *
      */
     public List<String> getOperation() {
         if (operation == null) {
@@ -119,16 +109,13 @@ public class EventOperationFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
-        {
-            List<String> theOperation;
-            theOperation = (((this.operation!= null)&&(!this.operation.isEmpty()))?this.getOperation():null);
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "operation", theOperation), currentHashCode, theOperation);
-        }
+        List<String> theOperation;
+        theOperation = (((this.operation != null) && (!this.operation.isEmpty())) ? this.getOperation() : null);
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "operation", theOperation), currentHashCode, theOperation);
         return currentHashCode;
     }
 
@@ -148,18 +135,17 @@ public class EventOperationFilterType
             return false;
         }
         final EventOperationFilterType that = ((EventOperationFilterType) object);
-        {
-            List<String> lhsOperation;
-            lhsOperation = (((this.operation!= null)&&(!this.operation.isEmpty()))?this.getOperation():null);
-            List<String> rhsOperation;
-            rhsOperation = (((that.operation!= null)&&(!that.operation.isEmpty()))?that.getOperation():null);
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "operation", lhsOperation), LocatorUtils.property(thatLocator, "operation", rhsOperation), lhsOperation, rhsOperation)) {
-                return false;
-            }
+        List<String> lhsOperation;
+        lhsOperation = (((this.operation != null) && (!this.operation.isEmpty())) ? this.getOperation() : null);
+        List<String> rhsOperation;
+        rhsOperation = (((that.operation != null) && (!that.operation.isEmpty())) ? that.getOperation() : null);
+        if (!strategy.equals(LocatorUtils.property(thisLocator, "operation", lhsOperation), LocatorUtils.property(thatLocator, "operation", rhsOperation), lhsOperation, rhsOperation)) {
+            return false;
         }
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -168,26 +154,21 @@ public class EventOperationFilterType
     /**
      * Copies all values of property {@code Operation} deeply.
      *
-     * @param source
-     *     The source to copy from.
-     * @param target
-     *     The target to copy {@code source} to.
-     * @throws NullPointerException
-     *     if {@code target} is {@code null}.
+     * @param source The source to copy from.
+     * @param target The target to copy {@code source} to.
+     * @throws NullPointerException if {@code target} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static void copyOperation(final List<String> source, final List<String> target) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if ((source!= null)&&(!source.isEmpty())) {
-            for (final Iterator<?> it = source.iterator(); it.hasNext(); ) {
-                final Object next = it.next();
+        if ((source != null) && (!source.isEmpty())) {
+            for (final Object next : source) {
                 if (next instanceof String) {
                     // CEnumLeafInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType
                     target.add(((String) next));
                     continue;
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Operation' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType'."));
+                throw new AssertionError((("Unexpected instance '" + next) + "' for property 'Operation' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType'."));
             }
         }
     }
@@ -195,22 +176,18 @@ public class EventOperationFilterType
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public EventOperationFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final EventOperationFilterType clone = ((EventOperationFilterType) super.clone());
-            // 'Operation' collection.
-            if (this.operation!= null) {
-                clone.operation = null;
-                copyOperation(this.getOperation(), clone.getOperation());
-            }
-            return clone;
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        final EventOperationFilterType clone = ((EventOperationFilterType) super.clone());
+        // 'Operation' collection.
+        if (this.operation != null) {
+            clone.operation = null;
+            copyOperation(this.getOperation(), clone.getOperation());
         }
+        return clone;
     }
 
     @Override

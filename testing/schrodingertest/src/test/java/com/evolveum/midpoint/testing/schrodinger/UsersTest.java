@@ -47,7 +47,7 @@ public class UsersTest extends AbstractSchrodingerTest {
 
     }
 
-    @Test
+//    @Test
     public void test001UserTablePaging() {
         ListUsersPage users = basicPage.listUsers();
 
@@ -96,9 +96,9 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItem("subtype")
-                            .inputValueWithEnter("Extern")
-                        .and()
+                        .byItemName("subtype")
+                            .inputValue("Extern")
+                    .updateSearch()
                     .and()
                 .currentTableContains("searchUser")
         );
