@@ -43,7 +43,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RResource extends RObject<ResourceType> {
+public class RResource extends RObject {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RPolyString nameCopy;

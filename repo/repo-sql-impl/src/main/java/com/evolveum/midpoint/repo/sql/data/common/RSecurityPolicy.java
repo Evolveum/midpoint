@@ -27,7 +27,7 @@ import javax.persistence.*;
 )
 @ForeignKey(name = "fk_security_policy")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RSecurityPolicy extends RObject<SecurityPolicyType> {
+public class RSecurityPolicy extends RObject {
 
     private RPolyString nameCopy;
 

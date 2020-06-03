@@ -32,7 +32,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_definition")
-public class RAccessCertificationDefinition extends RObject<AccessCertificationDefinitionType> {
+public class RAccessCertificationDefinition extends RObject {
 
     public static final String TABLE_NAME = "m_acc_cert_definition";
 

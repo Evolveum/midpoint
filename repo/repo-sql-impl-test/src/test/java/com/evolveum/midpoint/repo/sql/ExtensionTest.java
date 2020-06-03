@@ -1860,7 +1860,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim");
@@ -1891,7 +1891,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
@@ -1932,7 +1932,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
@@ -1963,7 +1963,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "bob", "chuck");
@@ -1998,7 +1998,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "bob", "chuck");
@@ -2048,7 +2048,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2085,7 +2085,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
             assertExtension(s, itemManager, "chuck");
@@ -2126,7 +2126,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
             assertExtension(s, itemManager, "chuck");
@@ -2175,7 +2175,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2221,7 +2221,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "chuck");
@@ -2265,7 +2265,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "ALUMNI");
             assertExtension(s, itemMember, "alice", "bob");
             assertExtension(s, itemManager, "chuck");
@@ -2306,7 +2306,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember);
             assertExtension(s, itemManager);
@@ -2357,7 +2357,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni");
             assertExtension(s, itemMember, "banderson", "kwhite");
             assertExtension(s, itemManager, "jack", "jim");
@@ -2429,7 +2429,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni2");
             assertExtension(s, itemMember, "banderson2", "kwhite2");
             assertExtension(s, itemManager, "jack2", "jim2");
@@ -2499,7 +2499,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName, "alumni3");
             assertExtension(s, itemMember, "banderson3", "kwhite3");
             assertExtension(s, itemManager, "jack3", "jim3");
@@ -2557,7 +2557,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         queryListener.dumpAndStop();
 
         try (Session session = factory.openSession()) {
-            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            RShadow s = session.get(RShadow.class, shadowOid);
             assertExtension(s, itemGroupName);
             assertExtension(s, itemMember);
             assertExtension(s, itemManager);

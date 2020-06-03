@@ -33,7 +33,7 @@ import javax.persistence.*;
 )
 @ForeignKey(name = "fk_report")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RReport extends RObject<ReportType> {
+public class RReport extends RObject {
 
     private RPolyString nameCopy;
     private ROrientationType orientation;

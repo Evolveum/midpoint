@@ -28,7 +28,7 @@ import javax.persistence.*;
 @Table(indexes = {
         @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
         @Index(name = "iReportOutputNameNorm", columnList = "name_norm")})
-public class RReportOutput extends RObject<ReportOutputType> {
+public class RReportOutput extends RObject {
 
     private RPolyString nameCopy;
     private REmbeddedReference reportRef;

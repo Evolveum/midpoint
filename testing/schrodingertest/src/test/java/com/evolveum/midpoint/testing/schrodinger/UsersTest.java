@@ -96,9 +96,9 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItem("subtype")
-                            .inputValueWithEnter("Extern")
-                        .and()
+                        .byItemName("subtype")
+                            .inputValue("Extern")
+                    .updateSearch()
                     .and()
                 .currentTableContains("searchUser")
         );
@@ -107,9 +107,9 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItem("subtype")
-                            .inputValueWithEnter("Employee")
-                        .and()
+                        .byItemName("subtype")
+                            .inputValue("Employee")
+                    .updateSearch()
                     .and()
                 .currentTableContains("searchUser")
         );

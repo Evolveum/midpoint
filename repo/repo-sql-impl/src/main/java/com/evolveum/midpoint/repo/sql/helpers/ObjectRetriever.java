@@ -621,7 +621,7 @@ public class ObjectRetriever {
             return;
         }
 
-        RObject<?> rObject = null;
+        RObject rObject = null;
         for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
             if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getItemName()),
                     retrieveOptions, false)) {

@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RSystemConfiguration extends RObject<SystemConfigurationType> {
+public class RSystemConfiguration extends RObject {
 
     private RPolyString nameCopy;
 

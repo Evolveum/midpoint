@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.hibernate.Session;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -203,7 +201,7 @@ public class DeltaUpdaterUtils {
         clearExtensionCollection(extension.getStrings(), session);
     }
 
-    public static void clearExtension(RObject<?> obj, RObjectExtensionType extType, Session session) {
+    public static void clearExtension(RObject obj, RObjectExtensionType extType, Session session) {
         clearExtensionCollection(obj.getBooleans(), extType, session);
         clearExtensionCollection(obj.getDates(), extType, session);
         clearExtensionCollection(obj.getLongs(), extType, session);

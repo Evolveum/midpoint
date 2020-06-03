@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,17 +7,13 @@
 
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
-import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.util.Collections;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
 import org.apache.catalina.Valve;
-import org.apache.catalina.valves.RemoteIpValve;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,20 +21,19 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.embedded.TomcatWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -46,10 +41,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 
-import java.lang.management.ManagementFactory;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.gui.impl.factory.panel.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -81,7 +78,16 @@ import java.util.List;
 })
 @Profile("!test")
 @SpringBootConfiguration
-@ComponentScan(basePackages = {"com.evolveum.midpoint.web.security.factory", "com.evolveum.midpoint.gui", "com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@ComponentScan(
+        basePackages = {
+                "com.evolveum.midpoint.web.security.factory",
+                "com.evolveum.midpoint.gui",
+                "com.evolveum.midpoint.gui.api"
+        },
+        basePackageClasses = {
+                TextAreaPanelFactory.class,
+                GuiComponentRegistryImpl.class
+        })
 @EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
@@ -105,16 +111,13 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             System.exit(SpringApplication.exit(applicationContext, () -> 0));
 
         } else {
-
             applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
                         " Application started context:" + applicationContext);
             }
-
         }
-
     }
 
     @Override
@@ -169,27 +172,13 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
     @Component
     @EnableConfigurationProperties(ServerProperties.class)
-    public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+    public class ServerCustomization implements WebServerFactoryCustomizer<MidPointTomcatServletWebServerFactory> {
 
         @Value("${server.servlet.session.timeout}")
         private int sessionTimeout;
+
         @Value("${server.servlet.context-path}")
         private String servletPath;
-
-        @Value("${server.use-forward-headers:false}")
-        private Boolean useForwardHeaders;
-
-        @Value("${server.tomcat.internal-proxies:@null}")
-        private String internalProxies;
-
-        @Value("${server.tomcat.protocol-header:@null}")
-        private String protocolHeader;
-
-        @Value("${server.tomcat.protocol-header-https-value:@null}")
-        private String protocolHeaderHttpsValue;
-
-        @Value("${server.tomcat.port-header:@null}")
-        private String portHeader;
 
         @Autowired
         private ServerProperties serverProperties;
@@ -197,11 +186,15 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
         @Autowired
         private TaskManager taskManager;
 
-        @Override
-        public void customize(ConfigurableServletWebServerFactory serverFactory) {
+        @Autowired
+        private Environment env;
 
-            ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
-            servletWebServerFactoryCustomizer.customize(serverFactory);
+        @Override
+        public void customize(MidPointTomcatServletWebServerFactory serverFactory) {
+            ServletWebServerFactoryCustomizer webServletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
+            webServletWebServerFactoryCustomizer.customize(serverFactory);
+            TomcatWebServerFactoryCustomizer tomcatWebServerFactoryCustomizer = new TomcatWebServerFactoryCustomizer(env, serverProperties);
+            tomcatWebServerFactoryCustomizer.customize(serverFactory);
 
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED, "/error/401"));
             serverFactory.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN, "/error/403"));
@@ -213,48 +206,16 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
             session.setTimeout(Duration.ofMinutes(sessionTimeout));
             serverFactory.setSession(session);
 
-            if (serverFactory instanceof TomcatServletWebServerFactory) {
-                customizeTomcat((TomcatServletWebServerFactory) serverFactory);
-            }
-        }
-
-        private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
-            // set tomcat context.
-            TomcatContextCustomizer contextCustomizer = new TomcatContextCustomizer() {
-                @Override
-                public void customize(Context context) {
-                    setTomcatContext(context);
-                }
-            };
-            List<TomcatContextCustomizer> contextCustomizers = new ArrayList<>();
-            contextCustomizers.add(contextCustomizer);
-            tomcatFactory.setTomcatContextCustomizers(contextCustomizers);
+            serverFactory.setTomcatContextCustomizers(
+                    Collections.singleton(MidPointSpringApplication.this::setTomcatContext));
 
             // Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
             // See comments in TomcatRootValve
             Valve rootValve = new TomcatRootValve(servletPath);
-            tomcatFactory.addEngineValves(rootValve);
+            serverFactory.addEngineValves(rootValve);
 
             Valve nodeIdHeaderValve = new NodeIdHeaderValve(taskManager);
-            tomcatFactory.addEngineValves(nodeIdHeaderValve);
-
-            if (useForwardHeaders) {
-                RemoteIpValve remoteIpValve = new RemoteIpValve();
-                if (StringUtils.isNotEmpty(internalProxies)) {
-                    remoteIpValve.setInternalProxies(internalProxies);
-                }
-                if (StringUtils.isNotEmpty(protocolHeader)) {
-                    remoteIpValve.setProtocolHeader(protocolHeader);
-                }
-                if (StringUtils.isNotEmpty(protocolHeaderHttpsValue)) {
-                    remoteIpValve.setProtocolHeaderHttpsValue(protocolHeaderHttpsValue);
-                }
-                if (StringUtils.isNotEmpty(portHeader)) {
-                    remoteIpValve.setPortHeader(portHeader);
-                }
-                tomcatFactory.addEngineValves(remoteIpValve);
-            }
+            serverFactory.addEngineValves(nodeIdHeaderValve);
         }
-
     }
 }
