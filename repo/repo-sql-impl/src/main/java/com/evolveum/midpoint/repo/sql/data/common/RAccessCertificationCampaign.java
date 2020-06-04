@@ -41,7 +41,7 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_campaign")
-public class RAccessCertificationCampaign extends RObject<AccessCertificationCampaignType> {
+public class RAccessCertificationCampaign extends RObject {
 
     public static final String TABLE_NAME = "m_acc_cert_campaign";
 

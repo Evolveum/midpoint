@@ -47,7 +47,7 @@ import java.util.Objects;
         @Index(name = "iOpExecStatus", columnList = "status"),
         @Index(name = "iOpExecOwnerOid", columnList = "owner_oid")})
 @Persister(impl = MidPointSingleTablePersister.class)
-public class ROperationExecution implements Container<RObject<?>> {
+public class ROperationExecution implements Container<RObject> {
 
     public static final String F_OWNER = "owner";
 
@@ -55,7 +55,7 @@ public class ROperationExecution implements Container<RObject<?>> {
 
     private Boolean trans;
 
-    private RObject<?> owner;
+    private RObject owner;
     private String ownerOid;
     private Integer id;
 
@@ -68,7 +68,7 @@ public class ROperationExecution implements Container<RObject<?>> {
         this(null);
     }
 
-    public ROperationExecution(RObject<?> owner) {
+    public ROperationExecution(RObject owner) {
         this.setOwner(owner);
     }
 
@@ -78,7 +78,7 @@ public class ROperationExecution implements Container<RObject<?>> {
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @Override
-    public RObject<?> getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 

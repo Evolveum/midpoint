@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 /**
  * @author Radovan Semancik
  */
-public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
+public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> implements ExpressionEvaluator<V> {
 
     private final QName elementName;
     private final ItemPath path;
@@ -49,8 +49,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
     private final D outputDefinition;
     private final Protector protector;
 
-
-    public PathExpressionEvaluator(QName elementName, ItemPath path, ObjectResolver objectResolver,
+    PathExpressionEvaluator(QName elementName, ItemPath path, ObjectResolver objectResolver,
             D outputDefinition, Protector protector, PrismContext prismContext) {
         this.elementName = elementName;
         this.path = path;
@@ -65,12 +64,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         return elementName;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context,
-            OperationResult result)
+    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
@@ -174,15 +169,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "path: "+path;
     }
-
-
-
-
 }

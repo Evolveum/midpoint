@@ -21,13 +21,10 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static java.util.Collections.emptyList;
@@ -37,36 +34,36 @@ import static java.util.Collections.emptyList;
  */
 public class AssignmentTargetSearchExpressionEvaluator
             extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>,
-                                                      PrismContainerDefinition<AssignmentType>> {
+                                                      PrismContainerDefinition<AssignmentType>,
+                                                      AssignmentTargetSearchExpressionEvaluatorType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
-
-    public AssignmentTargetSearchExpressionEvaluator(QName elementName, AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
-            PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService,
-            CacheConfigurationManager cacheConfigurationManager) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService,
-                cacheConfigurationManager);
+    AssignmentTargetSearchExpressionEvaluator(QName elementName,
+            AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
+            PrismContainerDefinition<AssignmentType> outputDefinition,Protector protector, PrismContext prismContext,
+            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
+            LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
+        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver,
+                modelService, securityContextManager, localizationService, cacheConfigurationManager);
     }
 
-    protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
-        AssignmentType assignmentType = new AssignmentType(getPrismContext());
-        PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
+    protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName,
+            List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas,
+            ExpressionEvaluationContext context) {
 
-        ObjectReferenceType targetRef = new ObjectReferenceType();
-        targetRef.setOid(oid);
-        targetRef.setType(targetTypeQName);
-        targetRef.setRelation(getRelation());
-        assignmentType.setTargetRef(targetRef);
-        assignmentType.getSubtype().addAll(getSubtypes());
+        AssignmentType assignment = new AssignmentType(prismContext)
+                .targetRef(oid, targetTypeQName, getRelation());
+        assignment.getSubtype().addAll(getSubtypes());
+
+        //noinspection unchecked
+        PrismContainerValue<AssignmentType> assignmentCVal = assignment.asPrismContainerValue();
 
         try {
             if (additionalAttributeDeltas != null) {
                 ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, assignmentCVal);
             }
-            getPrismContext().adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
+            prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
             if (InternalsConfig.consistencyChecks) {
-                assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+params.getContextDescription());
+                assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+context.getContextDescription());
             }
         } catch (SchemaException e) {
             // Should not happen
@@ -77,26 +74,17 @@ public class AssignmentTargetSearchExpressionEvaluator
     }
 
     private QName getRelation() {
-        AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType = (AssignmentTargetSearchExpressionEvaluatorType) getExpressionEvaluatorType();
-        AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorType.getAssignmentProperties();
-        if (assignmentProperties != null) {
-            return assignmentProperties.getRelation();
-        } else {
-            return null;
-        }
+        AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorBean.getAssignmentProperties();
+        return assignmentProperties != null ? assignmentProperties.getRelation() : null;
     }
 
     private List<String> getSubtypes() {
-        AssignmentTargetSearchExpressionEvaluatorType evaluator = (AssignmentTargetSearchExpressionEvaluatorType) getExpressionEvaluatorType();
+        AssignmentTargetSearchExpressionEvaluatorType evaluator = expressionEvaluatorBean;
         return evaluator.getAssignmentProperties() != null ? evaluator.getAssignmentProperties().getSubtype() : emptyList();
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "assignmentTargetSearchExpression";
     }
-
 }

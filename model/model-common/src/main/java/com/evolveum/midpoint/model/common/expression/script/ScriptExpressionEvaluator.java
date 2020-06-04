@@ -11,7 +11,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -28,10 +28,10 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Radovan Semancik
@@ -39,9 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
                 extends AbstractValueTransformationExpressionEvaluator<V,D,ScriptExpressionEvaluatorType> {
 
-    private ScriptExpression scriptExpression;
-
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
+    private final ScriptExpression scriptExpression;
 
     ScriptExpressionEvaluator(QName elementName, ScriptExpressionEvaluatorType scriptType, D outputDefinition, Protector protector, PrismContext prismContext,
             ScriptExpression scriptExpression,
@@ -51,15 +49,16 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
     }
 
     @Override
-    protected void checkEvaluatorProfile(ExpressionEvaluationContext context) throws SecurityViolationException {
+    protected void checkEvaluatorProfile(ExpressionEvaluationContext context) {
         // Do nothing here. The profile will be checked inside ScriptExpression.
     }
 
     @Override
+    @NotNull
     protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
             ExpressionEvaluationContext eCtx, String contextDescription, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
+        ScriptExpressionReturnTypeType returnType = expressionEvaluatorBean.getReturnType();
         if (returnType == null && isRelative()) {
             returnType = ScriptExpressionReturnTypeType.SCALAR;
         }
@@ -77,9 +76,6 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
         return (List<V>) scriptExpression.evaluate(sCtx);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "script: "+scriptExpression.toString();

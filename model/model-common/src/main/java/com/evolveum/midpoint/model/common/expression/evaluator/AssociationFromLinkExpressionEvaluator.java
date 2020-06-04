@@ -63,7 +63,7 @@ public class AssociationFromLinkExpressionEvaluator
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
-    private ObjectResolver objectResolver;
+    private final ObjectResolver objectResolver;
 
     AssociationFromLinkExpressionEvaluator(QName elementName, AssociationFromLinkExpressionEvaluatorType evaluatorType,
             PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver) {
@@ -84,7 +84,7 @@ public class AssociationFromLinkExpressionEvaluator
 
         AbstractRoleType thisRole;
 
-        Integer assignmentPathIndex = getExpressionEvaluatorType().getAssignmentPathIndex();
+        Integer assignmentPathIndex = expressionEvaluatorBean.getAssignmentPathIndex();
         if (assignmentPathIndex == null) {
             // Legacy ... or default in simple cases
             @SuppressWarnings("unchecked")
@@ -113,7 +113,7 @@ public class AssociationFromLinkExpressionEvaluator
                 throw new ExpressionEvaluationException("Empty assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
             }
 
-            LOGGER.trace("assignmentPath {}:\n{}", getExpressionEvaluatorType().getDescription(), assignmentPath.debugDumpLazily(1));
+            LOGGER.trace("assignmentPath {}:\n{}", expressionEvaluatorBean.getDescription(), assignmentPath.debugDumpLazily(1));
 
             AssignmentPathSegment segment;
             try {
@@ -125,7 +125,7 @@ public class AssociationFromLinkExpressionEvaluator
             thisRole = (AbstractRoleType) segment.getSource();
         }
 
-        LOGGER.trace("thisRole {}: {}", getExpressionEvaluatorType().getDescription(), thisRole);
+        LOGGER.trace("thisRole {}: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
         LOGGER.trace("Evaluating association from link on: {}", thisRole);
 
@@ -135,7 +135,7 @@ public class AssociationFromLinkExpressionEvaluator
         }
         RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
 
-        ShadowDiscriminatorType projectionDiscriminator = getExpressionEvaluatorType().getProjectionDiscriminator();
+        ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
         if (projectionDiscriminator == null) {
             throw new ExpressionEvaluationException("No projectionDiscriminator in "+desc);
         }
@@ -232,7 +232,7 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     private boolean matchesForRecursion(OrgType thisOrg) {
-        for (String recurseUpOrgType: getExpressionEvaluatorType().getRecurseUpOrgType()) {
+        for (String recurseUpOrgType: expressionEvaluatorBean.getRecurseUpOrgType()) {
             if (FocusTypeUtil.determineSubTypes(thisOrg).contains(recurseUpOrgType)) {
                 return true;
             }

@@ -16,13 +16,17 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author Radovan Semancik
  */
 public interface ScriptEvaluator {
 
+    @NotNull
     <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
-            throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException;
+            throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
     /**
      * Returns human readable name of the language that this evaluator supports
@@ -33,5 +37,4 @@ public interface ScriptEvaluator {
      * Returns URL of the language that this evaluator can handle
      */
     String getLanguageUrl();
-
 }

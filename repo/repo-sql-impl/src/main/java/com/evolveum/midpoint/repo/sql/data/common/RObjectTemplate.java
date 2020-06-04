@@ -37,7 +37,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RObjectTemplate extends RObject<ObjectTemplateType> {
+public class RObjectTemplate extends RObject {
 
     private RPolyString nameCopy;
     private Set<RObjectReference<RObjectTemplate>> includeRef;

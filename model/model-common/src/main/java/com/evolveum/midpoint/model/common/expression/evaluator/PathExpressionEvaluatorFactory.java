@@ -7,11 +7,12 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -36,7 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
-    private static final QName ELEMENT_NAME = new ObjectFactory().createPath(null).getName();
+    private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_PATH;
 
     private final PrismContext prismContext;
     private final Protector protector;
@@ -53,31 +53,20 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
         return ELEMENT_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition, com.evolveum.midpoint.prism.PrismContext)
-     */
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
-            ExpressionFactory factory,
+            ExpressionFactory expressionFactory,
             String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for path expression evaluator");
 
-        if (evaluatorElements.size() > 1) {
-            throw new SchemaException("More than one evaluator specified in "+contextDescription);
-        }
-        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-
-        Object evaluatorElementObject = evaluatorElement.getValue();
-        if (!(evaluatorElementObject instanceof ItemPathType)) {
-            throw new IllegalArgumentException("Path expression cannot handle elements of type "
-                    + evaluatorElementObject.getClass().getName()+" in "+contextDescription);
-        }
-        ItemPath path = ((ItemPathType)evaluatorElementObject).getItemPath();
-        return new PathExpressionEvaluator<>(ELEMENT_NAME, path, getObjectResolver(), outputDefinition, protector, prismContext);
+        ItemPathType path = Objects.requireNonNull(
+                getSingleEvaluatorBean(evaluatorElements, ItemPathType.class, contextDescription),
+                () -> "missing path specification in " + contextDescription);
+        return new PathExpressionEvaluator<>(ELEMENT_NAME, path.getItemPath(), getObjectResolver(),
+                outputDefinition, protector, prismContext);
     }
-
 }

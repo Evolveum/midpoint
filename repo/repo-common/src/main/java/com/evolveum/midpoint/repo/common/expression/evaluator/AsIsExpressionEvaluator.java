@@ -29,8 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
  */
 public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
 
-    public AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
-        super(elementName, asIsExpressionEvaluatorType, outputDefinition, protector, prismContext);
+    AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType evaluatorBean, D outputDefinition, Protector protector, PrismContext prismContext) {
+        super(elementName, evaluatorBean, outputDefinition, protector, prismContext);
     }
 
     @Override
@@ -44,6 +44,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
             throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
         }
         if (context.getSources().size() > 1) {
+            //noinspection unchecked
             Source<V,D> defaultSource = (Source<V,D>) context.getDefaultSource();
             if (defaultSource != null) {
                 source = defaultSource;
@@ -52,6 +53,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
                     +" sources specified) without specification of a default source, in "+ context.getContextDescription());
             }
         } else {
+            //noinspection unchecked
             source = (Source<V,D>) context.getSources().iterator().next();
         }
         PrismValueDeltaSetTriple<V> sourceTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
@@ -64,12 +66,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
                 protector, prismContext);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "asIs";
     }
-
 }

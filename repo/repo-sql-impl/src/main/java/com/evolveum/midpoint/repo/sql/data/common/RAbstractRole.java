@@ -7,13 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Where;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RAutoassignSpecification;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
@@ -21,18 +28,8 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.hibernate.annotations.*;
-
-import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -41,7 +38,7 @@ import java.util.Set;
         @VirtualCollection(jaxbName = @JaxbName(localPart = "inducement"), jaxbType = Set.class,
                 jpaName = "assignments", jpaType = Set.class, additionalParams = {
                 @VirtualQueryParam(name = "assignmentOwner", type = RAssignmentOwner.class,
-                        value = "ABSTRACT_ROLE")}, collectionType = RAssignment.class)})
+                        value = "ABSTRACT_ROLE") }, collectionType = RAssignment.class) })
 
 @Entity
 @org.hibernate.annotations.ForeignKey(name = "fk_abstract_role")
@@ -51,7 +48,7 @@ import java.util.Set;
         @Index(name = "iAutoassignEnabled", columnList = "autoassign_enabled")
 })
 @Persister(impl = MidPointJoinedPersister.class)
-public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
+public abstract class RAbstractRole extends RFocus {
 
     private String identifier;
     private String riskLevel;
@@ -68,7 +65,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return requestable;
     }
 
-    @Column(nullable = true)
+    @Column
     public String getApprovalProcess() {
         return approvalProcess;
     }
@@ -80,7 +77,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 3")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {
             approverRef = new HashSet<>();
@@ -144,20 +141,21 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
-        RAbstractRole<?> that = (RAbstractRole<?>) o;
+        RAbstractRole that = (RAbstractRole) o;
 
-        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
-        if (riskLevel != null ? !riskLevel.equals(that.riskLevel) : that.riskLevel != null) return false;
-        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) return false;
-        if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null) return false;
-        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null) return false;
-        if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
+        if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) { return false; }
+        if (riskLevel != null ? !riskLevel.equals(that.riskLevel) : that.riskLevel != null) { return false; }
+        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) { return false; }
+        if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null) { return false; }
+        if (approverRef != null ? !approverRef.equals(that.approverRef) : that.approverRef != null) { return false; }
+        if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null) {
             return false;
-        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) return false;
+        }
+        if (ownerRef != null ? !ownerRef.equals(that.ownerRef) : that.ownerRef != null) { return false; }
         return autoassign != null ? autoassign.equals(that.autoassign) : that.autoassign == null;
     }
 
@@ -175,7 +173,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     // dynamically called
-    public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
+    public static void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 

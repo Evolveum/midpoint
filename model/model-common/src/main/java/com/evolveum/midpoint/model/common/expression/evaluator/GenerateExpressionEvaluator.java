@@ -81,10 +81,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         ValuePolicyType valuePolicyType = null;
 
-
-        ObjectReferenceType generateEvaluatorValuePolicyRef = getExpressionEvaluatorType().getValuePolicyRef();
+        ObjectReferenceType generateEvaluatorValuePolicyRef = expressionEvaluatorBean.getValuePolicyRef();
         if (generateEvaluatorValuePolicyRef != null) {
-            if (getExpressionEvaluatorType().getValuePolicyRef() != null) {
+            if (expressionEvaluatorBean.getValuePolicyRef() != null) {
                 valuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
                         null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), result);
             }
@@ -110,7 +109,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         //
         String stringValue = null;
-        GenerateExpressionEvaluatorModeType mode = getExpressionEvaluatorType().getMode();
+        GenerateExpressionEvaluatorModeType mode = expressionEvaluatorBean.getMode();
         Item<V, D> output = outputDefinition.instantiate();
         if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
 

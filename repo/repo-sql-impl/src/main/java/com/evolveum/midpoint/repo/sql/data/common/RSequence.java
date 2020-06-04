@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RSequence extends RObject<SequenceType> {
+public class RSequence extends RObject {
 
     private RPolyString nameCopy;
 

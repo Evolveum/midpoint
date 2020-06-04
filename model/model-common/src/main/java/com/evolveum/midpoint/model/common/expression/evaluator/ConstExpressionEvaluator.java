@@ -23,34 +23,28 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  *
  */
 public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {
 
-    private ConstantsManager constantsManager;
+    private final ConstantsManager constantsManager;
 
-    ConstExpressionEvaluator(QName elementName, ConstExpressionEvaluatorType evaluatorType, D outputDefinition,
+    ConstExpressionEvaluator(QName elementName, @NotNull ConstExpressionEvaluatorType evaluatorBean, D outputDefinition,
             Protector protector, ConstantsManager constantsManager, PrismContext prismContext) {
-        super(elementName, evaluatorType, outputDefinition, protector, prismContext);
+        super(elementName, evaluatorBean, outputDefinition, protector, prismContext);
         this.constantsManager = constantsManager;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
-     * .util.Collection, java.util.Map, boolean, java.lang.String,
-     * com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
         checkEvaluatorProfile(context);
 
-        String constName = getExpressionEvaluatorType().getValue();
+        String constName = expressionEvaluatorBean.getValue();
         String stringValue = constantsManager.getConstantValue(constName);
 
         Item<V, D> output = outputDefinition.instantiate();
@@ -75,8 +69,6 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
      */
     @Override
     public String shortDebugDump() {
-        return "const:"+getExpressionEvaluatorType().getValue();
+        return "const:"+ expressionEvaluatorBean.getValue();
     }
-
-
 }

@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RRole extends RAbstractRole<RoleType> {
+public class RRole extends RAbstractRole {
 
     private RPolyString nameCopy;
     @Deprecated //todo remove in 3.9

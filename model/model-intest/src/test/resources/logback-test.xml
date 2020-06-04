@@ -100,7 +100,7 @@
     <logger name="com.evolveum.midpoint.repo.common.expression" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.common.expression.Expression" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
-     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator" level="DEBUG" />
+     <logger name="com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
      <logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />

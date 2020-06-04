@@ -33,7 +33,7 @@ import java.util.Objects;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RFunctionLibrary extends RObject<FunctionLibraryType> {
+public class RFunctionLibrary extends RObject {
 
     private RPolyString nameCopy;
 
