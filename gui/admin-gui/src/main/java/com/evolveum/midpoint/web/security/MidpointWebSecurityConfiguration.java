@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.firewall.HttpFirewall;
 
 import javax.servlet.Filter;
 import java.util.ArrayList;
@@ -33,6 +34,9 @@ public class MidpointWebSecurityConfiguration extends WebSecurityConfiguration {
     @Autowired
     ApplicationContext context;
 
+    @Autowired(required = false)
+    private HttpFirewall firewall;
+
     @Override
     public Filter springSecurityFilterChain() throws Exception {
         Filter filter = super.springSecurityFilterChain();
@@ -46,6 +50,9 @@ public class MidpointWebSecurityConfiguration extends WebSecurityConfiguration {
                 filters = ((FilterChainProxy) filter).getFilterChains();
             }
             MidpointFilterChainProxy mpFilter = objectObjectPostProcessor.postProcess(new MidpointFilterChainProxy(filters));
+            if (firewall != null) {
+                mpFilter.setFirewall(firewall);
+            }
             mpFilter.afterPropertiesSet();
             return mpFilter;
         }
