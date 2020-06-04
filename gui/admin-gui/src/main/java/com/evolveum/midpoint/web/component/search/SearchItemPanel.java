@@ -272,20 +272,47 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 break;
             case TEXT:
                 if (lookupTable != null){
-                    searchItemField = new TextPopupPanel<T>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), lookupTable);
-//                    ((TextPopupPanel) searchItemField).getTextField().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+                    searchItemField = new AutoCompleteTextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"), String.class,
+                            true, lookupTable.asObjectable()) {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Iterator<String> getIterator(String input) {
+                            return  WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
+                                    ((PageBase)getPage()).getLocalizationService()).iterator();
+                        }
+                    };
+
+                    ((AutoCompleteTextPanel) searchItemField).getBaseFormComponent().add(new Behavior() {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void bind(Component component) {
+                            super.bind( component );
+
+                            component.add( AttributeModifier.replace( "onkeydown",
+                                    Model.of(
+                                            "if (event.keyCode == 13){"
+                                            + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
+                                            + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
+                                            + "$('[about=\"searchSimple\"]').click();}}"
+                                    )));
+                        }
+                    });
                 } else {
                     searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
                 }
                 break;
             default:
-                searchItemField = (SearchPopupPanel<T>) new TextPopupPanel<T>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), lookupTable);
+                searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
         }
         if (searchItemField == null){
             searchItemField = new WebMarkupContainer(ID_SEARCH_ITEM_FIELD);
         }
         searchItemField.setOutputMarkupId(true);
-        if (searchItemField instanceof InputPanel){
+        if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)){
             ((InputPanel)searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             ((InputPanel)searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
             ((InputPanel)searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
