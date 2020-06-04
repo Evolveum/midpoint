@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -17,11 +19,10 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -203,7 +204,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
             @Override
             protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
-                if (!isCollectionViewPanel()){
+                if (!isCollectionViewPanelForCompiledView()){
                     return null;
                 }
                 Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
@@ -271,7 +272,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             @Override
-            protected void createReportPerformed(String name, SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target) {
+            protected void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> reportWrapper,
+                    List<Integer> indexOfColumns, AjaxRequestTarget target) {
                 PrismContext prismContext = getPageBase().getPrismContext();
                 PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
                 PrismObject<ReportType> obj = null;
@@ -290,6 +292,27 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     name = getPageBase().createStringResource("ObjectTypeGuiDescriptor.report").getString() + "-" + oid;
                 }
                 report.setName(WebComponentUtil.createPolyFromOrigString(name));
+                try {
+                    PrismContainerWrapper<CsvExportType> csvConfig = reportWrapper.getObject().findContainer(ItemPath.create(ReportType.F_EXPORT, ExportConfigurationType.F_CSV));
+                    if (csvConfig != null && csvConfig.getValue() != null) {
+                        ExportConfigurationType export = new ExportConfigurationType();
+                        export.setType(ExportType.CSV);
+                        CsvExportType csv = csvConfig.getValue().getRealValue().clone();
+                        List<Item> removedItem = new ArrayList();
+                        for(Item item : (Collection<Item>) csv.asPrismContainerValue().getItems()) {
+                            if (item.getRealValue() == null) {
+                                removedItem.add(item);
+                            }
+                        }
+                        for (Item item : removedItem) {
+                            csv.asPrismContainerValue().getItems().remove(item);
+                        }
+                        export.setCsv(csv);
+                        report.setExport(export);
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find csv export container", e);
+                }
                 report.setReportEngine(ReportEngineSelectionType.COLLECTION);
                 ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
                 objectCollection.setUseOnlyReportView(true);
@@ -464,14 +487,14 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
-        if (isCollectionViewPanel()){
+        if (isCollectionViewPanelForCompiledView()){
             return new ArrayList<>();
         }
         return getAllApplicableArchetypeViews();
     }
 
     protected DisplayType getNewObjectButtonStandardDisplayType(){
-        if (isCollectionViewPanel()) {
+        if (isCollectionViewPanelForCompiledView()) {
 
             CompiledObjectCollectionView view = getObjectCollectionView();
             if (isArchetypedCollectionView(view)) {

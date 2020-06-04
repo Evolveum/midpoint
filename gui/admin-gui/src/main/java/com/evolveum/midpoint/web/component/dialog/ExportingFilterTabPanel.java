@@ -42,7 +42,6 @@ public class ExportingFilterTabPanel extends BasePanel {
     private static final String ID_FILTER_FIELD = "filter";
 
     private LoadableModel<Search> search;
-    private FeedbackAlerts feedbackList;
 
     private IModel<Boolean> check = new IModel<Boolean>() {
         private boolean check = false;
@@ -78,10 +77,9 @@ public class ExportingFilterTabPanel extends BasePanel {
         }
     };
 
-    public ExportingFilterTabPanel(String id, LoadableModel<Search> search, FeedbackAlerts feedbackList) {
+    public ExportingFilterTabPanel(String id, LoadableModel<Search> search) {
         super(id);
         this.search = search;
-        this.feedbackList = feedbackList;
     }
 
     @Override

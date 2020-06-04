@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.dialog.ExportingPanel;
 
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -160,8 +162,9 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                     }
 
                     @Override
-                    protected void createReportPerformed(String name, SearchFilterType filter, AjaxRequestTarget target) {
-                        CsvDownloadButtonPanel.this.createReportPerformed(name, filter, exportableColumnsIndex, target);
+                    protected void createReportPerformed(String name, SearchFilterType filter,
+                            IModel<PrismObjectWrapper<ReportType>> report, AjaxRequestTarget target) {
+                        CsvDownloadButtonPanel.this.createReportPerformed(name, filter, report, exportableColumnsIndex, target);
                     }
 
                     @Override
@@ -188,7 +191,7 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
     protected abstract String getFilename();
 
-    protected abstract void createReportPerformed(String name, SearchFilterType filter, List<Integer> indexOfColumns, AjaxRequestTarget target);
+    protected abstract void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> report, List<Integer> indexOfColumns, AjaxRequestTarget target);
 
     public boolean isVisibleCreateReportOption() {
         return true;

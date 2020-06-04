@@ -17067,6 +17067,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17074,7 +17075,12 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
+                                This condition use only for reports and as last option because of performance.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                          <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">

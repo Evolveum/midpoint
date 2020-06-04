@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -381,11 +383,14 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         SearchFilterType searchFilter;
         SearchFilterType searchFilterForMerge = null;
         Collection<SelectorOptions<GetOperationOptions>> options = defaultOptions;
         Class<ObjectType> type;
+        ExpressionType condition = null;
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
@@ -403,6 +408,9 @@ public class DashboardServiceImpl implements DashboardService {
             if (collection.getSelectorOptions() != null) {
                 options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
             }
+            if (collection.getCondition() != null) {
+                condition = collection.getCondition();
+            }
         } else {
             searchFilter = collectionConfig.getFilter();
             if (collectionConfig.getBaseCollectionRef() != null &&
@@ -419,6 +427,9 @@ public class DashboardServiceImpl implements DashboardService {
                             .getCompileTimeClassForObjectType(collection.getType());
                     if (collection.getSelectorOptions() != null) {
                         options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
+                    }
+                    if (collection.getCondition() != null) {
+                        condition = collection.getCondition();
                     }
                 } else {
                     searchFilterForMerge = collectionConfig.getBaseCollectionRef().getFilter();
@@ -468,11 +479,53 @@ public class DashboardServiceImpl implements DashboardService {
 
 
         ObjectFilter objectFilter = query.getFilter();
-        objectFilter = collectionProcessor.evaluateExpressionsInFilter(objectFilter, task.getResult(), task);
+        objectFilter = collectionProcessor.evaluateExpressionsInFilter(objectFilter, result, task);
         query.setFilter(objectFilter);
         List<PrismObject<ObjectType>> values;
-        values = modelService.searchObjects(type, query, options, task, task.getResult());
+        values = modelService.searchObjects(type, query, options, task, result);
+        if(condition != null) {
+            return evaluateCondition(condition, values, task, result);
+        }
         return values;
+    }
+
+    @Override
+    public List<AuditEventRecord> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        List<AuditEventRecord> auditRecords = new ArrayList<>();
+        if (collectionConfig.getCollectionRef() != null) {
+            ObjectReferenceType ref = collectionConfig.getCollectionRef();
+            Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
+            ObjectCollectionType collection = (ObjectCollectionType) modelService
+                    .getObject(refType, ref.getOid(), null, task, result).asObjectable();
+            if (collection.getAuditSearch() != null) {
+                Map<String, Object> parameters = new HashMap<>();
+                String query = DashboardUtils.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
+                auditRecords = auditService.listRecords(query, parameters, result);
+                if (auditRecords == null) {
+                    auditRecords = new ArrayList<>();
+                }
+                if (collection.getCondition() != null) {
+                    return evaluateCondition(collection.getCondition(), auditRecords, task, result);
+                }
+            }
+        }
+        return auditRecords;
+    }
+
+    private <T extends Object> List<T> evaluateCondition(ExpressionType condition, List<T> values, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        List<T> newValues = new ArrayList();
+        for (T value : values) {
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+            PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, expressionFactory,
+                    "Evaluate condition", task, result);
+            if (conditionValue != null && Boolean.TRUE.equals(conditionValue.getRealValue())) {
+                newValues.add(value);
+            }
+        }
+        return newValues;
     }
 
     @Override
