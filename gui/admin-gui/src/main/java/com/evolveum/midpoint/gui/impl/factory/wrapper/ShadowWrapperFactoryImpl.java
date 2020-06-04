@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -23,8 +27,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ShadowWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<ShadowType> {
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowWrapperFactoryImpl.class);
+
     @Override
     public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {
+        LOGGER.info("create shadow wrapper");
         return new ShadowWrapperImpl(object, status);
     }
 
