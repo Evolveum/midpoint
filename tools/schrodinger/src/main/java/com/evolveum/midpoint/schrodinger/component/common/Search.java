@@ -15,7 +15,6 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.interactions.Coordinates;
 
 import static com.codeborne.selenide.Selectors.byText;
 
@@ -36,11 +35,27 @@ public class Search<T> extends Component<T> {
         return new SearchItemField(this, nameInput);
     }
 
+    public SearchItemField<Search<T>> byItemName(String itemName) {
+        choiceBasicSearch();
+        SelenideElement itemElement = getItemByName(itemName);
+        if (itemElement == null){
+            addSearchItem(itemName);
+            itemElement = getItemByName(itemName);
+        }
+        if (itemElement == null){
+            return new SearchItemField(this, null);
+        }
+        SelenideElement itemElementInput = itemElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new SearchItemField(this, itemElementInput);
+    }
+
     public Search<T> updateSearch(){
         SelenideElement simpleSearchButton = getParentElement().$(Schrodinger.byDataId("searchSimple"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
+        this.getParentElement().screenshot();
         return this;
     }
 
@@ -72,9 +87,12 @@ public class Search<T> extends Component<T> {
         getParentElement().$x(".//a[@"+Schrodinger.DATA_S_ID+"='more']").waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         SelenideElement popover = getDisplayedPopover();
-        popover.$x(".//input[@"+Schrodinger.DATA_S_ID+"='addText']").setValue(name);
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        popover.$x(".//a[@"+Schrodinger.DATA_S_ID+"='propLink']").click();
+        popover.$(Schrodinger.byElementValue("a", name))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+
+//        popover.$x(".//input[@"+Schrodinger.DATA_S_ID+"='addText']").setValue(name);
+//        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+//        popover.$x(".//a[@"+Schrodinger.DATA_S_ID+"='propLink']").click();
         return this;
     }
 
@@ -97,10 +115,10 @@ public class Search<T> extends Component<T> {
         return new Popover<>(this, getDisplayedPopover());
     }
 
-    private SelenideElement getItemByName(String name) {
+    public SelenideElement getItemByName(String name) {
         ElementsCollection items = getParentElement().findAll(By.className("search-item"));
         for (SelenideElement item : items) {
-            if (item.$(byText(name)) != null) {
+            if (item.$(byText(name)).exists()) {
                 return item;
             }
         }

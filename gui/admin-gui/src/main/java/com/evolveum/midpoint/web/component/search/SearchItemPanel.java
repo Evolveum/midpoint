@@ -10,9 +10,11 @@ package com.evolveum.midpoint.web.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
@@ -189,6 +191,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         Component searchItemField = null;
         SearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<T>>> choices = null;
+        PrismObject<LookupTableType> lookupTable = findLookupTable(item.getDefinition());
         switch (item.getType()) {
             case REFERENCE:
                 //TODO change probably to another component
@@ -273,10 +276,13 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 }, true);
                 break;
             case TEXT:
-                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
+                if (lookupTable != null){
+                    searchItemField = (SearchPopupPanel<T>) new TextPopupPanel<T>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), lookupTable);
+                } else {
+                    searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
+                }
                 break;
             default:
-                PrismObject<LookupTableType> lookupTable = findLookupTable(item.getDefinition());
                 searchItemField = (SearchPopupPanel<T>) new TextPopupPanel<T>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"), lookupTable);
         }
         if (searchItemField == null){

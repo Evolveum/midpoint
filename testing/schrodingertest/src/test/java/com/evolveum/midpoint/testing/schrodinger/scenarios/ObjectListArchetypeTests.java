@@ -79,6 +79,8 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
                 .$(Schrodinger.byDataId("edit"))
                 .click();
 
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+
         SelenideElement modalWindow = $(By.className("wicket-modal"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
@@ -96,7 +98,7 @@ public class ObjectListArchetypeTests extends AbstractSchrodingerTest {
                     .clickByName(ARCHETYPE_OBJECT_NAME);
 
         Assert.assertTrue(prismForm
-                .compareInputAttributeValue(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
+                .compareInputAttributeValueInNewContainer(COLLECTION_REF_ATTRIBUTE_NAME, ARCHETYPE_OBJECT_NAME + ": ArchetypeType"));
 
         adminGuiTab
                 .getParent()

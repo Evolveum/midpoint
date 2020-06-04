@@ -35,7 +35,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class ROrg extends RAbstractRole<OrgType> {
+public class ROrg extends RAbstractRole {
 
     private RPolyString nameCopy;
     @Deprecated //todo remove collection in 3.9

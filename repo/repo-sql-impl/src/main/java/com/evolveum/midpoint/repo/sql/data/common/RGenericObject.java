@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RGenericObject extends RFocus<GenericObjectType> {
+public class RGenericObject extends RFocus {
 
     private RPolyString nameCopy;
     private String objectType;

@@ -8,8 +8,16 @@
 
 package com.evolveum.midpoint.prism.foo;
 
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -17,25 +25,16 @@ import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "EventHandlerChainType", propOrder = {
-    "handler"
+        "handler"
 })
 public class EventHandlerChainType
-    extends EventHandlerType
-    implements Serializable, Cloneable, Equals, HashCode
-{
+        extends EventHandlerType
+        implements Serializable, Cloneable, Equals, HashCode {
     public final static QName COMPLEX_TYPE = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "EventHandlerChainType");
 
     private final static long serialVersionUID = 201105211233L;
@@ -44,7 +43,6 @@ public class EventHandlerChainType
 
     /**
      * Creates a new {@code EventHandlerChainType} instance.
-     *
      */
     public EventHandlerChainType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -54,11 +52,8 @@ public class EventHandlerChainType
     /**
      * Creates a new {@code EventHandlerChainType} instance by deeply copying a given {@code EventHandlerChainType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public EventHandlerChainType(final EventHandlerChainType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -67,7 +62,7 @@ public class EventHandlerChainType
             throw new NullPointerException("Cannot create a copy of 'EventHandlerChainType' from 'null'.");
         }
         // 'Handler' collection.
-        if (o.handler!= null) {
+        if (o.handler != null) {
             copyHandler(o.getHandler(), this.getHandler());
         }
     }
@@ -103,8 +98,6 @@ public class EventHandlerChainType
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link EventHandlerForkType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link EventOperationFilterType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleUserNotifierType }{@code >}
-     *
-     *
      */
     public List<JAXBElement<? extends EventHandlerType>> getHandler() {
         if (handler == null) {
@@ -116,15 +109,12 @@ public class EventHandlerChainType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = super.hashCode(locator, strategy);
-        {
-            List<JAXBElement<? extends EventHandlerType>> theHandler;
-            theHandler = (((this.handler!= null)&&(!this.handler.isEmpty()))?this.getHandler():null);
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "handler", theHandler), currentHashCode, theHandler);
-        }
+        List<JAXBElement<? extends EventHandlerType>> theHandler;
+        theHandler = (((this.handler != null) && (!this.handler.isEmpty())) ? this.getHandler() : null);
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "handler", theHandler), currentHashCode, theHandler);
         return currentHashCode;
     }
 
@@ -144,18 +134,14 @@ public class EventHandlerChainType
             return false;
         }
         final EventHandlerChainType that = ((EventHandlerChainType) object);
-        {
-            List<JAXBElement<? extends EventHandlerType>> lhsHandler;
-            lhsHandler = (((this.handler!= null)&&(!this.handler.isEmpty()))?this.getHandler():null);
-            List<JAXBElement<? extends EventHandlerType>> rhsHandler;
-            rhsHandler = (((that.handler!= null)&&(!that.handler.isEmpty()))?that.getHandler():null);
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "handler", lhsHandler), LocatorUtils.property(thatLocator, "handler", rhsHandler), lhsHandler, rhsHandler)) {
-                return false;
-            }
-        }
-        return true;
+        List<JAXBElement<? extends EventHandlerType>> lhsHandler;
+        lhsHandler = (((this.handler != null) && (!this.handler.isEmpty())) ? this.getHandler() : null);
+        List<JAXBElement<? extends EventHandlerType>> rhsHandler;
+        rhsHandler = (((that.handler != null) && (!that.handler.isEmpty())) ? that.getHandler() : null);
+        return strategy.equals(LocatorUtils.property(thisLocator, "handler", lhsHandler), LocatorUtils.property(thatLocator, "handler", rhsHandler), lhsHandler, rhsHandler);
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -164,19 +150,15 @@ public class EventHandlerChainType
     /**
      * Copies all values of property {@code Handler} deeply.
      *
-     * @param source
-     *     The source to copy from.
-     * @param target
-     *     The target to copy {@code source} to.
-     * @throws NullPointerException
-     *     if {@code target} is {@code null}.
+     * @param source The source to copy from.
+     * @param target The target to copy {@code source} to.
+     * @throws NullPointerException if {@code target} is {@code null}.
      */
     @SuppressWarnings("unchecked")
     private static void copyHandler(final List<JAXBElement<? extends EventHandlerType>> source, final List<JAXBElement<? extends EventHandlerType>> target) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if ((source!= null)&&(!source.isEmpty())) {
-            for (final Iterator<?> it = source.iterator(); it.hasNext(); ) {
-                final Object next = it.next();
+        if ((source != null) && (!source.isEmpty())) {
+            for (final Object next : source) {
                 if (next instanceof JAXBElement) {
                     // Referenced elements without classes.
                     if (((JAXBElement) next).getValue() instanceof EventOperationFilterType) {
@@ -206,7 +188,7 @@ public class EventHandlerChainType
                     }
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Handler' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType'."));
+                throw new AssertionError((("Unexpected instance '" + next) + "' for property 'Handler' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType'."));
             }
         }
     }
@@ -214,41 +196,35 @@ public class EventHandlerChainType
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType>} instance.
      *
-     * @param e
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
+     * @param e The instance to copy or {@code null}.
+     * @return A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
-    private static JAXBElement<EventOperationFilterType> copyOfEventOperationFilterTypeElement(final JAXBElement<EventOperationFilterType> e) {
+    private static JAXBElement<EventOperationFilterType> copyOfEventOperationFilterTypeElement(
+            final JAXBElement<EventOperationFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (e!= null) {
+        if (e != null) {
             final JAXBElement<EventOperationFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType
-            copy.setValue(((((EventOperationFilterType) copy.getValue()) == null)?null:((EventOperationFilterType) copy.getValue()).clone()));
+            copy.setValue(((copy.getValue() == null) ? null : copy.getValue().clone()));
             return copy;
         }
         return null;
     }
 
-
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType>} instance.
      *
-     * @param e
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
+     * @param e The instance to copy or {@code null}.
+     * @return A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static JAXBElement<EventStatusFilterType> copyOfEventStatusFilterTypeElement(final JAXBElement<EventStatusFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (e!= null) {
+        if (e != null) {
             final JAXBElement<EventStatusFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType
-            copy.setValue(((((EventStatusFilterType) copy.getValue()) == null)?null:((EventStatusFilterType) copy.getValue()).clone()));
+            copy.setValue(((copy.getValue() == null) ? null : copy.getValue().clone()));
             return copy;
         }
         return null;
@@ -257,63 +233,52 @@ public class EventHandlerChainType
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType>} instance.
      *
-     * @param e
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
+     * @param e The instance to copy or {@code null}.
+     * @return A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static JAXBElement<EventCategoryFilterType> copyOfEventCategoryFilterTypeElement(final JAXBElement<EventCategoryFilterType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (e!= null) {
+        if (e != null) {
             final JAXBElement<EventCategoryFilterType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType
-            copy.setValue(((((EventCategoryFilterType) copy.getValue()) == null)?null:((EventCategoryFilterType) copy.getValue()).clone()));
+            copy.setValue(((copy.getValue() == null) ? null : copy.getValue().clone()));
             return copy;
         }
         return null;
     }
-
 
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType>} instance.
      *
-     * @param e
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
+     * @param e The instance to copy or {@code null}.
+     * @return A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static JAXBElement<EventHandlerChainType> copyOfEventHandlerChainTypeElement(final JAXBElement<EventHandlerChainType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (e!= null) {
+        if (e != null) {
             final JAXBElement<EventHandlerChainType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType
-            copy.setValue(((((EventHandlerChainType) copy.getValue()) == null)?null:((EventHandlerChainType) copy.getValue()).clone()));
+            copy.setValue(((copy.getValue() == null) ? null : copy.getValue().clone()));
             return copy;
         }
         return null;
     }
 
-
     /**
      * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType>} instance.
      *
-     * @param e
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
+     * @param e The instance to copy or {@code null}.
+     * @return A deep copy of {@code e} or {@code null} if {@code e} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static JAXBElement<EventHandlerType> copyOfEventHandlerTypeElement(final JAXBElement<EventHandlerType> e) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (e!= null) {
+        if (e != null) {
             final JAXBElement<EventHandlerType> copy = new JAXBElement<>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
             // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType
-            copy.setValue(((((EventHandlerType) copy.getValue()) == null)?null:((EventHandlerType) copy.getValue()).clone()));
+            copy.setValue(((copy.getValue() == null) ? null : copy.getValue().clone()));
             return copy;
         }
         return null;
@@ -322,22 +287,18 @@ public class EventHandlerChainType
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public EventHandlerChainType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final EventHandlerChainType clone = ((EventHandlerChainType) super.clone());
-            // 'Handler' collection.
-            if (this.handler!= null) {
-                clone.handler = null;
-                copyHandler(this.getHandler(), clone.getHandler());
-            }
-            return clone;
+        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+        final EventHandlerChainType clone = ((EventHandlerChainType) super.clone());
+        // 'Handler' collection.
+        if (this.handler != null) {
+            clone.handler = null;
+            copyHandler(this.getHandler(), clone.getHandler());
         }
+        return clone;
     }
 
     @Override

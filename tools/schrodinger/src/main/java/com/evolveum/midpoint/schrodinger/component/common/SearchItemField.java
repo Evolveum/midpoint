@@ -14,6 +14,9 @@ public class SearchItemField<T> extends Component<T> {
     }
 
     public T inputValue(String input) {
+        if (getParentElement() == null){
+            return getParent();
+        }
         SelenideElement inputField = getParentElement().parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         if(!input.equals(inputField.getValue())) {
