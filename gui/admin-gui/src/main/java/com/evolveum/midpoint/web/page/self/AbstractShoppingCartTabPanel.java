@@ -11,13 +11,11 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -444,7 +442,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 .type(getQueryClass())
                 .build();
         ObjectFilter assignableRolesFilter = getAssignableRolesFilter();
-        if (assignableRolesFilter != null && !(assignableRolesFilter instanceof NoneFilter)){
+        if (assignableRolesFilter != null) {
             memberQuery.addFilter(assignableRolesFilter);
         }
 //        if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
