@@ -479,7 +479,6 @@ public class InboundProcessor implements ProjectorProcessor {
                 VariableProducer<PrismContainerValue<ShadowAssociationType>> entitlementVariable =
                         (value, variables) -> resolveEntitlement(value, projContext, variables);
 
-
                 LOGGER.trace("Processing association inbound from account sync absolute state (currentAccount): {}", filteredAssociations);
                 collectMappingsForTargets(context, projContext, inboundMappingType, associationQName, (Item<V,D>)filteredAssociations,
                         null, (D)associationContainerDef, focus, (VariableProducer<V>)entitlementVariable, mappingsToTarget, task, result);
@@ -1288,7 +1287,7 @@ public class InboundProcessor implements ProjectorProcessor {
                 Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(
                         sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
                         ExpressionConstants.VAR_INPUT_QNAME,
-                        (PrismPropertyDefinition<?>)sourceIdi.getDefinition());
+                        sourceIdi.getDefinition());
                 builder = builder.defaultSource(source)
                         .addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
                         .addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class)

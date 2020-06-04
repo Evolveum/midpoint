@@ -362,9 +362,6 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
         return false;
     }
 
-    /**
-     * @return
-     */
     public boolean isStructuredProperty() {
         if (!isProperty()) {
             return false;

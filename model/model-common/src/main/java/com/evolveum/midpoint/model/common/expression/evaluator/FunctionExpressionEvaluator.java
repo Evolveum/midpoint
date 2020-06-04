@@ -10,12 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -33,9 +32,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author katkav
  * @author semancik
  */
-public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, FunctionExpressionEvaluatorType> {
+public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+        extends AbstractExpressionEvaluator<V, D, FunctionExpressionEvaluatorType> {
 
-    private ObjectResolver objectResolver;
+    private final ObjectResolver objectResolver;
 
     FunctionExpressionEvaluator(QName elementName, FunctionExpressionEvaluatorType functionEvaluatorType, D outputDefinition,
             Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
@@ -43,15 +43,6 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         this.objectResolver = objectResolver;
     }
 
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
-     * .util.Collection, java.util.Map, boolean, java.lang.String,
-     * com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -59,7 +50,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
         List<ExpressionType> expressions;
 
-        ObjectReferenceType functionLibraryRef = getExpressionEvaluatorType().getLibraryRef();
+        ObjectReferenceType functionLibraryRef = expressionEvaluatorBean.getLibraryRef();
 
         if (functionLibraryRef == null) {
             throw new SchemaException("No functions library defined in "+context.getContextDescription());
@@ -82,7 +73,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             // TODO: this has to be determined from the library archetype
             ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-            String functionName = getExpressionEvaluatorType().getName();
+            String functionName = expressionEvaluatorBean.getName();
 
             if (StringUtils.isEmpty(functionName)) {
                 throw new SchemaException(
@@ -123,7 +114,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             ExpressionEvaluationContext functionContext = context.shallowClone();
             ExpressionVariables functionVariables = new ExpressionVariables();
 
-            for (ExpressionParameterType param : getExpressionEvaluatorType().getParameter()) {
+            for (ExpressionParameterType param : expressionEvaluatorBean.getParameter()) {
                 ExpressionType valueExpressionType = param.getExpression();
                 OperationResult variableResult = result
                         .createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveVariable");
@@ -165,7 +156,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             return filteredExpressions.iterator().next();
         }
 
-        List<ExpressionParameterType> functionParams = getExpressionEvaluatorType().getParameter();
+        List<ExpressionParameterType> functionParams = expressionEvaluatorBean.getParameter();
 
         for (ExpressionType filteredExpression : filteredExpressions) {
             List<ExpressionParameterType> filteredExpressionParameters = filteredExpression.getParameter();
@@ -218,26 +209,21 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         }
 
 
-            D returnTypeDef = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
-            if (returnTypeDef == null) {
-                returnTypeDef = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
-                returnTypeDef.toMutable().setMaxOccurs(functionToExecute.getReturnMultiplicity() != null && functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
-            }
-
-            return returnTypeDef;
-
-
+        ItemDefinition returnTypeDef = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
+        if (returnTypeDef != null) {
+            //noinspection unchecked
+            return (D) returnTypeDef;
+        } else {
+            MutablePrismPropertyDefinition<?> dynamicReturnTypeDef =
+                    prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
+            dynamicReturnTypeDef.setMaxOccurs(functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
+            //noinspection unchecked
+            return (D) dynamicReturnTypeDef;
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
-     * shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
-        return "function: " + getExpressionEvaluatorType().getName();
+        return "function: " + expressionEvaluatorBean.getName();
     }
-
 }

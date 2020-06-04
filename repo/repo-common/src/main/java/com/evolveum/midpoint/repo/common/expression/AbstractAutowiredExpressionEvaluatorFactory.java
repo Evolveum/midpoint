@@ -12,19 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author semancik
- *
  */
-public abstract class AbstractAutowiredExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public abstract class AbstractAutowiredExpressionEvaluatorFactory extends BaseExpressionEvaluatorFactory {
 
     @Autowired private ExpressionFactory expressionFactory;
 
-    protected ExpressionFactory getExpressionFactory() {
-        return expressionFactory;
-    }
-
     @PostConstruct
     public void register() {
-        getExpressionFactory().registerEvaluatorFactory(this);
+        expressionFactory.registerEvaluatorFactory(this);
     }
-
 }

@@ -13,6 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,17 +32,15 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-    public static final QName ELEMENT_NAME = new ObjectFactory().createScript(new ScriptExpressionEvaluatorType()).getName();
+    public static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_SCRIPT;
 
     @Autowired private ScriptExpressionFactory scriptExpressionFactory;
     @Autowired private SecurityContextManager securityContextManager;
@@ -46,12 +48,11 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     @Autowired private Protector protector;
     @Autowired private PrismContext prismContext;
 
+    @SuppressWarnings("unused") // Used by Spring
     public ScriptExpressionEvaluatorFactory() {
-        super();
-        // Nothing here
     }
 
-    // For use in tests
+    @VisibleForTesting
     public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory,
             SecurityContextManager securityContextManager, PrismContext prismContext) {
         this.scriptExpressionFactory = scriptExpressionFactory;
@@ -64,29 +65,18 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
         return ELEMENT_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.ItemDefinition)
-     */
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
+    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String contextDescription, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
 
-        if (evaluatorElements.size() > 1) {
-            throw new SchemaException("More than one evaluator specified in "+contextDescription);
-        }
-        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
+        // TODO is output definition required to be non-null here, or it can be null?
 
-        Object evaluatorElementObject = evaluatorElement.getValue();
-        if (!(evaluatorElementObject instanceof ScriptExpressionEvaluatorType)) {
-            throw new IllegalArgumentException("Script expression cannot handle elements of type " + evaluatorElementObject.getClass().getName());
-        }
-        ScriptExpressionEvaluatorType scriptType = (ScriptExpressionEvaluatorType) evaluatorElementObject;
+        ScriptExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
+                ScriptExpressionEvaluatorType.class, contextDescription);
+        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(evaluatorBean, outputDefinition,
+                expressionProfile, expressionFactory, contextDescription, result);
 
-        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition,
-                expressionProfile, factory, contextDescription, result);
-
-        return new ScriptExpressionEvaluator<V,D>(ELEMENT_NAME, scriptType, outputDefinition, protector, prismContext, scriptExpression, securityContextManager, localizationService);
-
+        return new ScriptExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, prismContext,
+                scriptExpression, securityContextManager, localizationService);
     }
-
 }

@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -15,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.extensions.AbstractDelegatedPrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,26 +23,20 @@ import org.jetbrains.annotations.NotNull;
  */
 public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
 
-    private Source<V,D> source;
+    @NotNull
+    private final Source<V,D> source;
 
-    public SourceTriple(Source<V, D> source, PrismContext prismContext) {
+    public SourceTriple(@NotNull Source<V, D> source, PrismContext prismContext) {
         super(prismContext);
         this.source = source;
     }
 
-    public SourceTriple(Source<V,D> source, @NotNull Collection<V> zeroSet, @NotNull Collection<V> plusSet, @NotNull Collection<V> minusSet, PrismContext prismContext) {
-        super(zeroSet, plusSet, minusSet, prismContext);
-        this.source = source;
-    }
-
+    @NotNull
     public Source<V,D> getSource() {
         return source;
     }
 
-    public void setSource(Source<V,D> source) {
-        this.source = source;
-    }
-
+    @NotNull
     public QName getName() {
         return source.getName();
     }

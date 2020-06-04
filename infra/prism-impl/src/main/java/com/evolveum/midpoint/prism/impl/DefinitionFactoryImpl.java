@@ -41,7 +41,7 @@ public class DefinitionFactoryImpl implements DefinitionFactory {
     }
 
     @Override
-    public MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd) {
+    public @NotNull MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd) {
         return new PrismContainerDefinitionImpl<>(name, ctd, prismContext);
     }
 

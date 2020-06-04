@@ -348,7 +348,6 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
             Task triggerScanner = runTriggerScannerOnDemand(result);
             assertTask(triggerScanner, "trigger scanner after")
                     .display()
-                    .assertClosed()
                     .assertSuccess()
                     .iterativeTaskInformation()
                         .assertSuccessCount(3);

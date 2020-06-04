@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -21,7 +22,7 @@ import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.caching.CacheUtil;
-import org.apache.commons.lang.BooleanUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
@@ -54,29 +55,27 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
 
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
-            extends AbstractValueTransformationExpressionEvaluator<V,D,SearchObjectExpressionEvaluatorType> {
+public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D extends ItemDefinition, E extends SearchObjectExpressionEvaluatorType>
+            extends AbstractValueTransformationExpressionEvaluator<V,D,E> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluator.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-    private ObjectResolver objectResolver;
-    private ModelService modelService;
+    private final ObjectResolver objectResolver;
+    private final ModelService modelService;
     protected CacheConfigurationManager cacheConfigurationManager;
 
-    AbstractSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+    AbstractSearchExpressionEvaluator(QName elementName, E expressionEvaluatorType,
             D outputDefinition, Protector protector, PrismContext prismContext,
             ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
             LocalizationService localizationService,
@@ -95,6 +94,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         return modelService;
     }
 
+    @NotNull
     @Override
     protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
             ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
@@ -108,12 +108,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 ////            LOGGER.trace("variables:\n{}", variables.debugDump(1));
 //        }
 
-        QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
+        QName targetTypeQName = expressionEvaluatorBean.getTargetType();
         if (targetTypeQName == null) {
             targetTypeQName = getDefaultTargetType();
         }
         if (targetTypeQName != null && QNameUtil.isUnqualified(targetTypeQName)) {
-            targetTypeQName = getPrismContext().getSchemaRegistry().resolveUnqualifiedTypeName(targetTypeQName);
+            targetTypeQName = prismContext.getSchemaRegistry().resolveUnqualifiedTypeName(targetTypeQName);
         }
 
         ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
@@ -126,7 +126,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         ObjectQuery query = null;
 
         List<ItemDelta<V, D>> additionalAttributeDeltas = null;
-        PopulateType populateAssignmentType = getExpressionEvaluatorType().getPopulate();
+        PopulateType populateAssignmentType = expressionEvaluatorBean.getPopulate();
         if (populateAssignmentType != null) {
             if (outputDefinition instanceof PrismContainerDefinition) {
                 additionalAttributeDeltas = PopulatorUtil.computePopulateItemDeltas(populateAssignmentType,
@@ -136,13 +136,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
             }
         }
 
-        if (getExpressionEvaluatorType().getOid() != null) {
+        if (expressionEvaluatorBean.getOid() != null) {
             resultValues = new ArrayList<>(1);
-            resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, additionalAttributeDeltas,
+            resultValues.add(createPrismValue(expressionEvaluatorBean.getOid(), targetTypeQName, additionalAttributeDeltas,
                     context));
         } else {
 
-            SearchFilterType filterType = getExpressionEvaluatorType().getFilter();
+            SearchFilterType filterType = expressionEvaluatorBean.getFilter();
             if (filterType == null) {
                 throw new SchemaException("No filter in "+shortDebugDump());
             }
@@ -165,7 +165,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
                     contextDescription, task, result);
 
             if (resultValues.isEmpty()) {
-                ObjectReferenceType defaultTargetRef = getExpressionEvaluatorType().getDefaultTargetRef();
+                ObjectReferenceType defaultTargetRef = expressionEvaluatorBean.getDefaultTargetRef();
                 if (defaultTargetRef != null) {
                     resultValues.add(createPrismValue(defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas,
                             context));
@@ -173,7 +173,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
             }
         }
 
-        if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
+        if (resultValues.isEmpty() && expressionEvaluatorBean.isCreateOnDemand() == Boolean.TRUE &&
                 (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
             String createdObjectOid = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
             resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
@@ -250,19 +250,18 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         collector.registerMiss(cacheClass, targetTypeClass, statisticsLevel);
         log("Cache: MISS {} ({})", traceMiss, query, targetTypeClass.getSimpleName());
         List<PrismObject> rawResult = new ArrayList<>();
-        list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
-        if (list != null && !list.isEmpty()) {
+        List<V> freshList = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
+        if (!freshList.isEmpty()) {
             // we don't want to cache negative results (e.g. if used with focal objects it might mean that they would be attempted to create multiple times)
             //noinspection unchecked
-            cache.putQueryResult(targetTypeClass, query, searchStrategy, params, list, rawResult, prismContext);
+            cache.putQueryResult(targetTypeClass, query, searchStrategy, params, freshList, rawResult, prismContext);
         }
-        return list;
+        return freshList;
     }
 
     private ObjectSearchStrategyType getSearchStrategy() {
-        SearchObjectExpressionEvaluatorType evaluator = getExpressionEvaluatorType();
-        if (evaluator.getSearchStrategy() != null) {
-            return evaluator.getSearchStrategy();
+        if (expressionEvaluatorBean.getSearchStrategy() != null) {
+            return expressionEvaluatorBean.getSearchStrategy();
         }
         return ObjectSearchStrategyType.IN_REPOSITORY;
     }
@@ -386,7 +385,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
         PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(targetTypeClass);
         PrismObject<O> newObject = objectDefinition.instantiate();
 
-        PopulateType populateObject = getExpressionEvaluatorType().getPopulateObject();
+        PopulateType populateObject = expressionEvaluatorBean.getPopulateObject();
 
         if (populateObject == null) {
             LOGGER.warn("No populateObject in assignment expression in {}, "
@@ -422,13 +421,9 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
     // Override the default in this case. It makes more sense like this.
     @Override
     protected boolean isIncludeNullInputs() {
-        Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
-        return includeNullInputs != null && includeNullInputs;
+        return BooleanUtils.isTrue(expressionEvaluatorBean.isIncludeNullInputs());
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "abstractSearchExpression";
