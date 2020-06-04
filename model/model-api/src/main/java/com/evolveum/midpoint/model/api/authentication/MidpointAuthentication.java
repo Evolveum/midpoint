@@ -225,7 +225,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         if (getPrincipal() instanceof MidPointPrincipal) {
             return ((MidPointPrincipal) getPrincipal()).getUsername();
         }
-        return null;
+        return "";
     }
 
     public List<ModuleAuthentication> getParallelProcessingModules() {
