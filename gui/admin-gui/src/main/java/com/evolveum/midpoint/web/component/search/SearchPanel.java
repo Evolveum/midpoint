@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -37,9 +38,13 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.util.string.CssUtils;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -47,6 +52,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.string.AppendingStringBuffer;
 import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
@@ -425,18 +431,7 @@ public class SearchPanel extends BasePanel<Search> {
             protected void onUpdate(AjaxRequestTarget target) {
             }
         });
-        fullTextInput.add(new Behavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind( component );
-
-                component.add( AttributeModifier.replace( "onkeydown",
-                        Model.of("if(event.keyCode == 13) {$('[about=\"searchSimple\"]').click();}") ) );
-            }
-        });
+        fullTextInput.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
         fullTextInput.setOutputMarkupId(true);
         fullTextInput.add(new AttributeAppender("placeholder",
                 createStringResource("SearchPanel.fullTextSearch")));
@@ -509,6 +504,10 @@ public class SearchPanel extends BasePanel<Search> {
             pageQuery = new PageRepositoryQuery();
         }
         SearchPanel.this.setResponsePage(pageQuery);
+    }
+
+    private Component getSimpleSearchButton(){
+        return get(createComponentPath(ID_FORM, ID_SEARCH_CONTAINER, ID_SEARCH_SIMPLE));
     }
 
     private IModel<String> createAdvancedGroupLabelStyle() {

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +24,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -56,27 +58,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
     private void initLayout() {
         final TextField input = initTextField();
 
-        input.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                //nothing to do, just update model data
-            }
-        });
-        input.add(new Behavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void bind(Component component) {
-                super.bind(component);
-
-                component.add(AttributeModifier.replace("onkeydown",
-                        Model.of("if(event.keyCode == 13) {event.preventDefault();}")));
-            }
-        });
+        input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         input.setOutputMarkupId(true);
         add(input);
     }
@@ -103,7 +85,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
         settings.setShowListOnEmptyInput(true);
 
 
-        return new AutoCompleteTextField<String>(ID_TEXT_INPUT, new PropertyModel<>(getModel(), SearchValue.F_VALUE), settings) {
+        AutoCompleteTextField<String> textField = new AutoCompleteTextField<String>(ID_TEXT_INPUT, new PropertyModel<>(getModel(), SearchValue.F_VALUE), settings) {
 
             private static final long serialVersionUID = 1L;
             @Override
@@ -130,8 +112,12 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
             }
 
         };
+        return textField;
     }
 
+    public FormComponent getTextField(){
+        return (FormComponent) get(ID_TEXT_INPUT);
+    }
 
     private List<String> prepareAutoCompleteList(String input) {
         List<String> values = new ArrayList<>();
