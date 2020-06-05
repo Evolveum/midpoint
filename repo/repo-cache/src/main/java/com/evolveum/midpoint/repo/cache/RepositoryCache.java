@@ -102,7 +102,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
             SystemConfigurationType.class,
             FunctionLibraryType.class);
 
-    private static final int QUERY_RESULT_SIZE_LIMIT = 100000;
+    private static final int QUERY_RESULT_SIZE_LIMIT = 100;
 
     private static final Random RND = new Random();
 
@@ -654,10 +654,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     private <T extends ObjectType> void recordObjectsFound(RepositorySearchObjectsTraceType trace,
             SearchResultList<PrismObject<T>> objectsFound, TracingLevelType level, CompiledTracingProfile tracingProfile) {
         if (isAtLeastNormal(level)) {
-            int maxFullObjects = defaultIfNull(tracingProfile.getDefinition().getRecordObjectsFound(),
-                    TraceUtil.DEFAULT_RECORD_OBJECTS_FOUND);
-            int maxReferences = defaultIfNull(tracingProfile.getDefinition().getRecordObjectReferencesFound(),
-                    TraceUtil.DEFAULT_RECORD_OBJECT_REFERENCES_FOUND);
+            int maxFullObjects = getMaxFullObjects(tracingProfile);
+            int maxReferences = getMaxReferences(tracingProfile);
             int objectsToVisit = Math.min(objectsFound.size(), maxFullObjects + maxReferences);
             for (int i = 0; i < objectsToVisit; i++) {
                 PrismObject<T> object = objectsFound.get(i);
@@ -668,6 +666,16 @@ public class RepositoryCache implements RepositoryService, Cacheable {
                 }
             }
         }
+    }
+
+    private Integer getMaxReferences(CompiledTracingProfile tracingProfile) {
+        return defaultIfNull(tracingProfile.getDefinition().getRecordObjectReferencesFound(),
+                TraceUtil.DEFAULT_RECORD_OBJECT_REFERENCES_FOUND);
+    }
+
+    private Integer getMaxFullObjects(CompiledTracingProfile tracingProfile) {
+        return defaultIfNull(tracingProfile.getDefinition().getRecordObjectsFound(),
+                TraceUtil.DEFAULT_RECORD_OBJECTS_FOUND);
     }
 
     private <T extends ObjectType> void locallyCacheSearchResult(LocalQueryCache cache, boolean supports, QueryKey key,
@@ -757,10 +765,23 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         }
 
         SearchResultList<PrismObject<T>> objectsFound = new SearchResultList<>();
+        AtomicInteger numberOfObjectsFound = new AtomicInteger();
         AtomicBoolean interrupted = new AtomicBoolean(false);
 
+        int objectsToGather;
+        if (isAtLeastNormal(level)) {
+            int maxFullObjects = getMaxFullObjects(result.getTracingProfile());
+            int maxReferences = getMaxReferences(result.getTracingProfile());
+            objectsToGather = maxFullObjects + maxReferences;
+        } else {
+            objectsToGather = 0;
+        }
+
         ResultHandler<T> watchingHandler = (object, result1) -> {
-            objectsFound.add(object);
+            numberOfObjectsFound.incrementAndGet();
+            if (isAtLeastNormal(level) && objectsFound.size() < objectsToGather) {
+                objectsFound.add(object);
+            }
             boolean cont = handler.handle(object, result1);
             if (!cont) {
                 interrupted.set(true);
@@ -910,7 +931,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
             if (isAtLeastNormal(level)) {
                 recordObjectsFound(trace, objectsFound, level, result.getTracingProfile());
             }
-            result.addReturn("objectsFound", objectsFound.size());
+            result.addReturn("objectsFound", numberOfObjectsFound.get());
             result.addReturn("interrupted", interrupted.get());
             result.computeStatusIfUnknown();
         }
@@ -1940,10 +1961,13 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
         @Override
         public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-            if (objects.size() < QUERY_RESULT_SIZE_LIMIT) {
-                objects.add(object.clone());        // todo optimize on read only option
-            } else {
-                overflown = true;
+            if (!overflown) {
+                if (objects.size() < QUERY_RESULT_SIZE_LIMIT) {
+                    objects.add(object.clone());        // todo optimize on read only option
+                } else {
+                    overflown = true;
+                    objects.clear();
+                }
             }
             return originalHandler.handle(object, parentResult);
         }

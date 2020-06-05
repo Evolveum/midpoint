@@ -216,7 +216,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         summaryPanel.setOutputMarkupId(true);
         add(summaryPanel);
 
-        WorkItemDetailsPanel workItemDetailsPanel = new WorkItemDetailsPanel(ID_WORK_ITEM_DETAILS, caseWorkItemModel);
+        WorkItemDetailsPanel workItemDetailsPanel = new WorkItemDetailsPanel(ID_WORK_ITEM_DETAILS, caseWorkItemModel) {
+            @Override
+            protected PrismObject<UserType> getPowerDonor() {
+                return PageCaseWorkItem.this.getPowerDonor();
+            }
+        };
         workItemDetailsPanel.setOutputMarkupId(true);
         add(workItemDetailsPanel);
 

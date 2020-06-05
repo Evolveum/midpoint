@@ -14,9 +14,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -44,9 +46,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -88,24 +87,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPrevie
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentType>> {
 
@@ -656,11 +637,14 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private Fragment createSpecificContainersFragment(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
         QName assignmentTargetType = AssignmentsUtil.getTargetType(model.getObject().getRealValue());
         Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+        Component panel = null;
         if (supportsCustomContainers(assignmentTargetType)) {
-            addCustomSpecificContainers(specificContainers, model);
-        } else {
-            specificContainers.add(new WebMarkupContainer(ID_SPECIFIC_CONTAINER));
+            panel = getCustomSpecificContainers(specificContainers, model);
         }
+        if (panel == null) {
+            panel = new WebMarkupContainer(ID_SPECIFIC_CONTAINER);
+        }
+        specificContainers.add(panel);
 
         ItemPath assignmentPath = model.getObject().getRealValue().asPrismContainerValue().getPath();
         PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_ACTIVATION);
@@ -693,8 +677,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         return false;
     }
 
-    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-        specificContainers.add(getSpecificContainerPanel(modelObject));
+    protected Panel getCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+        return getSpecificContainerPanel(modelObject);
     }
 
     protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
@@ -704,6 +688,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
             IModel<PrismContainerWrapper> wrapperModel = getSpecificContainerModel(modelObject);
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             builder.visibilityHandler(itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+            if (wrapperModel.getObject() == null) {
+                return null;
+            }
             Panel constraintsContainerPanel = getPageBase().initItemPanel(ID_SPECIFIC_CONTAINER, wrapperModel.getObject().getTypeName(),
                     wrapperModel, builder.build());
             constraintsContainerPanel.setOutputMarkupId(true);
@@ -778,8 +765,24 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
     private IModel<String> getKindIntentLabelModelForDisplayNamePanel(PrismContainerValueWrapper<AssignmentType> modelObject) {
         AssignmentType assignment = modelObject.getRealValue();
         if (assignment.getConstruction() != null){
-            return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
-                    assignment.getConstruction().getIntent());
+            PrismContainerValueWrapper<ConstructionType> constructionValue = null;
+            try {
+                PrismContainerWrapper<ConstructionType> construction = modelObject.findContainer(AssignmentType.F_CONSTRUCTION);
+                constructionValue = construction.getValue();
+            } catch (SchemaException e) {
+                LOGGER.error("Unexpected problem during construction wrapper lookup, {}", e.getMessage(), e);
+            }
+            ShadowKindType kind;
+            String intent;
+            if (constructionValue instanceof ConstructionValueWrapper) {
+                kind = ((ConstructionValueWrapper) constructionValue).getKind();
+                intent = ((ConstructionValueWrapper) constructionValue).getIntent();
+            } else {
+                kind = assignment.getConstruction().getKind();
+                intent = assignment.getConstruction().getIntent();
+            }
+
+            return createStringResource("DisplayNamePanel.kindIntentLabel", kind, intent);
         }
         return Model.of();
     }
@@ -877,6 +880,10 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
                 if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
                     Task task = getPageBase().createSimpleTask("Load resource");
                     com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
+                    ObjectReferenceType resourceRef = assignment.getConstruction().getResourceRef();
+                    if (resourceRef == null || resourceRef.getOid() == null) {
+                        return (C) assignment.getConstruction();
+                    }
                     return (C) WebModelServiceUtils.loadObject(assignment.getConstruction().getResourceRef(), getPageBase(), task, result).asObjectable();
                 } else if (assignment.getPersonaConstruction() != null) {
                     return (C) assignment.getPersonaConstruction();

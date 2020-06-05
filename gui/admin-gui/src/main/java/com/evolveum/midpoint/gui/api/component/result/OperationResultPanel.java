@@ -7,16 +7,9 @@
 
 package com.evolveum.midpoint.gui.api.component.result;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +40,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author katkav
@@ -263,6 +264,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             }
 
         });
+        downloadXml.add(new VisibleBehaviour(() -> getModelObject().isParent()));
         downloadXml.setDeleteAfterDownload(true);
         box.add(downloadXml);
     }

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -141,13 +142,6 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -1533,6 +1527,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         securityContextManager.setupPreAuthenticatedSecurityContext(previousPrincipal);
 
         return previousPrincipal;
+    }
+
+    @Override
+    public <T> T runUnderPowerOfAttorney(Producer<T> producer,
+            PrismObject<UserType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        assumePowerOfAttorney(donor, task, result);
+        try {
+            return producer.run();
+        } finally {
+            dropPowerOfAttorney(task, result);
+        }
     }
 
     @Override

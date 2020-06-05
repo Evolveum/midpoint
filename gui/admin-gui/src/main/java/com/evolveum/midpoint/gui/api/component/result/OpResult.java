@@ -7,10 +7,12 @@
 
 package com.evolveum.midpoint.gui.api.component.result;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -20,13 +22,11 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -59,7 +59,7 @@ public class OpResult implements Serializable, Visitable {
     private List<OpResult> subresults;
     private OpResult parent;
     private int count;
-    private String xml;
+    private IModel<String> xml;
     private LocalizableMessage userFriendlyMessage;
 
     // we assume there is at most one background task created (TODO revisit this assumption)
@@ -165,17 +165,28 @@ public class OpResult implements Serializable, Visitable {
             opResult.caseOid = caseOid;
         }
 
-        try {
-            OperationResultType resultType = result.createOperationResultType();
-            ObjectFactory of = new ObjectFactory();
-            opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
-        } catch (SchemaException | RuntimeException ex) {
-            String m = "Can't create xml: " + ex;
-//            error(m);
-            opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
-//            throw ex;
+        if (opResult.parent == null) {
+            opResult.xml = createXmlModel(result, page);
         }
         return opResult;
+    }
+
+    private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
+        try {
+            return new ReadOnlyModel<String>(() -> {
+                try {
+                    OperationResultType resultType = result.createOperationResultType();
+                    return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
+                } catch (SchemaException e) {
+                    throw new TunnelException(e);
+                }
+            });
+        } catch (RuntimeException ex) {
+            String m = "Can't create xml: " + ex;
+//            error(m);
+            return Model.of("<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>");
+//            throw ex;
+        }
     }
 
     // This method should be called along with getOpResult for root operationResult. However, it might take some time,
@@ -301,8 +312,12 @@ public class OpResult implements Serializable, Visitable {
         return count;
     }
 
+    public boolean isParent() {
+        return parent == null;
+    }
+
     public String getXml() {
-        return xml;
+        return xml.getObject();
     }
 
     public String getBackgroundTaskOid() {

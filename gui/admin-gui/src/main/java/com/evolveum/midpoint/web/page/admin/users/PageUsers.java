@@ -527,6 +527,8 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             }
         }
 
+        result.setSummarizeSuccesses(true);
+        result.summarize();
         result.recomputeStatus();
 
         showResult(result);

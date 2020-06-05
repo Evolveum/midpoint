@@ -1251,7 +1251,7 @@ public final class WebComponentUtil {
             }
         } else if (prismContainerValue.canRepresent(AssignmentType.class)) {
             AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
-            if (assignmentType.getTargetRef() != null) {
+            if (isNotEmpty(assignmentType.getTargetRef())) {
                 ObjectReferenceType assignmentTargetRef = assignmentType.getTargetRef();
                 displayName = getName(assignmentTargetRef) + " - " + normalizeRelation(assignmentTargetRef.getRelation()).getLocalPart();
             } else {
@@ -1351,6 +1351,17 @@ public final class WebComponentUtil {
 
         String escaped = org.apache.commons.lang.StringEscapeUtils.escapeHtml(displayName);
         return escaped;
+    }
+
+    private static boolean isNotEmpty(ObjectReferenceType ref) {
+        if (ref == null) {
+            return false;
+        }
+        if (ref.getObject() != null) {
+            return true;
+        }
+
+        return ref.getOid() != null;
     }
 
     public static QName normalizeRelation(QName relation) {
@@ -3956,6 +3967,14 @@ public final class WebComponentUtil {
         }
     }
 
+    public static <T> T runUnderPowerOfAttorneyIfNeeded(CheckedProducer<T> producer, PrismObject<UserType> powerDonor,
+            PageBase pageBase, Task task, OperationResult result) throws CommonException {
+        if (powerDonor != null) {
+            return pageBase.getModelInteractionService().runUnderPowerOfAttorneyChecked(producer, powerDonor, task, result);
+        } else {
+            return producer.get();
+        }
+    }
 
     @NotNull
     public static List<SceneDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
