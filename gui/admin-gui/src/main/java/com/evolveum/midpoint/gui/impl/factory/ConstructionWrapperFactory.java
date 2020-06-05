@@ -57,6 +57,9 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
         }
 
         ObjectReferenceType resourceRef = constructionType.getResourceRef();
+        if (resourceRef.getOid() == null) {
+            return constructionValueWrapper;
+        }
 
         PrismObject<ResourceType> resource = null;
         try {
