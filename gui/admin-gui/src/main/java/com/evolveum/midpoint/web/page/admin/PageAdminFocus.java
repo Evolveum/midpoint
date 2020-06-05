@@ -136,7 +136,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     private List<ShadowWrapper> loadShadowWrappers(boolean noFetch) {
-        LOGGER.info("Loading shadow wrapper");
+        LOGGER.trace("Loading shadow wrapper");
         long start = System.currentTimeMillis();
         List<ShadowWrapper> list = new ArrayList<>();
 
@@ -160,7 +160,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                     noFetch, task, subResult, createLoadOptionForShadowWrapper());
 
             long shadowTimestampAfter = System.currentTimeMillis();
-            LOGGER.info("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
+            LOGGER.trace("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
             if(projection == null) {
 //                showResult(subResult, "pageAdminFocus.message.couldntLoadShadowProjection");
                 LOGGER.error("Couldn't load shadow projection");
@@ -186,10 +186,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
             }
             long timestampWrapperEnd = System.currentTimeMillis();
-            LOGGER.info("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
+            LOGGER.trace("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
         }
         long end = System.currentTimeMillis();
-        LOGGER.info("Load projctions in {}", end - start);
+        LOGGER.trace("Load projctions in {}", end - start);
         return list;
     }
 
@@ -209,7 +209,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
-        LOGGER.info("Loading full shadow");
+        LOGGER.trace("Loading full shadow");
         long start = System.currentTimeMillis();
         if(shadowWrapperValue.getRealValue() == null) {
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
@@ -224,7 +224,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 result, createLoadOptionForShadowWrapper());
 
         long loadEnd = System.currentTimeMillis();
-        LOGGER.info("Load projection in {} ms", loadEnd - loadStart);
+        LOGGER.trace("Load projection in {} ms", loadEnd - loadStart);
         if (projection == null) {
             result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
             showResult(result);
@@ -251,9 +251,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             LOGGER.error("Couldn't create shadow wrapper", e);
         }
         long wrapperEnd = System.currentTimeMillis();
-        LOGGER.info("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
+        LOGGER.trace("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
         long end = System.currentTimeMillis();
-        LOGGER.info("Got full shadow in {} ms", end - start);
+        LOGGER.trace("Got full shadow in {} ms", end - start);
     }
 
 //    @Override

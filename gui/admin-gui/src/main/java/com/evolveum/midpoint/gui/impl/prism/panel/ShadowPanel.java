@@ -66,7 +66,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
                     attributesSettingsBuilder.build());
             add(attributesPanel);
             long attributesEnd = System.currentTimeMillis();
-            LOGGER.info("Attributes finished in {} ms", attributesEnd - attributesStart);
+            LOGGER.trace("Attributes finished in {} ms", attributesEnd - attributesStart);
 
             long associationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
@@ -76,7 +76,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
             associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
             add(associationsPanel);
             long associationEnd = System.currentTimeMillis();
-            LOGGER.info("Association finished in {} ms", associationEnd - associationStart);
+            LOGGER.trace("Association finished in {} ms", associationEnd - associationStart);
 
             long activationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
@@ -86,7 +86,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
             activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
             add(activationPanel);
             long activationEnd = System.currentTimeMillis();
-            LOGGER.info("Activation finished in {} ms", activationEnd - activationStart);
+            LOGGER.trace("Activation finished in {} ms", activationEnd - activationStart);
 
             long passwordStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder()
@@ -96,10 +96,10 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
             long passwordEnd = System.currentTimeMillis();
-            LOGGER.info("Password finished in {} ms", passwordEnd - passwordStart);
+            LOGGER.trace("Password finished in {} ms", passwordEnd - passwordStart);
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
-            LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
+            LOGGER.trace("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
 
         }
     }

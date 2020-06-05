@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,8 +32,10 @@ public class ShadowWrapperFactoryImpl extends PrismObjectWrapperFactoryImpl<Shad
 
     @Override
     public PrismObjectWrapper<ShadowType> createObjectWrapper(PrismObject<ShadowType> object, ItemStatus status) {
-        LOGGER.info("create shadow wrapper");
-        return new ShadowWrapperImpl(object, status);
+        LOGGER.trace("create shadow wrapper");
+        ShadowWrapper shadowWrapper = new ShadowWrapperImpl(object, status);
+        LOGGER.trace("Shadow wrapper created: {}", shadowWrapper);
+        return shadowWrapper;
     }
 
     @Override
