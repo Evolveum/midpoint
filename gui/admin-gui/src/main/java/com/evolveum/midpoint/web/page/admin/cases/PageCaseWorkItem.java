@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -32,13 +31,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
 
 /**
  * @author mederly
@@ -100,7 +96,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private PageParameters pageParameters;
 
     public PageCaseWorkItem() {
-        this(null);
+        this((CaseWorkItemType)null);
     }
 
     public PageCaseWorkItem(CaseWorkItemType workItem) {
@@ -121,31 +117,35 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
                 }
             }
         };
+    }
 
-//        String caseId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-//        if (StringUtils.isEmpty(caseId)) {
-//            throw new IllegalStateException("Case ID not specified.");
-//        }
-//        workItemId = WorkItemId.create(caseId);
-//        if (workItemId == null || StringUtils.isEmpty(workItemId.getCaseOid())) {
-//            throw new IllegalStateException("Case oid not specified.");
-//        }
-//
-//        caseModel = new LoadableModel<CaseType>(false) {
-//            @Override
-//            protected CaseType load() {
-//                return loadCaseIfNecessary();
-//            }
-//        };
-//
-//        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
-//            @Override
-//            protected CaseWorkItemType load() {
-//                return loadCaseWorkItemIfNecessary();
-//            }
-//        };
+    public PageCaseWorkItem(PageParameters parameters) {
+        this.pageParameters = parameters;
 
-//        initLayout();
+        String caseWorkItemId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+        if (StringUtils.isEmpty(caseWorkItemId)) {
+            throw new IllegalStateException("Work item ID not specified.");
+        }
+        try {
+            workItemId = WorkItemId.create(caseWorkItemId);
+        } catch (IllegalStateException e) {
+            getSession().error(getString("PageCaseWorkItem.couldNotGetCase.runtime"));
+            throw redirectBackViaRestartResponseException();
+        }
+
+        caseModel = new LoadableModel<CaseType>(false) {
+            @Override
+            protected CaseType load() {
+                return loadCaseIfNecessary();
+            }
+        };
+
+        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+            @Override
+            protected CaseWorkItemType load() {
+                return loadCaseWorkItemIfNecessary();
+            }
+        };
     }
 
     @Override
@@ -207,7 +207,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         } catch (NumberFormatException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse case work item id.", ex);
         }
-        return null;
+        getSession().error(getString("PageCaseWorkItem.couldNotGetCaseWorkItem"));
+        throw redirectBackViaRestartResponseException();
     }
 
     private void initLayout(){
