@@ -13,6 +13,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -430,7 +431,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             return null;
         }
 
-        MappingImpl.Builder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = mappingFactory.createMappingBuilder(
+        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = mappingFactory.createMappingBuilder(
                 outboundMappingSpec,
                 "for outbound tag mapping in " + getSource());
 
@@ -510,10 +511,9 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
     @SuppressWarnings("ConstantConditions")
-    public <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl.Builder<V, D> initializeMappingBuilder(
-            MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
+            MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
+            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) {
 
         if (!builder.isApplicableToChannel(getChannel())) {
             return null;
@@ -562,7 +562,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
-            MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
+            MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 

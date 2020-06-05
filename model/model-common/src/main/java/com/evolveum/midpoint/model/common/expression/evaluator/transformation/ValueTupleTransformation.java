@@ -152,14 +152,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         try {
             if (!combinatorialEvaluation.evaluator.isIncludeNullInputs() && MiscUtil.isAllNull(valuesTuple)) {
                 // The case that all the sources are null. There is no point executing the expression.
-                setTraceComment("All sources are null and includeNullInputs is true");
+                setTraceComment("All sources are null and includeNullInputs is true.");
                 return;
             }
             ExpressionVariables staticVariables = createStaticVariablesFromSources();
-
-            LOGGER.trace("Processing value combination {} in {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}",
-                    dumpValueTupleLazily(), context.getContextDescription(), hasPlus, hasZero, hasMinus,
-                    context.isSkipEvaluationPlus(), context.isSkipEvaluationMinus());
+            recordBeforeTransformation();
 
             if (isApplicableRegardingPlusMinusSetPresence()) {
 
@@ -289,7 +286,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             if (conditionResult) {
                 transformationResult = evaluateTransformation(staticVariables);
             } else {
-                LOGGER.trace("Skipping value transformation because condition evaluated to false in {}", context.getContextDescription());
+                setTraceComment("Skipping value transformation because condition evaluated to false.");
                 transformationResult = emptySet();
             }
         } catch (ExpressionEvaluationException e) {
@@ -330,7 +327,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     }
 
     private void setTraceComment(String comment) {
-        LOGGER.trace(comment);
+        LOGGER.trace("{} In {}.", comment, context.getContextDescription());
         if (trace != null) {
             trace.setComment(comment);
         }
@@ -363,6 +360,17 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         }
     }
 
+    private void recordBeforeTransformation() {
+        LOGGER.trace("Processing value combination {} in {}\n   hasPlus={}, hasZero={}, hasMinus={}, skipEvaluationPlus={}, skipEvaluationMinus={}",
+                dumpValueTupleLazily(), context.getContextDescription(), hasPlus, hasZero, hasMinus,
+                context.isSkipEvaluationPlus(), context.isSkipEvaluationMinus());
+        if (trace != null) {
+            trace.setHasPlus(hasPlus);
+            trace.setHasMinus(hasMinus);
+            trace.setHasZero(hasZero);
+        }
+    }
+
     private void recordTransformationResult() {
         LOGGER.trace("Processed value tuple {} in {}\n  valueDestination: {}\n  scriptResults:{}{}",
                 dumpValueTupleLazily(), context.getContextDescription(), outputSet, transformationResult,
@@ -370,6 +378,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
 
         if (trace != null) {
             trace.setDestination(PlusMinusZeroType.fromValue(outputSet));
+            trace.setConditionResult(conditionResult);
             trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(transformationResult, combinatorialEvaluation.prismContext));
         }
     }

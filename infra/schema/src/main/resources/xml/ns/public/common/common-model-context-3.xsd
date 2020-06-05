@@ -1597,10 +1597,77 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
-                    <xsd:element name="input" type="tns:NamedValueType" minOccurs="0" maxOccurs="unbounded" />
-                    <xsd:element name="destination" type="t:PlusMinusZeroType" minOccurs="0" />
-                    <xsd:element name="output" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="comment" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="input" type="tns:NamedValueType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Selected values from individual sources. Variable values are not stored here.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="hasPlus" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Does this tuple contain a value that is present in plus set of its source?
+                                (This is an internal implementation information. So this item can change in later versions.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="hasMinus" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Does this tuple contain a value that is present in minus set of its source?
+                                (This is an internal implementation information. So this item can change in later versions.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="hasZero" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Does this tuple contain a value that is present in zero set of its source?
+                                (This is an internal implementation information. So this item can change in later versions.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="destination" type="t:PlusMinusZeroType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                To what set should the output go? (Named "outputSet" in the algorithm since 4.2.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="conditionResult" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the condition evaluation.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="output" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Result of the transformation. (Named "transformationResult" in the algorithm since 4.2.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Free-form comment from the algorithm.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

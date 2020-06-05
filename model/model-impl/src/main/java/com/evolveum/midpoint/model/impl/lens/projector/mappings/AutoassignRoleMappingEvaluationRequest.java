@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
+import com.evolveum.midpoint.model.common.mapping.MappingPreExpression;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -29,7 +30,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
 
     // Internal state
     private PrismContainerDefinition<AssignmentType> assignmentDef;
-    private AssignmentType assignmentType;
+    private AssignmentType assignment;
 
     public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
         super(mapping, MappingKindType.AUTO_ASSIGN, role);
@@ -40,38 +41,43 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
             ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         PrismObject<AH> focus = focusOdo.getAnyObject();
         assignmentDef = focus.getDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
-        PrismContainer<AssignmentType> assignment = assignmentDef.instantiate();
-        assignmentType = assignment.createNewValue().asContainerable();
+        PrismContainer<AssignmentType> assignmentContainer = assignmentDef.instantiate();
+        assignment = assignmentContainer.createNewValue().asContainerable();
         QName relation;
         AssignmentPropertiesSpecificationType assignmentProperties = mapping.getAssignmentProperties();
         if (assignmentProperties != null) {
             relation = assignmentProperties.getRelation();
-            assignmentType.getSubtype().addAll(assignmentProperties.getSubtype());
+            assignment.getSubtype().addAll(assignmentProperties.getSubtype());
         } else {
             relation = null;
         }
-        assignmentType.targetRef(originObject.getOid(), originObject.asPrismObject().getDefinition().getTypeName(), relation);
+        assignment.targetRef(originObject.getOid(), originObject.asPrismObject().getDefinition().getTypeName(), relation);
 
         Source<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> source =
-                new Source<>(assignment, null, assignment, FocusType.F_ASSIGNMENT, assignmentDef);
+                new Source<>(assignmentContainer, null, assignmentContainer, FocusType.F_ASSIGNMENT, assignmentDef);
         //noinspection unchecked
         return (Source<V, D>) source;
     }
 
     @Override
-    public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        PopulateType populate = mapping.getPopulate();
-        if (populate == null) {
-            return;
-        }
-        List<ItemDelta<PrismValue, ItemDefinition>> populateItemDeltas = PopulatorUtil
-                .computePopulateItemDeltas(populate, assignmentDef, context.getVariables(), context,
-                        context.getContextDescription(), context.getTask(), result);
-        if (populateItemDeltas != null) {
-            ItemDeltaCollectionsUtil.applyTo(populateItemDeltas, assignmentType.asPrismContainerValue());
-        }
+    public MappingPreExpression getMappingPreExpression() {
+        /*
+         * Executed before mapping expression is executed. It is used to populate the assignment.
+         * We need to do that just before mapping expression is executed, because we want all the sources
+         * and variables set the same way as mapping is set.
+         */
+        return (ExpressionEvaluationContext context, OperationResult result) -> {
+            PopulateType populate = mapping.getPopulate();
+            if (populate == null) {
+                return;
+            }
+            List<ItemDelta<PrismValue, ItemDefinition>> populateItemDeltas = PopulatorUtil
+                    .computePopulateItemDeltas(populate, assignmentDef, context.getVariables(), context,
+                            context.getContextDescription(), context.getTask(), result);
+            if (populateItemDeltas != null) {
+                ItemDeltaCollectionsUtil.applyTo(populateItemDeltas, assignment.asPrismContainerValue());
+            }
+        };
     }
 
     @Override

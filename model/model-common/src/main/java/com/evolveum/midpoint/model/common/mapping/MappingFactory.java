@@ -12,7 +12,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
@@ -71,18 +70,17 @@ public class MappingFactory {
         this.profiling = profiling;
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder() {
-        return new MappingImpl.Builder<V, D>()
+    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder() {
+        return new MappingBuilder<V, D>()
                 .prismContext(prismContext)
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
-                .variables(new ExpressionVariables())
                 .objectResolver(objectResolver)
                 .profiling(profiling);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
-        return this.<V,D>createMappingBuilder().mappingType(mappingType)
+    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
+        return this.<V,D>createMappingBuilder().mappingBean(mappingType)
                 .contextDescription(shortDesc)
                 .objectResolver(objectResolver);
     }

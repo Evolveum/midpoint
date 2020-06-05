@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
@@ -74,9 +75,9 @@ class ConditionEvaluator {
             ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext<?> ctx,
             OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
-        builder = builder.mappingType(condition)
+        builder = builder.mappingBean(condition)
                 .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
                 .contextDescription(contextDescription)
                 .sourceContext(ctx.ae.focusOdo)
