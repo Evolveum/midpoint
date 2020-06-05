@@ -17051,6 +17051,9 @@
                             <xsd:documentation>
                                 Type of objects that belong to this collection.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectCollectionType.type</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
@@ -17058,9 +17061,12 @@
                             <xsd:documentation>
                                 Filter that is used to select objects which belong to this collection.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectCollectionType.filter</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="selectorOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
+                    <xsd:element name="getOptions" type="c:SelectorQualifiedGetOptionsType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Options to use when executing the search.
@@ -17068,6 +17074,7 @@
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
                                 <a:experimental>true</a:experimental>
+                                <a:displayName>ObjectCollectionType.getOptions</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17080,6 +17087,7 @@
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
                                 <a:experimental>true</a:experimental>
+                                <a:displayName>ObjectCollectionType.condition</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17098,7 +17106,7 @@
                                   If that happens, don't come to us crying. You have been warned.
                               </xsd:documentation>
                               <xsd:appinfo>
-                                <a:displayName>DashboardWidgetDataType.auditSearch</a:displayName>
+                                <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
                               </xsd:appinfo>
                           </xsd:annotation>
@@ -17120,6 +17128,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:displayName>ObjectCollectionType.baseCollection</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17141,6 +17150,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:displayName>ObjectCollectionType.domain</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17162,6 +17172,7 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:experimental>true</a:experimental>
+                                <a:displayName>ObjectCollectionType.defaultView</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17170,6 +17181,7 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:experimental>true</a:experimental>
+                                <a:displayName>ObjectCollectionType.stats</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17520,6 +17532,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditSearchType.recordQuery</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="domainQuery" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -17527,6 +17542,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditSearchType.domainQuery</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="interval" type="xsd:duration" minOccurs="0" maxOccurs="1">
@@ -17534,6 +17552,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditSearchType.interval</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -21991,9 +22012,18 @@
             <xsd:documentation>
                 Selector-qualified options for a get-like operation.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="option" type="tns:SelectorQualifiedGetOptionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="option" type="tns:SelectorQualifiedGetOptionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SelectorQualifiedGetOptionsType.option</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -22002,10 +22032,25 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="selector" type="tns:OptionObjectSelectorType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="options" type="tns:GetOperationOptionsType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="selector" type="tns:OptionObjectSelectorType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SelectorQualifiedGetOptionType.selector</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="options" type="tns:GetOperationOptionsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SelectorQualifiedGetOptionType.options</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -22014,9 +22059,18 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>OptionObjectSelectorType.path</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -22025,21 +22079,96 @@
             <xsd:documentation>
                 See GetOperationOptions for a description.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0"/>
-            <xsd:element name="resolve" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="resolveNames" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="noFetch" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="tolerateRawData" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0"/>        <!-- should be named 'doNotDiscovery' -->
-            <xsd:element name="allowNotFound" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.retrieve</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resolve" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.resolve</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resolveNames" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.resolveNames</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="noFetch" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.noFetch</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="raw" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.raw</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tolerateRawData" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.tolerateRawData</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0">        <!-- should be named 'doNotDiscovery' -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.noDiscovery</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="allowNotFound" type="xsd:boolean" minOccurs="0">
             <!-- readOnly is quite an internal flag, doesn't make sense to externalize it -->
-            <xsd:element name="pointInTimeType" type="tns:PointInTimeTypeType" minOccurs="0"/>
-            <xsd:element name="staleness" type="xsd:long" minOccurs="0"/>
-            <xsd:element name="distinct" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="definitionProcessing" type="tns:DefinitionProcessingOptionType" minOccurs="0"/>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.allowNotFound</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="pointInTimeType" type="tns:PointInTimeTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.pointInTimeType</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="staleness" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.staleness</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="distinct" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.distinct</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="definitionProcessing" type="tns:DefinitionProcessingOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>GetOperationOptionsType.definitionProcessing</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

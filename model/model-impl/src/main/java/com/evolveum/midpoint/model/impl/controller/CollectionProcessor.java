@@ -337,7 +337,7 @@ public class CollectionProcessor {
         CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
         if (baseCollectionSpec == null) {
             existingView.setFilter(collectionFilter);
-            existingView.setOptions(MiscSchemaUtil.optionsTypeToOptions(objectCollectionType.getSelectorOptions(), prismContext));
+            existingView.setOptions(MiscSchemaUtil.optionsTypeToOptions(objectCollectionType.getGetOptions(), prismContext));
         } else {
             compileObjectCollectionView(existingView, baseCollectionSpec, targetTypeClass, task, result);
             ObjectFilter baseFilter = existingView.getFilter();

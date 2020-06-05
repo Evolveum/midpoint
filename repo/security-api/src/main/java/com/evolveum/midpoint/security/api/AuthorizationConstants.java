@@ -152,6 +152,15 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ARCHETYPE_QNAME = new QName(NS_AUTHORIZATION_UI, "archetype");
     public static final String AUTZ_UI_ARCHETYPE_URL = NS_AUTHORIZATION_UI + "#archetype";
 
+    public static final QName AUTZ_UI_OBJECT_COLLECTIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollectionsAll");
+    public static final String AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL = NS_AUTHORIZATION_UI + "#objectCollectionsAll";
+
+    public static final QName AUTZ_UI_OBJECT_COLLECTIONS_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollections");
+    public static final String AUTZ_UI_OBJECT_COLLECTIONS_URL = NS_AUTHORIZATION_UI + "#objectCollections";
+
+    public static final QName AUTZ_UI_OBJECT_COLLECTION_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollection");
+    public static final String AUTZ_UI_OBJECT_COLLECTION_URL = NS_AUTHORIZATION_UI + "#objectCollection";
+
     public static final QName AUTZ_UI_VALUE_POLICIES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePoliciesAll");
     public static final String AUTZ_UI_VALUE_POLICIES_ALL_URL = NS_AUTHORIZATION_UI + "#valuePoliciesAll";
 

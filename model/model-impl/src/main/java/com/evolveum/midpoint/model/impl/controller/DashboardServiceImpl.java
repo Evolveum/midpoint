@@ -405,8 +405,8 @@ public class DashboardServiceImpl implements DashboardService {
             type = (Class<ObjectType>) prismContext.getSchemaRegistry()
                     .getCompileTimeClassForObjectType(collection.getType());
             searchFilter = collection.getFilter();
-            if (collection.getSelectorOptions() != null) {
-                options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
+            if (collection.getGetOptions() != null) {
+                options = MiscSchemaUtil.optionsTypeToOptions(collection.getGetOptions(), prismContext);
             }
             if (collection.getCondition() != null) {
                 condition = collection.getCondition();
@@ -425,8 +425,8 @@ public class DashboardServiceImpl implements DashboardService {
                     searchFilterForMerge = collection.getFilter();
                     typeFromBaseCollection = (Class<ObjectType>) prismContext.getSchemaRegistry()
                             .getCompileTimeClassForObjectType(collection.getType());
-                    if (collection.getSelectorOptions() != null) {
-                        options = MiscSchemaUtil.optionsTypeToOptions(collection.getSelectorOptions(), prismContext);
+                    if (collection.getGetOptions() != null) {
+                        options = MiscSchemaUtil.optionsTypeToOptions(collection.getGetOptions(), prismContext);
                     }
                     if (collection.getCondition() != null) {
                         condition = collection.getCondition();

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.archetype;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,6 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
         url  = "/admin/archetype",
         encoder = OnePageParameterEncoder.class,
         action = {
+                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                        label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
                         label = "PageArchetypes.auth.archetypesAll.label",
                         description = "PageArchetypes.auth.archetypesAll.description"),

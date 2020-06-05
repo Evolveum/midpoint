@@ -1783,6 +1783,8 @@ public final class WebComponentUtil {
             return createResourceIcon((PrismObject<ResourceType>) object);
         } else if (type == ShadowType.class) {
             return createShadowIcon((PrismObject<ShadowType>) object);
+        } else if (type == ObjectCollectionType.class) {
+            return createObjectColletionIcon();
         }
 
         return "";
@@ -2094,6 +2096,10 @@ public final class WebComponentUtil {
         }
 
         return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
+    }
+
+    public static String createObjectColletionIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_CAMPAIGN_ICON);
     }
 
     public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
