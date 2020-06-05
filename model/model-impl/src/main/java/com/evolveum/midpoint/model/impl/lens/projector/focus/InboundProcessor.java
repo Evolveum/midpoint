@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +54,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
-import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -662,7 +659,7 @@ public class InboundProcessor implements ProjectorProcessor {
      * Note: in this case "attribute" may also be an association
      */
     private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> void collectMappingsForTargets(final LensContext<F> context,
-            LensProjectionContext projectionCtx, MappingType inboundMappingType,
+            LensProjectionContext projectionCtx, MappingType inboundMappingBean,
             QName accountAttributeQName, Item<V,D> oldAccountProperty,
             ItemDelta<V,D> attributeAPrioriDelta,
             D attributeDefinition,
@@ -675,47 +672,59 @@ public class InboundProcessor implements ProjectorProcessor {
         }
 
         ResourceType resource = projectionCtx.getResource();
-        MappingImpl.Builder<V,D> builder = mappingFactory.createMappingBuilder(inboundMappingType,
-                "inbound expression for "+accountAttributeQName+" in "+resource);
 
-        if (!builder.isApplicableToChannel(context.getChannel())) {
+        if (!MappingImpl.isApplicableToChannel(inboundMappingBean, context.getChannel())) {
             return;
         }
 
         PrismObject<ShadowType> shadowNew = projectionCtx.getObjectNew();
         PrismObjectDefinition<ShadowType> shadowNewDef;
-        if (shadowNew == null) {
-            shadowNewDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-        } else {
+        if (shadowNew != null) {
             shadowNewDef = shadowNew.getDefinition();
+        } else {
+            shadowNewDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         }
-        ExpressionVariables variables = new ExpressionVariables();
-        variables.put(ExpressionConstants.VAR_USER, focusNew, focusNew.getDefinition());
-        variables.put(ExpressionConstants.VAR_FOCUS, focusNew, focusNew.getDefinition());
-        variables.put(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef);
-        variables.put(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef);
-        variables.put(ExpressionConstants.VAR_PROJECTION, shadowNew, shadowNewDef);
-        variables.put(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition());
-        variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
-        variables.put(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class);
 
-        Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, (D)attributeDefinition);
+        PrismObjectDefinition<F> focusNewDef;
+        if (focusNew != null) {
+            focusNewDef = focusNew.getDefinition();
+        } else {
+            focusNewDef = context.getFocusContextRequired().getObjectDefinition();
+        }
+
+        Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, attributeDefinition);
         defaultSource.recompute();
-        builder = builder.defaultSource(defaultSource)
-                .targetContext(LensUtil.getFocusDefinition(context))
-                .variables(variables)
-                .variableResolver(variableProducer)
-                .valuePolicyResolver(createStringPolicyResolver(context))
+
+        MappingBuilder<V,D> builder = mappingFactory.<V,D>createMappingBuilder()
+                .mappingBean(inboundMappingBean)
                 .mappingKind(MappingKindType.INBOUND)
                 .implicitSourcePath(ShadowType.F_ATTRIBUTES.append(accountAttributeQName))
+                .contextDescription("inbound expression for "+accountAttributeQName+" in "+resource)
+                .defaultSource(defaultSource)
+                .targetContext(LensUtil.getFocusDefinition(context))
+                .addVariableDefinition(ExpressionConstants.VAR_USER, focusNew, focusNewDef)
+                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew, focusNewDef)
+                .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS)
+                .addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef)
+                .addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef)
+                .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadowNew, shadowNewDef)
+                .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
+                .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
+                .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, resource.asPrismObject().getDefinition())
+                .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition())
+                .addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class)
+                .variableResolver(variableProducer)
+                .valuePolicyResolver(createStringPolicyResolver(context))
                 .originType(OriginType.INBOUND)
                 .originObject(resource);
 
-        if (!context.getFocusContext().isDelete()){
-                TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focusNew);
-                Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingType.getTarget(), targetContext, variables, mappingFactory.getObjectResolver() , "resolving range",
-                        prismContext, task, result);
-                builder.originalTargetValues(originalValues);
+        if (!context.getFocusContext().isDelete()) {
+            assert focusNew != null;
+            TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focusNew);
+            ExpressionVariables variables = builder.getVariables();
+            Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingBean.getTarget(), targetContext, variables, mappingFactory.getObjectResolver() , "resolving target values",
+                    prismContext, task, result);
+            builder.originalTargetValues(originalValues);
         }
 
         MappingImpl<V, D> mapping = builder.build();
@@ -729,6 +738,7 @@ public class InboundProcessor implements ProjectorProcessor {
         if (ItemPath.isEmpty(targetFocusItemPath)) {
             throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
         }
+        // TODO resolve these unused variables
         boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(targetFocusItemPath);
         Item targetFocusItem = null;
         if (focusNew != null) {
@@ -762,13 +772,13 @@ public class InboundProcessor implements ProjectorProcessor {
             focusNew = context.getFocusContext().getObjectNew();
         }
 
-        Set<Entry<ItemPath,List<InboundMappingStruct<V,D>>>> mappingsToTargeEntrySet = (Set)mappingsToTarget.entrySet();
-        for (Entry<ItemPath, List<InboundMappingStruct<V, D>>> mappingsToTargeEntry : mappingsToTargeEntrySet) {
+        Set<Entry<ItemPath,List<InboundMappingStruct<V,D>>>> mappingsToTargetEntrySet = (Set)mappingsToTarget.entrySet();
+        for (Entry<ItemPath, List<InboundMappingStruct<V, D>>> mappingsToTargetEntry : mappingsToTargetEntrySet) {
 
             D outputDefinition = null;
             boolean rangeCompletelyDefined = true;
             DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = prismContext.deltaFactory().createDeltaSetTriple();
-            for (InboundMappingStruct<V,D> mappingsToTargetStruct : mappingsToTargeEntry.getValue()) {
+            for (InboundMappingStruct<V,D> mappingsToTargetStruct : mappingsToTargetEntry.getValue()) {
                 MappingImpl<V, D> mapping = mappingsToTargetStruct.getMapping();
                 LensProjectionContext projectionCtx = mappingsToTargetStruct.getProjectionContext();
                 outputDefinition = mapping.getOutputDefinition();
@@ -800,9 +810,9 @@ public class InboundProcessor implements ProjectorProcessor {
             }
             DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = consolidateTriples(allTriples);
 
-            LOGGER.trace("Consolidated triples for mapping for item {}\n{}", mappingsToTargeEntry.getKey(), consolidatedTriples.debugDumpLazily(1));
+            LOGGER.trace("Consolidated triples for mapping for item {}\n{}", mappingsToTargetEntry.getKey(), consolidatedTriples.debugDumpLazily(1));
 
-            ItemDelta<V, D> focusItemDelta = collectOutputDelta(outputDefinition, mappingsToTargeEntry.getKey(), focusNew,
+            ItemDelta<V, D> focusItemDelta = collectOutputDelta(outputDefinition, mappingsToTargetEntry.getKey(), focusNew,
                     consolidatedTriples, rangeCompletelyDefined);
 
               if (focusItemDelta != null && !focusItemDelta.isEmpty()) {
@@ -1010,7 +1020,7 @@ public class InboundProcessor implements ProjectorProcessor {
                     if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue()
                             && !targetFocusItem.isEmpty()) {
                         Collection<V> replace = new ArrayList<>();
-                        replace.add(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingType()));
+                        replace.add(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingBean()));
                         outputFocusItemDelta.setValuesToReplace(replace);
 
 
@@ -1021,7 +1031,7 @@ public class InboundProcessor implements ProjectorProcessor {
                             alreadyReplaced = true;
                         }
                     } else {
-                        outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingType()));
+                        outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingBean()));
                     }
                 }
             }
@@ -1170,14 +1180,9 @@ public class InboundProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends ObjectType> ValuePolicyResolver createStringPolicyResolver(final LensContext<F> context) {
-        ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
-            private ItemPath outputPath;
+    private <F extends ObjectType> ConfigurableValuePolicyResolver createStringPolicyResolver(final LensContext<F> context) {
+        return new ConfigurableValuePolicyResolver() {
             private ItemDefinition outputDefinition;
-            @Override
-            public void setOutputPath(ItemPath outputPath) {
-                this.outputPath = outputPath;
-            }
 
             @Override
             public void setOutputDefinition(ItemDefinition outputDefinition) {
@@ -1185,23 +1190,18 @@ public class InboundProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public ValuePolicyType resolve() {
-                if (!outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
+            public ValuePolicyType resolve(OperationResult result) {
+                if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
+                    return credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
+                } else {
                     return null;
                 }
-                ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
-                if (passwordPolicy == null) {
-                    return null;
-                }
-                return passwordPolicy;
             }
         };
-        return stringPolicyResolver;
     }
 
     /**
      * Processing for special (fixed-schema) properties such as credentials and activation.
-     * @throws ObjectNotFoundException
      */
     private <F extends FocusType> void processSpecialPropertyInbound(ResourceBidirectionalMappingType biMappingType, ItemPath sourceTargetPath,
             PrismObject<F> newUser, LensProjectionContext projCtx,
@@ -1259,7 +1259,7 @@ public class InboundProcessor implements ProjectorProcessor {
             }
       }
 
-        MappingInitializer initializer =
+        MappingInitializer<PrismValue, ItemDefinition> initializer =
             (builder) -> {
                 if (projContext.getObjectNew() == null) {
                     projContext.recompute();
@@ -1288,13 +1288,13 @@ public class InboundProcessor implements ProjectorProcessor {
                         sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
                         ExpressionConstants.VAR_INPUT_QNAME,
                         sourceIdi.getDefinition());
-                builder = builder.defaultSource(source)
+                builder.defaultSource(source)
                         .addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
                         .addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class)
                         .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
                 PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-                builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
+                builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
                         .addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
                         .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
                         .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)

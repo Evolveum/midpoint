@@ -530,7 +530,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     @Test
     public void testScriptExtraVariablesRef() throws Exception {
         // GIVEN
-        MappingImpl.Builder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
+        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = evaluator.createMappingBuilder("mapping-script-extra-variables.xml",
                 "testScriptExtraVariablesRef", "employeeType", null);
 
         VariablesMap vars = new VariablesMap();
@@ -558,7 +558,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
     @Test
     public void testScriptExtraVariablesJaxb() throws Exception {
         // GIVEN
-        MappingImpl.Builder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
+        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
                 evaluator.createMappingBuilder(
                         "mapping-script-extra-variables.xml", getTestNameShort(), "employeeType", null);
 

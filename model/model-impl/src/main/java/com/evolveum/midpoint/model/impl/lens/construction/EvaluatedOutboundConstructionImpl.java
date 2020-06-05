@@ -15,13 +15,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 
-import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicyResolver;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -95,7 +95,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
 
             String mappingShortDesc = "outbound mapping for " +
                     PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName()) + " in " + getProjectionContext().getResource();
-            MappingImpl.Builder<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> builder =
+            MappingBuilder<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> builder =
                     getConstruction().getMappingFactory().createMappingBuilder(outboundMappingType, mappingShortDesc);
             //noinspection ConstantConditions
             builder = builder.originObject(getProjectionContext().getResource())
@@ -131,7 +131,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
 //                continue;
 //            }
 
-            MappingImpl.Builder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = getConstruction().getMappingFactory().createMappingBuilder(outboundMappingType,
+            MappingBuilder<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> mappingBuilder = getConstruction().getMappingFactory().createMappingBuilder(outboundMappingType,
                     "outbound mapping for " + PrettyPrinter.prettyPrint(associationDefinition.getName())
                             + " in " + getProjectionContext().getResource());
 
@@ -150,7 +150,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
-    private <V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName attributeQName,
+    private <V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingBuilder<V,D> mappingBuilder, QName attributeQName,
             D targetDefinition, ObjectDeltaObject<AH> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
             String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
             LensContext<AH> context, LensProjectionContext projCtx, final Task task, OperationResult result)
@@ -231,12 +231,8 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
             }
         }
 
-        ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
+        ConfigurableValuePolicyResolver valuePolicyResolver = new ConfigurableValuePolicyResolver() {
             private ItemDefinition outputDefinition;
-
-            @Override
-            public void setOutputPath(ItemPath outputPath) {
-            }
 
             @Override
             public void setOutputDefinition(ItemDefinition outputDefinition) {
@@ -244,17 +240,17 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
             }
 
             @Override
-            public ValuePolicyType resolve() {
+            public ValuePolicyType resolve(OperationResult result) {
 
-                if (mappingBuilder.getMappingType().getExpression() != null) {
-                    List<JAXBElement<?>> evaluators = mappingBuilder.getMappingType().getExpression().getExpressionEvaluator();
+                if (mappingBuilder.getMappingBean().getExpression() != null) {
+                    List<JAXBElement<?>> evaluators = mappingBuilder.getMappingBean().getExpression().getExpressionEvaluator();
                     for (JAXBElement jaxbEvaluator : evaluators) {
                         Object object = jaxbEvaluator.getValue();
                         if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                             ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
                             try {
                                 ValuePolicyType valuePolicyType = mappingBuilder.getObjectResolver().resolve(ref, ValuePolicyType.class,
-                                        null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value", task, new OperationResult("Resolving value policy"));
+                                        null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value", task, result);
                                 if (valuePolicyType != null) {
                                     return valuePolicyType;
                                 }
@@ -267,7 +263,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                 return null;
             }
         };
-        mappingBuilder.valuePolicyResolver(stringPolicyResolver);
+        mappingBuilder.valuePolicyResolver(valuePolicyResolver);
         // TODO: other variables?
 
         // Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

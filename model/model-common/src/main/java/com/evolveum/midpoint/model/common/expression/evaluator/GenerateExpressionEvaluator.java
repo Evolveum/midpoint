@@ -98,7 +98,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         if (valuePolicyType == null) {
             ValuePolicyResolver valuePolicyResolver = context.getValuePolicyResolver();
             if (valuePolicyResolver != null) {
-                valuePolicyType = valuePolicyResolver.resolve();
+                valuePolicyType = valuePolicyResolver.resolve(result);
             }
         }
 

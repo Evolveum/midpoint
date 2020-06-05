@@ -36,7 +36,7 @@ public class ExpressionEvaluationContext {
 
     /**
      * One of the sources can be denoted as "default".
-     * Interpretation of this information is evaluator-specific.
+     * Interpretation of this information is evaluator-specific. (Currently used by AsIs evaluator.)
      */
     private Source<?,?> defaultSource;
 
@@ -65,16 +65,6 @@ public class ExpressionEvaluationContext {
      * Factory for expressions. Necessary e.g. for condition evaluation in transformational evaluators.
      */
     private ExpressionFactory expressionFactory;
-
-    /**
-     * Purpose of this field is unknown. TODO Consider removal.
-     */
-    private PrismObjectDefinition<?> defaultTargetContext;
-
-    /**
-     * Purpose of this field is unknown. TODO Consider removal.
-     */
-    private RefinedObjectClassDefinition refinedObjectClassDefinition;
 
     /**
      * Yet another field with unclear meaning. Seems to be used as an association name. TODO Clarify.
@@ -199,18 +189,6 @@ public class ExpressionEvaluationContext {
         this.expressionFactory = expressionFactory;
     }
 
-    public PrismObjectDefinition<?> getDefaultTargetContext() {
-        return defaultTargetContext;
-    }
-
-    public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
-        this.defaultTargetContext = defaultTargetContext;
-    }
-
-    public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-    }
-
     public QName getMappingQName() {
         return mappingQName;
     }
@@ -264,7 +242,6 @@ public class ExpressionEvaluationContext {
         clone.valuePolicyResolver = this.valuePolicyResolver;
         clone.expressionFactory = this.expressionFactory;
         clone.defaultSource = this.defaultSource;
-        clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
         clone.mappingQName = this.mappingQName;
         clone.additionalConvertor = this.additionalConvertor;
         clone.variableProducer = this.variableProducer;
