@@ -267,7 +267,7 @@ public class ObjectUpdater {
         return baseHelper.getConfiguration();
     }
 
-    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject<?> rObject,
+    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
             String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 

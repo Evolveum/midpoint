@@ -98,10 +98,6 @@
                     <artifactId>commons-exec</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.bouncycastle</groupId>
-                    <artifactId>bcpkix-jdk15on</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.hibernate</groupId>
                     <artifactId>hibernate-core</artifactId>
                 </exclusion>
@@ -130,22 +126,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
-            <!--<exclusions>-->
-            <!--    <exclusion>-->
-            <!--        <groupId>org.hibernate</groupId>-->
-            <!--        <artifactId>hibernate-core</artifactId>-->
-            <!--    </exclusion>-->
-            <!--</exclusions>-->
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -36,7 +36,7 @@ import java.util.Set;
                 @Index(name = "iUserNameOrig", columnList = "name_orig")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RUser extends RFocus<UserType> {
+public class RUser extends RFocus {
 
     private RPolyString nameCopy;
     private RPolyString fullName;

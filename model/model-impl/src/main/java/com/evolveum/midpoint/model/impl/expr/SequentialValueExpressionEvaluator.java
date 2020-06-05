@@ -16,7 +16,6 @@ import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpression
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -34,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpre
  */
 public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, SequentialValueExpressionEvaluatorType> {
 
-    RepositoryService repositoryService;
+    private final RepositoryService repositoryService;
 
     SequentialValueExpressionEvaluator(QName elementName, SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType,
             D outputDefinition, Protector protector, RepositoryService repositoryService, PrismContext prismContext) {
@@ -48,10 +47,11 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
         checkEvaluatorProfile(context);
 
-        long counter = getSequenceCounter(getExpressionEvaluatorType().getSequenceRef().getOid(), repositoryService, result);
+        long counter = getSequenceCounter(expressionEvaluatorBean.getSequenceRef().getOid(), repositoryService, result);
 
         Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
 
+        //noinspection unchecked
         Item<V,D> output = outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
             ((PrismProperty<Object>)output).addRealValue(value);
@@ -62,7 +62,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
     }
 
-    public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ModelContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
 
         Long counter = ctx.getSequenceCounter(sequenceOid);
@@ -74,12 +74,8 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         return counter;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
-        return "squentialValue: "+getExpressionEvaluatorType().getSequenceRef().getOid();
+        return "sequentialValue: "+ expressionEvaluatorBean.getSequenceRef().getOid();
     }
-
 }

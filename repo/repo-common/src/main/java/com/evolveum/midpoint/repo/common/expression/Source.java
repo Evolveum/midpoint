@@ -25,37 +25,31 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author semancik
+ * Expression evaluation source.
  *
+ * Basically a named item-delta-item.
+ *
+ * @author semancik
  */
-public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemDeltaItem<V,D> implements DebugDumpable, ShortDumpable {
+public class Source<V extends PrismValue,D extends ItemDefinition>
+        extends ItemDeltaItem<V,D>
+        implements DebugDumpable, ShortDumpable {
 
-    private QName name;
+    @NotNull private final QName name;
 
-    public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, QName name, D definition) {
+    public Source(Item<V,D> itemOld, ItemDelta<V,D> delta, Item<V,D> itemNew, @NotNull QName name, D definition) {
         super(itemOld, delta, itemNew, definition);
         this.name = name;
     }
 
-    public Source(ItemDeltaItem<V,D> idi, QName name) {
+    public Source(ItemDeltaItem<V,D> idi, @NotNull QName name) {
         super(idi);
         this.name = name;
     }
 
+    @NotNull
     public QName getName() {
         return name;
-    }
-
-    public void setName(QName name) {
-        this.name = name;
-    }
-
-    public Item<V,D> getEmptyItem() throws SchemaException {
-        ItemDefinition definition = getDefinition();
-        if (definition == null) {
-            throw new IllegalStateException("No definition in source "+this);
-        }
-        return definition.instantiate(getElementName());
     }
 
     @Override

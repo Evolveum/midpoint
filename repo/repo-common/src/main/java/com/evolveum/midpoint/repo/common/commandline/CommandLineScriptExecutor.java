@@ -99,7 +99,6 @@ public class CommandLineScriptExecutor {
             Collection<Source<?, ?>> sources = new ArrayList<>(1);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
 
-
             TypedValue defaultObjectValAndDef = variables.get(macroName);
             if (defaultObjectValAndDef != null) {
                 Object defaultObjectVal = defaultObjectValAndDef.getValue();
@@ -111,7 +110,7 @@ public class CommandLineScriptExecutor {
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_STRING);
                     sourceDefinition.setMaxOccurs(1);
                     PrismProperty<String> sourceProperty = sourceDefinition.instantiate();
-                    sourceProperty.setRealValue(defaultObjectVal==null?null:defaultObjectVal.toString());
+                    sourceProperty.setRealValue(defaultObjectVal.toString());
                     sourceItem = sourceProperty;
                 } else {
                     sourceItem = null;

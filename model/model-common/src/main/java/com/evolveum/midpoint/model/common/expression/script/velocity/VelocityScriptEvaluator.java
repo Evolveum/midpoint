@@ -7,38 +7,30 @@
 package com.evolveum.midpoint.model.common.expression.script.velocity;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.AbstractScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * Expression evaluator that is using Apache Velocity engine.
@@ -57,6 +49,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
         Velocity.init(properties);
     }
 
+    @NotNull
     @Override
     public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
             ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -79,7 +72,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
         if (context.getOutputDefinition() == null) {
             // No outputDefinition means "void" return type, we can return right now
-            return null;
+            return Collections.emptyList();
         }
 
         QName xsdReturnType = context.getOutputDefinition().getTypeName();
@@ -102,9 +95,9 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
             throw new ExpressionEvaluationException(e.getMessage()+" in "+context.getContextDescription(), e);
         }
 
-        List<V> pvals = new ArrayList<>();
-        pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
-        return pvals;
+        List<V> values = new ArrayList<>();
+        values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+        return values;
     }
 
     private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

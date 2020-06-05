@@ -861,10 +861,8 @@ public class ExpressionUtil {
             variablesAndSources.putAll(params.getVariables());
         }
 
-        if (params.getSources() != null) {
-            for (Source<?, ?> source : params.getSources()) {
-                variablesAndSources.put(source.getName().getLocalPart(), source, source.getDefinition());
-            }
+        for (Source<?, ?> source : params.getSources()) {
+            variablesAndSources.put(source.getName().getLocalPart(), source, source.getDefinition());
         }
 
         return variablesAndSources;
@@ -1124,18 +1122,18 @@ public class ExpressionUtil {
             PrismContainerDefinition<? extends Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
             if (def == null) {
                 ComplexTypeDefinition ctd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
-                def = prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
+                return prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
+            } else {
+                return def;
             }
-            return def;
         }
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
-        return def;
+        return prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
     }
 
     /**
      * Works only for simple evaluators that do not have any profile settings.
      */
-    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?, ?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
         ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
         if (profile == null) {
             return; // no restrictions

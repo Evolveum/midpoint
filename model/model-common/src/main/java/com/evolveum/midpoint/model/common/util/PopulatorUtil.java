@@ -77,7 +77,7 @@ public class PopulatorUtil {
     }
 
     private static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
-            ExpressionVariables variables, ExpressionEvaluationContext params, PrismContainerDefinition<C> targetContainerDefinition,
+            ExpressionVariables variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
             String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {
@@ -104,18 +104,18 @@ public class PopulatorUtil {
         }
 
         String expressionDesc = "expression in populate expression in " + contextDescription;
-        ExpressionFactory expressionFactory = params.getExpressionFactory();
-        Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, params.getExpressionProfile(),
+        ExpressionFactory expressionFactory = context.getExpressionFactory();
+        Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, context.getExpressionProfile(),
                 expressionDesc, task, result);
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
-        context.setExpressionFactory(expressionFactory);
-        context.setValuePolicyResolver(params.getValuePolicyResolver());
-        context.setDefaultTargetContext(params.getDefaultTargetContext());
-        context.setSkipEvaluationMinus(true);
-        context.setSkipEvaluationPlus(false);
-        context.setVariableProducer(params.getVariableProducer());
+        ExpressionEvaluationContext localContext = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
+        localContext.setExpressionFactory(expressionFactory);
+        localContext.setValuePolicyResolver(context.getValuePolicyResolver());
+        localContext.setDefaultTargetContext(context.getDefaultTargetContext());
+        localContext.setSkipEvaluationMinus(true);
+        localContext.setSkipEvaluationPlus(false);
+        localContext.setVariableProducer(context.getVariableProducer());
 
-        PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context, result);
+        PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(localContext, result);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("output triple:\n{}", outputTriple==null?null:outputTriple.debugDump(1));
         }

@@ -963,7 +963,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ItemPath path = getSourcePath(sourceDefinition);
-        QName sourceQName = sourceDefinition.getName() != null ? sourceDefinition.getName() : ItemPath.toName(path.last());
+        @NotNull QName sourceQName = sourceDefinition.getName() != null ? sourceDefinition.getName() : ItemPath.toName(path.last());
         String variableName = sourceQName.getLocalPart();
 
         TypedValue<?> typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, variables, true,

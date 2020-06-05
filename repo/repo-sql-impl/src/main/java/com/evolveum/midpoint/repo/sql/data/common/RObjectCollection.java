@@ -33,7 +33,7 @@ import java.util.Objects;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RObjectCollection extends RObject<ObjectCollectionType> {
+public class RObjectCollection extends RObject {
 
     private RPolyString nameCopy;
 

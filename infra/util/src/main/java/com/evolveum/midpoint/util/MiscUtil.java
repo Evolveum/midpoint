@@ -330,22 +330,27 @@ public class MiscUtil {
         return cal.getTime();
     }
 
-    public static <T> void carthesian(Collection<Collection<T>> dimensions, Processor<Collection<T>> processor) {
-        List<Collection<T>> dimensionList = new ArrayList<>(dimensions.size());
-        dimensionList.addAll(dimensions);
-        carthesian(new ArrayList<>(dimensions.size()), dimensionList, 0, processor);
+    /**
+     * We have n dimensions (D1...Dn), each containing a number of values.
+     *
+     * This method sequentially creates all n-tuples of these values (one value from each dimension)
+     * and invokes tupleProcessor on them.
+     */
+    public static <T> void carthesian(List<? extends Collection<T>> valuesForDimensions, Processor<List<T>> tupleProcessor) {
+        carthesian(new ArrayList<>(valuesForDimensions.size()), valuesForDimensions, tupleProcessor);
     }
 
-    private static <T> void carthesian(List<T> items, List<Collection<T>> dimensions, int dimensionNum, Processor<Collection<T>> processor) {
-        Collection<T> myDimension = dimensions.get(dimensionNum);
-        for (T item : myDimension) {
-            items.add(item);
-            if (dimensionNum < dimensions.size() - 1) {
-                carthesian(items, dimensions, dimensionNum + 1, processor);
+    private static <T> void carthesian(List<T> tupleBeingCreated, List<? extends Collection<T>> valuesForDimensions, Processor<List<T>> tupleProcessor) {
+        int currentDimension = tupleBeingCreated.size();
+        Collection<T> valuesForCurrentDimension = valuesForDimensions.get(currentDimension);
+        for (T value : valuesForCurrentDimension) {
+            tupleBeingCreated.add(value);
+            if (currentDimension < valuesForDimensions.size() - 1) {
+                carthesian(tupleBeingCreated, valuesForDimensions, tupleProcessor);
             } else {
-                processor.process(items);
+                tupleProcessor.process(tupleBeingCreated);
             }
-            items.remove(items.size() - 1);
+            tupleBeingCreated.remove(tupleBeingCreated.size() - 1);
         }
     }
 
@@ -824,16 +829,21 @@ public class MiscUtil {
      */
     @Experimental
     public static <T extends Throwable> void throwAsSame(Throwable original, String message) throws T {
+        //noinspection unchecked
+        throw createSame((T) original, message);
+    }
+
+    @Experimental
+    public static <T extends Throwable> T createSame(T original, String message) {
         try {
             Constructor<? extends Throwable> constructor = original.getClass().getConstructor(String.class, Throwable.class);
             //noinspection unchecked
-            throw (T) constructor.newInstance(message, original);
+            return (T) constructor.newInstance(message, original);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             // We won't try to be smart. Not possible to instantiate the exception, so won't bother.
             // E.g. if it would not be possible to enclose inner exception in outer one, it's better to keep the original
             // to preserve the stack trace.
-            //noinspection unchecked
-            throw (T) original;
+            return original;
         }
     }
 }

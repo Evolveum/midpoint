@@ -53,36 +53,16 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
         return ELEMENT_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
-     */
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V, D> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
-            ExpressionFactory factory,
+            ExpressionFactory expressionFactory,
             String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
-        Validate.notNull(outputDefinition, "output definition must be specified for 'generate' expression evaluator");
-
-        if (evaluatorElements.size() > 1) {
-            throw new SchemaException("More than one evaluator specified in " + contextDescription);
-        }
-        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
-
-        Object evaluatorTypeObject = null;
-        if (evaluatorElement != null) {
-            evaluatorTypeObject = evaluatorElement.getValue();
-        }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof FunctionExpressionEvaluatorType)) {
-            throw new SchemaException("Function expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName() + " in " + contextDescription);
-        }
-
-        FunctionExpressionEvaluatorType functionEvaluatorType = (FunctionExpressionEvaluatorType) evaluatorTypeObject;
-
-        return new FunctionExpressionEvaluator(ELEMENT_NAME, functionEvaluatorType, outputDefinition, protector, getObjectResolver(), prismContext);
+        FunctionExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements, FunctionExpressionEvaluatorType.class, contextDescription);
+        return new FunctionExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, getObjectResolver(), prismContext);
     }
-
 }

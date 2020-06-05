@@ -33,7 +33,7 @@ import java.util.Objects;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RDashboard extends RObject<DashboardType> {
+public class RDashboard extends RObject {
 
     private static final long serialVersionUID = 1L;
 

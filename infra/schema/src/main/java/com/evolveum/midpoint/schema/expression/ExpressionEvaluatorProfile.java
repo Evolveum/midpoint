@@ -21,7 +21,7 @@ public class ExpressionEvaluatorProfile {
 
     private final QName type;
     private AccessDecision decision;
-    private final List<ScriptExpressionProfile> scritpProfiles = new ArrayList<>();
+    private final List<ScriptExpressionProfile> scriptProfiles = new ArrayList<>();
 
     public ExpressionEvaluatorProfile(QName type) {
         this.type = type;
@@ -40,17 +40,15 @@ public class ExpressionEvaluatorProfile {
     }
 
     public void add(ScriptExpressionProfile scriptProfile) {
-        scritpProfiles.add(scriptProfile);
+        scriptProfiles.add(scriptProfile);
     }
 
     public ScriptExpressionProfile getScriptExpressionProfile(String language) {
-        for(ScriptExpressionProfile scritpProfile : scritpProfiles) {
-            if (language.equals(scritpProfile.getLanguage())) {
-                return scritpProfile;
+        for (ScriptExpressionProfile scriptProfile : scriptProfiles) {
+            if (language.equals(scriptProfile.getLanguage())) {
+                return scriptProfile;
             }
         }
         return null;
     }
-
-
 }

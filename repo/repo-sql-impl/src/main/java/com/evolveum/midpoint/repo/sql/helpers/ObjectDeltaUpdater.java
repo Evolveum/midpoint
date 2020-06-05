@@ -94,7 +94,7 @@ public class ObjectDeltaUpdater {
     /**
      * modify
      */
-    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid,
+    public <T extends ObjectType> RObject modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta<?, ?>> modifications,
             PrismObject<T> prismObject, RepoModifyOptions modifyOptions, Session session,
             ObjectUpdater.AttemptContext attemptContext) throws SchemaException {
@@ -127,7 +127,7 @@ public class ObjectDeltaUpdater {
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
         //noinspection unchecked
-        RObject<T> object = session.byId(objectClass).getReference(oid);
+        RObject object = session.byId(objectClass).getReference(oid);
 
         ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
 
@@ -162,7 +162,7 @@ public class ObjectDeltaUpdater {
         handleObjectCommonAttributes(type, narrowedModifications, prismObject, object, idGenerator);
 
         if (shadowPendingOperationModified) {
-            ((RShadow<?>) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
+            ((RShadow) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
         }
 
         LOGGER.trace("Entity changes applied");
@@ -170,7 +170,7 @@ public class ObjectDeltaUpdater {
         return object;
     }
 
-    private <T extends ObjectType> void handleRegularModification(RObject<T> object, ItemDelta<?, ?> delta,
+    private <T extends ObjectType> void handleRegularModification(RObject object, ItemDelta<?, ?> delta,
             PrismObject<T> prismObject, ManagedType<?> mainEntityType, Context ctx)
             throws SchemaException {
         TypeValuePair currentValueTypePair = new TypeValuePair();
@@ -233,7 +233,7 @@ public class ObjectDeltaUpdater {
             throw new SystemException("Bean is not instance of " + RFocus.class + ", shouldn't happen");
         }
 
-        RFocus<?> focus = (RFocus<?>) bean;
+        RFocus focus = (RFocus) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
         if (isDelete(delta)) {
@@ -404,7 +404,7 @@ public class ObjectDeltaUpdater {
     }
 
     private void handleObjectTextInfoChanges(Class<? extends ObjectType> type, Collection<? extends ItemDelta> modifications,
-            PrismObject prismObject, RObject<?> object) {
+            PrismObject prismObject, RObject object) {
         // update object text info if necessary
         if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
             return;
@@ -450,7 +450,7 @@ public class ObjectDeltaUpdater {
     }
 
     private void processExtensionDeltaValueSet(Collection<? extends PrismValue> prismValuesFromDelta,
-            Integer itemId, RAnyConverter.ValueType valueType, RObject<?> object,
+            Integer itemId, RAnyConverter.ValueType valueType, RObject object,
             RObjectExtensionType objectOwnerType, RAssignmentExtension assignmentExtension,
             RAssignmentExtensionType assignmentExtensionType,
             BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
@@ -746,7 +746,7 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void processObjectExtensionValues(RObject<?> object,
+    private void processObjectExtensionValues(RObject object,
             RObjectExtensionType objectOwnerType, RAnyConverter.ValueType valueType,
             Collection<PrismEntityPair<RAnyValue<?>>> valuesFromDelta,
             BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
@@ -1102,15 +1102,15 @@ public class ObjectDeltaUpdater {
      * add with overwrite
      */
     @SuppressWarnings("unused")
-    public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge,
+    public <T extends ObjectType> RObject update(PrismObject<T> object, RObject objectToMerge,
             boolean noFetchExtensionValueInsertionForbidden, Session session) {
 
         return merge(objectToMerge, session); // todo implement
     }
 
-    private <T extends ObjectType> RObject<T> merge(RObject<T> object, Session session) {
+    private <T extends ObjectType> RObject merge(RObject object, Session session) {
         //noinspection unchecked
-        return (RObject<T>) session.merge(object);
+        return (RObject) session.merge(object);
     }
 
     private static class TypeValuePair {

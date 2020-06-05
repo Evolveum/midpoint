@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RConnectorHost extends RObject<ConnectorHostType> {
+public class RConnectorHost extends RObject {
 
     private RPolyString nameCopy;
     private String hostname;

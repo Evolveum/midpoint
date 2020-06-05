@@ -39,7 +39,7 @@ import java.util.Set;
         uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RTask extends RObject<TaskType> implements OperationResultFull {
+public class RTask extends RObject implements OperationResultFull {
 
     private RPolyString nameCopy;
     private String taskIdentifier;
