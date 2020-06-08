@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ImmutableList.Builder;
 
 public class AxiomItemBuilder<V> implements Supplier<AxiomItem<V>> {
@@ -32,6 +33,10 @@ public class AxiomItemBuilder<V> implements Supplier<AxiomItem<V>> {
             result.add(value.get());
         }
         return AxiomItem.from(definition, result.build());
+    }
+
+    public Supplier<? extends AxiomValue<V>> onlyValue() {
+        return Iterables.getOnlyElement(values);
     }
 
 

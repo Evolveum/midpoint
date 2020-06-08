@@ -5,7 +5,6 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 public class SimpleValue<T> extends AbstractAxiomValue<T> implements AxiomSimpleValue<T> {
 
-    private static final AxiomValueFactory FACTORY = SimpleValue::create;
     private final T value;
 
     SimpleValue(AxiomTypeDefinition type, T value, Map<AxiomName, AxiomItem<?>> infraItems) {
@@ -21,11 +20,5 @@ public class SimpleValue<T> extends AbstractAxiomValue<T> implements AxiomSimple
     public T value() {
         return value;
     }
-
-    public static <T> AxiomValueFactory<T, AxiomValue<T>> factory() {
-        return FACTORY;
-    }
-
-
 
 }

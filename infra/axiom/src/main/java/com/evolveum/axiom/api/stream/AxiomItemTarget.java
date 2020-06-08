@@ -14,6 +14,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
 public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
 
@@ -79,9 +80,9 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
     }
 
-    private final class Item<V> implements ItemBuilder, Supplier<AxiomItem<V>> {
+    private class Item<V> implements ItemBuilder, Supplier<AxiomItem<V>> {
 
-        private AxiomItemBuilder<V> builder;
+        protected final AxiomItemBuilder<V> builder;
 
         public Item(AxiomItemDefinition definition) {
             this.builder = new AxiomItemBuilder<>(definition);
@@ -100,6 +101,11 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public AxiomIdentifierResolver valueResolver() {
             return resolver;
+        }
+
+
+        protected Value<V> onlyValue() {
+            return (Value<V>) builder.onlyValue();
         }
 
         @Override
@@ -150,6 +156,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
             return this.value;
         }
 
+
         @Override
         public void endNode(SourceLocation loc) {
             // Noop for now
@@ -159,12 +166,35 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         public AxiomItem<V> get() {
             throw new UnsupportedOperationException("Should not be called");
         }
-
     }
+
+    private final class TypeItem extends Item<AxiomName> {
+
+        private Value<?> value;
+
+        public TypeItem(AxiomItemDefinition definition) {
+            super(definition);
+        }
+
+        public TypeItem(Value<?> value, AxiomItemDefinition definition) {
+            super(definition);
+            this.value = value;
+        }
+
+        @Override
+        public void endNode(SourceLocation loc) {
+            AxiomName typeName = (AxiomName) onlyValue().get().asComplex().get().item(AxiomTypeDefinition.NAME).get().onlyValue().value();
+            Optional<AxiomTypeDefinition> typeDef = context.getType(typeName);
+            AxiomSemanticException.check(typeDef.isPresent(), loc, "% type is not defined.", typeName);
+            this.value.setType(typeDef.get(),loc);
+            super.endNode(loc);
+        }
+    }
+
 
     private final class Value<V> implements ValueBuilder, Supplier<AxiomValue<V>> {
 
-        private final AxiomValueBuilder<V, ?> builder;
+        private final AxiomValueBuilder<V> builder;
         private AxiomTypeDefinition type;
 
         public Value(V value, AxiomTypeDefinition type) {
@@ -174,6 +204,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
                 setValue(value);
             }
 
+        }
+
+        public void setType(AxiomTypeDefinition type, SourceLocation start) {
+            AxiomSemanticException.check(type.isSubtypeOf(this.type), start, "%s is not subtype of %s", type.name(), this.type.name());
+            this.type = type;
+            builder.setType(type);
         }
 
         void setValue(V value) {
@@ -232,6 +268,8 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         public ItemBuilder startInfra(AxiomName name, SourceLocation loc) {
             if(AxiomValue.VALUE.equals(name)) {
                 return new ValueItem(this);
+            } else if (AxiomValue.TYPE.equals(name)) {
+                return new TypeItem(this, infraItemDef(name).get());
             }
             Supplier<? extends AxiomItem<?>> itemImpl = builder.getInfra(name, (id) -> {
                 return new Item<>(infraItemDef(name).get());

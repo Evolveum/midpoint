@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> {
 
@@ -37,10 +38,15 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
 
     Map<AxiomName, AxiomItem<?>> itemMap();
 
-    // FIXME: Remove this
-    @Override
-    default Map<AxiomName, AxiomItem<?>> infraItems() {
-        return null;
+
+    interface Factory extends AxiomValueFactory<Collection<AxiomItem<?>>> {
+
+        @Override
+        default AxiomValue<Collection<AxiomItem<?>>> createSimple(AxiomTypeDefinition def,
+                Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> infraItems) {
+            throw new IllegalStateException("Factory is only for complex types");
+        }
+
     }
 
 }

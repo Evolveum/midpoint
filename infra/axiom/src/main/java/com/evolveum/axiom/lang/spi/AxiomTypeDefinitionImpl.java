@@ -8,7 +8,6 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
-import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
@@ -21,17 +20,15 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements AxiomTypeDefinition {
 
-    public static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomTypeDefinition> FACTORY =AxiomTypeDefinitionImpl::new;
-
+    public static final AxiomComplexValue.Factory FACTORY = AxiomTypeDefinitionImpl::new;
     private final Map<AxiomName, AxiomItemDefinition> itemDefinitions;
     private final Optional<AxiomTypeDefinition> superType;
     private final Optional<AxiomItemDefinition> argument;
     private final Collection<AxiomIdentifierDefinition> identifiers;
 
-    public AxiomTypeDefinitionImpl(AxiomTypeDefinition def, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> keywordMap) {
-        super(def, null, keywordMap);
+    public AxiomTypeDefinitionImpl(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> keywordMap, Map<AxiomName, AxiomItem<?>> infraItems) {
+        super(def, keywordMap, infraItems);
 
-        //super(keyword, value, children, keywordMap);
         ImmutableMap.Builder<AxiomName, AxiomItemDefinition> builder =  ImmutableMap.builder();
         Optional<AxiomItem<AxiomItemDefinition>> itemDef = item(Item.ITEM_DEFINITION.name());
         if(itemDef.isPresent()) {

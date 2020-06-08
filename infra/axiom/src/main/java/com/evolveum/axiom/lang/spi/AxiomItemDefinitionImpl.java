@@ -1,13 +1,12 @@
 package com.evolveum.axiom.lang.spi;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
-import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -15,13 +14,13 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 
 public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements AxiomItemDefinition {
 
-    public static final AxiomValueFactory<Collection<AxiomItem<?>>,AxiomItemDefinition> FACTORY = AxiomItemDefinitionImpl::new ;
+    public static final AxiomComplexValue.Factory FACTORY = AxiomItemDefinitionImpl::new;
     private final AxiomValue<AxiomTypeDefinition> valueType;
     private final Optional<AxiomItem<String>> minOccurs;
     private Optional<AxiomIdentifierDefinition> identifierDef;
 
-    public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> items) {
-        super(axiomItemDefinition, value, items);
+    public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName, AxiomItem<?>> infraItems) {
+        super(axiomItemDefinition, items, infraItems);
         this.valueType = require(asComplex().get().onlyValue(AxiomTypeDefinition.class,Item.TYPE_REFERENCE, Item.REF_TARGET));
         this.identifierDef = asComplex().get().onlyValue(AxiomIdentifierDefinition.class, Item.IDENTIFIER_DEFINITION).map(v -> AxiomIdentifierDefinitionImpl.from(v));
         minOccurs = this.<String>item(Item.MIN_OCCURS.name());

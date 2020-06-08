@@ -33,4 +33,8 @@ class AxiomIdentifierDefinitionImpl implements AxiomIdentifierDefinition {
         return Collections.emptyMap();
     }
 
+    @Override
+    public Map<AxiomName, AxiomItem<?>> infraItems() {
+        return null;
+    }
 }

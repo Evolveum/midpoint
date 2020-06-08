@@ -142,6 +142,11 @@ public class AxiomBuiltIn {
         public Map<AxiomName, AxiomItem<?>> itemMap() {
             return null;
         }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> infraItems() {
+            return null;
+        }
     }
 
     public static class Type implements AxiomTypeDefinition {
@@ -299,6 +304,11 @@ public class AxiomBuiltIn {
                 return true;
             }
             return !itemDefinitions().isEmpty();
+        }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> infraItems() {
+            return null;
         }
     }
 

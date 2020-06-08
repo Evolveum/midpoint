@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
+import com.evolveum.axiom.api.ComplexValueImpl;
 import com.evolveum.axiom.api.SimpleValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
@@ -104,7 +105,7 @@ public class ModelReactorContext extends
 
     IdentifierSpaceHolderImpl globalSpace = new IdentifierSpaceHolderImpl(Scope.GLOBAL);
 
-    Map<AxiomName, AxiomValueFactory<?, ?>> typeFactories = new HashMap<>();
+    Map<AxiomName, AxiomValueFactory<?>> typeFactories = new HashMap<>();
     List<AxiomValueContext<?>> roots = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
@@ -154,9 +155,10 @@ public class ModelReactorContext extends
         }
     }
 
-    public void loadModelFromSource(AxiomModelStatementSource source) {
+    public ModelReactorContext loadModelFromSource(AxiomModelStatementSource source) {
         SourceContext sourceCtx = new SourceContext(this, source, source.imports(), new CompositeIdentifierSpace());
         source.stream(new AxiomBuilderStreamTarget(sourceCtx), Optional.empty());
+        return this;
     }
 
     @Override
@@ -167,21 +169,21 @@ public class ModelReactorContext extends
         return null;
     }
 
-    public void addStatementFactory(AxiomName statementType, AxiomValueFactory<?, ?> factory) {
+    public void addStatementFactory(AxiomName statementType, AxiomValueFactory<?> factory) {
         typeFactories.put(statementType, factory);
     }
 
-    public <V> AxiomValueFactory<V, AxiomValue<V>> typeFactory(AxiomTypeDefinition statementType) {
+    public <V> AxiomValueFactory<V> typeFactory(AxiomTypeDefinition statementType) {
         Optional<AxiomTypeDefinition> current = Optional.of(statementType);
         do {
             @SuppressWarnings("unchecked")
-            AxiomValueFactory<V, ?> maybe = (AxiomValueFactory<V, ?>) typeFactories.get(current.get().name());
+            AxiomValueFactory<V> maybe = (AxiomValueFactory<V>) typeFactories.get(current.get().name());
             if (maybe != null) {
-                return (AxiomValueFactory) maybe;
+                return maybe;
             }
             current = current.get().superType();
         } while (current.isPresent());
-        return statementType.isComplex() ? ItemValueImpl.factory() : SimpleValue.factory();
+        return AxiomValueFactory.defaultFactory();
     }
 
     public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {

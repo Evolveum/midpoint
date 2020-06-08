@@ -1,11 +1,9 @@
 package com.evolveum.axiom.api.schema;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomItem;
 
 abstract class DelegatedItemDefinition implements AxiomItemDefinition {
@@ -80,5 +78,10 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     @Override
     public Optional<AxiomIdentifierDefinition> identifierDefinition() {
         return delegate().identifierDefinition();
+    }
+
+    @Override
+    public Map<AxiomName, AxiomItem<?>> infraItems() {
+        return delegate().infraItems();
     }
 }

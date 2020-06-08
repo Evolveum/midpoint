@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.google.common.collect.ImmutableMap;
@@ -22,6 +21,7 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexV
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
+    public final AxiomName NAME = AxiomName.axiom("name");
 
 
 

@@ -73,7 +73,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
         return globalSpace.lookup(space, key);
     }
 
-    public <V> AxiomValueFactory<V, AxiomValue<V>> factoryFor(AxiomTypeDefinition type) {
+    public <V> AxiomValueFactory<V> factoryFor(AxiomTypeDefinition type) {
         return context.typeFactory(type);
     }
 

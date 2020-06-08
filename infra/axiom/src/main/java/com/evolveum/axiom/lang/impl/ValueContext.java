@@ -117,7 +117,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     private class Result implements Dependency<AxiomValue<V>> {
 
         AxiomTypeDefinition type;
-        AxiomValueBuilder<V, AxiomValue<V>> builder;
+        AxiomValueBuilder<V> builder;
         private V value;
 
         public Result(AxiomTypeDefinition type, V value) {

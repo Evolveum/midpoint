@@ -1,37 +1,30 @@
-package com.evolveum.axiom.lang.impl;
+package com.evolveum.axiom.api;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomComplexValue;
-import com.evolveum.axiom.api.AxiomItem;
-import com.evolveum.axiom.api.AxiomValue;
-import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.google.common.collect.ImmutableMap;
 
-public class ItemValueImpl implements AxiomComplexValue {
+public class ComplexValueImpl implements AxiomComplexValue {
 
-    private static final AxiomValueFactory<Collection<AxiomItem<?>>, AxiomComplexValue> FACTORY = ItemValueImpl::new;
     private final AxiomTypeDefinition type;
     private final Map<AxiomName, AxiomItem<?>> items;
+    private final Map<AxiomName, AxiomItem<?>> infraItems;
+
 
 
     protected <X> X require(Optional<X> value) {
         return value.get();
     }
 
-    public ItemValueImpl(AxiomTypeDefinition type, Collection<AxiomItem<?>> value, Map<AxiomName, AxiomItem<?>> items) {
+    public ComplexValueImpl(AxiomTypeDefinition type, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName,AxiomItem<?>> infraItems) {
         super();
         this.type = type;
-        this.items = items;
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <V> AxiomValueFactory<V,AxiomValue<V>> factory() {
-        return (AxiomValueFactory) FACTORY;
+        this.items = ImmutableMap.copyOf(items);
+        this.infraItems = ImmutableMap.copyOf(infraItems);
     }
 
     @Override
@@ -56,5 +49,10 @@ public class ItemValueImpl implements AxiomComplexValue {
     @Override
     public Map<AxiomName, AxiomItem<?>> itemMap() {
         return items;
+    }
+
+    @Override
+    public Map<AxiomName, AxiomItem<?>> infraItems() {
+        return infraItems;
     }
 }
