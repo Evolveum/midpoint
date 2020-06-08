@@ -7,8 +7,7 @@ import com.google.common.collect.ImmutableList;
 
 class AxiomItemImpl<V> extends AbstractAxiomItem<V> {
 
-    Collection<AxiomValue<V>> values;
-
+    private final Collection<AxiomValue<V>> values;
 
     private AxiomItemImpl(AxiomItemDefinition definition, Collection<? extends AxiomValue<V>> val) {
         super(definition);

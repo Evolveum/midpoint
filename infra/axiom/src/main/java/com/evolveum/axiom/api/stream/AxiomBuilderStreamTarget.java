@@ -62,9 +62,21 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
 
     @Override
     public void startItem(AxiomName item, SourceLocation loc) {
-        Optional<AxiomItemDefinition> childDef = value(current()).childDef(item);
+        Optional<AxiomItemDefinition> childDef = value(current()).childItemDef(item);
         AxiomSyntaxException.check(childDef.isPresent(), loc , "Item %s not allowed in %s", item, current().name());
         offer(value(current()).startItem(item, loc));
+    }
+
+    @Override
+    public void startInfra(AxiomName item, SourceLocation loc) {
+        Optional<AxiomItemDefinition> childDef = value(current()).infraItemDef(item);
+        AxiomSyntaxException.check(childDef.isPresent(), loc , "Infra Item %s not allowed in %s", item, current().name());
+        offer(value(current()).startInfra(item, loc));
+    }
+
+    @Override
+    public void endInfra(SourceLocation loc) {
+        item(poll()).endNode(loc);
     }
 
     @Override
@@ -87,8 +99,10 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     }
 
     public interface ValueBuilder extends Builder {
-        Optional<AxiomItemDefinition> childDef(AxiomName statement);
+        Optional<AxiomItemDefinition> childItemDef(AxiomName statement);
+        Optional<AxiomItemDefinition> infraItemDef(AxiomName item);
         ItemBuilder startItem(AxiomName identifier, SourceLocation loc);
+        ItemBuilder startInfra(AxiomName identifier, SourceLocation loc);
         void endValue(SourceLocation loc);
     }
 

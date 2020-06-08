@@ -21,6 +21,7 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
 
     private AxiomValueFactory<V,T> factory;
     private Map<AxiomName, Supplier<? extends AxiomItem<?>>> children = new LinkedHashMap<>();
+    private Map<AxiomName, Supplier<? extends AxiomItem<?>>> infra = new LinkedHashMap<>();
     private V value;
 
     public AxiomValueBuilder(AxiomTypeDefinition type, AxiomValueFactory<V,T> factory) {
@@ -50,6 +51,10 @@ public class AxiomValueBuilder<V,T extends AxiomValue<V>> implements Lazy.Suppli
 
     public Supplier<? extends AxiomItem<?>> get(AxiomName name, Function<AxiomName, ? extends Supplier<? extends AxiomItem<?>>> child) {
         return children.computeIfAbsent(name, child);
+    }
+
+    public Supplier<? extends AxiomItem<?>> getInfra(AxiomName name, Function<AxiomName, ? extends Supplier<? extends AxiomItem<?>>> child) {
+        return infra.computeIfAbsent(name, child);
     }
 
     @Override

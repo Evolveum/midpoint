@@ -48,7 +48,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
+    public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
         return context.rootDefinition(statement);
     }
 
@@ -103,7 +103,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
                 AxiomName axiomNs = AxiomName.axiom(localName);
-                if(childDef(axiomNs).isPresent()) {
+                if(childItemDef(axiomNs).isPresent()) {
                     return axiomNs;
                 }
             }

@@ -66,6 +66,7 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
         public static final AxiomItemDefinition USES = new Item("uses", Type.TYPE_REFERENCE, true);
 
+        public static final AxiomItemDefinition VALUE = new Item("value", null, true);
 
         protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
                 ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
@@ -194,6 +195,11 @@ public class AxiomBuiltIn {
                 ));
         public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
         public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition",TYPE_DEFINITION);
+
+        public static final Type AXIOM_VALUE = new Type("AxiomValue", null, () -> itemDefs(
+                Item.TYPE_REFERENCE,
+                Item.VALUE
+                ));
 
         private final AxiomName identifier;
         private final AxiomTypeDefinition superType;

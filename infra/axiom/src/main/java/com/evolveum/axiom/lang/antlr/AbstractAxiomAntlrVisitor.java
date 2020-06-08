@@ -92,7 +92,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     @Override
     public T visitMetadata(MetadataContext ctx) {
         AxiomName identifier = statementIdentifier(ctx.itemBody().identifier());
-        return processItemBody(identifier, ctx.itemBody(), delegate()::startMetadata, delegate()::endMetadata);
+        return processItemBody(identifier, ctx.itemBody(), delegate()::startInfra, delegate()::endInfra);
     }
 
     private Object convert(ArgumentContext ctx) {

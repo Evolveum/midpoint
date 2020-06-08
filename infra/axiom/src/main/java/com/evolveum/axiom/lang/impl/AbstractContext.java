@@ -29,7 +29,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     public P parent() {
         return parent;
     }
-    protected abstract Optional<AxiomItemDefinition> childDef(AxiomName id);
+    protected abstract Optional<AxiomItemDefinition> childItemDef(AxiomName id);
 
 
     protected SourceContext rootImpl() {

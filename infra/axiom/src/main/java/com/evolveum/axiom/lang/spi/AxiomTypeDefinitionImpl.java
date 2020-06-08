@@ -83,7 +83,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
     }
 
     private void supplyAll(AxiomName type, Builder<AxiomName, AxiomItemDefinition> builder,
-            Collection<AxiomValue<AxiomItemDefinition>> values) {
+            Collection<? extends AxiomValue<AxiomItemDefinition>> values) {
         for(AxiomValue<AxiomItemDefinition> v : values) {
             AxiomItemDefinition val = AxiomItemDefinitionImpl.from(v);
             AxiomName name = Inheritance.adapt(type, val.name());

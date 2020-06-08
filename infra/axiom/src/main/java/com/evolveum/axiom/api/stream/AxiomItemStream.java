@@ -13,8 +13,8 @@ public interface AxiomItemStream {
         void startValue(Object value, SourceLocation loc);
         void endValue(SourceLocation loc);
 
-        default void startMetadata(AxiomName item, SourceLocation loc) {};
-        default void endMetadata(SourceLocation loc) {};
+        default void startInfra(AxiomName item, SourceLocation loc) {};
+        default void endInfra(SourceLocation loc) {};
 
     }
 

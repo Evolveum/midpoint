@@ -12,12 +12,14 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 
 public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
 
     private final AxiomSchemaContext context;
     private final AxiomIdentifierResolver resolver;
+    private AxiomTypeDefinition infraType = AxiomBuiltIn.Type.AXIOM_VALUE;
     private Item<?> result;
 
     public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver resolver) {
@@ -49,19 +51,30 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
+        public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
             return context.getRoot(statement);
         }
 
         @Override
-        public ItemBuilder startItem(AxiomName identifier, SourceLocation loc) {
-            result = new Item<>(childDef(identifier).get());
+        public Optional<AxiomItemDefinition> infraItemDef(AxiomName item) {
+            return infraType.itemDefinition(item);
+        }
+
+        @Override
+        public ItemBuilder startItem(AxiomName name, SourceLocation loc) {
+            result = new Item<>(childItemDef(name).get());
             return result;
         }
 
         @Override
         public void endValue(SourceLocation loc) {
 
+        }
+
+        @Override
+        public ItemBuilder startInfra(AxiomName name, SourceLocation loc) {
+            // TODO Auto-generated method stub
+            return null;
         }
 
     }
@@ -106,22 +119,70 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
             return builder.get();
         }
 
+    }
+
+    private final class ValueItem<V> implements ItemBuilder, Supplier<AxiomItem<V>> {
+
+        private Value<V> value;
+
+        public ValueItem(Value<V> value) {
+            this.value = value;
+        }
+
+        @Override
+        public AxiomName name() {
+            return AxiomValue.VALUE;
+        }
+
+        @Override
+        public AxiomIdentifierResolver itemResolver() {
+            return resolver;
+        }
+
+        @Override
+        public AxiomIdentifierResolver valueResolver() {
+            return resolver;
+        }
+
+        @Override
+        public ValueBuilder startValue(Object value, SourceLocation loc) {
+            this.value.setValue((V) value);
+            return this.value;
+        }
+
+        @Override
+        public void endNode(SourceLocation loc) {
+            // Noop for now
+        }
+
+        @Override
+        public AxiomItem<V> get() {
+            throw new UnsupportedOperationException("Should not be called");
+        }
 
     }
 
     private final class Value<V> implements ValueBuilder, Supplier<AxiomValue<V>> {
 
         private final AxiomValueBuilder<V, ?> builder;
+        private AxiomTypeDefinition type;
 
         public Value(V value, AxiomTypeDefinition type) {
+            this.type = type;
             builder = AxiomValueBuilder.from(type);
-            builder.setValue(value);
-            if(value != null && type.argument().isPresent()) {
-                AxiomItemDefinition argument = type.argument().get();
-                startItem(argument.name(), null).startValue(value, null);
+            if(value != null) {
+                setValue(value);
+            }
+
+        }
+
+        void setValue(V value) {
+            if(type.argument().isPresent()) {
+                startItem(type.argument().get().name(), null).startValue(value, null);
             } else {
                 builder.setValue(value);
             }
+
         }
 
         @Override
@@ -140,14 +201,19 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
+        public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
             return builder.type().itemDefinition(statement);
         }
 
         @Override
-        public ItemBuilder startItem(AxiomName identifier, SourceLocation loc) {
-            Object itemImpl = builder.get(identifier, (id) -> {
-                return new Item(childDef(identifier).get());
+        public Optional<AxiomItemDefinition> infraItemDef(AxiomName item) {
+            return infraType.itemDefinition(item);
+        }
+
+        @Override
+        public ItemBuilder startItem(AxiomName name, SourceLocation loc) {
+            Object itemImpl = builder.get(name, (id) -> {
+                return new Item(childItemDef(name).get());
             });
             return (Item) (itemImpl);
         }
@@ -160,6 +226,17 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public AxiomValue<V> get() {
             return builder.get();
+        }
+
+        @Override
+        public ItemBuilder startInfra(AxiomName name, SourceLocation loc) {
+            if(AxiomValue.VALUE.equals(name)) {
+                return new ValueItem(this);
+            }
+            Supplier<? extends AxiomItem<?>> itemImpl = builder.getInfra(name, (id) -> {
+                return new Item<>(infraItemDef(name).get());
+            });
+            return (Item) itemImpl;
         }
 
     }

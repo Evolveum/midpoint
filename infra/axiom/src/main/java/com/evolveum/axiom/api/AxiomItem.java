@@ -12,14 +12,10 @@ public interface AxiomItem<V> {
     AxiomName name();
     Optional<AxiomItemDefinition> definition();
 
-    Collection<AxiomValue<V>> values();
+    Collection<? extends AxiomValue<V>> values();
 
     default AxiomValue<V> onlyValue() {
         return Iterables.getOnlyElement(values());
-    }
-
-    static <V> AxiomItem<V> of(AxiomItemDefinition def, V value) {
-        return CompactAxiomItem.of(def, value);
     }
 
     static <V> AxiomItem<V> from(AxiomItemDefinition def, Collection<? extends AxiomValue<V>> values) {

@@ -1,29 +1,20 @@
 package com.evolveum.axiom.api;
 
 import java.util.Map;
-import java.util.Optional;
-
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-public class SimpleValue<T> implements AxiomSimpleValue<T> {
+public class SimpleValue<T> extends AbstractAxiomValue<T> implements AxiomSimpleValue<T> {
 
     private static final AxiomValueFactory FACTORY = SimpleValue::create;
-    private final AxiomTypeDefinition type;
     private final T value;
 
-    SimpleValue(AxiomTypeDefinition type, T value) {
-        super();
-        this.type = type;
+    SimpleValue(AxiomTypeDefinition type, T value, Map<AxiomName, AxiomItem<?>> infraItems) {
+        super(type, infraItems);
         this.value = value;
     }
 
-    public static final <V> AxiomSimpleValue<V> create(AxiomTypeDefinition def, V value, Map<AxiomName, AxiomItem<?>> items) {
-        return new SimpleValue<V>(def, value);
-    }
-
-    @Override
-    public Optional<AxiomTypeDefinition> type() {
-        return Optional.ofNullable(type);
+    public static final <V> AxiomSimpleValue<V> create(AxiomTypeDefinition def, V value, Map<AxiomName, AxiomItem<?>> infraItems) {
+        return new SimpleValue<V>(def, value, infraItems);
     }
 
     @Override

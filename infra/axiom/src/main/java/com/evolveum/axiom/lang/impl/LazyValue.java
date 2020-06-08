@@ -1,20 +1,23 @@
 package com.evolveum.axiom.lang.impl;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.evolveum.axiom.concepts.LazyDelegate;
 
-class LazyValue<V> implements AxiomValue<V>  {
+class LazyValue<V> extends LazyDelegate<AxiomValue<V>> implements AxiomValue<V> {
 
     private final AxiomTypeDefinition type;
-    private Object delegate;
 
     public LazyValue(AxiomTypeDefinition type, Supplier<AxiomValue<V>> supplier) {
+        super(supplier::get);
         this.type = type;
-        this.delegate = supplier;
     }
 
     @Override
@@ -32,14 +35,9 @@ class LazyValue<V> implements AxiomValue<V>  {
         return delegate().asComplex();
     }
 
-    private AxiomValue<V> delegate() {
-        if(delegate instanceof AxiomValue) {
-            return ((AxiomValue<V>) delegate);
-        }
-        delegate = ((Supplier<AxiomValue<V>>)delegate).get();
-        return delegate();
+    @Override
+    public Map<AxiomName, AxiomItem<?>> infraItems() {
+        return delegate().infraItems();
     }
-
-
 
 }

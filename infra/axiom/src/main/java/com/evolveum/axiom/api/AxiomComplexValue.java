@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
-import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> {
 
@@ -25,10 +24,6 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
         return Optional.ofNullable((AxiomItem<T>) itemMap().get(name));
     }
 
-    static <V> AxiomValue<V> from(AxiomTypeDefinition typeDefinition, V value) {
-        return new SimpleValue<V>(typeDefinition, value);
-    }
-
    default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
         Optional<AxiomValue<?>> current = Optional.of(this);
         for(AxiomItemDefinition name : components) {
@@ -41,5 +36,11 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
     }
 
     Map<AxiomName, AxiomItem<?>> itemMap();
+
+    // FIXME: Remove this
+    @Override
+    default Map<AxiomName, AxiomItem<?>> infraItems() {
+        return null;
+    }
 
 }

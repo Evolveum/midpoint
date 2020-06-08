@@ -52,7 +52,7 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
-    protected Optional<AxiomItemDefinition> childDef(AxiomName id) {
+    protected Optional<AxiomItemDefinition> childItemDef(AxiomName id) {
         return type().itemDefinition(id);
     }
 

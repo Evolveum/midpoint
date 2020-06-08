@@ -3,6 +3,7 @@ package com.evolveum.axiom.lang.impl;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.Lookup;
+import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
@@ -59,7 +60,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public Optional<AxiomItemDefinition> childDef(AxiomName statement) {
+    public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
         return parent().type().itemDefinition(statement);
     }
 
@@ -110,7 +111,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     protected ItemContext<?> createItem(AxiomName id, SourceLocation loc) {
-        return new ItemContext<>(this, id ,childDef(id).get(), loc);
+        return new ItemContext<>(this, id ,childItemDef(id).get(), loc);
     }
 
     private class Result implements Dependency<AxiomValue<V>> {
@@ -257,9 +258,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
 
         Optional<AxiomItemDefinition> resolveChildDef(AxiomItemDefinition name) {
-            Optional<AxiomItemDefinition> exactDef = childDef(name.name());
+            Optional<AxiomItemDefinition> exactDef = childItemDef(name.name());
             if(exactDef.isPresent()) {
-                Optional<AxiomItemDefinition> localDef = childDef(parent().name().localName(name.name().localName()));
+                Optional<AxiomItemDefinition> localDef = childItemDef(parent().name().localName(name.name().localName()));
                 if(localDef.isPresent() && localDef.get() instanceof AxiomItemDefinition.Inherited) {
                     return localDef;
                 }
@@ -379,14 +380,14 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
                 AxiomName localNs = AxiomName.local(localName);
-                Optional<AxiomItemDefinition> childDef = childDef(localNs);
+                Optional<AxiomItemDefinition> childDef = childItemDef(localNs);
                 if(childDef.isPresent()) {
                     return Inheritance.adapt(parent().name(), childDef.get());
                 }
                 ItemContext<?> parent = parent();
                 while(parent != null) {
                     AxiomName parentNs = AxiomName.from(parent.name().namespace(), localName);
-                    if(childDef(parentNs).isPresent()) {
+                    if(childItemDef(parentNs).isPresent()) {
                         return parentNs;
                     }
                     parent = parent.parent().parent();
@@ -430,6 +431,16 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
             // TODO Auto-generated method stub
             return null;
         }
+    }
+
+    @Override
+    public Optional<AxiomItemDefinition> infraItemDef(AxiomName item) {
+        throw new UnsupportedOperationException("Infra Items not yet supported for schema");
+    }
+
+    @Override
+    public ItemBuilder startInfra(AxiomName identifier, SourceLocation loc) {
+       throw new UnsupportedOperationException("Infra Items not yet supported for schema");
     }
 
 }
