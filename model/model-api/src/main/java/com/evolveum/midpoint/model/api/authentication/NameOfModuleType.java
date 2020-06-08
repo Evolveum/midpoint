@@ -22,7 +22,8 @@ public enum NameOfModuleType {
     LOGIN_FORM("LoginForm"),
     SAML_2("Saml2"),
     LDAP("LDAP"),
-    MAIL_NONCE("MailNonce");
+    MAIL_NONCE("MailNonce"),
+    OTHER("Other");
 
 
     private String name;
