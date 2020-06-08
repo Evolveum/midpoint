@@ -2102,9 +2102,7 @@
 
         <profile>
             <id>jdk-11</id>
-            <properties>
-                <project.source.version>11</project.source.version>
-            </properties>
+            <!-- Don't change source level here, we still need the to support globally set level. -->
             <activation>
                 <jdk>11</jdk>
             </activation>
@@ -2145,9 +2143,6 @@
 
         <profile>
             <id>jdk-8</id>
-            <properties>
-                <project.source.version>1.8</project.source.version>
-            </properties>
             <activation>
                 <jdk>1.8</jdk>
             </activation>
