@@ -2104,7 +2104,7 @@
             <id>jdk-11</id>
             <!-- Don't change source level here, we still need the to support globally set level. -->
             <activation>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <dependencyManagement>
                 <!--
