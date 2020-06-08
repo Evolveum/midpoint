@@ -2346,7 +2346,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void assertFocusMappings(EvaluatedAssignmentImpl<? extends FocusType> evaluatedAssignment, Collection<String> expectedItems) {
-        assertUnsortedListsEquals("Wrong focus mappings", expectedItems, evaluatedAssignment.getFocusMappings(), m -> m.getMappingType().getName());
+        assertUnsortedListsEquals("Wrong focus mappings", expectedItems, evaluatedAssignment.getFocusMappings(), m -> m.getMappingBean().getName());
         // TODO look at the content of the mappings (e.g. zero, plus, minus sets)
     }
 

@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
@@ -42,7 +43,6 @@ import org.apache.commons.lang.BooleanUtils;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -717,10 +717,16 @@ public class LensUtil {
         }
     }
 
-    public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+    public static <V extends PrismValue,D extends ItemDefinition> MappingBuilder<V,D> addAssignmentPathVariables(MappingBuilder<V,D> builder, AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
         ExpressionVariables expressionVariables = new ExpressionVariables();
         ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
         return builder.addVariableDefinitions(expressionVariables);
+    }
+
+    public static ExpressionVariables getAssignmentPathExpressionVariables(AssignmentPathVariables assignmentPathVariables, PrismContext prismContext) {
+        ExpressionVariables expressionVariables = new ExpressionVariables();
+        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables, prismContext);
+        return expressionVariables;
     }
 
     public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription,

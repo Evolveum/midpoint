@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
  *
  * @author semancik
  */
-public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO extends ObjectType> implements ShortDumpable,
-        MappingPreExpression {
+public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO extends ObjectType> implements ShortDumpable {
 
     @NotNull protected final MT mapping;
     @NotNull protected final MappingKindType mappingKind;
@@ -59,14 +58,8 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
         return null;
     }
 
-    /**
-     * Executed before mapping expression is executed. It is used to populate the assignment.
-     * We need to do that just before mapping expression is executed, because we want all the sources
-     * and variables set the same way as mapping is set.
-     */
-    public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+    public MappingPreExpression getMappingPreExpression() {
+        return null;
     }
 
     @NotNull

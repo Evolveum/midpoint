@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -639,10 +640,10 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             return true;
         }
 
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
                 .createMappingBuilder();
         ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
-        builder = builder.mappingType(condition)
+        builder = builder.mappingBean(condition)
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)

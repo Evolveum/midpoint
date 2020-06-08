@@ -472,9 +472,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                     SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.FUTURE, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
-
     }
-
 
     private <F extends FocusType> boolean evaluateExistenceMapping(final LensContext<F> context,
             final LensProjectionContext projCtx, final XMLGregorianCalendar now, final MappingTimeEval current,
@@ -520,22 +518,9 @@ public class ActivationProcessor implements ProjectorProcessor {
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
                     .implicitTargetPath(SHADOW_EXISTS_PROPERTY_NAME);
 
-            // Source: legal
-            ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSourceIdi = getLegalIdi(projCtx);
-            Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource
-                = new Source<>(legalSourceIdi, ExpressionConstants.VAR_LEGAL_QNAME);
-            builder.defaultSource(legalSource);
-
-            // Source: assigned
-            ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(projCtx);
-            Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED_QNAME);
-            builder.addSource(assignedSource);
-
-            // Source: focusExists
-            ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext());
-            Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSource
-                = new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS_QNAME);
-            builder.addSource(focusExistsSource);
+            builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
+            builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
+            builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
             // Variable: focus
             builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
@@ -633,33 +618,17 @@ public class ActivationProcessor implements ProjectorProcessor {
                             context.getFocusContext().getObjectDeltaObject().findIdi(sourcePath);
                     builder.implicitSourcePath(sourcePath);
 
-                    Source<PrismPropertyValue<ActivationStatusType>,PrismPropertyDefinition<ActivationStatusType>> computedSource = new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME);
-                    builder.defaultSource(computedSource);
-
-                    Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME);
-                    builder.addSource(source);
+                    builder.defaultSource(new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME));
+                    builder.additionalSource(new Source<>(sourceIdi, ExpressionConstants.VAR_ADMINISTRATIVE_STATUS_QNAME));
 
                 } else {
-                    Source<PrismPropertyValue<T>,PrismPropertyDefinition<T>> source = new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME);
-                    builder.defaultSource(source);
+                    builder.defaultSource(new Source<>(sourceIdi, ExpressionConstants.VAR_INPUT_QNAME));
                     builder.implicitSourcePath(focusPropertyPath);
                 }
 
-                // Source: legal
-                ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalIdi = getLegalIdi(projCtx);
-                Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> legalSource = new Source<>(legalIdi, ExpressionConstants.VAR_LEGAL_QNAME);
-                builder.addSource(legalSource);
-
-                // Source: assigned
-                ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedIdi = getAssignedIdi(projCtx);
-                Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> assignedSource = new Source<>(assignedIdi, ExpressionConstants.VAR_ASSIGNED_QNAME);
-                builder.addSource(assignedSource);
-
-                // Source: focusExists
-                ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSourceIdi = getFocusExistsIdi(context.getFocusContext());
-                Source<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> focusExistsSource
-                    = new Source<>(focusExistsSourceIdi, ExpressionConstants.VAR_FOCUS_EXISTS_QNAME);
-                builder.addSource(focusExistsSource);
+                builder.additionalSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
+                builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
+                builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
                 return builder;
             };

@@ -11,7 +11,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.xml.sax.SAXException;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -104,7 +102,7 @@ public class MappingTestEvaluator {
         return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
     }
 
-    public <T> MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
+    public <T> MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
             String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta)
             throws SchemaException, IOException, EncryptionException {
         return createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
@@ -123,7 +121,7 @@ public class MappingTestEvaluator {
         return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld).build();
     }
 
-    public <T> MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, String defaultTargetPropertyName,
+    public <T> MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(String filename, String testName, String defaultTargetPropertyName,
             ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, IOException {
         return this.createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld);
     }
@@ -134,7 +132,7 @@ public class MappingTestEvaluator {
         return this.<T>createMappingBuilder(filename, testName, null, defaultTargetPropertyName, userDelta).build();
     }
 
-    public <T> MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
+    public <T> MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
             String filename, String testName, final ValuePolicyType policy,
             ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta)
             throws SchemaException, IOException, EncryptionException {
@@ -145,14 +143,14 @@ public class MappingTestEvaluator {
         return createMappingBuilder(filename, testName, policy, defaultTargetPropertyPath, userDelta, userOld);
     }
 
-    public <T> MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
+    public <T> MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(
             String filename, String testName, final ValuePolicyType policy, ItemPath defaultTargetPropertyPath,
             ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld)
             throws SchemaException, IOException {
         MappingType mappingType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
-        MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mappingBuilder =
+        MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mappingBuilder =
                 mappingFactory.createMappingBuilder(mappingType, testName);
         mappingBuilder.prismContext(prismContext);
 
@@ -180,27 +178,7 @@ public class MappingTestEvaluator {
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
         mappingBuilder.targetContext(userDefinition);
 
-        ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
-            ItemPath outputPath;
-            ItemDefinition outputDefinition;
-
-            @Override
-            public void setOutputPath(ItemPath outputPath) {
-                this.outputPath = outputPath;
-            }
-
-            @Override
-            public void setOutputDefinition(ItemDefinition outputDefinition) {
-                this.outputDefinition = outputDefinition;
-            }
-
-            @Override
-            public ValuePolicyType resolve() {
-                return policy;
-            }
-        };
-
-        mappingBuilder.stringPolicyResolver(stringPolicyResolver);
+        mappingBuilder.stringPolicyResolver((result) -> policy);
         // Default target
         if (defaultTargetPropertyPath != null) {
             PrismPropertyDefinition<T> targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);
@@ -221,7 +199,7 @@ public class MappingTestEvaluator {
         MappingType mappingType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
 
-        MappingImpl.Builder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> builder = mappingFactory.createMappingBuilder(mappingType, testName);
+        MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> builder = mappingFactory.createMappingBuilder(mappingType, testName);
 
         Source<PrismPropertyValue<T>, PrismPropertyDefinition<T>> defaultSource = new Source<>(null, delta, null, ExpressionConstants.VAR_INPUT_QNAME, delta.getDefinition());
         defaultSource.recompute();
@@ -233,27 +211,7 @@ public class MappingTestEvaluator {
         builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject(), ShadowType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject(), ShadowType.class);
 
-        ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
-            ItemPath outputPath;
-            ItemDefinition outputDefinition;
-
-            @Override
-            public void setOutputPath(ItemPath outputPath) {
-                this.outputPath = outputPath;
-            }
-
-            @Override
-            public void setOutputDefinition(ItemDefinition outputDefinition) {
-                this.outputDefinition = outputDefinition;
-            }
-
-            @Override
-            public ValuePolicyType resolve() {
-                return policy;
-            }
-        };
-
-        builder.stringPolicyResolver(stringPolicyResolver);
+        builder.stringPolicyResolver((result) -> policy);
 
         builder.originType(OriginType.INBOUND);
         builder.originObject(resource);

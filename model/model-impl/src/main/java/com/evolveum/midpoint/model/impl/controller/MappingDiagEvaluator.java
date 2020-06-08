@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -61,12 +62,12 @@ public class MappingDiagEvaluator {
             @NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        MappingImpl.Builder<?,?> builder = mappingFactory.createMappingBuilder();
+        MappingBuilder<?,?> builder = mappingFactory.createMappingBuilder();
 
         ObjectDeltaObject<?> sourceContext = createSourceContext(request, task, result);
 
-        builder = builder
-                .mappingType(request.getMapping())
+        builder
+                .mappingBean(request.getMapping())
                 .mappingKind(MappingKindType.OTHER)
                 .contextDescription("mapping diagnostic execution")
                 .sourceContext(sourceContext)
@@ -88,7 +89,7 @@ public class MappingDiagEvaluator {
         dumpOutputTriple(sb, mapping.getOutputTriple());
         sb.append("Condition output triple: ");
         dumpOutputTriple(sb, mapping.getConditionOutputTriple());
-        sb.append("Time constraint valid: ").append(mapping.evaluateTimeConstraintValid(task, result)).append("\n");
+        sb.append("Time constraint valid: ").append(mapping.isTimeConstraintValid()).append("\n");
         sb.append("Next recompute time: ").append(mapping.getNextRecomputeTime()).append("\n");
         sb.append("\n");
         sb.append("Evaluation time: ").append(mapping.getEtime()).append(" ms\n");
