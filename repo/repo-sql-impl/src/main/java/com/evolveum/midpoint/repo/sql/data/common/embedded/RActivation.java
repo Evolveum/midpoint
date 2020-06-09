@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,9 +26,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-/**
- * @author lazyman
- */
 @Embeddable
 @JaxbType(type = ActivationType.class)
 public class RActivation {
@@ -44,50 +41,50 @@ public class RActivation {
     private XMLGregorianCalendar validityChangeTimestamp;
     private String disableReason;
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getArchiveTimestamp() {
         return archiveTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getDisableTimestamp() {
         return disableTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getEnableTimestamp() {
         return enableTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getValidityChangeTimestamp() {
         return validityChangeTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.ORDINAL)
     public RTimeIntervalStatus getValidityStatus() {
         return validityStatus;
     }
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getAdministrativeStatus() {
         return administrativeStatus;
     }
 
-    @Column(nullable = true)
+    @Column
     @Enumerated(EnumType.ORDINAL)
     public RActivationStatus getEffectiveStatus() {
         return effectiveStatus;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getValidTo() {
         return validTo;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getValidFrom() {
         return validFrom;
     }
@@ -226,7 +223,7 @@ public class RActivation {
         jaxb.setValidityChangeTimestamp(repo.getValidityChangeTimestamp());
     }
 
-    public ActivationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public ActivationType toJAXB(PrismContext prismContext) {
         ActivationType activation = new ActivationType();
         RActivation.copyToJAXB(this, activation, prismContext);
         return activation;
