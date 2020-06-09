@@ -9,6 +9,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModule
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletRequest;
@@ -22,6 +24,9 @@ public class OtherModuleFactory extends AbstractModuleFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(OtherModuleFactory.class);
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     @Override
     public boolean match(AbstractAuthenticationModuleType module) {
         if (module instanceof AuthenticationModuleOtherType) {
@@ -33,8 +38,8 @@ public class OtherModuleFactory extends AbstractModuleFactory {
 
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType module, String prefixOfSequence, ServletRequest request,
-                                         Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
-                                         CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
+            Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
+            CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
         if (!(module instanceof AuthenticationModuleOtherType)) {
             LOGGER.error("This factory support only AuthenticationModuleOtherType, but module is " + module);
@@ -46,9 +51,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
         String factoryClass = other.getFactoryClass();
 
         Class<AbstractModuleFactory> factoryClazz = (Class) Class.forName(factoryClass);
-
-        AbstractModuleFactory factory = factoryClazz.newInstance();
-        getObjectObjectPostProcessor().postProcess(factory);
+        AbstractModuleFactory factory = applicationContext.getBean(factoryClazz);
 
         AuthModule authModule = factory.createModuleFilter(module, prefixOfSequence, request, sharedObjects,
                 authenticationsPolicy, credentialPolicy, authenticationChannel);
