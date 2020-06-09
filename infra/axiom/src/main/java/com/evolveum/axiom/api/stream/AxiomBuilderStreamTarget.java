@@ -12,7 +12,7 @@ import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -88,9 +88,9 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     private interface Builder {
         AxiomName name();
 
-        AxiomIdentifierResolver itemResolver();
+        AxiomNameResolver itemResolver();
 
-        AxiomIdentifierResolver valueResolver();
+        AxiomNameResolver valueResolver();
     }
 
     public interface ItemBuilder extends Builder {
@@ -106,7 +106,7 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
         ItemBuilder startInfra(AxiomName identifier, SourceLocation loc);
         void endValue(SourceLocation loc);
 
-        default AxiomIdentifierResolver axiomAsConditionalDefault() {
+        default AxiomNameResolver axiomAsConditionalDefault() {
             return (prefix, name) -> {
                 if(Strings.isNullOrEmpty(prefix)) {
                     AxiomName axiomNs = AxiomName.axiom(name);
@@ -120,12 +120,12 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     }
 
     @Override
-    public AxiomIdentifierResolver itemResolver() {
+    public AxiomNameResolver itemResolver() {
         return current().itemResolver();
     }
 
     @Override
-    public AxiomIdentifierResolver valueResolver() {
+    public AxiomNameResolver valueResolver() {
         return current().valueResolver();
     }
 

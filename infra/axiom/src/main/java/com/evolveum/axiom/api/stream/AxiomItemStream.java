@@ -2,7 +2,7 @@ package com.evolveum.axiom.api.stream;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.concepts.SourceLocation;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 public interface AxiomItemStream {
 
@@ -20,8 +20,8 @@ public interface AxiomItemStream {
 
     interface TargetWithResolver extends Target {
 
-        AxiomIdentifierResolver itemResolver();
-        AxiomIdentifierResolver valueResolver();
+        AxiomNameResolver itemResolver();
+        AxiomNameResolver valueResolver();
 
     }
 

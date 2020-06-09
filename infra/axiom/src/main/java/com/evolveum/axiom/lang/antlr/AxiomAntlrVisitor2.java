@@ -11,15 +11,15 @@ import java.util.Set;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 
     private final AxiomItemStream.TargetWithResolver delegate;
-    private final AxiomIdentifierResolver sourceLocal;
+    private final AxiomNameResolver sourceLocal;
 
     public AxiomAntlrVisitor2(String name, AxiomItemStream.TargetWithResolver delegate,
-            Set<AxiomName> limit, AxiomIdentifierResolver resolver) {
+            Set<AxiomName> limit, AxiomNameResolver resolver) {
         super(name, limit);
         this.delegate = delegate;
         this.sourceLocal = resolver;

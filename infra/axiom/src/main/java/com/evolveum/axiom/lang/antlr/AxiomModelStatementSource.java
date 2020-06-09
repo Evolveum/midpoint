@@ -21,10 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithResolver;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
-public class AxiomModelStatementSource extends AxiomAntlrStatementSource implements AxiomIdentifierResolver {
+public class AxiomModelStatementSource extends AxiomAntlrStatementSource implements AxiomNameResolver {
 
     private static final String IMPORT = "import";
     private static final String NAMESPACE = "namespace";

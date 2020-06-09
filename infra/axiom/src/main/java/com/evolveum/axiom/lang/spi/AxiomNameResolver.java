@@ -20,30 +20,30 @@ import com.google.common.collect.ImmutableSet;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface AxiomIdentifierResolver {
+public interface AxiomNameResolver {
 
-    final AxiomIdentifierResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomName.AXIOM_NAMESPACE);
+    final AxiomNameResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomName.AXIOM_NAMESPACE);
     final Set<String> BUILTINS = ImmutableSet.of("string","boolean","uri", "int", "binary", "dateTime");
-    final AxiomIdentifierResolver BUILTIN_TYPES = (prefix, localName) -> {
+    final AxiomNameResolver BUILTIN_TYPES = (prefix, localName) -> {
         if((prefix == null || prefix.isEmpty()) && BUILTINS.contains(localName)) {
             return AxiomName.axiom(localName);
         }
         return null;
     };
 
-    final AxiomIdentifierResolver NULL_RESOLVER = (p, n) -> null;
+    final AxiomNameResolver NULL_RESOLVER = (p, n) -> null;
 
     AxiomName resolveIdentifier(@Nullable String prefix, @NotNull String localName);
 
-    static AxiomIdentifierResolver defaultNamespace(String namespace) {
+    static AxiomNameResolver defaultNamespace(String namespace) {
         return (prefix, localName) -> Strings.isNullOrEmpty(prefix) ? AxiomName.from(namespace, localName) : null;
     }
 
-    static AxiomIdentifierResolver nullResolver() {
+    static AxiomNameResolver nullResolver() {
         return NULL_RESOLVER;
     }
 
-    default AxiomIdentifierResolver or(AxiomIdentifierResolver next) {
+    default AxiomNameResolver or(AxiomNameResolver next) {
         return (prefix, localName) -> {
             AxiomName maybe = this.resolveIdentifier(prefix, localName);
             if (maybe != null) {
@@ -53,7 +53,7 @@ public interface AxiomIdentifierResolver {
         };
     }
 
-    static AxiomIdentifierResolver defaultNamespaceFromType(AxiomTypeDefinition type) {
+    static AxiomNameResolver defaultNamespaceFromType(AxiomTypeDefinition type) {
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
                 AxiomName localNs = AxiomName.local(localName);

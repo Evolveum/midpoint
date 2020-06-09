@@ -12,7 +12,7 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
@@ -97,7 +97,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public AxiomIdentifierResolver itemResolver() {
+    public AxiomNameResolver itemResolver() {
         return axiomAsConditionalDefault().or((prefix, localName) -> {
             String namespace = imports.get(prefix);
             return AxiomName.from(namespace, localName);
@@ -105,8 +105,8 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public AxiomIdentifierResolver valueResolver() {
-        return AxiomIdentifierResolver.BUILTIN_TYPES.or((prefix, localName) -> {
+    public AxiomNameResolver valueResolver() {
+        return AxiomNameResolver.BUILTIN_TYPES.or((prefix, localName) -> {
             String namespace = imports.get(prefix);
             return AxiomName.from(namespace, localName);
         });

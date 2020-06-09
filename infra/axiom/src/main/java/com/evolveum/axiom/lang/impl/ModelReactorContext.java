@@ -26,7 +26,7 @@ import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierDefinitionImpl;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomTypeDefinitionImpl;
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ModelReactorContext extends
         RuleReactorContext<AxiomSemanticException, ValueContext<?>, ValueActionImpl<?>, RuleContextImpl>
-        implements AxiomIdentifierResolver {
+        implements AxiomNameResolver {
 
     private static final AxiomName ROOT = AxiomName.from("root", "root");
 

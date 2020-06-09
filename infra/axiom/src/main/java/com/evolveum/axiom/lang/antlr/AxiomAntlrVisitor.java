@@ -11,16 +11,16 @@ import java.util.Set;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 @Deprecated
 public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
 
-    private final AxiomIdentifierResolver statements;
-    private final AxiomIdentifierResolver arguments;
+    private final AxiomNameResolver statements;
+    private final AxiomNameResolver arguments;
     private final AxiomItemStream.Target delegate;
 
-    public AxiomAntlrVisitor(String name, AxiomIdentifierResolver statements, AxiomIdentifierResolver arguments, AxiomItemStream.Target delegate,
+    public AxiomAntlrVisitor(String name, AxiomNameResolver statements, AxiomNameResolver arguments, AxiomItemStream.Target delegate,
             Set<AxiomName> limit) {
         super(name, limit);
         this.statements = statements;

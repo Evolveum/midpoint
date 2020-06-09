@@ -13,22 +13,22 @@ import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
 
 public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
 
     private final AxiomSchemaContext context;
-    private final AxiomIdentifierResolver resolver;
+    private final AxiomNameResolver resolver;
     private AxiomTypeDefinition infraType = AxiomBuiltIn.Type.AXIOM_VALUE;
     private Item<?> result;
 
     public AxiomItemTarget(AxiomSchemaContext context) {
-        this(context, AxiomIdentifierResolver.nullResolver());
+        this(context, AxiomNameResolver.nullResolver());
     }
 
-    public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver rootResolver) {
+    public AxiomItemTarget(AxiomSchemaContext context, AxiomNameResolver rootResolver) {
         offer(new Root());
         this.context = context;
         this.resolver = Preconditions.checkNotNull(rootResolver, "rootResolver");
@@ -47,12 +47,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifierResolver itemResolver() {
+        public AxiomNameResolver itemResolver() {
             return axiomAsConditionalDefault().or(resolver);
         }
 
         @Override
-        public AxiomIdentifierResolver valueResolver() {
+        public AxiomNameResolver valueResolver() {
             return resolver;
         }
 
@@ -99,12 +99,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifierResolver itemResolver() {
+        public AxiomNameResolver itemResolver() {
             return resolver;
         }
 
         @Override
-        public AxiomIdentifierResolver valueResolver() {
+        public AxiomNameResolver valueResolver() {
             return resolver;
         }
 
@@ -146,12 +146,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifierResolver itemResolver() {
+        public AxiomNameResolver itemResolver() {
             return resolver;
         }
 
         @Override
-        public AxiomIdentifierResolver valueResolver() {
+        public AxiomNameResolver valueResolver() {
             return resolver;
         }
 
@@ -232,12 +232,12 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomIdentifierResolver itemResolver() {
-            return AxiomIdentifierResolver.defaultNamespaceFromType(builder.type());
+        public AxiomNameResolver itemResolver() {
+            return AxiomNameResolver.defaultNamespaceFromType(builder.type());
         }
 
         @Override
-        public AxiomIdentifierResolver valueResolver() {
+        public AxiomNameResolver valueResolver() {
             return resolver;
         }
 

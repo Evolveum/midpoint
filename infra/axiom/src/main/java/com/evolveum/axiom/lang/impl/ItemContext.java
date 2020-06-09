@@ -13,7 +13,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
@@ -103,12 +103,12 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
-    public AxiomIdentifierResolver itemResolver() {
+    public AxiomNameResolver itemResolver() {
         return rootImpl().itemResolver();
     }
 
     @Override
-    public AxiomIdentifierResolver valueResolver() {
+    public AxiomNameResolver valueResolver() {
         return rootImpl().valueResolver();
     }
 

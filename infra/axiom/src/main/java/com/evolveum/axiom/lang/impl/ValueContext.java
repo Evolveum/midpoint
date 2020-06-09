@@ -24,7 +24,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.concepts.SourceLocation;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
 public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements AxiomValueContext<V>, ValueBuilder, Dependency<AxiomValue<V>> {
@@ -376,7 +376,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public AxiomIdentifierResolver itemResolver() {
+    public AxiomNameResolver itemResolver() {
         return (prefix, localName) -> {
             if(Strings.isNullOrEmpty(prefix)) {
                 AxiomName localNs = AxiomName.local(localName);
@@ -402,7 +402,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public AxiomIdentifierResolver valueResolver() {
+    public AxiomNameResolver valueResolver() {
         return rootImpl().valueResolver();
     }
 

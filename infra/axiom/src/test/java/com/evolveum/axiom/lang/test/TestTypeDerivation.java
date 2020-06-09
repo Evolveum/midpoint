@@ -27,7 +27,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
-import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 public class TestTypeDerivation extends AbstractReactorTest {
@@ -65,7 +65,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
     public void axiomData() throws AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = loadModel();
         AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_FILE);
-        AxiomItemTarget target = new AxiomItemTarget(context, AxiomIdentifierResolver.defaultNamespace(DERIVED_PERSON.namespace()));
+        AxiomItemTarget target = new AxiomItemTarget(context, AxiomNameResolver.defaultNamespace(DERIVED_PERSON.namespace()));
         stream.stream(target);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
