@@ -6,11 +6,27 @@
  */
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -23,20 +39,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.util.file.File;
-import org.apache.wicket.util.file.Files;
-
-import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
 
 /**
  * @author lazyman
@@ -130,15 +132,13 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't init download link", ex);
             result.recordFatalError(getPage().createStringResource("PageDebugDownloadBehaviour.message.initFile.fatalError").getString(), ex);
         } finally {
-            if (writer != null) {
-                IOUtils.closeQuietly(writer);
-            }
+            IOUtils.closeQuietly(writer);
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             page.showResult(result);
             page.getSession().error(page.getString("pageDebugList.message.createFileException"));
-            LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
+            LOGGER.debug("Removing file '{}'.", new Object[] { file.getAbsolutePath() });
             Files.remove(file);
 
             throw new RestartResponseException(PageDebugList.class);
@@ -165,7 +165,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         return new OutputStreamWriter(stream);
     }
 
-    private <T extends ObjectType> void dumpObjectsToStream(final Writer writer, OperationResult result) throws Exception {
+    private void dumpObjectsToStream(final Writer writer, OperationResult result) throws Exception {
         final PageBase page = getPage();
 
         ResultHandler handler = (object, parentResult) -> {
@@ -174,7 +174,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
                 writer.write('\t');
                 writer.write(xml);
                 writer.write('\n');
-            } catch (IOException|SchemaException ex) {
+            } catch (IOException | SchemaException ex) {
                 throw new SystemException(ex.getMessage(), ex);
             }
             return true;
