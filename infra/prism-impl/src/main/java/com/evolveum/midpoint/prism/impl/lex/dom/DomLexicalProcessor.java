@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
@@ -422,12 +421,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     @Override
     public boolean canRead(@NotNull String dataString) {
-        if (dataString.startsWith("<?xml")) {
-            return true;
-        } else {
-            Matcher m = XML_DETECTION_PATTERN.matcher(dataString);
-            return m.find();
-        }
+        return dataString.charAt(0) == '<'
+                || XML_DETECTION_PATTERN.matcher(dataString).find();
     }
 
     @NotNull
