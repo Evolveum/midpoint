@@ -7,34 +7,19 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.LogicalFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipException;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -49,38 +34,48 @@ import org.hibernate.persister.entity.Joinable;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
-import java.io.*;
-import java.lang.reflect.Field;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipException;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
+import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
  */
 public final class RUtil {
 
-    /**
+    /*
      * Currently set in ctx-session.xml as constant, used for batch inserts (e.g. in OrgClosureManager)
-     */
     public static final int JDBC_BATCH_SIZE = 20;
+     */
 
-    /**
+    /*
      * This constant is used for mapping type for {@link javax.persistence.Lob}
      * fields. {@link org.hibernate.type.MaterializedClobType} was not working
      * properly with PostgreSQL, causing TEXT types (clobs) to be saved not in
      * table row but somewhere else and it always messed up UTF-8 encoding
-     */
     public static final String LOB_STRING_TYPE = "org.hibernate.type.MaterializedClobType"; //todo is it working correctly with postgresql [lazyman]
+     */
 
     public static final int COLUMN_LENGTH_QNAME = 157;
 
@@ -106,7 +101,7 @@ public final class RUtil {
     private RUtil() {
     }
 
-    public static <T extends Objectable> void revive(Objectable object, PrismContext prismContext)
+    public static void revive(Objectable object, PrismContext prismContext)
             throws DtoTranslationException {
         try {
             prismContext.adopt(object);
@@ -115,9 +110,11 @@ public final class RUtil {
         }
     }
 
+    /*
     public static Element createFakeParentElement() {
         return DOMUtil.createElement(DOMUtil.getDocument(), CUSTOM_OBJECT);
     }
+    */
 
     public static <T> Set<T> listToSet(List<T> list) {
         if (list == null || list.isEmpty()) {
@@ -138,7 +135,8 @@ public final class RUtil {
         return set;
     }
 
-    public static List<ObjectReferenceType> safeSetReferencesToList(Set<? extends RObjectReference> set, PrismContext prismContext) {
+    public static List<ObjectReferenceType> safeSetReferencesToList(
+            Set<? extends RObjectReference> set, PrismContext prismContext) {
 
         if (set == null || set.isEmpty()) {
             return new ArrayList<>();
@@ -197,16 +195,6 @@ public final class RUtil {
         return ref;
     }
 
-//    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb) {
-//        if (jaxb == null) {
-//            return null;
-//        }
-//        REmbeddedNamedReference ref = new REmbeddedNamedReference();
-//        REmbeddedNamedReference.copyFromJAXB(jaxb, ref);
-//
-//        return ref;
-//    }
-
     public static Integer getIntegerFromString(String val) {
         if (val == null || !val.matches("[0-9]+")) {
             return null;
@@ -220,8 +208,6 @@ public final class RUtil {
      * of entities which have composite id and class defined for it. It's
      * workaround for bug as found in forum
      * https://forum.hibernate.org/viewtopic.php?t=978915&highlight=
-     *
-     * @param sessionFactory
      */
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
@@ -250,7 +236,8 @@ public final class RUtil {
         }
     }
 
-    private static void fixCompositeIdentifierInMetaModel(SessionFactory sessionFactory, Class clazz) {
+    private static void fixCompositeIdentifierInMetaModel(
+            SessionFactory sessionFactory, Class<?> clazz) {
         ClassMetadata classMetadata = sessionFactory.getClassMetadata(clazz);
         if (classMetadata instanceof AbstractEntityPersister) {
             AbstractEntityPersister persister = (AbstractEntityPersister) classMetadata;
@@ -270,7 +257,7 @@ public final class RUtil {
     }
 
     public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
-                                          OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
+            OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 
         if (jaxb == null) {
@@ -311,16 +298,14 @@ public final class RUtil {
         }
     }
 
-    public static <T extends SchemaEnum> T getRepoEnumValue(Object object, Class<T> type) {
+    public static <C, T extends SchemaEnum<C>> T getRepoEnumValue(C object, Class<T> type) {
         if (object == null) {
             return null;
         }
-        Object[] values = type.getEnumConstants();
-        for (Object value : values) {
-            //noinspection unchecked
-            T schemaEnum = (T) value;
-            if (object.equals(schemaEnum.getSchemaValue())) {
-                return schemaEnum;
+        T[] values = type.getEnumConstants();
+        for (T value : values) {
+            if (object.equals(value.getSchemaValue())) {
+                return value;
             }
         }
 
@@ -366,6 +351,7 @@ public final class RUtil {
         return new ItemName(namespace, localPart);
     }
 
+    /*
     public static Long toLong(Short s) {
         if (s == null) {
             return null;
@@ -373,6 +359,7 @@ public final class RUtil {
 
         return s.longValue();
     }
+    */
 
     public static Long toLong(Integer i) {
         if (i == null) {
@@ -382,6 +369,7 @@ public final class RUtil {
         return i.longValue();
     }
 
+    /*
     public static Short toShort(Long l) {
         if (l == null) {
             return null;
@@ -393,6 +381,7 @@ public final class RUtil {
 
         return l.shortValue();
     }
+    */
 
     public static Integer toInteger(Long l) {
         if (l == null) {
@@ -418,7 +407,7 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class hqlType, Session session) {
+    public static String getTableName(Class<?> hqlType, Session session) {
         SessionFactory factory = session.getSessionFactory();
         MetamodelImpl model = (MetamodelImpl) factory.getMetamodel();
         EntityPersister ep = model.entityPersister(hqlType);
@@ -459,48 +448,41 @@ public final class RUtil {
         return array;
     }
 
-    public static String getXmlFromByteArray(byte[] array, boolean compressed) {
-        return getXmlFromByteArray(array, compressed, false);
+    public static String getSerializedFormFromByteArray(byte[] array) {
+        return getSerializedFormFromByteArray(array, false);
     }
 
-    public static String getXmlFromByteArray(byte[] array, boolean compressed, boolean useUtf16) {
+    public static String getSerializedFormFromByteArray(byte[] array, boolean useUtf16) {
         if (array == null) {
             return null;
         }
 
-        String xml;
-
-        GZIPInputStream gzip = null;
-        try {
-            if (compressed) {
-                try {
-                    ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    gzip = new GZIPInputStream(new ByteArrayInputStream(array));
-                    IOUtils.copy(gzip, out);
-                    xml = new String(out.toByteArray(), StandardCharsets.UTF_8);
-                } catch (ZipException ex) {
-                    LOGGER.debug("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
-
-                    // utf-16 will be used only under specific conditions
-                    // - we're using SQL Server
-                    // - we are trying to read audit delta or fullResult which aren't compressed - data before 3.8 release
-                    // These data couldn't be migrated from nvarchar(max) to varbinary(max) without breaking encoding as
-                    // SQL Server doesn't support utf8 and uses ucs2 encoding (compatible to read with utf16)
-                    Charset ch = useUtf16 ? StandardCharsets.UTF_16LE : StandardCharsets.UTF_8;
-                    xml = new String(array, ch);
-                }
-            } else {
-                xml = new String(array, StandardCharsets.UTF_8);
-            }
-        } catch (Exception ex) {
-            throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
-        } finally {
-            IOUtils.closeQuietly(gzip);
+        // auto-detecting gzipped array (starts with 1f 8b)
+        final int head = (array[0] & 0xff) | ((array[1] << 8) & 0xff00);
+        if (GZIPInputStream.GZIP_MAGIC != head) {
+            return new String(array, StandardCharsets.UTF_8);
         }
 
-        return xml;
+        try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(array))) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            IOUtils.copy(gzip, out);
+            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        } catch (ZipException ex) {
+            LOGGER.debug("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
+
+            // utf-16 will be used only under specific conditions
+            // - we're using SQL Server
+            // - we are trying to read audit delta or fullResult which aren't compressed - data before 3.8 release
+            // These data couldn't be migrated from nvarchar(max) to varbinary(max) without breaking encoding as
+            // SQL Server doesn't support utf8 and uses ucs2 encoding (compatible to read with utf16)
+            Charset ch = useUtf16 ? StandardCharsets.UTF_16LE : StandardCharsets.UTF_8;
+            return new String(array, ch);
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
+        }
     }
 
+    /*
     public static OrgFilter findOrgFilter(ObjectQuery query) {
         return query != null ? findOrgFilter(query.getFilter()) : null;
     }
@@ -526,6 +508,7 @@ public final class RUtil {
 
         return null;
     }
+    */
 
     public static String trimString(String message, int size) {
         if (message == null || message.length() <= size) {

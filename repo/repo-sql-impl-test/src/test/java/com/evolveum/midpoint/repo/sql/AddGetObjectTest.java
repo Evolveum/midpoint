@@ -398,18 +398,16 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         RoleType roleType = role.asObjectable();
         System.out.println("role: " + role.debugDump());
         System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
-//        desc = roleType.getSynchronizationSituationDescription().get(0);
-//        AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
 
     /**
      * creates <iterationToken/> element in shadow
      */
     @Test
-    public void emtpyIterationToken() throws Exception {
+    public void emptyIterationToken() throws Exception {
         String token = testIterationToken("");
         AssertJUnit.assertNotNull(token);
-        assertTrue(token.equals(""));
+        assertEquals(token, "");
     }
 
     /**
@@ -806,7 +804,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             AssertJUnit.assertNotNull(rTask.getFullResult());
             AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
 
-            String xml = RUtil.getXmlFromByteArray(rTask.getFullObject(), true);
+            String xml = RUtil.getSerializedFormFromByteArray(rTask.getFullObject());
             PrismObject<TaskType> obj = getPrismContext().parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).parse();
             TaskType objType = obj.asObjectable();
             AssertJUnit.assertNull(objType.getResult());

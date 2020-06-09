@@ -412,7 +412,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         PrismObject result;
         if (object != null) {
-            String xml = RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip());
+            String xml = RUtil.getSerializedFormFromByteArray(object.getFullObject());
             result = getPrismContext().parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).compat().parse();
         } else if (defaultType != null) {
             result = getPrismContext().createObject(defaultType.getJaxbClass());

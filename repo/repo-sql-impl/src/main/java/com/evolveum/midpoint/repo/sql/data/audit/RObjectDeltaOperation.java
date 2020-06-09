@@ -376,14 +376,14 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (operation.getDelta() != null) {
                 byte[] data = operation.getDelta();
-                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String xmlDelta = RUtil.getSerializedFormFromByteArray(data, useUtf16);
 
                 ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (operation.getFullResult() != null) {
                 byte[] data = operation.getFullResult();
-                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String xmlResult = RUtil.getSerializedFormFromByteArray(data, useUtf16);
 
                 OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
@@ -406,14 +406,14 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (resultSet.getBytes(DELTA_COLUMN_NAME) != null) {
                 byte[] data = resultSet.getBytes(DELTA_COLUMN_NAME);
-                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String xmlDelta = RUtil.getSerializedFormFromByteArray(data, useUtf16);
 
                 ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (resultSet.getBytes(FULL_RESULT_COLUMN_NAME) != null) {
                 byte[] data = resultSet.getBytes(FULL_RESULT_COLUMN_NAME);
-                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String xmlResult = RUtil.getSerializedFormFromByteArray(data, useUtf16);
 
                 OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));

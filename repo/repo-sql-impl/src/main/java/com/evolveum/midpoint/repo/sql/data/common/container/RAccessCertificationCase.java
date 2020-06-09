@@ -365,7 +365,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(
             byte[] fullObject, PrismContext prismContext) throws SchemaException {
-        String xml = RUtil.getXmlFromByteArray(fullObject, false);
+        String xml = RUtil.getSerializedFormFromByteArray(fullObject);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
         try {
             return prismContext.parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).compat().parseRealValue(AccessCertificationCaseType.class);

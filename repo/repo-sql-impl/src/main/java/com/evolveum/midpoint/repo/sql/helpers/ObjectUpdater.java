@@ -342,7 +342,8 @@ public class ObjectUpdater {
             }
 
             session.getTransaction().commit();
-            return new DeleteObjectResult(RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip()),
+            return new DeleteObjectResult(
+                    RUtil.getSerializedFormFromByteArray(object.getFullObject()),
                     SqlRepositoryServiceImpl.DATA_LANGUAGE);
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
@@ -546,7 +547,7 @@ public class ObjectUpdater {
         return rv;
     }
 
-    private <T extends ObjectType> boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
+    private boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
@@ -581,7 +582,7 @@ public class ObjectUpdater {
     }
 
     private boolean isNoFetchExtensionValueInsertionException(ConstraintViolationException ex) {
-        return true;        // keep things safe
+        return true; // keep things safe
     }
 
     public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
