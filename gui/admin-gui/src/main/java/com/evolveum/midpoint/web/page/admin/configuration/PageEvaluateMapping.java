@@ -7,6 +7,24 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,27 +43,7 @@ import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-
-/**
- * @author mederly
- */
 @PageDescriptor(url = "/admin/config/evaluateMapping", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
@@ -113,12 +111,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 
         final DropDownChoice<String> sampleChoice = new DropDownChoice<>(ID_MAPPING_SAMPLE,
                 Model.of(""),
-                new IModel<List<String>>() {
-                    @Override
-                    public List<String> getObject() {
-                        return SAMPLES;
-                    }
-                },
+                (IModel<List<String>>) () -> SAMPLES,
                 new StringResourceChoiceRenderer("PageEvaluateMapping.sample"));
         sampleChoice.setNullValid(true);
         sampleChoice.add(new OnChangeAjaxBehavior() {
@@ -135,17 +128,14 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
             }
 
             private String readResource(String name) {
-                InputStream is = PageEvaluateMapping.class.getResourceAsStream(name);
-                if (is != null) {
-                    try {
+                try (InputStream is = PageEvaluateMapping.class.getResourceAsStream(name)) {
+                    if (is != null) {
                         return IOUtils.toString(is, StandardCharsets.UTF_8);
-                    } catch (IOException e) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't read sample from resource {}", e, name);
-                    } finally {
-                        IOUtils.closeQuietly(is);
+                    } else {
+                        LOGGER.warn("Resource {} containing sample couldn't be found", name);
                     }
-                } else {
-                    LOGGER.warn("Resource {} containing sample couldn't be found", name);
+                } catch (IOException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't read sample from resource {}", e, name);
                 }
                 return null;
             }
@@ -201,6 +191,4 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
         showResult(result);
         target.add(this);
     }
-
-
 }
