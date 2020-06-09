@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Persister;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
@@ -29,19 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.jetbrains.annotations.NotNull;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * @author lazyman
@@ -116,7 +117,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAccessCertificationWorkItem> getWorkItems() {
         return workItems;
     }
@@ -256,10 +257,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     // Notes to equals/hashCode: don't include trans nor owner
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAccessCertificationCase))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RAccessCertificationCase)) { return false; }
         RAccessCertificationCase that = (RAccessCertificationCase) o;
         return Arrays.equals(fullObject, that.fullObject) &&
                 Objects.equals(ownerOid, that.ownerOid) &&
@@ -360,11 +359,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {
-        return createJaxb(fullObject, prismContext, true);
+        return createJaxb(fullObject, prismContext);
     }
 
     // TODO find appropriate name
-    public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext, boolean removeCampaignRef) throws SchemaException {
+    public static AccessCertificationCaseType createJaxb(
+            byte[] fullObject, PrismContext prismContext) throws SchemaException {
         String xml = RUtil.getXmlFromByteArray(fullObject, false);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
         try {
@@ -376,6 +376,5 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
             LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
             throw e;
         }
-        //aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
     }
 }
