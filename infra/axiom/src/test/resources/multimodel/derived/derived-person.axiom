@@ -11,7 +11,7 @@ model derived-person {
     }
 
     type Person {
-        extends base:Person;
+        superType base:Person;
         
         item firstName {
             type string;

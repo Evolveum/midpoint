@@ -8,9 +8,40 @@ model axiom-lang {
         """;
         type AxiomModel;
     }
+    
+    type AxiomValue {
+        item type {
+            type AxiomTypeReference;
+        }
+    }
+
+    type AxiomSimpleValue {
+        superType AxiomValue;
+        argument value;
+        item value {
+            type anyType;
+        }
+    }
+
+    type AxiomComplexValue {
+        superType AxiomValue;
+        item item {
+            type AxiomItem;
+        }
+    }
+
+    type AxiomItem {
+        item definition {
+            type AxiomItemDefinition;
+            operational true;
+        }
+        item value {
+            type AxiomValue;
+        }
+    }
 
     type AxiomModel {
-        extends AxiomBaseDefinition;
+        superType AxiomBaseDefinition;
 
         item namespace {
             type string;
@@ -85,7 +116,7 @@ model axiom-lang {
     }
 
     type AxiomRootDefinition {
-        extends AxiomItemDefinition;
+        superType AxiomItemDefinition;
         documentation """
             Root item definition.
 
@@ -125,7 +156,7 @@ model axiom-lang {
     }
 
     type AxiomTypeDefinition {
-        extends AxiomBaseDefinition;
+        superType AxiomBaseDefinition;
         documentation """
             Definition of value type.
 
@@ -142,7 +173,7 @@ model axiom-lang {
         }
 
         // FIXME: should be inherit
-        item extends {
+        item superType {
             type AxiomTypeReference;
             documentation """
                 Reference to super type definition, which is subtyped by this type.
@@ -183,7 +214,7 @@ model axiom-lang {
     }
 
     type AxiomItemDefinition {
-        extends AxiomBaseDefinition;
+        superType AxiomBaseDefinition;
 
         item identifier {
             type AxiomIdentifierDefinition;
@@ -264,18 +295,18 @@ model axiom-lang {
     }
 
     type AxiomMixinDefinition {
-        extends AxiomTypeDefinition;
+        superType AxiomTypeDefinition;
     }
 
     type AxiomAugmentationDefinition {
-        extends AxiomMixinDefinition;
+        superType AxiomMixinDefinition;
         item target {
             type AxiomTypeReference;
         }
     }
 
     type SemanticVersion {
-        extends string;
+        superType string;
     }
 
 }

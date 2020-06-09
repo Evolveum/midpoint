@@ -18,4 +18,5 @@ model axiom-base-types {
     type binary;
     type dateTime;
 
+    type anyType;
 }

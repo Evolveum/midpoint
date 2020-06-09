@@ -100,7 +100,10 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     public AxiomNameResolver itemResolver() {
         return axiomAsConditionalDefault().or((prefix, localName) -> {
             String namespace = imports.get(prefix);
-            return AxiomName.from(namespace, localName);
+            if(namespace != null) {
+                return AxiomName.from(namespace, localName);
+            }
+            return null;
         });
     }
 
@@ -108,7 +111,10 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     public AxiomNameResolver valueResolver() {
         return AxiomNameResolver.BUILTIN_TYPES.or((prefix, localName) -> {
             String namespace = imports.get(prefix);
-            return AxiomName.from(namespace, localName);
+            if(namespace != null) {
+                return AxiomName.from(namespace, localName);
+            }
+            return null;
         });
     }
 }
