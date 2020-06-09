@@ -62,8 +62,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
         if (sourceTriple == null) {
             return null;
         }
-        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(), source.getResidualPath(),
-                protector, prismContext);
+        return ExpressionEvaluatorUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(),
+                source.getResidualPath(), protector, prismContext);
     }
 
     @Override
