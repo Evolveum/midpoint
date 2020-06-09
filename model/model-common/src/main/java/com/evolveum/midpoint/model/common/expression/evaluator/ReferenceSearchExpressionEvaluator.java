@@ -24,6 +24,9 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
 /**
+ * Creates a generic reference (or references) based on specified condition for the referenced object.
+ * (It seems to be not much used.)
+ *
  * @author Radovan Semancik
  */
 public class ReferenceSearchExpressionEvaluator

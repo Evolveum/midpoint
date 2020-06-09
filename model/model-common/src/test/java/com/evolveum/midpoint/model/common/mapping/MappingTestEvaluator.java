@@ -178,7 +178,7 @@ public class MappingTestEvaluator {
         PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
         mappingBuilder.targetContext(userDefinition);
 
-        mappingBuilder.stringPolicyResolver((result) -> policy);
+        mappingBuilder.valuePolicySupplier((result) -> policy);
         // Default target
         if (defaultTargetPropertyPath != null) {
             PrismPropertyDefinition<T> targetDefDefinition = userDefinition.findItemDefinition(defaultTargetPropertyPath);
@@ -211,7 +211,7 @@ public class MappingTestEvaluator {
         builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject(), ShadowType.class);
         builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject(), ShadowType.class);
 
-        builder.stringPolicyResolver((result) -> policy);
+        builder.valuePolicySupplier((result) -> policy);
 
         builder.originType(OriginType.INBOUND);
         builder.originObject(resource);

@@ -14,8 +14,6 @@ import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,7 +57,7 @@ public class ExpressionEvaluationContext {
     /**
      * Provider of value policy. Currently used in GenerateExpressionEvaluator.
      */
-    private ValuePolicyResolver valuePolicyResolver;
+    private ValuePolicySupplier valuePolicySupplier;
 
     /**
      * Factory for expressions. Necessary e.g. for condition evaluation in transformational evaluators.
@@ -173,12 +171,12 @@ public class ExpressionEvaluationContext {
         this.expressionEvaluatorProfile = expressionEvaluatorProfile;
     }
 
-    public ValuePolicyResolver getValuePolicyResolver() {
-        return valuePolicyResolver;
+    public ValuePolicySupplier getValuePolicySupplier() {
+        return valuePolicySupplier;
     }
 
-    public void setValuePolicyResolver(ValuePolicyResolver valuePolicyResolver) {
-        this.valuePolicyResolver = valuePolicyResolver;
+    public void setValuePolicySupplier(ValuePolicySupplier valuePolicySupplier) {
+        this.valuePolicySupplier = valuePolicySupplier;
     }
 
     public ExpressionFactory getExpressionFactory() {
@@ -239,7 +237,7 @@ public class ExpressionEvaluationContext {
         clone.skipEvaluationMinus = this.skipEvaluationMinus;
         clone.skipEvaluationPlus = this.skipEvaluationPlus;
         clone.expressionProfile = this.expressionProfile;
-        clone.valuePolicyResolver = this.valuePolicyResolver;
+        clone.valuePolicySupplier = this.valuePolicySupplier;
         clone.expressionFactory = this.expressionFactory;
         clone.defaultSource = this.defaultSource;
         clone.mappingQName = this.mappingQName;

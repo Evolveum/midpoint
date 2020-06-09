@@ -30,6 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static java.util.Collections.emptyList;
 
 /**
+ * Creates an assignment (or assignments) based on specified conditions for the assignment target.
+ * Can create target objects on demand.
+ *
  * @author Radovan Semancik
  */
 public class AssignmentTargetSearchExpressionEvaluator

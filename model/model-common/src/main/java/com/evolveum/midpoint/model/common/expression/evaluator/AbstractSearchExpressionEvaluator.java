@@ -147,19 +147,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
                 throw new SchemaException("No filter in "+shortDebugDump());
             }
             query = prismContext.getQueryConverter().createObjectQuery(targetTypeClass, filterType);
-            if (LOGGER.isTraceEnabled()){
-                LOGGER.trace("XML query converted to: {}", query.debugDump());
-            }
+            LOGGER.trace("XML query converted to: {}", query.debugDumpLazily());
+
             query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionProfile(), context.getExpressionFactory(),
                     prismContext, context.getContextDescription(), task, result);
-            if (LOGGER.isTraceEnabled()){
-                LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());
-            }
+            LOGGER.trace("Expression in query evaluated to: {}", query.debugDumpLazily());
             query = extendQuery(query, context);
-
-            if (LOGGER.isTraceEnabled()){
-                LOGGER.trace("Query after extension: {}", query.debugDump());
-            }
+            LOGGER.trace("Query after extension: {}", query.debugDumpLazily());
 
             resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context,
                     contextDescription, task, result);
@@ -344,10 +338,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
             }
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
-                    valueResults.size(), query.debugDump());
-        }
+        LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
+                valueResults.size(), query.debugDumpLazily());
 
         return valueResults;
     }

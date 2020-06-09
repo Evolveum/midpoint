@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * Provides value policy when needed (e.g. in generate expression evaluator).
  * Accepts setting of path and definition for the item for which the value policy will be obtained.
  */
-public interface ConfigurableValuePolicyResolver extends ValuePolicyResolver {
+public interface ConfigurableValuePolicySupplier extends ValuePolicySupplier {
 
     /**
      * Sets the definition of the item for which value policy will be provided.

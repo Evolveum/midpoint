@@ -15,7 +15,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -25,9 +24,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvaluatorType;
 
 /**
+ * Returns value set triple of the default source. (The same behavior as <path> with empty path.)
+ *
  * @author Radovan Semancik
  */
-public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
+public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+        extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
 
     AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType evaluatorBean, D outputDefinition, Protector protector, PrismContext prismContext) {
         super(elementName, evaluatorBean, outputDefinition, protector, prismContext);
