@@ -7,30 +7,38 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.util.*;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.h2.Driver;
-import org.hibernate.dialect.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import java.io.*;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.*;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.*;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.h2.Driver;
+import org.hibernate.dialect.H2Dialect;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
+import com.evolveum.midpoint.repo.sql.util.MidPointOracleDialect;
+import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
+import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This class is used for SQL repository configuration. It reads values from Apache configuration object (xml).
@@ -51,7 +59,7 @@ public class SqlRepositoryConfiguration {
 
         // order is important! (the first value is the default)
         H2(DRIVER_H2,
-                    H2Dialect.class.getName()),
+                H2Dialect.class.getName()),
         MYSQL(DRIVER_MYSQL,
                 MidPointMySQLDialect.class.getName(),
                 org.hibernate.dialect.MySQLDialect.class.getName(),
@@ -148,7 +156,7 @@ public class SqlRepositoryConfiguration {
          */
         CREATE("create");
 
-        private String value;
+        private final String value;
 
         MissingSchemaAction(String value) {
             this.value = value;
@@ -188,7 +196,7 @@ public class SqlRepositoryConfiguration {
          */
         UPGRADE("upgrade");
 
-        private String value;
+        private final String value;
 
         UpgradeableSchemaAction(String value) {
             this.value = value;
@@ -224,7 +232,7 @@ public class SqlRepositoryConfiguration {
          */
         WARN("warn");
 
-        private String value;
+        private final String value;
 
         IncompatibleSchemaAction(String value) {
             this.value = value;
@@ -272,6 +280,12 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
     public static final String PROPERTY_USE_ZIP = "useZip";
+
+    /**
+     * Specifies language used for writing fullObject attribute.
+     * See LANG constants in {@link com.evolveum.midpoint.prism.PrismContext} for supported values.
+     */
+    public static final String PROPERTY_FULL_OBJECT_FORMAT = "fullObjectFormat";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
     public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
@@ -353,6 +367,7 @@ public class SqlRepositoryConfiguration {
     private final Long maxLifetime;
     private final Long idleTimeout;
     private final boolean useZip;
+    private String fullObjectFormat; // non-final for testing
 
     private TransactionIsolation defaultTransactionIsolation;
     private boolean defaultLockForUpdateViaHibernate;
@@ -468,6 +483,8 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
+        fullObjectFormat = configuration.getString(
+                PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML);
 
         // requires asServer, baseDir, fileName, port
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, embedded ? getDefaultEmbeddedJdbcUrl() : null);
@@ -591,7 +608,6 @@ public class SqlRepositoryConfiguration {
         }
         return jdbcUrl.toString();
     }
-
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
     // that were not yet initialized.
@@ -894,6 +910,21 @@ public class SqlRepositoryConfiguration {
 
     public boolean isUseZip() {
         return useZip;
+    }
+
+    /**
+     * This is normally not used outside of tests, but should be safe to change any time.
+     */
+    public void setFullObjectFormat(String fullObjectFormat) {
+        this.fullObjectFormat = fullObjectFormat;
+    }
+
+    /**
+     * Returns serialization format (language) for writing fullObject.
+     * Also see {@link #PROPERTY_FULL_OBJECT_FORMAT}.
+     */
+    public String getFullObjectFormat() {
+        return fullObjectFormat;
     }
 
     public boolean isIgnoreOrgClosure() {
