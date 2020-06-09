@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.stream.AxiomItemStream;
+import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithResolver;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
@@ -63,10 +63,9 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
         return namespace;
     }
 
-
-    public void stream(AxiomIdentifierResolver resolver, AxiomItemStream.Target listener,
-            Optional<Set<AxiomName>> emitOnly) {
-        stream(resolver.or(this), BUILTIN_TYPES.or(this).or(resolver), listener, emitOnly);
+    @Override
+    public void stream(TargetWithResolver target, Optional<Set<AxiomName>> emitOnly) {
+        stream(target, emitOnly, this);
     }
 
     public Map<String, String> imports() {

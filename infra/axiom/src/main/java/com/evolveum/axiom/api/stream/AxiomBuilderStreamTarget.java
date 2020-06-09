@@ -15,6 +15,7 @@ import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 
 public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResolver {
@@ -41,12 +42,12 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     }
 
     private ItemBuilder item(Builder node) {
-        Preconditions.checkState(node instanceof ItemBuilder);
+        Preconditions.checkState(node instanceof ItemBuilder, "Incorrect nesting: expected item, got value");
         return (ItemBuilder) node;
     }
 
     private ValueBuilder value(Builder node) {
-        Preconditions.checkState(node instanceof ValueBuilder);
+        Preconditions.checkState(node instanceof ValueBuilder, "Incorrect nesting: expected value, got item");
         return (ValueBuilder) node;
     }
 
@@ -104,6 +105,18 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
         ItemBuilder startItem(AxiomName identifier, SourceLocation loc);
         ItemBuilder startInfra(AxiomName identifier, SourceLocation loc);
         void endValue(SourceLocation loc);
+
+        default AxiomIdentifierResolver axiomAsConditionalDefault() {
+            return (prefix, name) -> {
+                if(Strings.isNullOrEmpty(prefix)) {
+                    AxiomName axiomNs = AxiomName.axiom(name);
+                    if(childItemDef(axiomNs).isPresent()) {
+                        return axiomNs;
+                    }
+                }
+                return null;
+            };
+        }
     }
 
     @Override

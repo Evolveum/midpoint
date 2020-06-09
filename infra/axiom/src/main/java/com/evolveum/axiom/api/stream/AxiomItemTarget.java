@@ -15,6 +15,7 @@ import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+import com.google.common.base.Preconditions;
 
 public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
 
@@ -23,10 +24,14 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
     private AxiomTypeDefinition infraType = AxiomBuiltIn.Type.AXIOM_VALUE;
     private Item<?> result;
 
-    public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver resolver) {
+    public AxiomItemTarget(AxiomSchemaContext context) {
+        this(context, AxiomIdentifierResolver.nullResolver());
+    }
+
+    public AxiomItemTarget(AxiomSchemaContext context, AxiomIdentifierResolver rootResolver) {
         offer(new Root());
         this.context = context;
-        this.resolver = resolver;
+        this.resolver = Preconditions.checkNotNull(rootResolver, "rootResolver");
     }
 
     @Override
@@ -43,7 +48,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public AxiomIdentifierResolver itemResolver() {
-            return resolver;
+            return axiomAsConditionalDefault().or(resolver);
         }
 
         @Override

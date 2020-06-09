@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -17,7 +16,6 @@ import com.evolveum.axiom.lang.spi.AxiomIdentifierResolver;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 
 class SourceContext extends ValueContext<Void> implements AxiomRootContext, ValueBuilder {
 
@@ -100,16 +98,10 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
 
     @Override
     public AxiomIdentifierResolver itemResolver() {
-        return (prefix, localName) -> {
-            if(Strings.isNullOrEmpty(prefix)) {
-                AxiomName axiomNs = AxiomName.axiom(localName);
-                if(childItemDef(axiomNs).isPresent()) {
-                    return axiomNs;
-                }
-            }
+        return axiomAsConditionalDefault().or((prefix, localName) -> {
             String namespace = imports.get(prefix);
             return AxiomName.from(namespace, localName);
-        };
+        });
     }
 
     @Override

@@ -31,10 +31,16 @@ public interface AxiomIdentifierResolver {
         return null;
     };
 
+    final AxiomIdentifierResolver NULL_RESOLVER = (p, n) -> null;
+
     AxiomName resolveIdentifier(@Nullable String prefix, @NotNull String localName);
 
     static AxiomIdentifierResolver defaultNamespace(String namespace) {
         return (prefix, localName) -> Strings.isNullOrEmpty(prefix) ? AxiomName.from(namespace, localName) : null;
+    }
+
+    static AxiomIdentifierResolver nullResolver() {
+        return NULL_RESOLVER;
     }
 
     default AxiomIdentifierResolver or(AxiomIdentifierResolver next) {
