@@ -88,7 +88,7 @@
             <id>jaxb2-jdk-11</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <build>
                 <plugins>
