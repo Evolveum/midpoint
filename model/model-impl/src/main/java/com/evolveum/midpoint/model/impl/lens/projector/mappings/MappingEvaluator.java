@@ -572,7 +572,7 @@ public class MappingEvaluator {
             return null;
         }
 
-        ConfigurableValuePolicyResolver valuePolicyResolver = new ConfigurableValuePolicyResolver() {
+        ConfigurableValuePolicySupplier valuePolicySupplier = new ConfigurableValuePolicySupplier() {
             private ItemDefinition outputDefinition;
 
             @Override
@@ -581,7 +581,7 @@ public class MappingEvaluator {
             }
 
             @Override
-            public ValuePolicyType resolve(OperationResult result) {
+            public ValuePolicyType get(OperationResult result) {
                 // TODO need to switch to ObjectValuePolicyEvaluator
                 if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
                     return credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
@@ -636,7 +636,7 @@ public class MappingEvaluator {
                 .originType(OriginType.USER_POLICY)
                 .originObject(originObject)
                 .objectResolver(objectResolver)
-                .valuePolicyResolver(valuePolicyResolver)
+                .valuePolicySupplier(valuePolicySupplier)
                 .rootNode(focusOdo)
                 .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments
                 .now(now);

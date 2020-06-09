@@ -85,9 +85,9 @@ class MappingParser<D extends ItemDefinition> {
                 outputPath = path.stripVariableSegment();
             }
         }
-        if (m.valuePolicyResolver != null) {
-            m.valuePolicyResolver.setOutputDefinition(outputDefinition);
-            m.valuePolicyResolver.setOutputPath(outputPath);
+        if (m.valuePolicySupplier != null) {
+            m.valuePolicySupplier.setOutputDefinition(outputDefinition);
+            m.valuePolicySupplier.setOutputPath(outputPath);
         }
     }
 

@@ -26,10 +26,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvalu
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author semancik
+ * Returns zero set with a single value obtained by resolving given <a href="https://wiki.evolveum.com/display/midPoint/Constants">constant</a>.
+ * Currently limited to single-valued string constants.
  *
+ * @author semancik
  */
-public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {
+public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+        extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {
 
     private final ConstantsManager constantsManager;
 
@@ -47,6 +50,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
         String constName = expressionEvaluatorBean.getValue();
         String stringValue = constantsManager.getConstantValue(constName);
 
+        //noinspection unchecked
         Item<V, D> output = outputDefinition.instantiate();
 
         Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
@@ -55,18 +59,12 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
             ((PrismProperty<Object>) output).addRealValue(value);
         } else {
             throw new UnsupportedOperationException(
-                    "Can only generate values of property, not " + output.getClass());
+                    "Can only provide values of property, not " + output.getClass());
         }
 
         return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
-     * shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "const:"+ expressionEvaluatorBean.getValue();

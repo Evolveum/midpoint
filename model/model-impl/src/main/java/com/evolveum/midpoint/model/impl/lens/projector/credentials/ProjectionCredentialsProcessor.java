@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -163,7 +163,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi = focusContext
                 .getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
 
-        ConfigurableValuePolicyResolver valuePolicyResolver = (result1) -> SecurityUtil.getPasswordPolicy(securityPolicy);
+        ConfigurableValuePolicySupplier valuePolicySupplier = (result1) -> SecurityUtil.getPasswordPolicy(securityPolicy);
 
         MappingInitializer<PrismPropertyValue<ProtectedStringType>,PrismPropertyDefinition<ProtectedStringType>> initializer =
             (builder) -> {
@@ -172,7 +172,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                         .implicitTargetPath(SchemaConstants.PATH_PASSWORD_VALUE);
                 builder.defaultTargetDefinition(projPasswordPropertyDefinition);
                 builder.defaultSource(new Source<>(focusPasswordIdi, ExpressionConstants.VAR_INPUT_QNAME));
-                builder.valuePolicyResolver(valuePolicyResolver);
+                builder.valuePolicySupplier(valuePolicySupplier);
                 return builder;
             };
 
