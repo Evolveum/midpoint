@@ -212,7 +212,7 @@ public class PageReports extends PageAdmin {
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-        if(report.getReportEngine() != null && !report.getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
+        if(report.getJasper() != null) {
             runConfirmPerformed(target, report, null);
             return;
         }

@@ -22,10 +22,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 
@@ -40,10 +37,10 @@ public interface DashboardService {
             ExpressionEvaluationException, ObjectNotFoundException;
 
     List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException,
+            Collection<SelectorOptions<GetOperationOptions>> options, ExpressionType condition, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    List<AuditEventRecord> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, Task task, OperationResult result)
+    List<AuditEventRecord> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ExpressionType condition, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 

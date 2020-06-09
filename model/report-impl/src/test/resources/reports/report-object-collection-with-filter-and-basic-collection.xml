@@ -7,7 +7,6 @@
   -->
 <report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85hi">
     <name>Object Collection report with filter and basic collection</name>
-    <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
             <baseCollectionRef>

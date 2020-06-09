@@ -14,7 +14,6 @@
         version="0">
     <name>Test report - task</name>
     <description>TEST Report without design.</description>
-    <reportEngine>jasper</reportEngine>
     <jasper>
     <orientation>landscape</orientation>
     <export>csv</export>

@@ -12,6 +12,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,10 +28,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Test behavior of connectors that have several instances (poolable connectors).
@@ -40,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestCollections extends AbstractArchetypesTest {
 
     private PrismObject<ObjectCollectionType> collectionActiveUsers;
+    private CollectionRefSpecificationType collectionSpecActiveUsers;
     private CompiledObjectCollectionView collectionViewActiveUsers;
     private int numberOfDisabledUsers = 0;
 
@@ -63,12 +63,15 @@ public class TestCollections extends AbstractArchetypesTest {
         // WHEN
         when();
         collectionActiveUsers = modelService.getObject(ObjectCollectionType.class, COLLECTION_ACTIVE_USERS_OID, null, task, result);
+        collectionSpecActiveUsers = new CollectionRefSpecificationType();
+        collectionSpecActiveUsers.setCollectionRef(MiscSchemaUtil.createObjectReference(COLLECTION_ACTIVE_USERS_OID, ObjectCollectionType.COMPLEX_TYPE));
 
         // THEN
         then();
         display("Collection", collectionActiveUsers);
         assertSuccess(result);
         assertNotNull("No collection", collectionActiveUsers);
+        assertNotNull("No collection specification", collectionSpecActiveUsers);
     }
 
     @Test
@@ -79,7 +82,7 @@ public class TestCollections extends AbstractArchetypesTest {
 
         // WHEN
         when();
-        collectionViewActiveUsers = modelInteractionService.compileObjectCollectionView(collectionActiveUsers, null, task, result);
+        collectionViewActiveUsers = modelInteractionService.compileObjectCollectionView(collectionSpecActiveUsers, null, task, result);
 
         // THEN
         then();

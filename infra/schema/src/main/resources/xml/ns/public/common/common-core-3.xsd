@@ -17078,22 +17078,9 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
-                                This condition use only for reports and as last option because of performance.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                                <a:experimental>true</a:experimental>
-                                <a:displayName>ObjectCollectionType.condition</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                         <xsd:element name="auditSearch" type="tns:AuditSearchType" minOccurs="0" maxOccurs="1">
-                          <xsd:annotation>
-                              <xsd:documentation>
                                   Specification of an explicit or implicit object collection that will be used as data source for the view.
 
                                   EXTREMELY ABSOLUTELY GIGANTICALLY ENORMOUSLY MEGA GIGA TERA SUPER HYPER EXPERIMENTAL
@@ -17104,13 +17091,13 @@
                                   Therefore this is a good temporary choice.
                                   However, if you ever rely on this element the karma will get you, eventually.
                                   If that happens, don't come to us crying. You have been warned.
-                              </xsd:documentation>
-                              <xsd:appinfo>
+                            </xsd:documentation>
+                            <xsd:appinfo>
                                 <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
-                              </xsd:appinfo>
-                          </xsd:annotation>
-                      </xsd:element>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="baseCollection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23198,6 +23185,78 @@
                 their own Jasper-specific container. But due to various reasons (e.g. migration)
                 these items are kept as they are. They will get sorted out eventually.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:parent</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:subreport</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:template</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:templateStyle</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:useHibernateSession</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:dataSource</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:dataSource</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:field</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:configuration</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:configurationSchema</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:virtualizer</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:virtualizerKickOn</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:maxPages</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:timeout</a:element>
+                    <a:version>4.2</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
@@ -23210,6 +23269,8 @@
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
                                 <a:displayName>ReportType.reportEngine</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.3</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23221,6 +23282,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
+                                <a:deprecated>true</a:deprecated>
+                                <a:plannedRemoval>4.3</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -23903,6 +23966,19 @@
                             Specifies a view of an object collection that is be reported.
                         </p>
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
+                        This condition use only for reports and as last option because of performance.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>ObjectCollectionType.condition</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="useOnlyReportView" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">

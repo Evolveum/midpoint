@@ -56,8 +56,6 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File COLLECTION_SHADOW_WITH_VIEW_FILE = new File(COMMON_DIR, "object-collection-shadow-of-resource-with-view.xml");
     public static final File DASHBOARD_TRIPLE_VIEW_FILE = new File(COMMON_DIR, "dashboard-with-triple-view.xml");
     public static final File COLLECTION_BASIC = new File(COMMON_DIR, "object-collection-basic-filter.xml");
-    public static final File COLLECTION_USER_WITH_CONDITION_FILE = new File(COMMON_DIR, "object-collection-all-user-with-condition.xml");
-    public static final File COLLECTION_AUDIT_WITH_CONDITION_FILE = new File(COMMON_DIR, "object-collection-audit-records-with-condition.xml");
 
     public static final File REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-default-column.xml");
     public static final File REPORT_DASHBOARD_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-dashboard-with-view.xml");
@@ -122,11 +120,9 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(COLLECTION_RESOURCE_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_TASK_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_AUDIT_WITH_VIEW_FILE, initResult);
-        importObjectFromFile(COLLECTION_AUDIT_WITH_CONDITION_FILE, initResult);
         importObjectFromFile(COLLECTION_ASSIGNMENT_HOLDER_WITH_VIEW_FILE, initResult);
         importObjectFromFile(COLLECTION_SHADOW_WITH_VIEW_FILE, initResult);
         importObjectFromFile(DASHBOARD_TRIPLE_VIEW_FILE, initResult);
-        importObjectFromFile(COLLECTION_USER_WITH_CONDITION_FILE, initResult);
 
         importObjectFromFile(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_FILE, initResult);
         importObjectFromFile(REPORT_DASHBOARD_WITH_VIEW_FILE, initResult);

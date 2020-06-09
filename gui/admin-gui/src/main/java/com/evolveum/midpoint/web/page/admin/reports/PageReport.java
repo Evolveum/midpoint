@@ -124,7 +124,7 @@ public class PageReport extends PageAdmin {
     private void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
-        ReportEngineSelectionType reportEngineType = model.getObject().getReportEngineType();
+//        ReportEngineSelectionType reportEngineType = model.getObject().getReportEngineType();
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageReport.basic")) {
@@ -136,7 +136,7 @@ public class PageReport extends PageAdmin {
                 return new ReportConfigurationPanel(panelId, model);
             }
         });
-        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
+        if(model.getObject().getObject().asObjectable().getJasper() != null) {
             tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
                 private static final long serialVersionUID = 1L;
@@ -286,7 +286,7 @@ public class PageReport extends PageAdmin {
             //TODO TODO TODO
             PrismObject<ReportType> newReport = model.getObject().getObject();
             ObjectDelta<ReportType> delta = null;
-            if(ReportEngineSelectionType.JASPER.equals(model.getObject().getReportEngineType())) {
+            if(model.getObject().getObject().asObjectable().getJasper() != null) {
                 if (newReport.getOid() == null) {
                     getPrismContext().adopt(newReport);
                     delta = DeltaFactory.Object.createAddDelta(newReport);

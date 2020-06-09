@@ -739,14 +739,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             if (dashboard != null) {
                 for (DashboardWidgetType widget :dashboard.getWidget()) {
                     if (widget.getIdentifier().equals(dashboardWidgetName)
-                            && widget.getData() != null && widget.getData().getCollection() != null
-                            && widget.getData().getCollection().getCollectionRef() != null) {
-                        ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-                        ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
-                                getPageBase(), task, task.getResult()).getRealValue();
+                            && widget.getData() != null && widget.getData().getCollection() != null) {
+                        CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
                         try {
                             @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
-                                    .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
+                                    .compileObjectCollectionView(collectionSpec, null, task, task.getResult());
                             if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
                                 getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
                             }
@@ -755,7 +752,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                             return dashboardWidgetView;
                         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
                                 | ObjectNotFoundException e) {
-                            LOGGER.error("Couldn't compile collection " + collection.getName(), e);
+                            LOGGER.error("Couldn't compile collection " + collectionSpec, e);
                         }
                         break;
                     }

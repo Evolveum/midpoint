@@ -7,10 +7,19 @@
   -->
 <report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85rr">
     <name>Audit Collection report with condition</name>
-    <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-            <collectionRef oid="00000000-0000-0000-0001-000000aa1234" type="ObjectCollectionType"/>
+            <collectionRef oid="00000000-0000-0000-0001-000000001234" type="ObjectCollectionType"/>
         </collection>
+        <condition>
+            <script>
+                <code>
+                    if (object.getTarget().getOid().equals("c0c010c0-d34d-b33f-f00d-111111111122")) {
+                    return true;
+                    }
+                    return false;
+                </code>
+            </script>
+        </condition>
     </objectCollection>
 </report>

@@ -46,7 +46,7 @@ public class ReportDto implements Serializable {
     private Integer virtualizerKickOn;
     private Integer maxPages;
     private Integer timeout;
-    private ReportEngineSelectionType reportEngineType;
+//    private ReportEngineSelectionType reportEngineType;
     private IModel<PrismObjectWrapper<ReportType>> newReportModel;
 
 //    private PrismObject<ReportType> object;
@@ -65,8 +65,8 @@ public class ReportDto implements Serializable {
         this.description = reportType.getDescription();
         this.reportType = reportType;
         this.searchOnResource = false;
-        this.reportEngineType = reportType.getReportEngine();
-        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
+//        this.reportEngineType = reportType.getReportEngine();
+        if(reportType.getJasper() != null) {
             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
             this.exportType = jasperConfig.getExport();
             //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
@@ -114,8 +114,8 @@ public class ReportDto implements Serializable {
         }
         reportType.setName(new PolyStringType(name));
         reportType.setDescription(description);
-        reportType.setReportEngine(reportEngineType);
-        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
+//        reportType.setReportEngine(reportEngineType);
+        if(reportType.getJasper() != null) {
 
             JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
             jasperConfig.setExport(exportType);
@@ -143,14 +143,14 @@ public class ReportDto implements Serializable {
         this.oid = oid;
     }
 
-    public ReportEngineSelectionType getReportEngineType() {
-        return reportEngineType;
-    }
-
-    public void setReportEngineType(ReportEngineSelectionType reportEngineType) {
-        this.reportEngineType = reportEngineType;
-    }
-
+//    public ReportEngineSelectionType getReportEngineType() {
+//        return reportEngineType;
+//    }
+//
+//    public void setReportEngineType(ReportEngineSelectionType reportEngineType) {
+//        this.reportEngineType = reportEngineType;
+//    }
+//
 //    public String getXml() {
 //        return xml;
 //    }

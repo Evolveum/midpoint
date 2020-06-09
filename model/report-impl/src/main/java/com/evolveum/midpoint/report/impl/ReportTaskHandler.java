@@ -77,9 +77,9 @@ public class ReportTaskHandler implements TaskHandler {
                 throw new SecurityViolationException("Not authorized");
             }
 
-            if (parentReport.getReportEngine() == null) {
-                throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
-            }
+//            if (parentReport.getReportEngine() == null) {
+//                throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
+//            }
 
             EngineController engineController = resolveEngine(parentReport);
             ExportController exportController = resolveExport(parentReport, engineController);
@@ -108,13 +108,13 @@ public class ReportTaskHandler implements TaskHandler {
     }
 
     private EngineController resolveEngine(ReportType parentReport) {
-        if (parentReport.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+        if (parentReport.getDashboard() != null) {
             return new DashboardEngineController(reportService);
         }
-        if (parentReport.getReportEngine().equals(ReportEngineSelectionType.COLLECTION)) {
+        if (parentReport.getObjectCollection() != null) {
             return new CollectionEngineController(reportService);
         }
-        LOGGER.error("Dashboard or DashboardRef is null");
+        LOGGER.error("Report don't contains ");
         throw new IllegalArgumentException("Dashboard or DashboardRef is null");
     }
 

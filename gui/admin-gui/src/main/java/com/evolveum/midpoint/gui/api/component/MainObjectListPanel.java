@@ -313,7 +313,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find csv export container", e);
                 }
-                report.setReportEngine(ReportEngineSelectionType.COLLECTION);
                 ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
                 objectCollection.setUseOnlyReportView(true);
                 CompiledObjectCollectionView view = getObjectCollectionView();
