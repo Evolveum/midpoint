@@ -248,6 +248,7 @@ public class ObjectUpdater {
             itemsToSkip.add(TaskType.F_RESULT);
         }
 
+        // TODO MID-6303 switch to configured fullObjectFormat
         String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions

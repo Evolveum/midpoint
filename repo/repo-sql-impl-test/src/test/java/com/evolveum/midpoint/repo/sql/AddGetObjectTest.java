@@ -804,8 +804,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             AssertJUnit.assertNotNull(rTask.getFullResult());
             AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
 
-            String xml = RUtil.getSerializedFormFromByteArray(rTask.getFullObject());
-            PrismObject<TaskType> obj = getPrismContext().parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).parse();
+            String serializedForm = RUtil.getSerializedFormFromByteArray(rTask.getFullObject());
+            PrismObject<TaskType> obj = getPrismContext().parserFor(serializedForm)
+                    // TODO MID-6303 check and delete
+//                    .language(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                    .parse();
             TaskType objType = obj.asObjectable();
             AssertJUnit.assertNull(objType.getResult());
         } finally {

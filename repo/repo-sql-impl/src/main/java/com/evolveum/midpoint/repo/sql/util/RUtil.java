@@ -460,6 +460,7 @@ public final class RUtil {
         // auto-detecting gzipped array (starts with 1f 8b)
         final int head = (array[0] & 0xff) | ((array[1] << 8) & 0xff00);
         if (GZIPInputStream.GZIP_MAGIC != head) {
+            // TODO MID-6303: don't we want UTF-16 for SQL server here too?
             return new String(array, StandardCharsets.UTF_8);
         }
 

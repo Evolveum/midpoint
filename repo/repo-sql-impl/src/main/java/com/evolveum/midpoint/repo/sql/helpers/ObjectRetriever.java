@@ -526,7 +526,7 @@ public class ObjectRetriever {
             ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
             prismObject = prismContext.parserFor(serializedForm)
                     // TODO MID-6303 - we'll try to skip this line, Strings can be auto-detected for language
-                    .language(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+//                    .language(SqlRepositoryServiceImpl.DATA_LANGUAGE)
                     .context(parsingContext).parse();
             if (parsingContext.hasWarnings()) {
                 LOGGER.warn("Object {} parsed with {} warnings", ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());

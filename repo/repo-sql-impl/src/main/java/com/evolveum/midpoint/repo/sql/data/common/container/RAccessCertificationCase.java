@@ -347,7 +347,9 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
         String xml;
         try {
-            xml = context.prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
+            // TODO MID-6303 switch to configured fullObjectFormat
+            xml = context.prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                    .serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
@@ -365,15 +367,18 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(
             byte[] fullObject, PrismContext prismContext) throws SchemaException {
-        String xml = RUtil.getSerializedFormFromByteArray(fullObject);
-        LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
+        String serializedFrom = RUtil.getSerializedFormFromByteArray(fullObject);
+        LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
-            return prismContext.parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).compat().parseRealValue(AccessCertificationCaseType.class);
+            return prismContext.parserFor(serializedFrom)
+                    // TODO MID-6303 just check and delete
+//                    .language(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                    .compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
-            LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, xml);
+            LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, serializedFrom);
             throw e;
         } catch (RuntimeException e) {
-            LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
+            LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, serializedFrom);
             throw e;
         }
     }
