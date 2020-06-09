@@ -343,8 +343,7 @@ public class ObjectUpdater {
 
             session.getTransaction().commit();
             return new DeleteObjectResult(
-                    RUtil.getSerializedFormFromByteArray(object.getFullObject()),
-                    SqlRepositoryServiceImpl.DATA_LANGUAGE);
+                    RUtil.getSerializedFormFromByteArray(object.getFullObject()));
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
