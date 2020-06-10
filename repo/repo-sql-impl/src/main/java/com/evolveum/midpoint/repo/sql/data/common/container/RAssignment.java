@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Where;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
@@ -21,51 +33,17 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.*;
 
-import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-
-/**
- * @author lazyman
- */
 @JaxbType(type = AssignmentType.class)
 @Entity
-@QueryEntity(
-        entities = {
-//                @VirtualEntity(
-//                        jaxbName = @JaxbName(localPart = "metadata"),
-//                        jaxbType = MetadataType.class,
-//                        jpaName = "",
-//                        jpaType = Serializable.class            // dummy value (ignored)
-//                )
-//                ,
-//                @VirtualEntity(
-//                        jaxbName = @JaxbName(localPart = "construction"),
-//                        jaxbType = ConstructionType.class,
-//                        jpaName = "",
-//                        jpaType = Serializable.class            // dummy value (ignored)
-//                )
-        }
-)
 @IdClass(RContainerId.class)
 // TODO prefix last 4 index names with "iAssignment" (some day)
 @Table(name = "m_assignment", indexes = {
@@ -76,18 +54,11 @@ import java.util.Set;
         @Index(name = "iTargetRefTargetOid", columnList = "targetRef_targetOid"),
         @Index(name = "iTenantRefTargetOid", columnList = "tenantRef_targetOid"),
         @Index(name = "iOrgRefTargetOid", columnList = "orgRef_targetOid"),
-        @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid")})
+        @Index(name = "iResourceRefTargetOid", columnList = "resourceRef_targetOid") })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RAssignment implements Container, Metadata<RAssignmentReference> {
+public class RAssignment implements Container<RObject>, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
-    /**
-     * enum identifier of object class which owns this assignment. It's used because we have to
-     * distinguish between assignments and inducements (all of them are the same kind) in {@link com.evolveum.midpoint.repo.sql.data.common.RAbstractRole}.
-     */
-    public static final String F_ASSIGNMENT_OWNER = "assignmentOwner";
-
-    private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
 
     private Boolean trans;
 
@@ -180,8 +151,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-    @OneToOne(optional = true, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @OneToOne(orphanRemoval = true)
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JoinColumns(value = {
             @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
             @JoinColumn(name = "extId", referencedColumnName = "owner_id")
@@ -202,7 +173,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
@@ -235,7 +206,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
@@ -268,10 +239,10 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     @CollectionTable(name = "m_assignment_policy_situation",
             foreignKey = @ForeignKey(name = "fk_assignment_policy_situation"),
             joinColumns = {
-            @JoinColumn(name = "assignment_oid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "assignment_id", referencedColumnName = "id")
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+                    @JoinColumn(name = "assignment_oid", referencedColumnName = "owner_oid"),
+                    @JoinColumn(name = "assignment_id", referencedColumnName = "id")
+            })
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getPolicySituation() {
         return policySituation;
     }
@@ -279,7 +250,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     public void setPolicySituation(Set<String> policySituation) {
         this.policySituation = policySituation;
     }
-
 
     public void setLifecycleState(String lifecycleState) {
         this.lifecycleState = lifecycleState;
@@ -382,27 +352,30 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.resourceRef = resourceRef;
     }
 
+    /*
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RAssignment that = (RAssignment) o;
 
-        if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
-        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
-        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
-        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null)
+        if (activation != null ? !activation.equals(that.activation) : that.activation != null) { return false; }
+        if (extension != null ? !extension.equals(that.extension) : that.extension != null) { return false; }
+        if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) { return false; }
+        if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null) {
             return false;
-        if (order != null ? !order.equals(that.order) : that.order != null)
+        }
+        if (order != null ? !order.equals(that.order) : that.order != null) { return false; }
+        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) { return false; }
+        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) { return false; }
+        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) { return false; }
+        if (lifecycleState != null ? !lifecycleState.equals(that.lifecycleState) : that.lifecycleState != null) { return false; }
+        if (policySituation != null ? !policySituation.equals(that.policySituation) : that.policySituation != null) {
             return false;
-        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
-        if (orgRef != null ? !orgRef.equals(that.orgRef) : that.orgRef != null) return false;
-        if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
-        if (lifecycleState != null ? !lifecycleState.equals(that.lifecycleState) : that.lifecycleState != null) return false;
-        if (policySituation != null ? !policySituation.equals(that.policySituation) : that.policySituation != null) return false;
+        }
 
-        if (!MetadataFactory.equals(this, that)) return false;
+        if (!MetadataFactory.equals(this, that)) { return false; }
 
         return true;
     }
@@ -423,9 +396,29 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
         return result;
     }
+    */
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RAssignment)) {
+            return false;
+        }
+
+        RAssignment that = (RAssignment) o;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, id);
+    }
 
     public static void fromJaxb(AssignmentType jaxb, RAssignment repo, RObject parent,
-            RepositoryContext repositoryContext) throws DtoTranslationException{
+            RepositoryContext repositoryContext) throws DtoTranslationException {
         fromJaxb(jaxb, repo, repositoryContext, null);
         repo.setOwner(parent);
     }
@@ -437,7 +430,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     private static void fromJaxb(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 

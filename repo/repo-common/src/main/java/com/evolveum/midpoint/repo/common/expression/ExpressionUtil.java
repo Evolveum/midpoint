@@ -711,12 +711,9 @@ public class ExpressionUtil {
                     DOMUtil.XSD_STRING);
         }
 
+        //noinspection unchecked
         return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
                 task, parentResult);
-
-        // String expressionResult =
-        // expressionHandler.evaluateExpression(currentShadow, valueExpression,
-        // shortDesc, result);
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
@@ -795,8 +792,47 @@ public class ExpressionUtil {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+        //noinspection unchecked
         return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
                 expressionFactory, shortDesc, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultTrue(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                true, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultFalse(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                false, task, parentResult);
+    }
+
+    private static boolean evaluateConditionWithDefault(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc,
+            boolean defaultValue, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (expressionBean == null) {
+            return defaultValue;
+        }
+        PrismPropertyValue<Boolean> booleanPropertyValue = evaluateCondition(variables, expressionBean, expressionProfile,
+                expressionFactory, shortDesc, task, parentResult);
+        if (booleanPropertyValue == null) {
+            return defaultValue;
+        }
+        Boolean realValue = booleanPropertyValue.getRealValue();
+        if (realValue == null) {
+            return defaultValue;
+        } else {
+            return realValue;
+        }
     }
 
     public static boolean getBooleanConditionOutput(PrismPropertyValue<Boolean> conditionOutput) {

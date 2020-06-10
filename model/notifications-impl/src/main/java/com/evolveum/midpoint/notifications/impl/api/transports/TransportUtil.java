@@ -87,14 +87,14 @@ public class TransportUtil {
         return "============================================ " + "\n" +new Date() + "\n" + message.toString() + "\n\n";
     }
 
-    public static String formatToFileNew(Message message, String transport) {
+    static String formatToFileNew(Message message, String transport) {
         return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
     }
 
-    public static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
+    private static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
             Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
         if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
-            throw new IllegalArgumentException("Couln't use more as one choise from 'blackList', 'whiteList' and 'recipientFilterExpression'");
+            throw new IllegalArgumentException("Couldn't use more than one choice from 'blackList', 'whiteList' and 'recipientFilterExpression'");
         }
         ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
         if (filter != null) {
@@ -103,7 +103,7 @@ public class TransportUtil {
             try {
                 PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
                         expressionFactory, "Recipient filter", task, result);
-                if(allowedRecipient == null) {
+                if (allowedRecipient == null || allowedRecipient.getValue() == null) {
                     throw new IllegalArgumentException("Return value from expresion for filtering recipient is null");
                 }
                 return allowedRecipient.getValue();
@@ -134,19 +134,19 @@ public class TransportUtil {
         return true;
     }
 
-    public static int optionsForFilteringRecipient(
+    static int optionsForFilteringRecipient(
             NotificationTransportConfigurationType transportConfigurationType) {
-        int choises = 0;
+        int choices = 0;
         if (transportConfigurationType.getRecipientFilterExpression() != null) {
-            choises++;
+            choices++;
         }
         if (!transportConfigurationType.getBlackList().isEmpty()) {
-            choises++;
+            choices++;
         }
         if (!transportConfigurationType.getWhiteList().isEmpty()) {
-            choises++;
+            choices++;
         }
-        return choises;
+        return choices;
     }
 
     public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
