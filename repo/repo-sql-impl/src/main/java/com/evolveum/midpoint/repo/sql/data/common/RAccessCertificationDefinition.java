@@ -41,7 +41,6 @@ public class RAccessCertificationDefinition extends RObject {
     private REmbeddedReference ownerRefDefinition;
     private XMLGregorianCalendar lastCampaignStartedTimestamp;
     private XMLGregorianCalendar lastCampaignClosedTimestamp;
-//    private String campaignSchedulingInterval;
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({

@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
+
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
@@ -17,23 +28,12 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
  * @author mederly
- *
+ * <p>
  * Reference contained in a case work item.
- *
  */
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
@@ -94,10 +94,9 @@ public class RCaseWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
 
-    //@MapsId("target")
-    @ForeignKey(name="none")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @ForeignKey(name = "none")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     // only for HQL use
@@ -112,7 +111,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Id
-    @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
         return super.getRelation();
     }

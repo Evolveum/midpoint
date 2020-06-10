@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
+
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
@@ -16,13 +23,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -34,7 +35,7 @@ import javax.persistence.*;
         @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RAssignmentReference extends RContainerReference  {
+public class RAssignmentReference extends RContainerReference {
 
     private RAssignment owner;
 
@@ -53,7 +54,6 @@ public class RAssignmentReference extends RContainerReference  {
         return super.getOwnerOid();
     }
 
-
     @Id
     @Column(name = "owner_id")
     @NotQueryable
@@ -61,10 +61,9 @@ public class RAssignmentReference extends RContainerReference  {
         return super.getOwnerId();
     }
 
-    //@MapsId("target")
-    @ForeignKey(name="none")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @ForeignKey(name = "none")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     // declared for HQL use only
@@ -80,17 +79,16 @@ public class RAssignmentReference extends RContainerReference  {
     }
 
     @Id
-    @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
         return super.getRelation();
     }
 
     /**
      * Represents {@link javax.xml.namespace.QName} type attribute in reference e.g.
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.UserType} represented
-     * as enum {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType#USER}
+     * {@link UserType} represented as enum {@link RObjectType#USER}.
      *
-     * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum
+     * @return null if not defined, otherwise value from {@link RObjectType} enum
      */
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)

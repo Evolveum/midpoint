@@ -1,11 +1,21 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
+
+import java.util.Objects;
+import javax.persistence.*;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
@@ -19,17 +29,6 @@ import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-import org.hibernate.annotations.Persister;
-
-import javax.persistence.*;
-
-import java.util.Objects;
-
-import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 
 /**
  * @author lazyman
@@ -94,8 +93,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         return ownerOid;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true, targetEntity = RObject.class)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true,
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = RObject.class)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false,
             foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
@@ -153,7 +152,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         this.relation = relation;
     }
 
-    public void setTarget(T target) {     // shouldn't be called
+    // only for ORM/JPA, shouldn't be called
+    public void setTarget(T target) {
         this.target = target;
     }
 
@@ -169,10 +169,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RObjectReference))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RObjectReference)) { return false; }
         RObjectReference<?> that = (RObjectReference<?>) o;
         return referenceType == that.referenceType &&
                 Objects.equals(targetOid, that.targetOid) &&

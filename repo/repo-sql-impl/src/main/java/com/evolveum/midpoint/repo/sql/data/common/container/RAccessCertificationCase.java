@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;

@@ -1,11 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import java.util.HashSet;
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Persister;
+import org.hibernate.annotations.Where;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -19,25 +28,15 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Where;
-
-import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_resource")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = {"name_norm"}),
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = { "name_norm" }),
         indexes = {
                 @Index(name = "iResourceNameOrig", columnList = "name_orig"),
         }
@@ -45,7 +44,6 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RResource extends RObject {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RPolyString nameCopy;
     private REmbeddedReference connectorRef;
     private ROperationalState operationalState;
@@ -56,7 +54,7 @@ public class RResource extends RObject {
     //end of resource business configuration
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+    @Column
     public RResourceAdministrativeState getAdministrativeState() {
         return administrativeState;
     }
@@ -64,7 +62,7 @@ public class RResource extends RObject {
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 2")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectReference<RFocus>> getApproverRef() {
         if (approverRef == null) {
             approverRef = new HashSet<>();
@@ -115,19 +113,16 @@ public class RResource extends RObject {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        if (!super.equals(o))
-            return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         RResource rResource = (RResource) o;
 
-        if (nameCopy != null ? !nameCopy.equals(rResource.nameCopy) : rResource.nameCopy != null)
+        if (nameCopy != null ? !nameCopy.equals(rResource.nameCopy) : rResource.nameCopy != null) { return false; }
+        if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null) {
             return false;
-        if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
-            return false;
+        }
 
         return true;
     }

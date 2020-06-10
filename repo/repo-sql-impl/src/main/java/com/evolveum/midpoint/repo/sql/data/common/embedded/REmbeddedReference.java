@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
+
+import javax.persistence.*;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -15,15 +24,6 @@ import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-
-import javax.persistence.*;
-
-import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 
 /**
  * @author lazyman
@@ -44,15 +44,16 @@ public class REmbeddedReference implements ObjectReference {
         return relation;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     public RObject getTarget() {
         return null;
     }
 
-    @Column(length = COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true /*, insertable = false, updatable = false */)
+    @Column(length = COLUMN_LENGTH_OID)
     @Override
     public String getTargetOid() {
         return targetOid;
@@ -76,6 +77,7 @@ public class REmbeddedReference implements ObjectReference {
         this.type = type;
     }
 
+    // only for ORM/JPA
     public void setTarget(RObject target) {
     }
 
