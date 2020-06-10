@@ -137,15 +137,15 @@ public final class RUtil {
         return set;
     }
 
-    public static List<ObjectReferenceType> safeSetReferencesToList(
-            Set<? extends RObjectReference> set, PrismContext prismContext) {
+    public static List<ObjectReferenceType> toObjectReferenceTypeList(
+            Set<? extends RObjectReference<?>> set) {
 
         if (set == null || set.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<ObjectReferenceType> list = new ArrayList<>();
-        for (RObjectReference str : set) {
+        for (RObjectReference<?> str : set) {
             ObjectReferenceType ort = new ObjectReferenceType();
             RObjectReference.copyToJAXB(str, ort);
             list.add(ort);

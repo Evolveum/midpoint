@@ -51,11 +51,11 @@ public class MetadataFactory {
         }
 
         if (repo instanceof RObject) {
-            List refs = RUtil.safeSetReferencesToList(repo.getCreateApproverRef(), context);
+            List refs = RUtil.toObjectReferenceTypeList(repo.getCreateApproverRef());
             if (!refs.isEmpty()) {
                 jaxb.getCreateApproverRef().addAll(refs);
             }
-            refs = RUtil.safeSetReferencesToList(repo.getModifyApproverRef(), context);
+            refs = RUtil.toObjectReferenceTypeList(repo.getModifyApproverRef());
             if (!refs.isEmpty()) {
                 jaxb.getModifyApproverRef().addAll(refs);
             }
@@ -126,24 +126,32 @@ public class MetadataFactory {
     }
 
     public static boolean equals(Metadata m1, Metadata m2) {
-        if (m1 == m2) return true;
+        if (m1 == m2) { return true; }
 
-        if (m1.getCreateApproverRef() != null ? !m1.getCreateApproverRef().equals(m2.getCreateApproverRef()) : m2.getCreateApproverRef() != null)
+        if (m1.getCreateApproverRef() != null ? !m1.getCreateApproverRef().equals(m2.getCreateApproverRef()) : m2.getCreateApproverRef() != null) {
             return false;
-        if (m1.getCreateChannel() != null ? !m1.getCreateChannel().equals(m2.getCreateChannel()) : m2.getCreateChannel() != null)
+        }
+        if (m1.getCreateChannel() != null ? !m1.getCreateChannel().equals(m2.getCreateChannel()) : m2.getCreateChannel() != null) {
             return false;
-        if (m1.getCreateTimestamp() != null ? !m1.getCreateTimestamp().equals(m2.getCreateTimestamp()) : m2.getCreateTimestamp() != null)
+        }
+        if (m1.getCreateTimestamp() != null ? !m1.getCreateTimestamp().equals(m2.getCreateTimestamp()) : m2.getCreateTimestamp() != null) {
             return false;
-        if (m1.getCreatorRef() != null ? !m1.getCreatorRef().equals(m2.getCreatorRef()) : m2.getCreatorRef() != null)
+        }
+        if (m1.getCreatorRef() != null ? !m1.getCreatorRef().equals(m2.getCreatorRef()) : m2.getCreatorRef() != null) {
             return false;
-        if (m1.getModifierRef() != null ? !m1.getModifierRef().equals(m2.getModifierRef()) : m2.getModifierRef() != null)
+        }
+        if (m1.getModifierRef() != null ? !m1.getModifierRef().equals(m2.getModifierRef()) : m2.getModifierRef() != null) {
             return false;
-        if (m1.getModifyApproverRef() != null ? !m1.getModifyApproverRef().equals(m2.getModifyApproverRef()) : m2.getModifyApproverRef() != null)
+        }
+        if (m1.getModifyApproverRef() != null ? !m1.getModifyApproverRef().equals(m2.getModifyApproverRef()) : m2.getModifyApproverRef() != null) {
             return false;
-        if (m1.getModifyChannel() != null ? !m1.getModifyChannel().equals(m2.getModifyChannel()) : m2.getModifyChannel() != null)
+        }
+        if (m1.getModifyChannel() != null ? !m1.getModifyChannel().equals(m2.getModifyChannel()) : m2.getModifyChannel() != null) {
             return false;
-        if (m1.getModifyTimestamp() != null ? !m1.getModifyTimestamp().equals(m2.getModifyTimestamp()) : m2.getModifyTimestamp() != null)
+        }
+        if (m1.getModifyTimestamp() != null ? !m1.getModifyTimestamp().equals(m2.getModifyTimestamp()) : m2.getModifyTimestamp() != null) {
             return false;
+        }
 
         return true;
     }
