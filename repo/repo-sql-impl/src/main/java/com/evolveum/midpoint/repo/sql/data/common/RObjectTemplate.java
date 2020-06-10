@@ -101,7 +101,7 @@ public class RObjectTemplate extends RObject {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
-        repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
+        repo.getIncludeRef().addAll(RUtil.toRObjectReferenceSet(
                 jaxb.getIncludeRef(), repo, RReferenceOwner.INCLUDE, repositoryContext.relationRegistry));
     }
 }

@@ -233,9 +233,9 @@ public abstract class RFocus extends RObject {
         repo.setLocalityFocus(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setCostCenter(jaxb.getCostCenter());
         repo.getLinkRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getLinkRef(), repo, RReferenceOwner.USER_ACCOUNT, repositoryContext.relationRegistry));
+                RUtil.toRObjectReferenceSet(jaxb.getLinkRef(), repo, RReferenceOwner.USER_ACCOUNT, repositoryContext.relationRegistry));
         repo.getPersonaRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getPersonaRef(), repo, RReferenceOwner.PERSONA, repositoryContext.relationRegistry));
+                RUtil.toRObjectReferenceSet(jaxb.getPersonaRef(), repo, RReferenceOwner.PERSONA, repositoryContext.relationRegistry));
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();

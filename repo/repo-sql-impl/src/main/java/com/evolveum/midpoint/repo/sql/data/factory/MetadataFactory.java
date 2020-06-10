@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sql.data.factory;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -18,13 +25,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -104,18 +104,24 @@ public class MetadataFactory {
 
         if (repo instanceof RObject) {
             repo.getCreateApproverRef().clear();
-            repo.getCreateApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getCreateApproverRef(),
-                    (RObject) repo, RReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getCreateApproverRef().addAll(
+                    RUtil.toRObjectReferenceSet(jaxb.getCreateApproverRef(),
+                            (RObject) repo, RReferenceOwner.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
-            repo.getModifyApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getModifyApproverRef(),
-                    (RObject) repo, RReferenceOwner.MODIFY_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().addAll(
+                    RUtil.toRObjectReferenceSet(jaxb.getModifyApproverRef(),
+                            (RObject) repo, RReferenceOwner.MODIFY_APPROVER, relationRegistry));
         } else {
             repo.getCreateApproverRef().clear();
-            repo.getCreateApproverRef().addAll(safeListReferenceToSet(jaxb.getCreateApproverRef(),
-                    (RAssignment) repo, RCReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getCreateApproverRef().addAll(
+                    safeListReferenceToSet(
+                            jaxb.getCreateApproverRef(), (RAssignment) repo,
+                            RCReferenceOwner.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
-            repo.getModifyApproverRef().addAll(safeListReferenceToSet(jaxb.getModifyApproverRef(),
-                    (RAssignment) repo, RCReferenceOwner.MODIFY_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().addAll(
+                    safeListReferenceToSet(
+                            jaxb.getModifyApproverRef(), (RAssignment) repo,
+                            RCReferenceOwner.MODIFY_APPROVER, relationRegistry));
         }
     }
 

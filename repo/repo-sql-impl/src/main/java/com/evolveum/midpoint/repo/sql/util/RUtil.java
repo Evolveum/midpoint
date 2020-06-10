@@ -15,12 +15,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -151,33 +153,26 @@ public final class RUtil {
         return list;
     }
 
-    public static Set safeListReferenceToSet(List<ObjectReferenceType> list,
-            RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
-        Set<RObjectReference> set = new HashSet<>();
-        if (list == null || list.isEmpty()) {
-            return set;
-        }
-
-        for (ObjectReferenceType ref : list) {
-            RObjectReference rRef = RUtil.jaxbRefToRepo(ref, owner, refOwner, relationRegistry);
-            if (rRef != null) {
-                set.add(rRef);
-            }
-        }
-        return set;
+    public static <T extends RObject> Set<RObjectReference<T>> toRObjectReferenceSet(
+            List<ObjectReferenceType> list, RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
+        return CollectionUtils.emptyIfNull(list)
+                .stream()
+                .<RObjectReference<T>>map(
+                        ref -> RUtil.jaxbRefToRepo(ref, owner, refOwner, relationRegistry))
+                .collect(Collectors.toSet());
     }
 
-    public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference,
-            RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
+    public static <T extends RObject> RObjectReference<T> jaxbRefToRepo(ObjectReferenceType reference,
+            RObject owner, RReferenceOwner refType, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }
         Validate.notNull(owner, "Owner of reference must not be null.");
-        Validate.notNull(refOwner, "Reference owner of reference must not be null.");
+        Validate.notNull(refType, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
-        RObjectReference repoRef = new RObjectReference();
-        repoRef.setReferenceType(refOwner);
+        RObjectReference<T> repoRef = new RObjectReference<>();
+        repoRef.setReferenceType(refType);
         repoRef.setOwner(owner);
         RObjectReference.copyFromJAXB(reference, repoRef, relationRegistry);
 

@@ -620,13 +620,13 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         copyObjectInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.getRoleMembershipRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), repo, RReferenceOwner.ROLE_MEMBER, repositoryContext.relationRegistry));
+                RUtil.toRObjectReferenceSet(jaxb.getRoleMembershipRef(), repo, RReferenceOwner.ROLE_MEMBER, repositoryContext.relationRegistry));
 
         repo.getDelegatedRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repo, RReferenceOwner.DELEGATED, repositoryContext.relationRegistry));
+                RUtil.toRObjectReferenceSet(jaxb.getDelegatedRef(), repo, RReferenceOwner.DELEGATED, repositoryContext.relationRegistry));
 
         repo.getArchetypeRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getArchetypeRef(), repo, RReferenceOwner.ARCHETYPE, repositoryContext.relationRegistry));
+                RUtil.toRObjectReferenceSet(jaxb.getArchetypeRef(), repo, RReferenceOwner.ARCHETYPE, repositoryContext.relationRegistry));
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
@@ -656,7 +656,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
                 .getVersion()) : 0;
         repo.setVersion(version);
 
-        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(),
+        repo.getParentOrgRef().addAll(RUtil.toRObjectReferenceSet(jaxb.getParentOrgRef(),
                 repo, RReferenceOwner.OBJECT_PARENT_ORG, repositoryContext.relationRegistry));
 
         for (TriggerType trigger : jaxb.getTrigger()) {
