@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -61,23 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-/**
- * @author lazyman
- */
 public final class RUtil {
-
-    /*
-     * Currently set in ctx-session.xml as constant, used for batch inserts (e.g. in OrgClosureManager)
-    public static final int JDBC_BATCH_SIZE = 20;
-     */
-
-    /*
-     * This constant is used for mapping type for {@link javax.persistence.Lob}
-     * fields. {@link org.hibernate.type.MaterializedClobType} was not working
-     * properly with PostgreSQL, causing TEXT types (clobs) to be saved not in
-     * table row but somewhere else and it always messed up UTF-8 encoding
-    public static final String LOB_STRING_TYPE = "org.hibernate.type.MaterializedClobType"; //todo is it working correctly with postgresql [lazyman]
-     */
 
     public static final int COLUMN_LENGTH_QNAME = 157;
 
@@ -87,14 +71,6 @@ public final class RUtil {
      * This constant is used for oid column size in database.
      */
     public static final int COLUMN_LENGTH_OID = 36;
-
-    /**
-     * This namespace is used for wrapping xml parts of objects during save to
-     * database.
-     */
-    public static final String NS_SQL_REPO = "http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd";
-    public static final String SQL_REPO_OBJECT = "sqlRepoObject";
-    public static final QName CUSTOM_OBJECT = new QName(NS_SQL_REPO, SQL_REPO_OBJECT);
 
     private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
 
@@ -111,12 +87,6 @@ public final class RUtil {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
-
-    /*
-    public static Element createFakeParentElement() {
-        return DOMUtil.createElement(DOMUtil.getDocument(), CUSTOM_OBJECT);
-    }
-    */
 
     public static <T> Set<T> listToSet(List<T> list) {
         if (list == null || list.isEmpty()) {
@@ -346,16 +316,6 @@ public final class RUtil {
         return new ItemName(namespace, localPart);
     }
 
-    /*
-    public static Long toLong(Short s) {
-        if (s == null) {
-            return null;
-        }
-
-        return s.longValue();
-    }
-    */
-
     public static Long toLong(Integer i) {
         if (i == null) {
             return null;
@@ -363,20 +323,6 @@ public final class RUtil {
 
         return i.longValue();
     }
-
-    /*
-    public static Short toShort(Long l) {
-        if (l == null) {
-            return null;
-        }
-
-        if (l > Short.MAX_VALUE || l < Short.MIN_VALUE) {
-            throw new IllegalArgumentException("Couldn't cast value to short " + l);
-        }
-
-        return l.shortValue();
-    }
-    */
 
     public static Integer toInteger(Long l) {
         if (l == null) {
@@ -414,33 +360,25 @@ public final class RUtil {
         throw new SystemException("Couldn't get table name for class " + hqlType.getName());
     }
 
-    public static byte[] getByteArrayFromXml(String xml, boolean compress) {
-        if (xml == null) {
+    public static byte[] getByteArrayFromXml(String serializedForm, boolean compress) {
+        if (serializedForm == null) {
             return null;
         }
 
-        byte[] array;
-
-        GZIPOutputStream gzip = null;
         try {
-            if (compress) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                gzip = new GZIPOutputStream(out);
-                gzip.write(xml.getBytes(StandardCharsets.UTF_8.name()));
-                gzip.close();
-                out.close();
+            if (!compress) {
+                return serializedForm.getBytes(StandardCharsets.UTF_8.name());
+            }
 
-                array = out.toByteArray();
-            } else {
-                array = xml.getBytes(StandardCharsets.UTF_8.name());
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            try (GZIPOutputStream gzip = new GZIPOutputStream(out)) {
+                gzip.write(serializedForm.getBytes(StandardCharsets.UTF_8.name()));
+                gzip.close(); // explicit close writes any remaining data
+                return out.toByteArray();
             }
         } catch (Exception ex) {
             throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
-        } finally {
-            IOUtils.closeQuietly(gzip);
         }
-
-        return array;
     }
 
     public static String getSerializedFormFromByteArray(byte[] array) {
@@ -455,7 +393,7 @@ public final class RUtil {
         // auto-detecting gzipped array (starts with 1f 8b)
         final int head = (array[0] & 0xff) | ((array[1] << 8) & 0xff00);
         if (GZIPInputStream.GZIP_MAGIC != head) {
-            // TODO MID-6303: don't we want UTF-16 for SQL server here too?
+            // TODO MID-6303: don't we want UTF-16 for SQL server here too? and what about serialization?
             return new String(array, StandardCharsets.UTF_8);
         }
 
@@ -477,34 +415,6 @@ public final class RUtil {
             throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
         }
     }
-
-    /*
-    public static OrgFilter findOrgFilter(ObjectQuery query) {
-        return query != null ? findOrgFilter(query.getFilter()) : null;
-    }
-
-    public static OrgFilter findOrgFilter(ObjectFilter filter) {
-        if (filter == null) {
-            return null;
-        }
-
-        if (filter instanceof OrgFilter) {
-            return (OrgFilter) filter;
-        }
-
-        if (filter instanceof LogicalFilter) {
-            LogicalFilter logical = (LogicalFilter) filter;
-            for (ObjectFilter f : logical.getConditions()) {
-                OrgFilter o = findOrgFilter(f);
-                if (o != null) {
-                    return o;
-                }
-            }
-        }
-
-        return null;
-    }
-    */
 
     public static String trimString(String message, int size) {
         if (message == null || message.length() <= size) {
