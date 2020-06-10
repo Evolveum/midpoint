@@ -29,8 +29,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
     private static final long serialVersionUID = 1L;
     private static final String ID_INPUT = "input";
 
-    private boolean sortChoices = true;
-
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices) {
         this(id, model, choices, false);
     }
@@ -67,16 +65,6 @@ public class DropDownChoicePanel<T> extends InputPanel {
             }
 
             @Override
-            public IModel<? extends List<? extends T>> getChoicesModel() {
-                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
-                if (sortChoices) {
-                    return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
-                } else {
-                    return choices;
-                }
-            }
-
-            @Override
             public String getModelValue() {
                 T object = this.getModelObject();
                 if (object != null) {
@@ -107,13 +95,5 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
     protected String getNullValidDisplayValue() {
         return getString("DropDownChoicePanel.notDefined");
-    }
-
-    public boolean isSortChoices() {
-        return sortChoices;
-    }
-
-    public void setSortChoices(boolean sortChoices) {
-        this.sortChoices = sortChoices;
     }
 }

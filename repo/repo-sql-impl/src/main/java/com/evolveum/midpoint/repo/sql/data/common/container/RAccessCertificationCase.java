@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -62,8 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
-
-    public static final String F_OWNER = "owner";
 
     private Boolean trans;
 
@@ -255,6 +253,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     // Notes to equals/hashCode: don't include trans nor owner
+    /*
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }
@@ -283,6 +282,26 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
                 reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, iteration, stageNumber,
                 outcome);
+    }
+    */
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RAccessCertificationCase)) {
+            return false;
+        }
+
+        RAccessCertificationCase that = (RAccessCertificationCase) o;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, id);
     }
 
     @Override
@@ -321,9 +340,9 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase, AccessCertificationCaseType case1,
-            RepositoryContext context) throws DtoTranslationException {
-        rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
+    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase,
+            AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+        rCase.setTransient(null); // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.relationRegistry));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), context.relationRegistry));

@@ -78,12 +78,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
             @Override
             public <C> IConverter<C> getConverter(Class<C> type) {
                 IConverter<C> converter = super.getConverter(type);
-                if (lookupTable == null) {
-                    return converter;
-                }
-
-                return new LookupTableConverter<>(converter, lookupTable, getBaseFormComponent(), strict);
-
+                return getAutoCompleteConverter(type, converter);
             }
         };
 
@@ -113,6 +108,14 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
      *  affected by using current users input in 'input' variable.
      * */
     public abstract Iterator<T> getIterator(String input);
+
+    protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter){
+        if (lookupTable == null) {
+            return originConverter;
+        }
+
+        return new LookupTableConverter<>(originConverter, lookupTable, getBaseFormComponent(), strict);
+    }
 
     @Override
     public FormComponent<T> getBaseFormComponent() {

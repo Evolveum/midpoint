@@ -236,9 +236,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             variables.put(ExpressionConstants.VAR_RESOURCE_OBJECT_DELTA, resourceObjectDelta, ObjectDelta.class);
             try {
                 ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-                PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables, expression,
+                boolean value = ExpressionUtil.evaluateConditionDefaultFalse(variables, expression,
                         expressionProfile, expressionFactory, desc, task, result);
-                boolean value = Boolean.TRUE.equals(evaluateCondition.getValue());
                 if (!value) {
                     LOGGER.trace("Skipping reaction {} because the condition was evaluated to false", reaction);
                 }

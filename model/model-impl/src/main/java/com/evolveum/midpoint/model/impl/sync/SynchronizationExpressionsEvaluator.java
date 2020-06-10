@@ -60,6 +60,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+
 @Component
 public class SynchronizationExpressionsEvaluator {
 
@@ -129,25 +131,17 @@ public class SynchronizationExpressionsEvaluator {
     }
 
     private boolean satisfyCondition(ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter,
-            ExpressionProfile expressionProfile, ResourceType resourceType, SystemConfigurationType configurationType, String shortDesc, Task task,
-            OperationResult parentResult) throws SchemaException,
+            ExpressionProfile expressionProfile, ResourceType resource, SystemConfigurationType configuration,
+            String shortDesc, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        if (conditionalFilter.getCondition() == null){
+        if (conditionalFilter.getCondition() == null) {
             return true;
+        } else {
+            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow,
+                    resource, configuration, prismContext);
+            return ExpressionUtil.evaluateConditionDefaultFalse(variables,
+                    conditionalFilter.getCondition(), expressionProfile, expressionFactory, shortDesc, task, result);
         }
-
-        ExpressionType condition = conditionalFilter.getCondition();
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType, prismContext);
-        ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
-                ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.BOOLEAN.getQname());
-        PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
-                outputDefinition, condition, expressionProfile, expressionFactory, shortDesc, task, parentResult);
-        if (satisfy.getValue() == null) {
-            return false;
-        }
-
-        return satisfy.getValue();
     }
 
     private <F extends FocusType> boolean contains(List<PrismObject<F>> users, PrismObject<F> foundUser){
@@ -158,7 +152,6 @@ public class SynchronizationExpressionsEvaluator {
         }
         return false;
     }
-
 
     private <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType,
             ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ExpressionProfile expressionProfile, ResourceType resourceType, SystemConfigurationType configurationType,
@@ -357,7 +350,7 @@ public class SynchronizationExpressionsEvaluator {
         return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionProfile, expressionFactory, prismContext, shortDesc, task, result);
     }
 
-    public <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,
+    private <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,
             SystemConfigurationType configuration, ExpressionType expressionType, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         Validate.notNull(user, "User must not be null.");
@@ -395,6 +388,7 @@ public class SynchronizationExpressionsEvaluator {
     }
 
     // For now only used in sync service. but later can be used in outbound/assignments
+    @SuppressWarnings("WeakerAccess")
     public String generateTag(ResourceObjectMultiplicityType multiplicity, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (multiplicity == null) {
             return null;
@@ -411,12 +405,8 @@ public class SynchronizationExpressionsEvaluator {
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, shadow, null, resource, configuration, null, prismContext);
         ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
-        PrismPropertyValue<String> tagProp = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
+        PrismPropertyValue<String> tagProp = ExpressionUtil.evaluateExpression(variables,
                 outputDefinition, expressionType, MiscSchemaUtil.getExpressionProfile(), expressionFactory, shortDesc, task, parentResult);
-        if (tagProp == null) {
-            return null;
-        }
-        return tagProp.getRealValue();
+        return getRealValue(tagProp);
     }
-
 }
