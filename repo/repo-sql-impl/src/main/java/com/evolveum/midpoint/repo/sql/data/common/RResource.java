@@ -151,7 +151,7 @@ public class RResource extends RObject {
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.toRObjectReferenceSet(business.getApproverRef(),
-                        repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
+                        repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATION_APPROVER, repositoryContext.relationRegistry));
                 repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
                         RResourceAdministrativeState.class));
             }

@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * This is just helper enumeration for different types of reference entities
@@ -25,7 +26,7 @@ public enum RReferenceOwner {
 
     USER_ACCOUNT(FocusType.class, FocusType.F_LINK_REF),                   // 1
 
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
+    RESOURCE_BUSINESS_CONFIGURATION_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
 
     @Deprecated // REMOVED from schema in 4.0
     ROLE_APPROVER(AbstractRoleType.class, null /* was: AbstractRoleType.F_APPROVER_REF */),              // 3
