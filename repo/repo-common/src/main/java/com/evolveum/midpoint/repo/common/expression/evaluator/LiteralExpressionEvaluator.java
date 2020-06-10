@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
- * Expression evaluator that provides literal (constant) value(s).
+ * Always returns zero set with literal value (values) specified in the evaluator. Plus and minus sets are empty.
  *
  * @author Radovan Semancik
  */

@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Executes specified script written e.g. in Groovy, JavaScript, Python, etc. Velocity template language is supported as well.
+ *
  * @author Radovan Semancik
  */
 public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>

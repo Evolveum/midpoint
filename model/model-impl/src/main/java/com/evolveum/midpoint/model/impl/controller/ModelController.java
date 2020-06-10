@@ -6,6 +6,20 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+
+import java.io.*;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -26,12 +40,19 @@ import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -72,20 +93,6 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.namespace.QName;
-import java.io.*;
-import java.util.*;
-
-import static java.util.Collections.*;
-
 /**
  * This used to be an interface, but it was switched to class for simplicity. I
  * don't expect that the implementation of the controller will be ever replaced.
@@ -99,7 +106,7 @@ import static java.util.Collections.*;
  *
  * @author lazyman
  * @author Radovan Semancik
- *
+ * <p>
  * Note: don't autowire this bean by implementing class (ModelController), as it is proxied by Spring AOP.
  * Use its interfaces instead.
  */
@@ -216,7 +223,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw e;
         } catch (ObjectNotFoundException e) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
-            if (GetOperationOptions.isAllowNotFound(rootOptions)){
+            if (GetOperationOptions.isAllowNotFound(rootOptions)) {
                 result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
             } else {
                 ModelImplUtils.recordFatalError(result, e);
@@ -242,7 +249,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         if (options == null) {
             return;
         }
-        for (SelectorOptions<GetOperationOptions> option: options) {
+        for (SelectorOptions<GetOperationOptions> option : options) {
             if (GetOperationOptions.isResolve(option.getOptions())) {
                 ObjectSelector selector = option.getSelector();
                 if (selector != null) {
@@ -409,7 +416,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
                 String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
                 LOGGER.warn("{} Context = {}", m, context.debugDump());
-                result.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters").recordWarning(m);
+                result.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters").recordWarning(m);
             }
 
             context.setProgressListeners(statusListeners);
@@ -440,8 +447,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             cleanupOperationResult(result);
             return executedDeltas;
 
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException |
-                CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException|RuntimeException e) {
+        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException | RuntimeException e) {
             ModelImplUtils.recordFatalError(result, e);
             throw e;
 
@@ -516,7 +524,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     } else if (delta.isDelete()) {
                         QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
                         try {
-                            PrismObject<? extends ObjectType> existingObject = null;
+                            PrismObject<? extends ObjectType> existingObject;
                             try {
                                 existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
                                 objectToDetermineDetailsForAudit = existingObject;
@@ -635,7 +643,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     private <T extends ObjectType> void reevaluateSearchFilters(Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT+"reevaluateSearchFilters");
+        OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters");
         try {
             PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
             PrismObject<T> updatedObject = storedObject.clone();
@@ -654,8 +662,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
             }
             result.recordSuccess();
-        } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
-            result.recordFatalError("Couldn't reevaluate search filters: "+e.getMessage(), e);
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
+            result.recordFatalError("Couldn't reevaluate search filters: " + e.getMessage(), e);
             throw e;
         }
     }
@@ -709,7 +717,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     private void applyDefinitions(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        for(ObjectDelta<? extends ObjectType> delta: deltas) {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
             Class<? extends ObjectType> type = delta.getObjectTypeClass();
             if (delta.hasCompleteDefinition()) {
                 continue;
@@ -828,7 +836,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
         } catch (Throwable e) {
             if (exceptionInSearch) {
-                processSearchException(e, rootOptions, searchProvider, result);
+                processSearchException(e, searchProvider, result);
             } else {
                 result.recordFatalError(e);
             }
@@ -865,19 +873,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             isCertCase = AccessCertificationCaseType.class.equals(type);
             isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
 
-        if (!isCertCase && !isCaseMgmtWorkItem) {
-            throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
-        }
+            if (!isCertCase && !isCaseMgmtWorkItem) {
+                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
+            }
 
-        if (isCertCase) {
-            refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
-            manager = ObjectTypes.ObjectManager.REPOSITORY;
-        } else //noinspection ConstantConditions
-            if (isCaseMgmtWorkItem) {
-                refinedQuery = query;           // TODO
+            if (isCertCase) {
+                refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
                 manager = ObjectTypes.ObjectManager.REPOSITORY;
             } else {
-                throw new IllegalStateException();
+                assert isCaseMgmtWorkItem;
+                refinedQuery = query; // TODO
+                manager = ObjectTypes.ObjectManager.REPOSITORY;
             }
         }
     }
@@ -919,13 +925,16 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 }
                 //noinspection SwitchStatementWithTooFewBranches
                 switch (ctx.manager) {
-                    case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
-                    default: throw new IllegalStateException();
+                    case REPOSITORY:
+                        list = cacheRepositoryService.searchContainers(type, query, options, result);
+                        break;
+                    default:
+                        throw new IllegalStateException();
                 }
                 result.computeStatus();
                 result.cleanupResult();
-            } catch (SchemaException|RuntimeException e) {
-                processSearchException(e, rootOptions, ctx.manager, result);
+            } catch (SchemaException | RuntimeException e) {
+                processSearchException(e, ctx.manager, result);
                 throw e;
             } finally {
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -982,21 +991,23 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         }
 
         enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
-        Integer count;
+        int count;
         try {
-
             logQuery(query);
 
             try {
                 //noinspection SwitchStatementWithTooFewBranches
                 switch (ctx.manager) {
-                    case REPOSITORY: count = cacheRepositoryService.countContainers(type, query, options, result); break;
-                    default: throw new IllegalStateException();
+                    case REPOSITORY:
+                        count = cacheRepositoryService.countContainers(type, query, options, result);
+                        break;
+                    default:
+                        throw new IllegalStateException();
                 }
                 result.computeStatus();
                 result.cleanupResult();
             } catch (RuntimeException e) {
-                processSearchException(e, rootOptions, ctx.manager, result);
+                processSearchException(e, ctx.manager, result);
                 throw e;
             } finally {
                 if (LOGGER.isTraceEnabled()) {
@@ -1132,15 +1143,22 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
             try {
                 switch (searchProvider) {
-                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, processedQuery, internalHandler, options, true, result); break;
-                    case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result); break;
-                    case TASK_MANAGER: metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result); break;
-                    default: throw new AssertionError("Unexpected search provider: " + searchProvider);
+                    case REPOSITORY:
+                        metadata = cacheRepositoryService.searchObjectsIterative(type, processedQuery, internalHandler, options, true, result);
+                        break;
+                    case PROVISIONING:
+                        metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
+                        break;
+                    case TASK_MANAGER:
+                        metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
+                        break;
+                    default:
+                        throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
                 result.computeStatusIfUnknown();
                 result.cleanupResult();
             } catch (CommunicationException | ConfigurationException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
-                processSearchException(e, rootOptions, searchProvider, result);
+                processSearchException(e, searchProvider, result);
                 throw e;
             } finally {
                 if (LOGGER.isTraceEnabled()) {
@@ -1160,14 +1178,22 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return metadata;
     }
 
-    private void processSearchException(Throwable e, GetOperationOptions rootOptions,
-            ObjectTypes.ObjectManager searchProvider, OperationResult result) {
+    private void processSearchException(
+            Throwable e, ObjectTypes.ObjectManager searchProvider, OperationResult result) {
         String message;
         switch (searchProvider) {
-            case REPOSITORY: message = "Couldn't search objects in repository"; break;
-            case PROVISIONING: message = "Couldn't search objects in provisioning"; break;
-            case TASK_MANAGER: message = "Couldn't search objects in task manager"; break;
-            default: message = "Couldn't search objects"; break;    // should not occur
+            case REPOSITORY:
+                message = "Couldn't search objects in repository";
+                break;
+            case PROVISIONING:
+                message = "Couldn't search objects in provisioning";
+                break;
+            case TASK_MANAGER:
+                message = "Couldn't search objects in task manager";
+                break;
+            default:
+                message = "Couldn't search objects";
+                break;    // should not occur
         }
         LoggingUtils.logUnexpectedException(LOGGER, message, e);
         result.recordFatalError(message, e);
@@ -1211,7 +1237,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 case TASK_MANAGER:
                     count = taskManager.countObjects(type, processedQuery, parentResult);
                     break;
-                default: throw new AssertionError("Unexpected objectManager: " + objectManager);
+                default:
+                    throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
         } catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ModelImplUtils.recordFatalError(result, e);
@@ -1286,7 +1313,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         enterModelMethod();
-        LOGGER.trace("Testing resource OID: {}", new Object[]{resourceOid});
+        LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
 
         OperationResult testResult;
         try {
@@ -1327,8 +1354,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         Validate.notNull(objectClass, "Object class must not be null.");
         Validate.notNull(task, "Task must not be null.");
         enterModelMethod();
-        LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[]{
-                resourceOid, objectClass});
+        LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[] {
+                resourceOid, objectClass });
 
         OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
         result.addParam("resourceOid", resourceOid);
@@ -1342,15 +1369,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             resource = getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
 
             if (resource.getSynchronization() == null || resource.getSynchronization().getObjectSynchronization().isEmpty()) {
-                OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
-                subresult.recordWarning("No synchronization settings in "+resource+", import will probably do nothing");
-                LOGGER.warn("No synchronization settings in "+resource+", import will probably do nothing");
+                OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
+                subresult.recordWarning("No synchronization settings in " + resource + ", import will probably do nothing");
+                LOGGER.warn("No synchronization settings in " + resource + ", import will probably do nothing");
             } else {
                 ObjectSynchronizationType syncType = resource.getSynchronization().getObjectSynchronization().iterator().next();
                 if (syncType.isEnabled() != null && !syncType.isEnabled()) {
-                    OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE+".check");
-                    subresult.recordWarning("Synchronization is disabled for "+resource+", import will probably do nothing");
-                    LOGGER.warn("Synchronization is disabled for "+resource+", import will probably do nothing");
+                    OperationResult subresult = result.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE + ".check");
+                    subresult.recordWarning("Synchronization is disabled for " + resource + ", import will probably do nothing");
+                    LOGGER.warn("Synchronization is disabled for " + resource + ", import will probably do nothing");
                 }
             }
 
@@ -1400,10 +1427,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 result.computeStatus();
             }
 
-
             result.cleanupResult();
 
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException| RuntimeException | Error ex) {
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
             ModelImplUtils.recordFatalError(result, ex);
             throw ex;
         } finally {
@@ -1416,26 +1442,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
             OperationResult parentResult) throws FileNotFoundException {
         OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(input);
+
+        try (FileInputStream fis = new FileInputStream(input)) {
+            importObjectsFromStream(fis, PrismContext.LANG_XML, options, task, parentResult);
         } catch (FileNotFoundException e) {
-            IOUtils.closeQuietly(fis);
             String msg = "Error reading from file " + input + ": " + e.getMessage();
             result.recordFatalError(msg, e);
             throw e;
-        }
-        try {
-            importObjectsFromStream(fis, PrismContext.LANG_XML, options, task, parentResult);
         } catch (RuntimeException e) {
             result.recordFatalError(e);
             throw e;
-        } finally {
-            try {
-                fis.close();
-            } catch (IOException e) {
-                LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
-            }
+        } catch (IOException e) {
+            LOGGER.error("Error closing file " + input + ": " + e.getMessage(), e);
         }
         result.computeStatus();
     }
@@ -1483,13 +1501,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             throw e;
         }
         List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
-        schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null,null, task, result);
+        schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, null, task, result);
         result.computeStatus("Connector discovery failed");
         exitModelMethod();
         result.cleanupResult();
         return new HashSet<>(connectorList);
     }
-
 
     /*
      * (non-Javadoc)
@@ -1797,7 +1814,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         PrismObject<TaskType> task = taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         task = task.cloneIfImmutable();
-        schemaTransformer.applySchemasAndSecurity(task, rootOptions, options,null, null, parentResult);
+        schemaTransformer.applySchemasAndSecurity(task, rootOptions, options, null, null, parentResult);
         return task;
     }
 
@@ -1938,7 +1955,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         auditRecord.setTarget(taskRef);
         ObjectDelta<TaskType> delta;
         if (AuditEventType.DELETE_OBJECT == event) {
-             delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
+            delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
         } else {
             //TODO should we somehow indicate deltas which are executed in taskManager?
             delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
@@ -2121,7 +2138,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Override
     public <O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type,
             String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
+            PolicyViolationException, SecurityViolationException {
 
         OperationResult result = parentResult.createSubresult(MERGE_OBJECTS);
         result.addParam("leftOid", leftOid);
@@ -2145,7 +2164,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
         }
-
     }
 
     @NotNull
@@ -2251,7 +2269,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
                     throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
                 }
-                prismContext.adopt((ShadowType)objToAdd);
+                prismContext.adopt((ShadowType) objToAdd);
 
                 shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
                 LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
@@ -2272,7 +2290,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     private void computePolyStrings(Collection<ObjectDelta<? extends ObjectType>> deltas) {
-        for(ObjectDelta<? extends ObjectType> delta: deltas) {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
             delta.accept(this::computePolyStringVisit);
         }
     }
@@ -2281,14 +2299,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         if (!(visitable instanceof PrismProperty<?>)) {
             return;
         }
-        PrismPropertyDefinition<?> definition = ((PrismProperty<?>)visitable).getDefinition();
+        PrismPropertyDefinition<?> definition = ((PrismProperty<?>) visitable).getDefinition();
         if (definition == null) {
             return;
         }
         if (!QNameUtil.match(PolyStringType.COMPLEX_TYPE, definition.getTypeName())) {
             return;
         }
-        for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>)visitable).getValues()) {
+        for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>) visitable).getValues()) {
             PolyString polyString = pval.getValue();
             if (polyString.getOrig() == null) {
                 String orig = localizationService.translate(polyString);

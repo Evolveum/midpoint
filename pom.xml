@@ -180,7 +180,7 @@
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>8.6.0</wicket.version>
-        <groovy.version>2.5.8</groovy.version>
+        <groovy.version>2.5.12</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
         <connid.version>1.5.0.10</connid.version>
         <jasper.version>6.5.0</jasper.version>
@@ -1794,10 +1794,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle.version}</version>
@@ -2102,11 +2098,9 @@
 
         <profile>
             <id>jdk-11</id>
-            <properties>
-                <project.source.version>11</project.source.version>
-            </properties>
+            <!-- Don't change source level here, we still need the to support globally set level. -->
             <activation>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <dependencyManagement>
                 <!--
@@ -2145,9 +2139,6 @@
 
         <profile>
             <id>jdk-8</id>
-            <properties>
-                <project.source.version>1.8</project.source.version>
-            </properties>
             <activation>
                 <jdk>1.8</jdk>
             </activation>
