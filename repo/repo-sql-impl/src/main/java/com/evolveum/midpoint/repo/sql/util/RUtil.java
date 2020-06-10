@@ -18,7 +18,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -55,8 +54,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -72,11 +69,10 @@ public final class RUtil {
      */
     public static final int COLUMN_LENGTH_OID = 36;
 
-    private static final Trace LOGGER = TraceManager.getTrace(RUtil.class);
-
     private static final int DB_OBJECT_NAME_MAX_LENGTH = 30;
 
     private RUtil() {
+        throw new AssertionError("utility class can't be instantiated");
     }
 
     public static void revive(Objectable object, PrismContext prismContext)
@@ -393,27 +389,38 @@ public final class RUtil {
         // auto-detecting gzipped array (starts with 1f 8b)
         final int head = (array[0] & 0xff) | ((array[1] << 8) & 0xff00);
         if (GZIPInputStream.GZIP_MAGIC != head) {
-            // TODO MID-6303: don't we want UTF-16 for SQL server here too? and what about serialization?
-            return new String(array, StandardCharsets.UTF_8);
+            /*
+             * UTF-16 is relevant only for older SQL Server deployments.
+             * If we are trying to read audit delta or fullResult which aren't compressed,
+             * it is likely data before 3.8 release.
+             * These data couldn't be migrated from nvarchar(max) to varbinary(max) without breaking
+             * encoding as SQL Server doesn't support UTF8 and uses UCS-2 (UTF-16) encoding.
+             */
+            Charset ch = useUtf16 ? detectCharsetIfUtf16Suggested(array) : StandardCharsets.UTF_8;
+            return new String(array, ch);
         }
 
         try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(array))) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             IOUtils.copy(gzip, out);
             return new String(out.toByteArray(), StandardCharsets.UTF_8);
-        } catch (ZipException ex) {
-            LOGGER.debug("Byte array should represent compressed (gzip) string, but: {}", ex.getMessage());
-
-            // utf-16 will be used only under specific conditions
-            // - we're using SQL Server
-            // - we are trying to read audit delta or fullResult which aren't compressed - data before 3.8 release
-            // These data couldn't be migrated from nvarchar(max) to varbinary(max) without breaking encoding as
-            // SQL Server doesn't support utf8 and uses ucs2 encoding (compatible to read with utf16)
-            Charset ch = useUtf16 ? StandardCharsets.UTF_16LE : StandardCharsets.UTF_8;
-            return new String(array, ch);
         } catch (Exception ex) {
             throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
         }
+    }
+
+    private static Charset detectCharsetIfUtf16Suggested(byte[] bytes) {
+        if (bytes != null && bytes.length > 2) {
+            // UTF 16 has either 0 bytes or BOM (0xfeff or 0xfffe depending on endianness)
+            if (bytes[0] == 0 || bytes[0] == (byte) 0xfe && bytes[1] == (byte) 0xff) {
+                return StandardCharsets.UTF_16BE;
+            }
+            if (bytes[1] == 0 || bytes[0] == (byte) 0xff && bytes[1] == (byte) 0xfe) {
+                return StandardCharsets.UTF_16LE;
+            }
+        }
+
+        return StandardCharsets.UTF_8;
     }
 
     public static String trimString(String message, int size) {
