@@ -10,10 +10,11 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -349,19 +349,14 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private void evaluateVariation(DashboardWidgetType widget, ExpressionVariables variables, DashboardWidget data) {
-
-        if(widget.getPresentation() != null) {
-            if(widget.getPresentation().getVariation() != null) {
-                for(DashboardWidgetVariationType variation : widget.getPresentation().getVariation()) {
+        if (widget.getPresentation() != null) {
+            if (widget.getPresentation().getVariation() != null) {
+                for (DashboardWidgetVariationType variation : widget.getPresentation().getVariation()) {
                     Task task = taskManager.createTaskInstance("Evaluate variation");
-                    PrismPropertyValue<Boolean> usingVariation;
                     try {
-                        usingVariation = ExpressionUtil.evaluateCondition(variables, variation.getCondition(), null,
-                                expressionFactory,
-                                "Variation", task, task.getResult());
-
-                        if(usingVariation != null && usingVariation.getRealValue() != null
-                                && usingVariation.getRealValue().equals(Boolean.TRUE)) {
+                        boolean usingVariation = ExpressionUtil.evaluateConditionDefaultFalse(variables, variation.getCondition(),
+                                MiscSchemaUtil.getExpressionProfile(), expressionFactory, "Variation", task, task.getResult());
+                        if (usingVariation) {
                             data.setDisplay(combineDisplay(widget.getDisplay(), variation.getDisplay()));
                         } else {
                             data.setDisplay(widget.getDisplay());

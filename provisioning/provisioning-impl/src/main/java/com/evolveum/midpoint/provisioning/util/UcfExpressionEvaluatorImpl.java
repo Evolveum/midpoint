@@ -19,7 +19,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -32,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Expression evaluator that is provided to lower-level components in UCF layer.
  */
 @Component
 @Experimental
@@ -41,7 +40,6 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
     private static final String OP_EVALUATE = UcfExpressionEvaluatorImpl.class.getName() + ".evaluate";
 
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private TaskManager taskManager;
 
     @NotNull
     @Override

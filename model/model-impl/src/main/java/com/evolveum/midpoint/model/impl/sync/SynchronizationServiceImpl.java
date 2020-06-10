@@ -59,6 +59,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 /**
@@ -321,10 +322,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "objectSynchronizationDiscriminator"));
             PrismPropertyValue<ObjectSynchronizationDiscriminatorType> evaluateDiscriminator = ExpressionUtil.evaluateExpression(variables, discriminatorDef,
                     classificationExpression, syncCtx.getExpressionProfile(), expressionFactory, desc, task, result);
-            if (evaluateDiscriminator == null) {
-                return null;
-            }
-            return evaluateDiscriminator.getValue();
+            return getRealValue(evaluateDiscriminator);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }

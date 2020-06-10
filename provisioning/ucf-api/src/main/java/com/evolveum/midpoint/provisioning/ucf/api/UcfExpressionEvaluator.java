@@ -18,7 +18,7 @@ import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
- *
+ * Expression evaluator that is provided to lower-level components in UCF layer.
  */
 @Experimental
 public interface UcfExpressionEvaluator {
