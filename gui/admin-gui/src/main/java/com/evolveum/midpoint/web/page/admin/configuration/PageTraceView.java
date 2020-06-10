@@ -116,7 +116,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_CLOCKWORK_EXECUTION, createClockworkLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_CLOCKWORK_EXECUTION),
                 this, false);
-        clockworkExecutionChoice.setSortChoices(false);
         clockworkExecutionChoice.setOutputMarkupId(true);
         mainForm.add(clockworkExecutionChoice);
 
@@ -124,7 +123,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_CLOCKWORK_CLICK, createClockworkLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_CLOCKWORK_CLICK),
                 this, false);
-        clockworkClickChoice.setSortChoices(false);
         clockworkClickChoice.setOutputMarkupId(true);
         mainForm.add(clockworkClickChoice);
 
@@ -132,7 +130,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_MAPPING_EVALUATION, createMappingLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_MAPPING_EVALUATION),
                 this, false);
-        mappingEvaluationChoice.setSortChoices(false);
         mappingEvaluationChoice.setOutputMarkupId(true);
         mainForm.add(mappingEvaluationChoice);
 
@@ -140,7 +137,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_FOCUS_LOAD, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_FOCUS_LOAD),
                 this, false);
-        focusLoadChoice.setSortChoices(false);
         focusLoadChoice.setOutputMarkupId(true);
         mainForm.add(focusLoadChoice);
 
@@ -148,7 +144,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_PROJECTION_LOAD, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_PROJECTION_LOAD),
                 this, false);
-        projectionLoadChoice.setSortChoices(false);
         projectionLoadChoice.setOutputMarkupId(true);
         mainForm.add(projectionLoadChoice);
 
@@ -156,7 +151,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_FOCUS_CHANGE, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_FOCUS_CHANGE),
                 this, false);
-        focusChangeChoice.setSortChoices(false);
         focusChangeChoice.setOutputMarkupId(true);
         mainForm.add(focusChangeChoice);
 
@@ -164,7 +158,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_PROJECTION_CHANGE, createStandardLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_PROJECTION_CHANGE),
                 this, false);
-        projectionChangeChoice.setSortChoices(false);
         projectionChangeChoice.setOutputMarkupId(true);
         mainForm.add(projectionChangeChoice);
 
@@ -172,7 +165,6 @@ public class PageTraceView extends PageAdminConfiguration {
                 GenericTraceVisualizationType.class, ID_OTHERS, createOthersLevels(),
                 new PropertyModel<>(model, TraceViewDto.F_OTHERS),
                 this, false);
-        otherChoice.setSortChoices(false);
         otherChoice.setOutputMarkupId(true);
         mainForm.add(otherChoice);
 

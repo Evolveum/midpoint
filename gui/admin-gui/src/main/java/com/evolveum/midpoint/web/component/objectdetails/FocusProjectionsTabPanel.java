@@ -475,27 +475,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         target.add(getMultivalueContainerListPanel());
     }
 
-    private IModel<PrismContainerWrapper<ShadowType>> createEmptyShadowWrapperModel() {
-        ShadowType shadow = new ShadowType();
-        ShadowWrapper wrapper = null;
-        Task task = getPageBase().createSimpleTask("create empty shadow wrapper");
-        try {
-            getPageBase().getPrismContext().adopt(shadow);
-            wrapper = ((PageAdminFocus) getPage()).loadShadowWrapper(shadow.asPrismContainer(), task, task.getResult());
-        } catch (SchemaException e) {
-            getPageBase().showResult(task.getResult(), "pageAdminFocus.message.couldntCreateShadowWrapper");
-            LOGGER.error("Couldn't create shadow wrapper", e);
-        }
-        final ShadowWrapper ret = wrapper;
-        return new IModel<PrismContainerWrapper<ShadowType>>() {
-
-            @Override
-            public PrismContainerWrapper<ShadowType> getObject() {
-                return ret;
-            }
-        };
-    }
-
     private List<InlineMenuItem> createShadowMenu() {
         List<InlineMenuItem> items = new ArrayList<>();
 

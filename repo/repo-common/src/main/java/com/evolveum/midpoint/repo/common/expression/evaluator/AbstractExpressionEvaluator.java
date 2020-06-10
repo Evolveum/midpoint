@@ -72,7 +72,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
     }
 
-    public PrismContext getPrismContext() {
+    public @NotNull PrismContext getPrismContext() {
         return prismContext;
     }
 }

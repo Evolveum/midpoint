@@ -112,7 +112,7 @@
                             <parameter>
                                 <name>location</name>
                                 <expression>
-                                    <path>locality</path>
+                                    <path>$locality</path>
                                 </expression>
                             </parameter>
                         </function>

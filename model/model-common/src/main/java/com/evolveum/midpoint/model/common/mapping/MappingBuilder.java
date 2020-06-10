@@ -62,7 +62,7 @@ public final class MappingBuilder<V extends PrismValue, D extends ItemDefinition
     private PrismObjectDefinition<?> targetContext;
     private OriginType originType;
     private ObjectType originObject;
-    private ConfigurableValuePolicyResolver valuePolicyResolver;
+    private ConfigurableValuePolicySupplier valuePolicySupplier;
     private VariableProducer variableProducer;
     private MappingPreExpression mappingPreExpression;
     private boolean conditionMaskOld = true;
@@ -168,8 +168,8 @@ public final class MappingBuilder<V extends PrismValue, D extends ItemDefinition
         return this;
     }
 
-    public MappingBuilder<V, D> valuePolicyResolver(ConfigurableValuePolicyResolver val) {
-        valuePolicyResolver = val;
+    public MappingBuilder<V, D> valuePolicySupplier(ConfigurableValuePolicySupplier val) {
+        valuePolicySupplier = val;
         return this;
     }
 
@@ -329,11 +329,6 @@ public final class MappingBuilder<V extends PrismValue, D extends ItemDefinition
         return this;
     }
 
-    public MappingBuilder<V, D> stringPolicyResolver(ConfigurableValuePolicyResolver stringPolicyResolver) {
-        this.valuePolicyResolver = stringPolicyResolver;
-        return this;
-    }
-
     public boolean hasVariableDefinition(String varName) {
         return variables.containsKey(varName);
     }
@@ -428,8 +423,8 @@ public final class MappingBuilder<V extends PrismValue, D extends ItemDefinition
         return originObject;
     }
 
-    public ConfigurableValuePolicyResolver getValuePolicyResolver() {
-        return valuePolicyResolver;
+    public ConfigurableValuePolicySupplier getValuePolicySupplier() {
+        return valuePolicySupplier;
     }
 
     public VariableProducer getVariableProducer() {

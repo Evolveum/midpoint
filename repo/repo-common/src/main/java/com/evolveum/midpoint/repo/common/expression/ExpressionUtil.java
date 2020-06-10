@@ -63,48 +63,6 @@ public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
-    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
-            PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
-            Function<Object, Object> additionalConvertor,
-            final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
-
-        PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
-
-        final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
-        if (resultTripleValueClass == null) {
-            // triple is empty. type does not matter.
-            return clonedTriple;
-        }
-        Class<?> expectedJavaType = XsdTypeMapper.toJavaType(outputDefinition.getTypeName());
-        if (expectedJavaType == null) {
-            expectedJavaType = prismContext.getSchemaRegistry()
-                    .getCompileTimeClass(outputDefinition.getTypeName());
-        }
-        if (resultTripleValueClass == expectedJavaType) {
-            return clonedTriple;
-        }
-        final Class<?> finalExpectedJavaType = expectedJavaType;
-
-        clonedTriple.accept((Visitor) visitable -> {
-            if (visitable instanceof PrismPropertyValue<?>) {
-                PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>) visitable;
-                Object realVal = pval.getValue();
-                if (realVal != null) {
-                    if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
-                        if (residualPath != null && !residualPath.isEmpty()) {
-                            realVal = ((Structured) realVal).resolve(residualPath);
-                        }
-                    }
-                    if (finalExpectedJavaType != null) {
-                        Object convertedVal = convertValue(finalExpectedJavaType, additionalConvertor, realVal, protector, prismContext);
-                        pval.setValue(convertedVal);
-                    }
-                }
-            }
-        });
-        return clonedTriple;
-    }
-
     /**
      * Slightly more powerful version of "convert" as compared to
      * JavaTypeConverter. This version can also encrypt/decrypt and also handles
@@ -454,27 +412,25 @@ public class ExpressionUtil {
         }
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(
-            Object object, ObjectResolver objectResolver, String string, OperationResult result) {
+    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
         if (object == null) {
             return null;
-        }
-
-        if (object instanceof ItemDeltaItem<?, ?>) {
+        } else if (object instanceof ItemDeltaItem<?, ?>) {
+            //noinspection unchecked
             return (ItemDeltaItem<IV, ID>) object;
-        }
-
-        if (object instanceof PrismObject<?>) {
+        } else if (object instanceof PrismObject<?>) {
+            //noinspection unchecked
             return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
                     (PrismObject<?>) object, ((PrismObject) object).getDefinition());
         } else if (object instanceof Item<?, ?>) {
+            //noinspection unchecked
             return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object, ((Item<IV, ID>) object).getDefinition());
         } else if (object instanceof ItemDelta<?, ?>) {
+            //noinspection unchecked
             return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null, ((ItemDelta<IV, ID>) object).getDefinition());
         } else {
             throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
         }
-
     }
 
     public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
@@ -755,12 +711,9 @@ public class ExpressionUtil {
                     DOMUtil.XSD_STRING);
         }
 
+        //noinspection unchecked
         return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
                 task, parentResult);
-
-        // String expressionResult =
-        // expressionHandler.evaluateExpression(currentShadow, valueExpression,
-        // shortDesc, result);
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
@@ -839,8 +792,47 @@ public class ExpressionUtil {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+        //noinspection unchecked
         return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
                 expressionFactory, shortDesc, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultTrue(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                true, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultFalse(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                false, task, parentResult);
+    }
+
+    private static boolean evaluateConditionWithDefault(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc,
+            boolean defaultValue, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (expressionBean == null) {
+            return defaultValue;
+        }
+        PrismPropertyValue<Boolean> booleanPropertyValue = evaluateCondition(variables, expressionBean, expressionProfile,
+                expressionFactory, shortDesc, task, parentResult);
+        if (booleanPropertyValue == null) {
+            return defaultValue;
+        }
+        Boolean realValue = booleanPropertyValue.getRealValue();
+        if (realValue == null) {
+            return defaultValue;
+        } else {
+            return realValue;
+        }
     }
 
     public static boolean getBooleanConditionOutput(PrismPropertyValue<Boolean> conditionOutput) {
@@ -852,20 +844,6 @@ public class ExpressionUtil {
             return false;
         }
         return value;
-    }
-
-    public static VariablesMap compileVariablesAndSources(ExpressionEvaluationContext params) {
-        VariablesMap variablesAndSources = new VariablesMap();
-
-        if (params.getVariables() != null) {
-            variablesAndSources.putAll(params.getVariables());
-        }
-
-        for (Source<?, ?> source : params.getSources()) {
-            variablesAndSources.put(source.getName().getLocalPart(), source, source.getDefinition());
-        }
-
-        return variablesAndSources;
     }
 
     public static VariablesMap compileSources(Collection<Source<?, ?>> sources) {

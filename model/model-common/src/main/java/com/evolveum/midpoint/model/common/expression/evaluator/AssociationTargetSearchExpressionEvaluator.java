@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Creates an association (or associations) based on specified condition for the associated object.
+ *
  * @author Radovan Semancik
  */
 public class AssociationTargetSearchExpressionEvaluator

@@ -10,14 +10,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
- * Provides value policy when needed (e.g. in generate expression evaluator).
+ * Supplies value policy when needed (e.g. in generate expression evaluator).
  *
  * @author semancik
  */
-public interface ValuePolicyResolver {
+public interface ValuePolicySupplier {
 
     /**
      * Returns appropriate value policy.
      */
-    ValuePolicyType resolve(OperationResult result);
+    ValuePolicyType get(OperationResult result);
 }

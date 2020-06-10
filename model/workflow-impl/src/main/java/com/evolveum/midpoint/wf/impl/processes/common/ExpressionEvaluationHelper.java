@@ -47,7 +47,7 @@ public class ExpressionEvaluationHelper {
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private PrismContext prismContext;
 
-    public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
+    List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
             ExpressionVariables variables, String contextDescription,
             Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<ObjectReferenceType> retval = new ArrayList<>();
@@ -57,7 +57,7 @@ public class ExpressionEvaluationHelper {
         return retval;
     }
 
-    public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
+    private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,

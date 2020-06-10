@@ -22,7 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 
-import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicyResolver;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
 import org.jetbrains.annotations.NotNull;
@@ -231,7 +231,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
             }
         }
 
-        ConfigurableValuePolicyResolver valuePolicyResolver = new ConfigurableValuePolicyResolver() {
+        ConfigurableValuePolicySupplier valuePolicySupplier = new ConfigurableValuePolicySupplier() {
             private ItemDefinition outputDefinition;
 
             @Override
@@ -240,7 +240,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
             }
 
             @Override
-            public ValuePolicyType resolve(OperationResult result) {
+            public ValuePolicyType get(OperationResult result) {
 
                 if (mappingBuilder.getMappingBean().getExpression() != null) {
                     List<JAXBElement<?>> evaluators = mappingBuilder.getMappingBean().getExpression().getExpressionEvaluator();
@@ -263,7 +263,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                 return null;
             }
         };
-        mappingBuilder.valuePolicyResolver(valuePolicyResolver);
+        mappingBuilder.valuePolicySupplier(valuePolicySupplier);
         // TODO: other variables?
 
         // Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

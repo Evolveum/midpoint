@@ -714,7 +714,7 @@ public class InboundProcessor implements ProjectorProcessor {
                 .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition())
                 .addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class)
                 .variableResolver(variableProducer)
-                .valuePolicyResolver(createStringPolicyResolver(context))
+                .valuePolicySupplier(createStringPolicyResolver(context))
                 .originType(OriginType.INBOUND)
                 .originObject(resource);
 
@@ -1180,8 +1180,8 @@ public class InboundProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends ObjectType> ConfigurableValuePolicyResolver createStringPolicyResolver(final LensContext<F> context) {
-        return new ConfigurableValuePolicyResolver() {
+    private <F extends ObjectType> ConfigurableValuePolicySupplier createStringPolicyResolver(final LensContext<F> context) {
+        return new ConfigurableValuePolicySupplier() {
             private ItemDefinition outputDefinition;
 
             @Override
@@ -1190,7 +1190,7 @@ public class InboundProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public ValuePolicyType resolve(OperationResult result) {
+            public ValuePolicyType get(OperationResult result) {
                 if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
                     return credentialsProcessor.determinePasswordPolicy(context.getFocusContext());
                 } else {
@@ -1300,7 +1300,7 @@ public class InboundProcessor implements ProjectorProcessor {
                         .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                         .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
                         .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
-                        .valuePolicyResolver(createStringPolicyResolver(context))
+                        .valuePolicySupplier(createStringPolicyResolver(context))
                         .mappingKind(MappingKindType.INBOUND)
                         .implicitSourcePath(sourcePath)
                         .implicitTargetPath(targetPath)
