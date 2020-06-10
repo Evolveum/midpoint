@@ -164,9 +164,9 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
     /**
      * Provider of the value policy (used for "generate" expressions).
-     * See {@link ExpressionEvaluationContext#valuePolicyResolver}.
+     * See {@link ExpressionEvaluationContext#valuePolicySupplier}.
      */
-    final ConfigurableValuePolicyResolver valuePolicyResolver;
+    final ConfigurableValuePolicySupplier valuePolicySupplier;
 
     /**
      * Mapping pre-expression is invoked just before main mapping expression.
@@ -335,7 +335,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         targetContext = builder.getTargetContext();
         originType = builder.getOriginType();
         originObject = builder.getOriginObject();
-        valuePolicyResolver = builder.getValuePolicyResolver();
+        valuePolicySupplier = builder.getValuePolicySupplier();
         variableProducer = builder.getVariableProducer();
         mappingPreExpression = builder.getMappingPreExpression();
         conditionMaskOld = builder.isConditionMaskOld();
@@ -374,7 +374,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
 
         this.originType = prototype.originType;
         this.originObject = prototype.originObject;
-        this.valuePolicyResolver = prototype.valuePolicyResolver;
+        this.valuePolicySupplier = prototype.valuePolicySupplier;
         this.mappingPreExpression = prototype.mappingPreExpression;
         this.conditionMaskOld = prototype.conditionMaskOld;
         this.conditionMaskNew = prototype.conditionMaskNew;
@@ -1044,7 +1044,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
                             "condition in " + getMappingContextDescription(), task, result);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
                     "condition in " + getMappingContextDescription(), task);
-            context.setValuePolicyResolver(valuePolicyResolver);
+            context.setValuePolicySupplier(valuePolicySupplier);
             context.setExpressionFactory(expressionFactory);
             context.setDefaultSource(defaultSource);
             context.setMappingQName(mappingQName);
@@ -1063,7 +1063,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition>
         context.setDefaultSource(defaultSource);
         context.setSkipEvaluationMinus(!conditionResultOld);
         context.setSkipEvaluationPlus(!conditionResultNew);
-        context.setValuePolicyResolver(valuePolicyResolver);
+        context.setValuePolicySupplier(valuePolicySupplier);
         context.setExpressionFactory(expressionFactory);
         context.setMappingQName(mappingQName);
         context.setVariableProducer(variableProducer);

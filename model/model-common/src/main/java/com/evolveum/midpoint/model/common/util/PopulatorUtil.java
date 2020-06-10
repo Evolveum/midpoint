@@ -109,7 +109,7 @@ public class PopulatorUtil {
                 expressionDesc, task, result);
         ExpressionEvaluationContext localContext = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
         localContext.setExpressionFactory(expressionFactory);
-        localContext.setValuePolicyResolver(context.getValuePolicyResolver());
+        localContext.setValuePolicySupplier(context.getValuePolicySupplier());
         localContext.setSkipEvaluationMinus(true);
         localContext.setSkipEvaluationPlus(false);
         localContext.setVariableProducer(context.getVariableProducer());

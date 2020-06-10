@@ -24,7 +24,7 @@ import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionE
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.evaluator.ConstExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUtil;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;

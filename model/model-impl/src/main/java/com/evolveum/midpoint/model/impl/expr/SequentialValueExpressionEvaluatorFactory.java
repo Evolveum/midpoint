@@ -57,11 +57,11 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
         SequentialValueExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 SequentialValueExpressionEvaluatorType.class, contextDescription);
 
-        if (evaluatorBean.getSequenceRef() == null || evaluatorBean.getSequenceRef().getOid() == null) {
+        if (evaluatorBean.getSequenceRef() != null && evaluatorBean.getSequenceRef().getOid() != null) {
+            return new SequentialValueExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean.getSequenceRef().getOid(), evaluatorBean,
+                    outputDefinition, protector, repositoryService, prismContext);
+        } else {
             throw new SchemaException("Missing sequence reference in sequentialValue expression evaluator in "+contextDescription);
         }
-
-        return new SequentialValueExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector,
-                repositoryService, prismContext);
     }
 }

@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.common.expression.evaluator;
+package com.evolveum.midpoint.model.common.expression.evaluator.path;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -66,7 +66,6 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
         ItemPathType path = Objects.requireNonNull(
                 getSingleEvaluatorBean(evaluatorElements, ItemPathType.class, contextDescription),
                 () -> "missing path specification in " + contextDescription);
-        return new PathExpressionEvaluator<>(ELEMENT_NAME, path.getItemPath(), getObjectResolver(),
-                outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(ELEMENT_NAME, path.getItemPath(), outputDefinition, protector, prismContext);
     }
 }
