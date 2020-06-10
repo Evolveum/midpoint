@@ -57,7 +57,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     //other primary key fields
     private String targetOid;
     private String relation;
-    private RObjectType type;
+    private RObjectType targetType;
 
     private T target;
 
@@ -135,8 +135,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RObjectType getType() {
-        return type;
+    public RObjectType getTargetType() {
+        return targetType;
     }
 
     public void setOwner(RObject owner) {
@@ -163,8 +163,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     }
 
     @Override
-    public void setType(RObjectType type) {
-        this.type = type;
+    public void setTargetType(RObjectType type) {
+        this.targetType = type;
     }
 
     @Override
@@ -184,19 +184,17 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RObjectReference{");
-        sb.append("targetOid='").append(targetOid).append('\'');
-        sb.append(", relation='").append(relation).append('\'');
-        sb.append(", type=").append(type);
-        sb.append('}');
-        return sb.toString();
+        return "RObjectReference{" + "targetOid='" + targetOid + '\''
+                + ", relation='" + relation + '\''
+                + ", type=" + targetType
+                + '}';
     }
 
     public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
+        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
         jaxb.setOid(repo.getTargetOid());
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
@@ -206,7 +204,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
 
-        repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
+        repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
         repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
 

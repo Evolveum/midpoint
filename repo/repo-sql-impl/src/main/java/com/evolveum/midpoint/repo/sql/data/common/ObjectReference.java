@@ -20,17 +20,17 @@ public interface ObjectReference extends Serializable {
 
     String F_RELATION = "relation";
 
-    String F_TARGET_TYPE = "type";
-
-    String getTargetOid();
+    String F_TARGET_TYPE = "targetType";
 
     String getRelation();
 
-    RObjectType getType();
-
     void setRelation(String relation);
+
+    String getTargetOid();
 
     void setTargetOid(String targetOid);
 
-    void setType(RObjectType type);
+    RObjectType getTargetType();
+
+    void setTargetType(RObjectType type);
 }

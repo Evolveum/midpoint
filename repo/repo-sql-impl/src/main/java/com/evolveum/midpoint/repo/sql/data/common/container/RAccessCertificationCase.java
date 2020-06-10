@@ -251,8 +251,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.fullObject = fullObject;
     }
 
+    /* TODO: remove in 2021 if no problem apears
     // Notes to equals/hashCode: don't include trans nor owner
-    /*
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @author lazyman
  */
+//TODO MID-6303: RReferenceType
 public enum RReferenceOwner {
 
     OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),      // 0

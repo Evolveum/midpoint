@@ -58,8 +58,8 @@ public class REmbeddedNamedReference extends REmbeddedReference {
 
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RObjectType getType() {
-        return super.getType();
+    public RObjectType getTargetType() {
+        return super.getTargetType();
     }
 
     @Override
@@ -75,9 +75,7 @@ public class REmbeddedNamedReference extends REmbeddedReference {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (targetName != null ? targetName.hashCode() : 0);
-        return result;
+        return Objects.hash(targetName);
     }
 
     @Override

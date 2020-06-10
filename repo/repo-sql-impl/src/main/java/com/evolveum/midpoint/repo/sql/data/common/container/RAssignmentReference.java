@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -93,8 +93,8 @@ public class RAssignmentReference extends RContainerReference {
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RObjectType getType() {
-        return super.getType();
+    public RObjectType getTargetType() {
+        return super.getTargetType();
     }
 
     @Id

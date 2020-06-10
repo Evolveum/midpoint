@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import java.util.Objects;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.Validate;
@@ -109,19 +110,22 @@ public abstract class RContainerReference extends RReference implements EntitySt
         }
 
         RContainerReference that = (RContainerReference) o;
+        // TODO: what about ownerOid and ownerId?
         return referenceType == that.referenceType;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        // TODO: before june 2020 super was used, but this didn't match equals
+//        return super.hashCode();
+        return Objects.hash(referenceType);
     }
 
     public static void copyToJAXB(RContainerReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
+        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
         jaxb.setOid(repo.getTargetOid());
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
