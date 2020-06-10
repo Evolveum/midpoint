@@ -136,6 +136,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     private List<ShadowWrapper> loadShadowWrappers(boolean noFetch) {
+        LOGGER.trace("Loading shadow wrapper");
+        long start = System.currentTimeMillis();
         List<ShadowWrapper> list = new ArrayList<>();
 
         PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
@@ -152,17 +154,22 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 LOGGER.trace("Skiping reference for shadow with null oid");
                 continue; // default value
             }
+            long shadowTimestampBefore = System.currentTimeMillis();
             OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
             PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, reference.getOid(),
                     noFetch, task, subResult, createLoadOptionForShadowWrapper());
 
+            long shadowTimestampAfter = System.currentTimeMillis();
+            LOGGER.trace("Got shadow: {} in {}", projection, shadowTimestampAfter - shadowTimestampBefore);
             if(projection == null) {
 //                showResult(subResult, "pageAdminFocus.message.couldntLoadShadowProjection");
                 LOGGER.error("Couldn't load shadow projection");
                 continue;
             }
 
+            long timestampWrapperStart = System.currentTimeMillis();
             try {
+
                 ShadowWrapper wrapper = loadShadowWrapper(projection, task, subResult);
                 wrapper.setLoadWithNoFetch(noFetch);
 
@@ -178,7 +185,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
             }
+            long timestampWrapperEnd = System.currentTimeMillis();
+            LOGGER.trace("Load wrapper in {}", timestampWrapperEnd - timestampWrapperStart);
         }
+        long end = System.currentTimeMillis();
+        LOGGER.trace("Load projctions in {}", end - start);
         return list;
     }
 
@@ -198,6 +209,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
+        LOGGER.trace("Loading full shadow");
+        long start = System.currentTimeMillis();
         if(shadowWrapperValue.getRealValue() == null) {
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
             LOGGER.error("Couldn't create shadow wrapper, because RealValue is null in " + shadowWrapperValue);
@@ -206,9 +219,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         String oid = shadowWrapperValue.getRealValue().getOid();
         Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
         OperationResult result = task.getResult();
+        long loadStart = System.currentTimeMillis();
         PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, oid, false, task,
                 result, createLoadOptionForShadowWrapper());
 
+        long loadEnd = System.currentTimeMillis();
+        LOGGER.trace("Load projection in {} ms", loadEnd - loadStart);
         if (projection == null) {
             result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
             showResult(result);
@@ -216,6 +232,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             return;
         }
 
+        long wrapperStart = System.currentTimeMillis();
         ShadowWrapper shadowWrapperNew;
         try {
             shadowWrapperNew = loadShadowWrapper(projection, task, result);
@@ -233,6 +250,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
             LOGGER.error("Couldn't create shadow wrapper", e);
         }
+        long wrapperEnd = System.currentTimeMillis();
+        LOGGER.trace("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
+        long end = System.currentTimeMillis();
+        LOGGER.trace("Got full shadow in {} ms", end - start);
     }
 
 //    @Override

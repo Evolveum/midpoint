@@ -11,47 +11,44 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.model.api.DataModelVisualizer;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
-import com.evolveum.midpoint.util.SystemUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.RandomString;
+import com.evolveum.midpoint.util.SystemUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ModelDiagController implements ModelDiagnosticService {
@@ -67,8 +64,8 @@ public class ModelDiagController implements ModelDiagnosticService {
     private static final String USER_FULL_NAME = "Grăfula Fèlix Teleke z Tölökö";
     private static final String USER_GIVEN_NAME = "Fëľïx";
     private static final String USER_FAMILY_NAME = "Ţæĺêké";
-    private static final String[] USER_ORGANIZATION = {"COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła"};
-    private static final String[] USER_EMPLOYEE_TYPE = {"Ģŗąfųŀą", "CANTATOR"};
+    private static final String[] USER_ORGANIZATION = { "COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła" };
+    private static final String[] USER_EMPLOYEE_TYPE = { "Ģŗąfųŀą", "CANTATOR" };
 
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
@@ -89,7 +86,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private SystemObjectCache systemObjectCache;
 
-    private RandomString randomString;
+    private final RandomString randomString;
 
     ModelDiagController() {
         randomString = new RandomString(NAME_RANDOM_LENGTH, true);
@@ -112,8 +109,8 @@ public class ModelDiagController implements ModelDiagnosticService {
         // Give repository chance to run its own self-test if available
         repositoryService.repositorySelfTest(testResult);
 
-        repositorySelfTestUser(task, testResult);
-        repositorySelfTestLookupTable(task, testResult);
+        repositorySelfTestUser(testResult);
+        repositorySelfTestLookupTable(testResult);
 
         testResult.computeStatus();
         return testResult;
@@ -161,10 +158,11 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     @Override
-    public MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task,
-            OperationResult parentResult)
-            throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException {
+    public MappingEvaluationResponseType evaluateMapping(
+            MappingEvaluationRequestType request, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ConfigurationException {
+
         OperationResult result = parentResult.createSubresult(EXECUTE_REPOSITORY_QUERY);
         try {
             securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
@@ -192,7 +190,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         return provisioningService.getProvisioningDiag();
     }
 
-    private void repositorySelfTestUser(Task task, OperationResult testResult) {
+    private void repositorySelfTestUser(OperationResult testResult) {
         OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_USER);
 
         PrismObject<UserType> user;
@@ -246,7 +244,6 @@ public class ModelDiagController implements ModelDiagnosticService {
                 return;
             }
 
-
         } finally {
 
             try {
@@ -287,7 +284,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     private boolean repositorySelfTestUserGet(String name, String oid, OperationResult result) {
-        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+        OperationResult subresult = result.createSubresult(result.getOperation() + ".getObject");
 
         PrismObject<UserType> userRetrieved;
         try {
@@ -318,7 +315,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         checkObjectPropertyPolyString(userRetrieved, UserType.F_ORGANIZATION, subresult, USER_ORGANIZATION);
     }
 
-    private void repositorySelfTestLookupTable(Task task, OperationResult testResult) {
+    private void repositorySelfTestLookupTable(OperationResult testResult) {
         OperationResult result = testResult.createSubresult(REPOSITORY_SELF_TEST_LOOKUP_TABLE);
 
         PrismObject<LookupTableType> lookupTable;
@@ -371,14 +368,16 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     private boolean repositorySelfTestLookupTableGetKey(OperationResult result, String name, String oid) {
-        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject.key");
+        OperationResult subresult = result.createSubresult(result.getOperation() + ".getObject.key");
         try {
+            // @formatter:off
             GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
                     .item(LookupTableType.F_ROW)
                     .retrieveQuery()
                             .item(LookupTableRowType.F_KEY)
                             .eq(INSANE_NATIONAL_STRING)
                     .end();
+            // @formatter:on
             PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, optionsBuilder.build(), result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
@@ -393,7 +392,7 @@ public class ModelDiagController implements ModelDiagnosticService {
     }
 
     private boolean repositorySelfTestLookupTableGet(OperationResult result, String name, String oid) {
-        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+        OperationResult subresult = result.createSubresult(result.getOperation() + ".getObject");
 
         PrismObject<LookupTableType> lookupTableRetrieved;
         try {
@@ -424,38 +423,42 @@ public class ModelDiagController implements ModelDiagnosticService {
         assertPolyStringType("Unexpected label value", INSANE_NATIONAL_STRING, rowType.getLabel(), subresult);
     }
 
-    private void assertSingleSearchResult(String objectTypeMessage, List<PrismObject<UserType>> foundObjects, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(parentResult.getOperation()+".numberOfResults");
-        assertTrue("Found no "+objectTypeMessage, !foundObjects.isEmpty(), result);
-        assertTrue("Expected to find a single "+objectTypeMessage+" but found "+foundObjects.size(), foundObjects.size() == 1, result);
+    private void assertSingleSearchResult(String objectTypeMessage,
+            List<PrismObject<UserType>> foundObjects, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".numberOfResults");
+        assertTrue("Found no " + objectTypeMessage, !foundObjects.isEmpty(), result);
+        assertTrue("Expected to find a single " + objectTypeMessage + " but found " + foundObjects.size(), foundObjects.size() == 1, result);
         result.recordSuccessIfUnknown();
     }
 
-    private <O extends ObjectType,T> void checkObjectProperty(PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
+    private <O extends ObjectType, T> void checkObjectProperty(
+            PrismObject<O> object, QName propQName, OperationResult parentResult, T... expectedValues) {
         String propName = propQName.getLocalPart();
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + ".checkObjectProperty." + propName);
         PrismProperty<T> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<T> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
-        assertMultivalue("User, property '"+propName+"'", expectedValues, actualValues, result);
+        assertMultivalue("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }
 
-    private <T> void assertMultivalue(String message, T[] expectedVals, Collection<T> actualVals, OperationResult result) {
+    private <T> void assertMultivalue(String message,
+            T[] expectedVals, Collection<T> actualVals, OperationResult result) {
         if (expectedVals.length != actualVals.size()) {
-            fail(message+": expected "+expectedVals.length+" values but has "+actualVals.size()+" values: "+actualVals, result);
+            fail(message + ": expected " + expectedVals.length + " values but has "
+                    + actualVals.size() + " values: " + actualVals, result);
             return;
         }
-        for (T expected: expectedVals) {
+        for (T expected : expectedVals) {
             boolean found = false;
-            for (T actual: actualVals) {
+            for (T actual : actualVals) {
                 if (expected.equals(actual)) {
                     found = true;
                     break;
                 }
             }
             if (!found) {
-                fail(message+": expected value '"+expected+"' not found in actual values "+actualVals, result);
+                fail(message + ": expected value '" + expected + "' not found in actual values " + actualVals, result);
                 return;
             }
         }
@@ -467,39 +470,42 @@ public class ModelDiagController implements ModelDiagnosticService {
         PrismProperty<PolyString> prop = object.findProperty(ItemName.fromQName(propQName));
         Collection<PolyString> actualValues = prop.getRealValues();
         result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
-        assertMultivaluePolyString("User, property '"+propName+"'", expectedValues, actualValues, result);
+        assertMultivaluePolyString("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }
 
     private void assertMultivaluePolyString(String message, String[] expectedOrigs, Collection<PolyString> actualPolyStrings, OperationResult result) {
         if (expectedOrigs.length != actualPolyStrings.size()) {
-            fail(message+": expected "+expectedOrigs.length+" values but has "+actualPolyStrings.size()+" values: "+actualPolyStrings, result);
+            fail(message + ": expected " + expectedOrigs.length + " values but has " + actualPolyStrings.size() + " values: " + actualPolyStrings, result);
             return;
         }
-        for (String expectedOrig: expectedOrigs) {
+        for (String expectedOrig : expectedOrigs) {
             boolean found = false;
-            for (PolyString actualPolyString: actualPolyStrings) {
+            for (PolyString actualPolyString : actualPolyStrings) {
                 if (expectedOrig.equals(actualPolyString.getOrig())) {
                     found = true;
-                    assertEquals(message+ ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
+                    assertEquals(message + ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
                     break;
                 }
             }
             if (!found) {
-                fail(message+": expected value '"+expectedOrig+"' not found in actual values "+actualPolyStrings, result);
+                fail(message + ": expected value '" + expectedOrig + "' not found in actual values " + actualPolyStrings, result);
                 return;
             }
         }
     }
 
-    private void assertPolyString(String message, String expectedOrig, PolyString actualPolyString, OperationResult result) {
-        assertEquals(message+ ", orig", expectedOrig, actualPolyString.getOrig(), result);
-        assertEquals(message+ ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
+    // TODO: is it used occasionally? If not let it go
+    private void assertPolyString(String message,
+            String expectedOrig, PolyString actualPolyString, OperationResult result) {
+        assertEquals(message + ", orig", expectedOrig, actualPolyString.getOrig(), result);
+        assertEquals(message + ", norm", polyStringNorm(expectedOrig), actualPolyString.getNorm(), result);
     }
 
-    private void assertPolyStringType(String message, String expectedName, PolyStringType actualPolyStringType, OperationResult result) {
-        assertEquals(message+ ", orig", expectedName, actualPolyStringType.getOrig(), result);
-        assertEquals(message+ ", norm", polyStringNorm(expectedName), actualPolyStringType.getNorm(), result);
+    private void assertPolyStringType(String message,
+            String expectedName, PolyStringType actualPolyStringType, OperationResult result) {
+        assertEquals(message + ", orig", expectedName, actualPolyStringType.getOrig(), result);
+        assertEquals(message + ", norm", polyStringNorm(expectedName), actualPolyStringType.getNorm(), result);
     }
 
     private String polyStringNorm(String orig) {
@@ -514,7 +520,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     private void assertEquals(String message, Object expected, Object actual, OperationResult result) {
         if (!MiscUtil.equals(expected, actual)) {
-            fail(message + "; expected "+expected+", actual "+actual, result);
+            fail(message + "; expected " + expected + ", actual " + actual, result);
         }
     }
 
@@ -538,7 +544,6 @@ public class ModelDiagController implements ModelDiagnosticService {
         polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
         return polyString;
     }
-
 
     private <T extends ObjectType> PrismObjectDefinition<T> getObjectDefinition(Class<T> type) {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
@@ -592,9 +597,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     private LogFileContentType getLogFileFragment(File logFile, Long fromPosition, Long maxSize) throws IOException {
         LogFileContentType rv = new LogFileContentType();
-        RandomAccessFile log = null;
-        try {
-            log = new RandomAccessFile(logFile, "r");
+        try (RandomAccessFile log = new RandomAccessFile(logFile, "r")) {
             long currentLength = log.length();
             rv.setLogFileSize(currentLength);
 
@@ -624,10 +627,6 @@ public class ModelDiagController implements ModelDiagnosticService {
             log.readFully(buffer);
             rv.setContent(new String(buffer));
             return rv;
-        } finally {
-            if (log != null) {
-                IOUtils.closeQuietly(log);
-            }
         }
     }
 

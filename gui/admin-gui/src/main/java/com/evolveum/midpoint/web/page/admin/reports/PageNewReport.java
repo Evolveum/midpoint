@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,21 +7,10 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -41,21 +30,29 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.file.File;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 
-/**
- * @author lazyman
- */
 @PageDescriptor(url = "/admin/reports/create", action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
                 description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_REPORT_CREATE_URL,
                 label = "PageNewReport.auth.reports.label",
-                description = "PageNewReport.auth.reports.description")})
+                description = "PageNewReport.auth.reports.description") })
 public class PageNewReport extends PageAdmin {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageNewReport.class);
@@ -80,7 +77,7 @@ public class PageNewReport extends PageAdmin {
     private static final Integer INPUT_FILE = 1;
     private static final Integer INPUT_XML = 2;
 
-    private Model<String> xmlEditorModel;
+    private final Model<String> xmlEditorModel;
 
     public PageNewReport() {
         xmlEditorModel = new Model<>(null);
@@ -101,9 +98,8 @@ public class PageNewReport extends PageAdmin {
         mainForm.add(buttonBar);
 
         final IModel<Integer> groupModel = new Model<>(INPUT_FILE);
-        RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
+        RadioGroup<Integer> importRadioGroup = new RadioGroup<>(ID_IMPORT_RADIO_GROUP, groupModel);
         importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(input);
@@ -112,27 +108,26 @@ public class PageNewReport extends PageAdmin {
         });
         mainForm.add(importRadioGroup);
 
-        Radio fileRadio = new Radio(ID_FILE_RADIO, new Model(INPUT_FILE), importRadioGroup);
+        Radio<Integer> fileRadio = new Radio<>(ID_FILE_RADIO, new Model<>(INPUT_FILE), importRadioGroup);
         importRadioGroup.add(fileRadio);
 
-        Radio xmlRadio = new Radio(ID_XML_RADIO, new Model(INPUT_XML), importRadioGroup);
+        Radio<Integer> xmlRadio = new Radio<>(ID_XML_RADIO, new Model<>(INPUT_XML), importRadioGroup);
         importRadioGroup.add(xmlRadio);
 
         WebMarkupContainer inputAce = new WebMarkupContainer(ID_INPUT_ACE);
-        addVisibileForInputType(inputAce, INPUT_XML, groupModel);
+        addVisibleForInputType(inputAce, INPUT_XML, groupModel);
         input.add(inputAce);
-
 
         AceEditor aceEditor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
         aceEditor.setOutputMarkupId(true);
         inputAce.add(aceEditor);
 
         WebMarkupContainer inputFileLabel = new WebMarkupContainer(ID_INPUT_FILE_LABEL);
-        addVisibileForInputType(inputFileLabel, INPUT_FILE, groupModel);
+        addVisibleForInputType(inputFileLabel, INPUT_FILE, groupModel);
         input.add(inputFileLabel);
 
         WebMarkupContainer inputFile = new WebMarkupContainer(ID_INPUT_FILE);
-        addVisibileForInputType(inputFile, INPUT_FILE, groupModel);
+        addVisibleForInputType(inputFile, INPUT_FILE, groupModel);
         input.add(inputFile);
 
         FileUploadField fileInput = new FileUploadField(ID_FILE_INPUT);
@@ -141,14 +136,12 @@ public class PageNewReport extends PageAdmin {
         initButtons(buttonBar, groupModel);
     }
 
-    private void addVisibileForInputType(Component comp, final Integer type, final IModel<Integer> groupModel) {
+    private void addVisibleForInputType(Component comp, final Integer type, final IModel<Integer> groupModel) {
         comp.add(new VisibleEnableBehaviour() {
-
             @Override
             public boolean isVisible() {
                 return type.equals(groupModel.getObject());
             }
-
         });
     }
 
@@ -166,7 +159,7 @@ public class PageNewReport extends PageAdmin {
                 target.add(getFeedbackPanel());
             }
         };
-        addVisibileForInputType(saveFileButton, INPUT_FILE, inputType);
+        addVisibleForInputType(saveFileButton, INPUT_FILE, inputType);
         buttonBar.add(saveFileButton);
 
         AjaxSubmitButton saveXmlButton = new AjaxSubmitButton(ID_IMPORT_XML_BUTTON,
@@ -182,7 +175,7 @@ public class PageNewReport extends PageAdmin {
                 target.add(getFeedbackPanel());
             }
         };
-        addVisibileForInputType(saveXmlButton, INPUT_XML, inputType);
+        addVisibleForInputType(saveXmlButton, INPUT_XML, inputType);
         buttonBar.add(saveXmlButton);
     }
 
@@ -227,12 +220,8 @@ public class PageNewReport extends PageAdmin {
             result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
         } finally {
-            if (stream != null) {
-                IOUtils.closeQuietly(stream);
-            }
-            if (newFile != null) {
-                FileUtils.deleteQuietly(newFile);
-            }
+            IOUtils.closeQuietly(stream);
+            FileUtils.deleteQuietly(newFile);
         }
 
         showResult(result);

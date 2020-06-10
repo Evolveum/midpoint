@@ -4,12 +4,12 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<role oid="660f0fb8-bfec-11e7-bb16-07154f1e53a6"
+<role oid="9a60cdc6-f2ad-4414-964b-5fd1dfaec157"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Unit Sleeper</name>
+    <name>Unit Rider</name>
     <inducement>
         <construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
             <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
@@ -18,7 +18,7 @@
                 <ref>ri:title</ref>
                 <outbound>
                     <expression>
-                        <value>Sleeper</value>
+                        <value>Rider</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -29,28 +29,19 @@
         <focus>
             <selector>
                 <type>UserType</type>
+                <archetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="c:ArchetypeType"/>
             </selector>
             <mapping>
-                <name>autoassign-sleeper</name>
+                <name>autoassign-rider</name>
                 <trace>true</trace>
                 <source>
                     <path>organizationalUnit</path>
                 </source>
                 <condition>
                     <script>
-                        <code>basic.stringify(organizationalUnit) == 'sleeper'</code>
+                        <code>basic.stringify(organizationalUnit) == 'rider'</code>
                     </script>
                 </condition>
-                <populate>
-                    <populateItem>
-                        <expression>
-                            <value>2222-01-02T03:04:05.000Z</value>
-                        </expression>
-                        <target>
-                            <path>activation/validTo</path>
-                        </target>
-                    </populateItem>
-                </populate>
             </mapping>
         </focus>
     </autoassign>
