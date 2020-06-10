@@ -75,8 +75,8 @@ public class MetadataFactory {
                 && repo.getModifierRef() == null;
     }
 
-    public static void fromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext,
-            RelationRegistry relationRegistry)
+    public static void fromJaxb(
+            MetadataType jaxb, Metadata repo, RelationRegistry relationRegistry)
             throws DtoTranslationException {
         if (jaxb == null) {
             repo.setCreateChannel(null);
