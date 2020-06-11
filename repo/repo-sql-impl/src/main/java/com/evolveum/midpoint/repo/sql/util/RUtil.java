@@ -234,7 +234,7 @@ public final class RUtil {
         if (repo instanceof OperationResultFull) {
             try {
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
-                byte[] data = RUtil.getByteArrayFromXml(full, true);
+                byte[] data = RUtil.getBytesFromSerializedForm(full, true);
                 ((OperationResultFull) repo).setFullResult(data);
             } catch (Exception ex) {
                 throw new DtoTranslationException(ex.getMessage(), ex);
@@ -356,32 +356,32 @@ public final class RUtil {
         throw new SystemException("Couldn't get table name for class " + hqlType.getName());
     }
 
-    public static byte[] getByteArrayFromXml(String serializedForm, boolean compress) {
+    public static byte[] getBytesFromSerializedForm(String serializedForm, boolean compress) {
         if (serializedForm == null) {
             return null;
         }
 
         try {
             if (!compress) {
-                return serializedForm.getBytes(StandardCharsets.UTF_8.name());
+                return serializedForm.getBytes(StandardCharsets.UTF_8);
             }
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             try (GZIPOutputStream gzip = new GZIPOutputStream(out)) {
-                gzip.write(serializedForm.getBytes(StandardCharsets.UTF_8.name()));
+                gzip.write(serializedForm.getBytes(StandardCharsets.UTF_8));
                 gzip.close(); // explicit close writes any remaining data
                 return out.toByteArray();
             }
         } catch (Exception ex) {
-            throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
+            throw new SystemException("Couldn't save full object, reason: " + ex.getMessage(), ex);
         }
     }
 
-    public static String getSerializedFormFromByteArray(byte[] array) {
-        return getSerializedFormFromByteArray(array, false);
+    public static String getSerializedFormFromBytes(byte[] array) {
+        return getSerializedFormFromBytes(array, false);
     }
 
-    public static String getSerializedFormFromByteArray(byte[] array, boolean useUtf16) {
+    public static String getSerializedFormFromBytes(byte[] array, boolean useUtf16) {
         if (array == null) {
             return null;
         }

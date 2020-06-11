@@ -255,7 +255,7 @@ public class ObjectUpdater {
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true))
                 .serialize(savedObject);
-        byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
+        byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
 
@@ -344,7 +344,7 @@ public class ObjectUpdater {
 
             session.getTransaction().commit();
             return new DeleteObjectResult(
-                    RUtil.getSerializedFormFromByteArray(object.getFullObject()));
+                    RUtil.getSerializedFormFromBytes(object.getFullObject()));
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;

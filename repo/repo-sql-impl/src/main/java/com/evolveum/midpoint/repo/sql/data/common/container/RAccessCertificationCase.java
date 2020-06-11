@@ -372,7 +372,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
         LOGGER.trace("RAccessCertificationCase full object\n{}", xml);
-        byte[] fullObject = RUtil.getByteArrayFromXml(xml, false);
+        byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, false);
         rCase.setFullObject(fullObject);
 
         return rCase;
@@ -385,7 +385,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(
             byte[] fullObject, PrismContext prismContext) throws SchemaException {
-        String serializedFrom = RUtil.getSerializedFormFromByteArray(fullObject);
+        String serializedFrom = RUtil.getSerializedFormFromBytes(fullObject);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
             return prismContext.parserFor(serializedFrom)

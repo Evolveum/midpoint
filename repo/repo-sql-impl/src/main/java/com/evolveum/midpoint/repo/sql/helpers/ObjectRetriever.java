@@ -519,7 +519,7 @@ public class ObjectRetriever {
         boolean raw = GetOperationOptions.isRaw(rootOptions);
 
         byte[] fullObject = result.getFullObject();
-        String serializedForm = RUtil.getSerializedFormFromByteArray(fullObject);
+        String serializedForm = RUtil.getSerializedFormFromBytes(fullObject);
         PrismObject<T> prismObject;
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
@@ -577,7 +577,7 @@ public class ObjectRetriever {
                 query.setParameter("oid", prismObject.getOid());
                 byte[] opResult = (byte[]) query.uniqueResult();
                 if (opResult != null) {
-                    String xmlResult = RUtil.getSerializedFormFromByteArray(opResult);
+                    String xmlResult = RUtil.getSerializedFormFromBytes(opResult);
                     OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
 
                     PrismProperty<OperationResultType> resultProperty = prismObject.findOrCreateProperty(TaskType.F_RESULT);
