@@ -27,7 +27,6 @@ import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -54,6 +53,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.web.context.annotation.SessionScope;
 
 /**
  * @author skublik
@@ -194,8 +195,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @SessionScope
     @Override
-    protected AuthenticationManager authenticationManager() throws Exception {
+    protected MidpointAuthenticationManager authenticationManager() throws Exception {
         List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
         return new MidpointProviderManager(providers);
     }

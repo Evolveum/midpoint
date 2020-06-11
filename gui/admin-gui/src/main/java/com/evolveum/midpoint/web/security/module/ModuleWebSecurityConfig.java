@@ -58,7 +58,7 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private MidpointAuthenticationManager authenticationManager;
 
     @Autowired
     private AuthModuleRegistryImpl authRegistry;
@@ -138,12 +138,10 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
 
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
-//        authenticationManager.getProviders().clear();
-//        authenticationManager.getProviders().add(midPointAuthenticationProvider);
         if (configuration != null && !configuration.getAuthenticationProviders().isEmpty()) {
             for (AuthenticationProvider authenticationProvider : configuration.getAuthenticationProviders()) {
-                if (!(((MidpointProviderManager)authenticationManager).getProviders().contains(authenticationProvider))) {
-                    ((MidpointProviderManager)authenticationManager).getProviders().add(authenticationProvider);
+                if (!(authenticationManager.getProviders().contains(authenticationProvider))) {
+                    authenticationManager.getProviders().add(authenticationProvider);
                 }
             }
         }
