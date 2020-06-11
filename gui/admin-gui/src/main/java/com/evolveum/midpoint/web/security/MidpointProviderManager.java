@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MidpointProviderManager implements AuthenticationManager {
+public class MidpointProviderManager implements MidpointAuthenticationManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointProviderManager.class);
 
