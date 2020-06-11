@@ -234,7 +234,7 @@ model common-core {
     }
 
     type AssignmentHolder {
-        superType Object;
+        supertype Object;
         prism:itemName assignmentHolder;
         documentation """
             Abstract supertype for all object types that can have assignments.
@@ -360,7 +360,7 @@ model common-core {
     }
 
     type Focus {
-        superType AssignmentHolder;
+        supertype AssignmentHolder;
         prism:itemName focus;
         documentation """
             Abstract supertype for all object types that can be focus of full midPoint computation.
@@ -540,7 +540,7 @@ model common-core {
     }
 
     type User {
-        superType Focus;
+        supertype Focus;
         documentation """
             User object represents a physical user of the system.
             It differs from the account, as "account" represents a data structure in a target system while
@@ -911,7 +911,7 @@ model common-core {
     }
 
     prism:object GenericObject {
-        superType Focus;
+        supertype Focus;
         prism:itemName genericObject;
         documentation """
             Generic object for storing unknown (unexpected) object types.

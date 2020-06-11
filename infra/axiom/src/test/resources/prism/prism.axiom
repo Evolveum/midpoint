@@ -27,7 +27,7 @@ model prism {
     }
 
     type PrismModel {
-        superType axiom:AxiomModel;
+        supertype axiom:AxiomModel;
         item type { // {}:type
           type PrismTypeDefinition;
         }
@@ -54,23 +54,23 @@ model prism {
     }
 
     type PrismTypeDefinition {
-      superType axiom:AxiomTypeDefinition;
+      supertype axiom:AxiomTypeDefinition;
     }
 
     type PrismObjectDefinition {
-        superType PrismTypeDefinition;
+        supertype PrismTypeDefinition;
     }
 
     type PrismContainerDefinition {
-        superType PrismTypeDefinition;
+        supertype PrismTypeDefinition;
     }
 
     type PrismReferenceDefinition {
-        superType PrismTypeDefinition;
+        supertype PrismTypeDefinition;
     }
 
     type PrismItemDefinition {
-        superType PrismTypeDefinition;
+        supertype PrismTypeDefinition;
     }
 
 }

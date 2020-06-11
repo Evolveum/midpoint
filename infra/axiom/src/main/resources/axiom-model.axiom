@@ -8,15 +8,33 @@ model axiom-model {
         """;
         type AxiomModel;
     }
-    
+
+    // Axiom Baseline Types
+
+    type AxiomName {
+        documentation """
+            Qualified name. Consists of namespace and local name.
+        """;
+    }
+
+    type SemanticVersion {
+            supertype string;
+    }
+
+
+    // Axiom Infra Model
+
     type AxiomValue {
         item type {
             type AxiomTypeReference;
         }
+        item metadata {
+            type AxiomItem;
+        }
     }
 
     type AxiomSimpleValue {
-        superType AxiomValue;
+        supertype AxiomValue;
         argument value;
         item value {
             type anyType;
@@ -24,7 +42,7 @@ model axiom-model {
     }
 
     type AxiomComplexValue {
-        superType AxiomValue;
+        supertype AxiomValue;
         item item {
             type AxiomItem;
         }
@@ -41,7 +59,7 @@ model axiom-model {
     }
 
     type AxiomModel {
-        superType AxiomBaseDefinition;
+        supertype AxiomBaseDefinition;
 
         item namespace {
             type string;
@@ -116,7 +134,7 @@ model axiom-model {
     }
 
     type AxiomRootDefinition {
-        superType AxiomItemDefinition;
+        supertype AxiomItemDefinition;
         documentation """
             Root item definition.
 
@@ -156,7 +174,7 @@ model axiom-model {
     }
 
     type AxiomTypeDefinition {
-        superType AxiomBaseDefinition;
+        supertype AxiomBaseDefinition;
         documentation """
             Definition of value type.
 
@@ -173,7 +191,7 @@ model axiom-model {
         }
 
         // FIXME: should be inherit
-        item superType {
+        item supertype {
             type AxiomTypeReference;
             documentation """
                 Reference to super type definition, which is subtyped by this type.
@@ -207,14 +225,8 @@ model axiom-model {
 
     }
 
-    type AxiomName {
-        documentation """
-            Qualified name. Consists of namespace and local name.
-        """;
-    }
-
     type AxiomItemDefinition {
-        superType AxiomBaseDefinition;
+        supertype AxiomBaseDefinition;
 
         item identifier {
             type AxiomIdentifierDefinition;
@@ -295,18 +307,15 @@ model axiom-model {
     }
 
     type AxiomMixinDefinition {
-        superType AxiomTypeDefinition;
+        supertype AxiomTypeDefinition;
     }
 
     type AxiomAugmentationDefinition {
-        superType AxiomMixinDefinition;
+        supertype AxiomMixinDefinition;
         item target {
             type AxiomTypeReference;
         }
     }
 
-    type SemanticVersion {
-        superType string;
-    }
 
 }
