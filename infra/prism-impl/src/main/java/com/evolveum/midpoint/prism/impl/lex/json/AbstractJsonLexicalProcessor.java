@@ -40,6 +40,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.w3c.dom.Element;
 
 public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<String> {
 
@@ -895,7 +896,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
     private void serializeFromSchema(SchemaXNodeImpl node, JsonSerializationContext ctx) throws IOException {
         writeInlineTypeIfNeeded(node, ctx);
-        ctx.generator.writeObject(node.getSchemaElement());
+        Element schemaElement = node.getSchemaElement();
+        DOMUtil.fixNamespaceDeclarations(schemaElement); // TODO reconsider if it's OK to modify schema DOM element in this way
+        ctx.generator.writeObject(schemaElement);
     }
 
 
