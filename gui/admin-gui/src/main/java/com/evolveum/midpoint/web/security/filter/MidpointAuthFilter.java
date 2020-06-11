@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
 import com.evolveum.midpoint.web.security.MidpointProviderManager;
 import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
@@ -62,7 +63,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private AuthChannelRegistryImpl authChannelRegistry;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private MidpointAuthenticationManager authenticationManager;
 
     @Autowired
     private PrismContext prismContext;
@@ -181,7 +182,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         //change sequence of authentication during another sequence
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
-            ((MidpointProviderManager)authenticationManager).getProviders().clear();
+            authenticationManager.getProviders().clear();
             authModules = SecurityUtils.buildModuleFilters(authModuleRegistry, sequence, httpRequest, authenticationsPolicy.getModules(),
                     credentialsPolicy, sharedObjects, authenticationChannel);
         } else {
