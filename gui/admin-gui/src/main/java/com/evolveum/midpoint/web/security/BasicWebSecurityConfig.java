@@ -10,11 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -39,6 +43,8 @@ import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
 
+import org.springframework.web.context.annotation.SessionScope;
+
 /**
  * @author skublik
  */
@@ -55,6 +61,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private SessionRegistry sessionRegistry;
+
+    @Autowired
+    PrismContext prismContext;
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
 
@@ -127,7 +136,8 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, UUID.randomUUID().toString(), "anonymousUser",
+        AnonymousAuthenticationFilter anonymousFilter = new MidpointAnonymousAuthenticationFilter(authRegistry, authChannelRegistry, prismContext,
+                UUID.randomUUID().toString(), "anonymousUser",
                 AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
@@ -143,8 +153,9 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @SessionScope
     @Override
-    protected AuthenticationManager authenticationManager() throws Exception {
+    protected MidpointAuthenticationManager authenticationManager() throws Exception {
         List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
         return new MidpointProviderManager(providers);
     }

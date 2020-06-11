@@ -20,6 +20,9 @@ import org.apache.catalina.connector.OutputBuffer;
 import org.apache.catalina.connector.Response;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author skublik
  */
@@ -48,7 +51,12 @@ public class MidpointResponse extends Response {
             String publicUrlPrefix = getPublicUrlPrefix();
             if (publicUrlPrefix != null && StringUtils.isNotBlank(value)) {
                 if (value.startsWith(".")) {
-                    value = publicUrlPrefix + value.substring(1);
+                    List<String> segments = Arrays.asList(getRequest().getServletPath().substring(1).split("/"));
+                    if (segments.size() <= 1) {
+                        value = publicUrlPrefix + value.substring(1);
+                    } else {
+                        value = publicUrlPrefix + getRequest().getServletPath().substring(0, getRequest().getServletPath().lastIndexOf("/")) + value.substring(1);
+                    }
                 } else if (StringUtils.isBlank(contextPath)) {
                     if (value.startsWith("/")) {
                         value = publicUrlPrefix + value;

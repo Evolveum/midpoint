@@ -6,3 +6,10 @@ objects:
     name: "u2"
 - role:
     name: "r1"
+- objectCollection:
+    name: "oc"
+    type: "UserType"
+    filter:
+      'equal':
+        'path': "costCenter"
+        'value': "100"

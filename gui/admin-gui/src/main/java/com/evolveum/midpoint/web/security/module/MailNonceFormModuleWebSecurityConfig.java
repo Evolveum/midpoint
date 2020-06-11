@@ -8,7 +8,7 @@ package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.MailNonceAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
@@ -41,7 +41,7 @@ public class MailNonceFormModuleWebSecurityConfig<C extends ModuleWebSecurityCon
         http.antMatcher(stripEndingSlases(getPrefix()) + "/**");
         getOrApply(http, new MidpointFormLoginConfigurer(new MailNonceAuthenticationFilter()))
                 .loginPage(getConfiguration().getSpecificLoginUrl() == null ? "/emailNonce" : getConfiguration().getSpecificLoginUrl())
-                .failureHandler(new MidpointAuthenticationFauileHandler())
+                .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
         getOrApply(http, new MidpointExceptionHandlingConfigurer())
