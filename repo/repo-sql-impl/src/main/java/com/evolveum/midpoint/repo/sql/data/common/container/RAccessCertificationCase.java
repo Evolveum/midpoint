@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -75,7 +74,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private REmbeddedReference targetRef;
     private REmbeddedReference tenantRef;
     private REmbeddedReference orgRef;
-    private RActivation activation;                 // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
+    // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
+    private RActivation activation;
 
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
@@ -363,16 +363,17 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
-        String xml;
+        String serializedForm;
         try {
-            // TODO MID-6303 switch to configured fullObjectFormat
-            xml = context.prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+            serializedForm = context.prismContext
+                    // TODO MID-6303 check how it works - how about minimized JSON without whitespaces?
+                    .serializerFor(context.configuration.getFullObjectFormat())
                     .serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
-        LOGGER.trace("RAccessCertificationCase full object\n{}", xml);
-        byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, false);
+        LOGGER.trace("RAccessCertificationCase full object\n{}", serializedForm);
+        byte[] fullObject = RUtil.getBytesFromSerializedForm(serializedForm, false);
         rCase.setFullObject(fullObject);
 
         return rCase;
