@@ -2,8 +2,8 @@ model schema-org-person {
 
     namespace "https://schema.org";
 
-    import base {
-        namespace "https://example.org";
+    import "https://example.org" {
+        prefix base;
     }
 
     augmentation SchemaOrgPerson {

@@ -18,16 +18,16 @@ public abstract class BaseReactorContext<E extends Exception, A extends Action<E
             Iterator<A> iterator = toCheck.iterator();
             while (iterator.hasNext()) {
                 A action = iterator.next();
-                if (action.canApply()) {
-                    try {
-                        action.apply();
-                    } catch (Exception e) {
-                        fail(action, e);
+                try {
+                    if (action.canApply()) {
+                            action.apply();
                     }
-                    if(action.successful()) {
-                        iterator.remove();
-                        anyActionCompleted = true;
-                    }
+                } catch (Exception e) {
+                    action.fail(e);
+                }
+                if(action.successful()) {
+                    iterator.remove();
+                    anyActionCompleted = true;
                 }
             }
             // We add not finished items back to outstanding

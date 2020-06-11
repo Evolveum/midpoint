@@ -6,7 +6,7 @@ public interface AxiomModel {
 
     AxiomName NAMESPACE = AxiomName.axiom("namespace");
     AxiomName IMPORTED_NAMESPACE = AxiomName.axiom("ImportedNamespace");
-    String BUILTIN_TYPES = "https://ns.evolveum.com/axiom/language";
+    String BUILTIN_TYPES = "https://schema.evolveum.com/ns/axiom/model";
 
     String name();
     String namespace();

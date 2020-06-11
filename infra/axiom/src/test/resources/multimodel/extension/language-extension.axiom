@@ -2,8 +2,8 @@ model language-extension {
 
     namespace "https://example.org/extension";
 
-    import axiom {
-        namespace "https://ns.evolveum.com/axiom/language";
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
     }
 
     augmentation Storage {

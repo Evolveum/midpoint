@@ -11,6 +11,7 @@ import java.util.Set;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 @Deprecated
@@ -41,6 +42,13 @@ public class AxiomAntlrVisitor<T> extends AbstractAxiomAntlrVisitor<T> {
     @Override
     protected Target delegate() {
         return delegate;
+    }
+
+    public static String convertToString(ArgumentContext argument) {
+        if((argument.string() != null)) {
+            return convert(argument.string());
+        }
+        return argument.getText();
     }
 
 }

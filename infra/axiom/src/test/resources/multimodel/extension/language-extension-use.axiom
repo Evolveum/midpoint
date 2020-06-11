@@ -2,8 +2,8 @@ model language-extension-use {
 
     namespace "https://example.org";
 
-    import storage {
-        namespace "https://example.org/extension";
+    import "https://example.org/extension" {
+        prefix storage;
     }
 
     type Address {

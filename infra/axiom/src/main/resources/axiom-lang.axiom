@@ -1,6 +1,6 @@
 model axiom-lang {
 
-    namespace "https://ns.evolveum.com/axiom/language";
+    namespace "https://schema.evolveum.com/ns/axiom/model";
 
     root model {
         documentation """
@@ -104,7 +104,7 @@ model axiom-lang {
     }
 
     type AxiomImportDeclaration {
-        argument prefix;
+        argument namespace;
 
         item prefix {
             type AxiomName;

@@ -11,8 +11,8 @@ prism:model common-core {
     namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
     version "3.0.0";
 
-    import prism {
-        namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
+    import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+        prefix prism;
     }
 
     type Object {

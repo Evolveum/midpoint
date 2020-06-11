@@ -13,7 +13,7 @@ import com.google.common.base.Strings;
 
 public class AxiomName {
 
-    public static final String AXIOM_NAMESPACE = "https://ns.evolveum.com/axiom/language";
+    public static final String AXIOM_NAMESPACE = "https://schema.evolveum.com/ns/axiom/model";
     private final String namespace;
     private final String localName;
 

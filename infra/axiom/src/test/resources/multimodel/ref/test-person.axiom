@@ -2,11 +2,11 @@ model schema-org-person {
 
     namespace "https://example.org";
 
-    import foaf {
-        namespace "http://xmlns.com/foaf/0.1/";
+    import "http://xmlns.com/foaf/0.1/" {
+        prefix foaf;
     }
-    import schemaOrg {
-        namespace "https://schema.org";
+    import "https://schema.org" {
+        prefix schemaOrg;
     }
 
     type Person {

@@ -2,8 +2,8 @@ model prism {
 
     namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
 
-    import axiom {
-        namespace "https://ns.evolveum.com/axiom/language";
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
     }
 
     root model {

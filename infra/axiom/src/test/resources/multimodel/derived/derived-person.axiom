@@ -2,8 +2,8 @@ model derived-person {
 
     namespace "https://example.org/derived";
     
-    import base {
-        namespace "https://example.org/base";
+    import "https://example.org/base" {
+        prefix base;
     }
 
     root person {
