@@ -78,4 +78,8 @@ public class PageObjectCollections extends PageAdminObjectList<ObjectCollectionT
         return UserProfileStorage.TableId.TABLE_OBJECTS_COLLECTION;
     }
 
+    @Override
+    protected boolean isCreateCheckColumnEnabled() {
+        return false;
+    }
 }

@@ -81,33 +81,22 @@ public class ExportingPanel extends BasePanel implements Popupable {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WARNING_MESSAGE = "warningMessage";
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_CREATE_REPORT = "createReport";
     private static final String ID_EXPORT = "export";
     private static final String ID_CANCEL = "cancelButton";
-    private static final String ID_TAB = "tabPanel";
+    private static final String ID_TABLE = "table";
     private static final String ID_NAME = "name";
 
     private DataTable<?,?> dataTable;
     private List<Integer> exportedColumnsIndex;
     private Long exportSizeLimit;
-    private LoadableModel<Search> search;
     private final IModel<String> nameModel;
-    private IModel<PrismObjectWrapper<ReportType>> report = new LoadableModel<PrismObjectWrapper<ReportType>>(false) {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        protected PrismObjectWrapper<ReportType> load() {
-            return initReportWrapper();
-        }
-    };
 
     public ExportingPanel(String id, DataTable<?, ?> dataTable, List<Integer> exportedColumnsIndex,
-            Long exportSizeLimit, LoadableModel<Search> search, IModel<String> name) {
+            Long exportSizeLimit, IModel<String> name) {
         super(id);
         this.dataTable = dataTable;
         this.exportedColumnsIndex = exportedColumnsIndex;
         this.exportSizeLimit = exportSizeLimit;
-        this.search = search;
         this.nameModel = name;
         nameModel.setObject("");
     }
@@ -119,7 +108,6 @@ public class ExportingPanel extends BasePanel implements Popupable {
     }
 
     private void initLayout() {
-        initReportWrapper();
         Form form = new Form<>(ID_MAIN_FORM, true);
 
         MessagePanel warningMessage = new MessagePanel(ID_WARNING_MESSAGE, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
@@ -141,75 +129,15 @@ public class ExportingPanel extends BasePanel implements Popupable {
 //            }
 //        });
 
-        TabbedPanel<ITab> tabPanel = new TabbedPanel(ID_TAB, createTabs(feedbackList)){
-            @Override
-            protected WebMarkupContainer newLink(String linkId, int index) {
-                return new AjaxLink<Void>(linkId) {
-                    private static final long serialVersionUID = 1L;
+        BoxedTablePanel<SelectableBean<Integer>> table = createTable(ID_TABLE, dataTable);
+        form.add(table);
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        setSelectedTab(index);
-                        ExportingPanel.this.getPageBase().getMainPopup().show(target);
-                        target.add(ExportingPanel.this);
-                    }
-                };
-            }
-        };
-        form.add(tabPanel);
-        PanelTab columnTabPanel = (PanelTab) tabPanel.getTabs().getObject().get(0);
-        PanelTab filterTabPanel = (PanelTab) tabPanel.getTabs().getObject().get(1);
-
-        AjaxSubmitButton createReport = new AjaxSubmitButton(ID_CREATE_REPORT, getPageBase().createStringResource("ExportingPopupPanel.createReport")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                performSelectedColumns(columnTabPanel);
-                if (exportedColumnsIndex.isEmpty()) {
-                    LOGGER.warn("None columns selected");
-                    getPageBase().warn(createStringResource("ExportingPanel.message.error.selectColumn").getString());
-                    target.add(feedbackList);
-                    return;
-                }
-                SearchFilterType filter = null;
-                if (filterTabPanel.getPanel() != null) {
-                    try {
-                        filter = ((ExportingFilterTabPanel)filterTabPanel.getPanel()).getFilter();
-                    } catch (Exception e) {
-                        if (((ExportingFilterTabPanel) filterTabPanel.getPanel()).useFilterFromSearchPanel()) {
-                            LOGGER.error("Couldn't create filter from search panel", e);
-                            getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilterFromSearch"));
-                        } else {
-                            LOGGER.error("Couldn't create filter", e);
-                            getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilter"));
-                        }
-                        target.add(feedbackList);
-                        return;
-                    }
-                }
-                createReportPerformed(nameModel.getObject(), filter, report, target);
-                ((PageBase) getPage()).hideMainPopup(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getPageBase().getFeedbackPanel());
-            }
-        };
-        createReport.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return isVisibleCreateReportOption();
-            }
-        });
-        form.add(createReport);
         AjaxSubmitButton exportSelected = new AjaxSubmitButton(ID_EXPORT, getPageBase().createStringResource("ExportingPopupPanel.exportSelected")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
-                performSelectedColumns(columnTabPanel);
+                performSelectedColumns(table);
                 if (exportedColumnsIndex.isEmpty()) {
                     LOGGER.warn("None columns selected");
                     getPageBase().warn("ExportingPanel.message.error.selectColumn");
@@ -240,74 +168,10 @@ public class ExportingPanel extends BasePanel implements Popupable {
         add(form);
     }
 
-    private PrismObjectWrapper<ReportType> initReportWrapper() {
-        Task task = getPageBase().createSimpleTask("Create report wrapper");
-        PrismObjectDefinition<ReportType> def = getPageBase().getPrismContext().getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
-        PrismObjectWrapperFactory<ReportType> factory = getPageBase().findObjectWrapperFactory(def);
-
-        WrapperContext context = new WrapperContext(task, task.getResult());
-        context.setCreateIfEmpty(false);
-        try {
-            PrismObject<ReportType> reportType = def.instantiate();
-            PrismObjectWrapper<ReportType> objectWrapper = factory.createObjectWrapper(reportType, ItemStatus.ADDED, context);
-            return objectWrapper;
-        } catch (SchemaException e) {
-            LOGGER.error("Could not create object wrapper for report. Reason: {}", e.getMessage(), e);
-        }
-        return null;
-    }
-
-    private void performSelectedColumns(PanelTab columnTabPanel) {
+    private void performSelectedColumns(BoxedTablePanel<SelectableBean<Integer>> table) {
         exportedColumnsIndex.clear();
-        BoxedTablePanel<SelectableBean<Integer>> table = (BoxedTablePanel<SelectableBean<Integer>>) columnTabPanel.getPanel();
         List<Integer> availableData = ((SelectableListDataProvider) table.getDataTable().getDataProvider()).getSelectedObjects();
         exportedColumnsIndex.addAll(availableData);
-    }
-
-    protected void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> report,
-            AjaxRequestTarget target) {
-    }
-
-    private List<ITab> createTabs(FeedbackAlerts feedbackList) {
-        List<ITab> tabs = new ArrayList<>();
-        tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.columns")) {
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return createTable(panelId, dataTable);
-            }
-        });
-
-
-        tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.filter")) {
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new ExportingFilterTabPanel(panelId, search){
-                    @Override
-                    public PageBase getPageBase() {
-                        return ExportingPanel.this.getPageBase();
-                    }
-                };
-            }
-
-            @Override
-            public boolean isVisible() {
-                return isVisibleCreateReportOption();
-            }
-        });
-
-        tabs.add(new PanelTab(getPageBase().createStringResource("ExportingPopupPanel.ExportConfiguration")) {
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new CsvExportConfigurtionTabPanel(panelId, report);
-            }
-
-            @Override
-            public boolean isVisible() {
-                return isVisibleCreateReportOption();
-            }
-        });
-
-        return tabs;
     }
 
     private IModel<String> getWarningMessageModel() {
@@ -318,7 +182,6 @@ public class ExportingPanel extends BasePanel implements Popupable {
     }
 
     public void exportPerformed(AjaxRequestTarget target) {
-
     }
 
     public void cancelPerformed(AjaxRequestTarget target) {
@@ -441,9 +304,4 @@ public class ExportingPanel extends BasePanel implements Popupable {
     public Component getComponent() {
         return this;
     }
-
-    public boolean isVisibleCreateReportOption() {
-        return true;
-    }
-
 }

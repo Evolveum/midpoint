@@ -51,19 +51,19 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     private final boolean canCountBeforeExporting;
     List<Integer> exportableColumnsIndex = new ArrayList<>();
 
-    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting, LoadableModel<Search> search) {
+    public CsvDownloadButtonPanel(String id, boolean canCountBeforeExporting) {
         super(id);
         this.canCountBeforeExporting = canCountBeforeExporting;
-        initLayout(search);
+        initLayout();
     }
 
     public CsvDownloadButtonPanel(String id) {
-        this(id, true, null);
+        this(id, true);
     }
 
     private static final long serialVersionUID = 1L;
 
-    private void initLayout(LoadableModel<Search> search) {
+    private void initLayout() {
         CSVDataExporter csvDataExporter = new CSVDataExporter() {
             private static final long serialVersionUID = 1L;
 
@@ -153,23 +153,12 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
                 }
                 exportableColumnsIndex.clear();
                 ExportingPanel exportingPanel = new ExportingPanel(getPageBase().getMainPopupBodyId(),
-                        getDataTable(), exportableColumnsIndex, useExportSizeLimit, search, name) {
+                        getDataTable(), exportableColumnsIndex, useExportSizeLimit, name) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target) {
                         ajaxDownloadBehavior.initiate(target);
-                    }
-
-                    @Override
-                    protected void createReportPerformed(String name, SearchFilterType filter,
-                            IModel<PrismObjectWrapper<ReportType>> report, AjaxRequestTarget target) {
-                        CsvDownloadButtonPanel.this.createReportPerformed(name, filter, report, exportableColumnsIndex, target);
-                    }
-
-                    @Override
-                    public boolean isVisibleCreateReportOption() {
-                        return CsvDownloadButtonPanel.this.isVisibleCreateReportOption();
                     }
                 };
                 getPageBase().showMainPopup(exportingPanel, target);
@@ -190,11 +179,5 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     protected abstract DataTable<?,?> getDataTable();
 
     protected abstract String getFilename();
-
-    protected abstract void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> report, List<Integer> indexOfColumns, AjaxRequestTarget target);
-
-    public boolean isVisibleCreateReportOption() {
-        return true;
-    }
 
 }

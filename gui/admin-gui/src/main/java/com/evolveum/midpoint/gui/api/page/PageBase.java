@@ -1966,13 +1966,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
             }
         };
-        MainMenuItem item = new MainMenuItem("fa fa-pie-chart", createStringResource("PageAdmin.menu.top.reports"),
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_REPORT_ICON, createStringResource("PageAdmin.menu.top.reports"),
                 null, null, visibleEnableBehaviour);
 
-        addMenuItem(item, "PageAdmin.menu.top.reports.list", PageReports.class);
+        addMenuItem(item, "PageAdmin.menu.top.reports.list", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class);
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_REPORTS_VIEW_URL)) {
+
+            addCollectionsMenuItems(item.getItems(), ReportType.COMPLEX_TYPE, PageReports.class);
+        }
+
+        MenuItem edit = new MenuItem(createStringResource("PageAdmin.menu.top.reports.edit"),
+                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+        item.getItems().add(edit);
 
         MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
-                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+                PageJasperReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageJasperReport.class));
         item.getItems().add(configure);
 
         addMenuItem(item, "PageAdmin.menu.top.reports.created", PageCreatedReports.class);
@@ -2368,11 +2378,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL);
             }
         };
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_COLLECTION_CAMPAIGN_ICON,
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON,
                 createStringResource("PageAdmin.menu.top.objectCollections"), null, null, visibleEnableBehaviour);
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
                 AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addObjectListPageMenuItem(item, "PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_CAMPAIGN_ICON, PageObjectCollections.class);
+            addObjectListPageMenuItem(item, "PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class);
         }
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.objectCollections.new", "PageAdmin.menu.top.objectCollections.edit",
                 PageObjectCollection.class, true);

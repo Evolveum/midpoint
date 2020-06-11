@@ -393,13 +393,13 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<SelectableBean<ObjectCollectionType>, String>> getDefaultObjectColumns() {
+    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultObjectColumns() {
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<String>("ObjectType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false)
         );
-        List<IColumn<SelectableBean<ObjectCollectionType>, String>> columns = createColumns(columnsDefs);
+        List<IColumn<SelectableBean<O>, String>> columns = createColumns(columnsDefs);
         return columns;
     }
 

@@ -87,6 +87,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -215,6 +216,7 @@ public final class WebComponentUtil {
         objectDetailsPageMap.put(CaseType.class, PageCase.class);
         objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
         objectDetailsPageMap.put(ShadowType.class, PageAccount.class);
+        objectDetailsPageMap.put(ObjectCollectionType.class, PageObjectCollection.class);
     }
 
     static{
@@ -1785,6 +1787,8 @@ public final class WebComponentUtil {
             return createShadowIcon((PrismObject<ShadowType>) object);
         } else if (type == ObjectCollectionType.class) {
             return createObjectColletionIcon();
+        } else if (type == ReportType.class) {
+            return createReportIcon();
         }
 
         return "";
@@ -2099,7 +2103,11 @@ public final class WebComponentUtil {
     }
 
     public static String createObjectColletionIcon() {
-        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_CAMPAIGN_ICON);
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+    }
+
+    public static String createReportIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_REPORT_ICON);
     }
 
     public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {

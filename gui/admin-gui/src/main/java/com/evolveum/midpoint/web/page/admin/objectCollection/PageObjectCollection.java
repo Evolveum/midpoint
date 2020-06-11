@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.objectCollection;
 
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
@@ -117,12 +118,12 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
 
     private List<ITab> getTabs(){
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.basic.title")) {
+        tabs.add(new PanelTab(createStringResource("pageObjectCollection.basic.title")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
+            public WebMarkupContainer createPanel(String panelId) {
                 return new ObjectBasicPanel<ObjectCollectionType>(panelId, getObjectModel()){
                     @Override
                     protected QName getType() {
@@ -142,52 +143,42 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
             }
         });
 
-        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.baseCollection.title")) {
+        tabs.add(new PanelTab(createStringResource("pageObjectCollection.baseCollection.title")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
+            public WebMarkupContainer createPanel(String panelId) {
                 return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_BASE_COLLECTION, CollectionRefSpecificationType.COMPLEX_TYPE);
             }
         });
 
-        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.defaultView.title")) {
+        tabs.add(new PanelTab(createStringResource("pageObjectCollection.defaultView.title")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
+            public WebMarkupContainer createPanel(String panelId) {
                 return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_DEFAULT_VIEW, GuiObjectListViewType.COMPLEX_TYPE);
             }
         });
 
-//        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.auditSearch.title")) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public WebMarkupContainer getPanel(String panelId) {
-//                return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_AUDIT_SEARCH, AuditSearchType.COMPLEX_TYPE);
-//            }
-//        });
-
-        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.domain.title")) {
+        tabs.add(new PanelTab(createStringResource("pageObjectCollection.domain.title")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
+            public WebMarkupContainer createPanel(String panelId) {
                 return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_DOMAIN, CollectionRefSpecificationType.COMPLEX_TYPE);
             }
         });
 
-        tabs.add(new AbstractTab(createStringResource("pageObjectCollection.option.title")) {
+        tabs.add(new PanelTab(createStringResource("pageObjectCollection.option.title")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public WebMarkupContainer getPanel(String panelId) {
+            public WebMarkupContainer createPanel(String panelId) {
                 return createContainerPanel(panelId, getObjectModel(), ObjectCollectionType.F_GET_OPTIONS, SelectorQualifiedGetOptionsType.COMPLEX_TYPE);
             }
         });
@@ -221,53 +212,6 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
                 return getTabs();
             }
 
-            @Override
-            protected boolean getOptionsPanelVisibility() {
-                return false;
-            }
-
-            @Override
-            protected boolean isPreviewButtonVisible() {
-                return false;
-            }
         };
-    }
-
-    @Override
-    protected void setSummaryPanelVisibility(ObjectSummaryPanel<ObjectCollectionType> summaryPanel) {
-        summaryPanel.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return true;
-            }
-        });
-    }
-
-    @Override
-    public void saveOrPreviewPerformed(AjaxRequestTarget target, OperationResult result, boolean previewOnly) {
-
-        ProgressPanel progressPanel = getProgressPanel();
-        progressPanel.hide();
-        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-        super.saveOrPreviewPerformed(target, result, previewOnly, task);
-
-        try {
-            TimeUnit.SECONDS.sleep(1);
-            while(task.isClosed()) {TimeUnit.SECONDS.sleep(1);}
-        } catch ( InterruptedException ex) {
-            result.recomputeStatus();
-            result.recordFatalError(getString("PageSystemConfiguration.message.saveOrPreviewPerformed.fatalError"), ex);
-
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't use sleep", ex);
-        }
-        result.recomputeStatus();
-        target.add(getFeedbackPanel());
-
-        if(result.getStatus().equals(OperationResultStatus.SUCCESS)) {
-            showResult(result);
-            redirectBack();
-        }
     }
 }

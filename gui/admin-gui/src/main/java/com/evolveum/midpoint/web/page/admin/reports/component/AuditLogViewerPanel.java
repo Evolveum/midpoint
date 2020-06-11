@@ -609,18 +609,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     }
 
                     @Override
-                    protected void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> report, List<Integer> object, AjaxRequestTarget target) {
-
-                    }
-
-                    @Override
                     protected DataTable<?, ?> getDataTable() {
                         return getAuditLogViewerTable().getDataTable();
-                    }
-
-                    @Override
-                    public boolean isVisibleCreateReportOption() {
-                        return false;
                     }
                 };
 

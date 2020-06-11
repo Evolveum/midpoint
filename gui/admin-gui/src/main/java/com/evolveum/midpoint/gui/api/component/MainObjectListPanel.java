@@ -9,25 +9,24 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -200,8 +200,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return getNewObjectButtonStandardDisplayType();
             }
 
-
-
             @Override
             protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
                 if (!isCollectionViewPanelForCompiledView()){
@@ -212,12 +210,15 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return layerIconMap;
             }
 
-
             @Override
             protected DisplayType getDefaultObjectButtonDisplayType(){
                 return getNewObjectButtonSpecialDisplayType();
             }
 
+            @Override
+            protected boolean isDefaultButtonVisible() {
+                return getNewObjectGenericButtonVisibility();
+            }
         };
         createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
@@ -256,7 +257,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
                 isRawOrNoFetchOption(getOptions());
-        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting, getSearchModel()) {
+        CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(buttonId, canCountBeforeExporting) {
 
             private static final long serialVersionUID = 1L;
 
@@ -271,117 +272,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         "_" + createStringResource("MainObjectListPanel.exportFileName").getString();
             }
 
-            @Override
-            protected void createReportPerformed(String name, SearchFilterType filter, IModel<PrismObjectWrapper<ReportType>> reportWrapper,
-                    List<Integer> indexOfColumns, AjaxRequestTarget target) {
-                PrismContext prismContext = getPageBase().getPrismContext();
-                PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
-                PrismObject<ReportType> obj = null;
-                try {
-                    obj = def.instantiate();
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't instantiate new report", e);
-                    getPageBase().error(getString("MainObjectListPanel.message.error.instantiateNewReport"));
-                    target.add(getPageBase().getFeedbackPanel());
-                    return;
-                }
-                ReportType report = obj.asObjectable();
-                String oid = UUID.randomUUID().toString();
-                report.setOid(oid);
-                if (StringUtils.isEmpty(name)) {
-                    name = getPageBase().createStringResource("ObjectTypeGuiDescriptor.report").getString() + "-" + oid;
-                }
-                report.setName(WebComponentUtil.createPolyFromOrigString(name));
-                try {
-                    PrismContainerWrapper<CsvExportType> csvConfig = reportWrapper.getObject().findContainer(ItemPath.create(ReportType.F_EXPORT, ExportConfigurationType.F_CSV));
-                    if (csvConfig != null && csvConfig.getValue() != null) {
-                        ExportConfigurationType export = new ExportConfigurationType();
-                        export.setType(ExportType.CSV);
-                        CsvExportType csv = csvConfig.getValue().getRealValue().clone();
-                        List<Item> removedItem = new ArrayList();
-                        for(Item item : (Collection<Item>) csv.asPrismContainerValue().getItems()) {
-                            if (item.getRealValue() == null) {
-                                removedItem.add(item);
-                            }
-                        }
-                        for (Item item : removedItem) {
-                            csv.asPrismContainerValue().getItems().remove(item);
-                        }
-                        export.setCsv(csv);
-                        report.setExport(export);
-                    }
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find csv export container", e);
-                }
-                ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
-                objectCollection.setUseOnlyReportView(true);
-                CompiledObjectCollectionView view = getObjectCollectionView();
-                CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
-                if (view == null) {
-                    objectCollection.setView(resolveSelectedColumn(indexOfColumns, getDefaultView()));
-                } else {
-                    objectCollection.setView(resolveSelectedColumn(indexOfColumns, view.toGuiObjectListViewType()));
-                    if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
-                        if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
-                            collection.setBaseCollectionRef(view.getCollection());
-                        } else {
-                            CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
-                            try {
-                                baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
-                                collection.setBaseCollectionRef(baseCollection);
-                            } catch (SchemaException e) {
-                                LOGGER.error("Couldn't create filter for archetype");
-                                getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
-                                target.add(getPageBase().getFeedbackPanel());
-                            }
-                        }
-                    }
-                }
-                if (filter != null) {
-                    collection.setFilter(filter);
-                } else if (view == null || view.getCollection() == null) {
-                    try {
-                        SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
-                        collection.setFilter(allFilter);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't create all filter", e);
-                        getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
-                        target.add(getPageBase().getFeedbackPanel());
-                        return;
-                    }
-                }
-                objectCollection.setCollection(collection);
-                report.setObjectCollection(objectCollection);
-                Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-                ObjectDelta<ReportType> delta = DeltaFactory.Object.createAddDelta(report.asPrismObject());
-                deltas.add(delta);
-                Collection<ObjectDeltaOperation<? extends ObjectType>> ret = null;
-                try {
-                    Task task = getPageBase().createSimpleTask("Create report");
-                    ret = getPageBase().getModelService().executeChanges(deltas, null, task, task.getResult());
-                } catch (Exception e) {
-                    LOGGER.error("Couldn't create report", e);
-                    getPageBase().error(getString("MainObjectListPanel.message.error.createReport"));
-                    target.add(getPageBase().getFeedbackPanel());
-                    return;
-                }
-                if (ret != null) {
-                    Task task = getPageBase().createSimpleTask("Run report");
-                    PrismObject<ReportType> prismReport = (PrismObject<ReportType>) ret.iterator().next().getObjectDelta().getObjectToAdd();
-                    try {
-                        getPageBase().getReportManager().runReport(prismReport, null, task, task.getResult());
-                    } catch (Exception e) {
-                        LOGGER.error("Couldn't run report", e);
-                        getPageBase().error(getString("MainObjectListPanel.message.error.runReport"));
-                        task.getResult().recordFatalError(e);
-                    } finally {
-                        task.getResult().computeStatusIfUnknown();
-                    }
-                    getPageBase().showResult(task.getResult());
-                    target.add(getPageBase().getFeedbackPanel());
-                }
-            }
-
         };
         exportDataLink.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
@@ -391,8 +281,36 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
             }
         });
-        exportDataLink.add(AttributeAppender.append("class", "btn-margin-right"));
+//        exportDataLink.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(exportDataLink);
+
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
+        builder.setBasicIcon(WebComponentUtil.createReportIcon(), IconCssStyle.IN_ROW_STYLE);
+        IconType plusIcon = new IconType();
+        plusIcon.setCssClass(GuiStyleConstants.CLASS_ADD_NEW_OBJECT);
+        plusIcon.setColor("green");
+        builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
+        AjaxCompositedIconButton createReport = new AjaxCompositedIconButton(buttonId, builder.build(),
+                getPageBase().createStringResource("MainObjectListPanel.createReport")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createReportPerformed(target);
+            }
+        };
+        createReport.add(AttributeAppender.append("class", "btn btn-default btn-sm btn-margin-right"));
+        exportDataLink.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI);
+            }
+        });
+        buttonsList.add(createReport);
+
 
         AjaxIconButton refreshIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_RECONCILE),
                 createStringResource("MainObjectListPanel.refresh")) {
@@ -427,6 +345,82 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         buttonsList.add(playPauseIcon);
 
         return buttonsList;
+    }
+
+    protected boolean getNewObjectGenericButtonVisibility(){
+        return true;
+    }
+
+    private void createReportPerformed(AjaxRequestTarget target) {
+        PrismContext prismContext = getPageBase().getPrismContext();
+        PrismObjectDefinition<ReportType> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(ReportType.COMPLEX_TYPE);
+        PrismObject<ReportType> obj = null;
+        try {
+            obj = def.instantiate();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't instantiate new report", e);
+            getPageBase().error(getString("MainObjectListPanel.message.error.instantiateNewReport"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        ReportType report = obj.asObjectable();
+        ObjectCollectionReportEngineConfigurationType objectCollection = new ObjectCollectionReportEngineConfigurationType();
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        CollectionRefSpecificationType collection = new CollectionRefSpecificationType();
+        objectCollection.setUseOnlyReportView(true);
+        if (view != null) {
+            objectCollection.setView(view.toGuiObjectListViewType());
+            if (view.getCollection() != null && view.getCollection().getCollectionRef() != null) {
+                if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
+                    collection.setBaseCollectionRef(view.getCollection());
+                } else {
+                    CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
+                    try {
+                        baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
+                        collection.setBaseCollectionRef(baseCollection);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create filter for archetype");
+                        getPageBase().error(getString("MainObjectListPanel.message.error.createArchetypeFilter"));
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+                }
+            }
+        } else {
+            objectCollection.setView(getDefaultView());
+        }
+        SearchFilterType searchFilter = null;
+        ObjectQuery query = getSearchModel().getObject().createObjectQuery(getPageBase().getPrismContext());
+        if (query != null) {
+            ObjectFilter filter = query.getFilter();
+            try {
+                searchFilter = getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(filter);
+            } catch (Exception e) {
+                LOGGER.error("Couldn't create filter from search panel", e);
+                getPageBase().error(getString("ExportingFilterTabPanel.message.error.serializeFilterFromSearch"));
+            }
+        }
+        if (searchFilter != null) {
+            collection.setFilter(searchFilter);
+        } else {
+            try {
+                SearchFilterType allFilter = prismContext.getQueryConverter().createSearchFilterType(prismContext.queryFactory().createAll());
+                collection.setFilter(allFilter);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't create all filter", e);
+                getPageBase().error(getString("MainObjectListPanel.message.error.createAllFilter"));
+                target.add(getPageBase().getFeedbackPanel());
+                return;
+            }
+        }
+        objectCollection.setCollection(collection);
+        report.setObjectCollection(objectCollection);
+        report.getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE, prismContext));
+        report.getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_COLLECTION_REPORT.value(), ObjectTypes.ARCHETYPE));
+
+        PageReport pageReport = new PageReport(report.asPrismObject(), true);
+        getPageBase().navigateToNext(pageReport);
     }
 
     private GuiObjectListViewType resolveSelectedColumn(List<Integer> indexOfColumns, GuiObjectListViewType view){

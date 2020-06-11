@@ -105,10 +105,19 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews){
                 MultifunctionalButton.this.buttonClickPerformed(target, relationSepc, collectionViews);
             }
+
+            @Override
+            protected boolean isDefaultButtonVisible() {
+                return MultifunctionalButton.this.isDefaultButtonVisible();
+            }
         };
         buttonsPanel.setOutputMarkupId(true);
         buttonsPanel.add(new VisibleBehaviour(() -> additionalButtonsExist()));
         add(buttonsPanel);
+    }
+
+    protected boolean isDefaultButtonVisible(){
+        return true;
     }
 
     private CompositedIcon getCompositedIcon(MultiFunctinalButtonDto additionalButtonObject) {

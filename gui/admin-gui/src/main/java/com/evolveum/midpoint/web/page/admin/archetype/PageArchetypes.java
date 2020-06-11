@@ -78,4 +78,8 @@ public class PageArchetypes extends PageAdminObjectList<ArchetypeType> {
         return UserProfileStorage.TableId.TABLE_ARCHETYPES;
     }
 
+    @Override
+    protected boolean isCreateCheckColumnEnabled() {
+        return false;
+    }
 }

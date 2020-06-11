@@ -500,9 +500,16 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_TASKS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "tasksView");
     public static final String AUTZ_UI_TASKS_VIEW_URL = NS_AUTHORIZATION_UI + "#tasksView";
 
+    public static final QName AUTZ_UI_REPORTS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "reportsView");
+    public static final String AUTZ_UI_REPORTS_VIEW_URL = NS_AUTHORIZATION_UI + "#reportsView";
+
     //ui authorization for CSV export button (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
     public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
+
+    //ui authorization for create report button under object list table (will be applied everywhere over mp)
+    public static final QName AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCreateReportButton");
+    public static final String AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_QNAME);
 
     //authorization for spring boot actuator endpoints
     public static final QName AUTZ_ACTUATOR_ALL_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "all");

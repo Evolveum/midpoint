@@ -21780,6 +21780,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000170">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_DASHBOARD_REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000171">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_COLLECTION_REPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -23900,6 +23914,18 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="AbstractReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract type for configuration of reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:complexType>
+
     <xsd:complexType name="DashboardReportEngineConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -23910,32 +23936,38 @@
                 <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="dashboardRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Referrence to dashboard definition that should be used as a basis for the report.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies a view of an object collection that is be reported.
-                            We can specify more views for different object types.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.2</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO: other elements to configure the report -->
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractReportEngineConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="dashboardRef" type="c:ObjectReferenceType" minOccurs="1" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Referrence to dashboard definition that should be used as a basis for the report.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:DashboardType</a:objectReferenceTargetType>
+                                <a:displayName>DashboardReportEngineConfigurationType.dashboardRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies a view of an object collection that is be reported.
+                                    We can specify more views for different object types.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.view</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO: other elements to configure the report -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectCollectionReportEngineConfigurationType">
@@ -23948,49 +23980,60 @@
                 <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specification of an explicit or implicit object collection that will be used to select objects in report.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.2</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies a view of an object collection that is be reported.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
-                        This condition use only for reports and as last option because of performance.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.2</a:since>
-                        <a:experimental>true</a:experimental>
-                        <a:displayName>ObjectCollectionType.condition</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="useOnlyReportView" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Specifies that during creating of report will be used only view in report without merging with other view.
-                        </p>
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="c:AbstractReportEngineConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="collection" type="tns:CollectionRefSpecificationType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specification of an explicit or implicit object collection that will be used to select objects in report.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.collection</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies a view of an object collection that is be reported.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.view</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Condition for the searched objects. Searched object will be shown if the condition evaluates to true.
+                                This condition use only for reports and as last option because of performance.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.condition</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="useOnlyReportView" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Specifies that during creating of report will be used only view in report without merging with other view.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ObjectCollectionReportEngineConfigurationType.useOnlyReportView</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ReportOutputType">
