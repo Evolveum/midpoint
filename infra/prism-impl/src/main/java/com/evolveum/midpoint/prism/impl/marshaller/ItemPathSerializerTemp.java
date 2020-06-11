@@ -12,6 +12,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  *  TEMPORARY. WILL BE RESOLVED SOMEHOW.
+ *
+ *  See MID-6320.
  */
 public class ItemPathSerializerTemp {
     public static String serializeWithDeclarations(ItemPath path) {
