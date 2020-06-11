@@ -64,13 +64,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
                 return DropDownChoicePanel.this.getNullValidDisplayValue();
             }
 
-            @Override
-            public IModel<? extends List<? extends T>> getChoicesModel() {
-                IModel<? extends List<? extends T>> choices = super.getChoicesModel();
-                return Model.ofList(WebComponentUtil.sortDropDownChoices(choices, renderer));
-            }
-
-            @Override
+            
             public String getModelValue() {
                 T object = this.getModelObject();
                 if (object != null) {

@@ -15,7 +15,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 
 /**
@@ -49,7 +48,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterImport(Task taskAfter) throws Exception {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);
@@ -72,7 +71,7 @@ public class TestThresholdsLiveSyncSimulate extends TestThresholds {
     protected void assertSynchronizationStatisticsAfterSecondImport(Task taskAfter) throws Exception {
         SynchronizationInformationType syncInfo = taskAfter.getStoredOperationStats().getSynchronizationInformation();
 
-        assertSyncToken(taskAfter, 4, taskAfter.getResult());
+        assertSyncToken(taskAfter, 4);
 
         assertEquals(syncInfo.getCountUnmatchedAfter(), 0);
         assertEquals(syncInfo.getCountDeletedAfter(), 0);

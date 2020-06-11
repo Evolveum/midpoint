@@ -95,6 +95,10 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private WorkItemId workItemId;
     private PageParameters pageParameters;
 
+    public PageCaseWorkItem() {
+        this((CaseWorkItemType)null);
+    }
+
     public PageCaseWorkItem(CaseWorkItemType workItem) {
         this(workItem, null);
     }
@@ -105,34 +109,43 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
             @Override
             protected CaseWorkItemType load() {
-                return workItem;
+                if (workItem != null) {
+                    return workItem;
+                } else {
+                    getSession().error("Workitem model cannot be null");
+                    throw redirectBackViaRestartResponseException();
+                }
+            }
+        };
+    }
+
+    public PageCaseWorkItem(PageParameters parameters) {
+        this.pageParameters = parameters;
+
+        String caseWorkItemId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+        if (StringUtils.isEmpty(caseWorkItemId)) {
+            throw new IllegalStateException("Work item ID not specified.");
+        }
+        try {
+            workItemId = WorkItemId.create(caseWorkItemId);
+        } catch (IllegalStateException e) {
+            getSession().error(getString("PageCaseWorkItem.couldNotGetCase.runtime"));
+            throw redirectBackViaRestartResponseException();
+        }
+
+        caseModel = new LoadableModel<CaseType>(false) {
+            @Override
+            protected CaseType load() {
+                return loadCaseIfNecessary();
             }
         };
 
-//        String caseId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-//        if (StringUtils.isEmpty(caseId)) {
-//            throw new IllegalStateException("Case ID not specified.");
-//        }
-//        workItemId = WorkItemId.create(caseId);
-//        if (workItemId == null || StringUtils.isEmpty(workItemId.getCaseOid())) {
-//            throw new IllegalStateException("Case oid not specified.");
-//        }
-//
-//        caseModel = new LoadableModel<CaseType>(false) {
-//            @Override
-//            protected CaseType load() {
-//                return loadCaseIfNecessary();
-//            }
-//        };
-//
-//        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
-//            @Override
-//            protected CaseWorkItemType load() {
-//                return loadCaseWorkItemIfNecessary();
-//            }
-//        };
-
-//        initLayout();
+        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+            @Override
+            protected CaseWorkItemType load() {
+                return loadCaseWorkItemIfNecessary();
+            }
+        };
     }
 
     @Override
@@ -194,7 +207,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         } catch (NumberFormatException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse case work item id.", ex);
         }
-        return null;
+        getSession().error(getString("PageCaseWorkItem.couldNotGetCaseWorkItem"));
+        throw redirectBackViaRestartResponseException();
     }
 
     private void initLayout(){
