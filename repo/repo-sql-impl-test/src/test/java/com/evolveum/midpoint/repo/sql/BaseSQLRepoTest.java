@@ -219,7 +219,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     ObjectReference createRepoRef(QName type, String oid) {
         return RObjectReference.copyFromJAXB(
                 createRef(type, oid, SchemaConstants.ORG_DEFAULT),
-                new RObjectReference(),
+                new RObjectReference<>(),
                 relationRegistry);
     }
 
