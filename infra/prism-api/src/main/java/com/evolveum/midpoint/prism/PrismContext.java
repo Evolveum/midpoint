@@ -208,12 +208,6 @@ public interface PrismContext extends ProtectorCreator {
     @NotNull
     PrismSerializer<RootXNode> xnodeSerializer();
 
-    /**
-     * TODO
-     * @param value
-     * @return
-     */
-    boolean canSerialize(Object value);
     //endregion
 
     /**
