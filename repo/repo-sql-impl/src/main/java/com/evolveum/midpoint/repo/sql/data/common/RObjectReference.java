@@ -190,25 +190,26 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
                 + '}';
     }
 
-    public static void copyToJAXB(RObjectReference repo, ObjectReferenceType jaxb) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+    public static void copyToJAXB(RObjectReference<?> repoObject, ObjectReferenceType jaxbObject) {
+        Validate.notNull(repoObject, "Repo object must not be null.");
+        Validate.notNull(jaxbObject, "JAXB object must not be null.");
 
-        jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
-        jaxb.setOid(repo.getTargetOid());
-        jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
+        jaxbObject.setType(ClassMapper.getQNameForHQLType(repoObject.getTargetType()));
+        jaxbObject.setOid(repoObject.getTargetOid());
+        jaxbObject.setRelation(RUtil.stringToQName(repoObject.getRelation()));
     }
 
-    public static ObjectReference copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo, RelationRegistry relationRegistry) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
+    public static ObjectReference copyFromJAXB(
+            ObjectReferenceType jaxbObject, ObjectReference repoObject, RelationRegistry relationRegistry) {
+        Validate.notNull(repoObject, "Repo object must not be null.");
+        Validate.notNull(jaxbObject, "JAXB object must not be null.");
+        Validate.notEmpty(jaxbObject.getOid(), "Target oid must not be null.");
 
-        repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
-        repo.setTargetOid(jaxb.getOid());
+        repoObject.setTargetType(ClassMapper.getHQLTypeForQName(jaxbObject.getType()));
+        repoObject.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxbObject.getRelation())));
+        repoObject.setTargetOid(jaxbObject.getOid());
 
-        return repo;
+        return repoObject;
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
