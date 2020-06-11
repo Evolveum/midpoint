@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * @author honchar
  */
-public abstract class ReferenceAutocomplete<O extends ObjectType> extends AutoCompleteTextPanel<ObjectReferenceType> {
+public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReferenceType> {
     private static final long serialVersionUID = 1L;
 
     private PageBase pageBase;
@@ -47,17 +47,18 @@ public abstract class ReferenceAutocomplete<O extends ObjectType> extends AutoCo
     @Override
     public Iterator<ObjectReferenceType> getIterator(String input) {
         FormComponent<ObjectReferenceType> inputField = getBaseFormComponent();
-        if (inputField == null || StringUtils.isEmpty(inputField.getRawInput())){
+        String realInput = StringUtils.isEmpty(input) ? inputField.getRawInput() : input;
+        if (StringUtils.isEmpty(realInput)){
             return null;
         }
         ObjectQuery query = pageBase.getPrismContext().queryFor(AbstractRoleType.class)
                 .item(ObjectType.F_NAME)
-                .containsPoly(inputField.getRawInput())
+                .containsPoly(realInput)
                 .matchingNorm()
                 .build();
         List<PrismObject<AbstractRoleType>> objectsList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, query,
                 new OperationResult("searchObjects"), pageBase);
-        return (Iterator<ObjectReferenceType>) ObjectTypeUtil.objectListToReferences(objectsList);
+        return ObjectTypeUtil.objectListToReferences(objectsList).iterator();
     }
 
     @Override
@@ -66,6 +67,6 @@ public abstract class ReferenceAutocomplete<O extends ObjectType> extends AutoCo
         return (IConverter<C>) new ReferenceConverter((IConverter<ObjectReferenceType>)converter, new ArrayList<>(), getBaseFormComponent(), pageBase);
     }
 
-    protected abstract Class<O> getReferenceTargetObjectType();
+    protected abstract <O extends ObjectType> Class<O> getReferenceTargetObjectType();
 
 }
