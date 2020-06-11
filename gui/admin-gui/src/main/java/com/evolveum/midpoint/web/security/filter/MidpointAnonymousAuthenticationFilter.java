@@ -57,6 +57,7 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         super(key, principal, authorities);
         this.key = key;
         this.authRegistry = authRegistry;
+        this.authChannelRegistry = authChannelRegistry;
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
