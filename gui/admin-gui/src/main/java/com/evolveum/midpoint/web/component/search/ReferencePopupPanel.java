@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<ObjectReferenceType> {
+public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<DisplayableValue<ObjectReferenceType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -72,7 +73,23 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(oidField);
 
-        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject().getValue()),
+        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, new IModel<ObjectReferenceType>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public ObjectReferenceType getObject() {
+                return getModelObject().getValue();
+            }
+
+            @Override
+            public void setObject(ObjectReferenceType ref) {
+                if (ref == null){
+                    return;
+                }
+                getModelObject().getValue().setOid(ref.getOid());
+                getModelObject().getValue().setType(ref.getType());
+            }
+        },
                 new AutoCompleteReferenceRenderer(),
                 getPageBase()){
 
@@ -89,15 +106,15 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
 
         };
 
-//        nameField.add(new AjaxFormComponentUpdatingBehavior("blur") {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//
-//            }
-//        });
+        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+
+            }
+        });
         nameField.setOutputMarkupId(true);
         nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(nameField);

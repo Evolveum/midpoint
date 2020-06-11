@@ -182,6 +182,11 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
             private static final long serialVersionUID = 1L;
 
             @Override
+            public void onError(AjaxRequestTarget target){
+                String e ="";
+            }
+
+            @Override
             public void onSubmit(AjaxRequestTarget target) {
                 deletePerformed(target);
             }
@@ -368,8 +373,8 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
             }
         };
         if (getModelObject() != null && SearchItem.Type.REFERENCE.equals(getModelObject().getType())) {
-            SearchPopupPanel<T> value =
-                    (SearchPopupPanel<T>) new ReferencePopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value")) {
+            ReferencePopupPanel value =
+                    new ReferencePopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value")) {
 
                         private static final long serialVersionUID = 1L;
 
