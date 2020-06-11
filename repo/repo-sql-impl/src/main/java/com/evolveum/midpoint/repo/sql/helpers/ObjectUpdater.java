@@ -191,8 +191,6 @@ public class ObjectUpdater {
                 version = (version == null) ? 0 : ++version;
 
                 rObject.setVersion(version);
-//            } catch (QueryException ex) {
-//                baseHelper.handleGeneralCheckedException(ex, session, null);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }
@@ -249,7 +247,7 @@ public class ObjectUpdater {
         }
 
         // TODO MID-6303 switch to configured fullObjectFormat
-        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+        String xml = prismContext.serializerFor(getConfiguration().getFullObjectFormat())
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
