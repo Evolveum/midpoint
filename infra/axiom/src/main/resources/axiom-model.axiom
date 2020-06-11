@@ -21,7 +21,8 @@ model axiom-model {
             supertype string;
     }
 
-
+    type ItemCompleteness; // FIXME: Add definition
+    type ValueSignificance; // FIXME: Add definition
     // Axiom Infra Model
 
     type AxiomItem {
@@ -35,11 +36,18 @@ model axiom-model {
         item value {
             type AxiomValue;
         }
+
+        item completeness {
+            type ItemCompleteness;
+        }
     }
 
     type AxiomValue {
         item type {
             type AxiomTypeReference;
+        }
+        item significance {
+            type ValueSignificance;
         }
         item metadata {
             type AxiomItem;
@@ -285,6 +293,10 @@ model axiom-model {
                 models (namespaces).
             """;
         }
+
+        item metadata {
+          type AxiomMetadataDefinition;
+        }
     }
 
     type AxiomImportDeclaration {
@@ -353,5 +365,12 @@ model axiom-model {
         }
     }
 
+    type AxiomMetadataDefinition {
+      supertype AxiomTypeDefinition;
+      //item itemName {
+      //    type AxiomName;
+      //}
+      // TODO: Add limits for specific types
+    }
 
 }
