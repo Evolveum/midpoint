@@ -24,6 +24,19 @@ model axiom-model {
 
     // Axiom Infra Model
 
+    type AxiomItem {
+        item name {
+            type AxiomName;
+        }
+        item definition {
+            type AxiomItemDefinition;
+            operational true;
+        }
+        item value {
+            type AxiomValue;
+        }
+    }
+
     type AxiomValue {
         item type {
             type AxiomTypeReference;
@@ -48,99 +61,7 @@ model axiom-model {
         }
     }
 
-    type AxiomItem {
-        item definition {
-            type AxiomItemDefinition;
-            operational true;
-        }
-        item value {
-            type AxiomValue;
-        }
-    }
-
-    type AxiomModel {
-        supertype AxiomBaseDefinition;
-
-        item namespace {
-            type string;
-            documentation """
-                Namespace of model.
-            """;
-        }
-
-        item version {
-            type SemanticVersion;
-            documentation """
-                Version of model.
-
-                Model versioning follows Semantic Versioning 2.0.
-            """;
-        }
-
-        item import {
-            type AxiomImportDeclaration;
-            documentation """
-                Declaration of model imports.
-
-                Type definitions from imported models are referencable and
-                visible to all definition contained in this model.
-            """;
-        }
-
-        item root {
-            documentation """
-                Defines allowed root type for value serialization / deserialization.
-            """;
-            type AxiomRootDefinition;
-        }
-
-        item type {
-            type AxiomTypeDefinition;
-            documentation """
-                Declaration of a type. This type is visible to models
-                importing parent model namespace.
-            """;
-        }
-
-        item mixin {
-            type AxiomMixinDefinition;
-            documentation """
-                Declaration of mixin, a set of reusable item
-                definitions, which can be used in type definitions.
-            """;
-        }
-
-        // FIXME: should be augmentation
-        item augmentation {
-            type AxiomAugmentationDefinition;
-            documentation """
-                Declaration of augmentation. Augmentation adds new items
-                to already existing type, which can be defined in other
-                models (namespaces).
-            """;
-        }
-    }
-
-    type AxiomImportDeclaration {
-        argument namespace;
-
-        item prefix {
-            type AxiomName;
-        }
-
-        item namespace {
-            type string;
-        }
-    }
-
-    type AxiomRootDefinition {
-        supertype AxiomItemDefinition;
-        documentation """
-            Root item definition.
-
-            Root item is item which can be root of the serialized / deserialized document.
-        """;
-    }
+    // Axiom Schema
 
     type AxiomBaseDefinition {
         argument name;
@@ -231,7 +152,7 @@ model axiom-model {
         item identifier {
             type AxiomIdentifierDefinition;
             documentation """
-                Definition of value identifiers for this item.
+                Definition of value identifier for this item.
             """;
             minOccurs 0;
         }
@@ -240,6 +161,7 @@ model axiom-model {
             type AxiomTypeReference;
             documentation """
                 Value type.
+                item minOccurs {
 
                 All values must be instances or referenced type or it's subtypes.
             """;
@@ -272,6 +194,120 @@ model axiom-model {
             type boolean;
             operational true;
         }
+
+        item default {
+          type anyType; // This should somehow be same type as value of type
+          documentation """
+            Declares default value for item.
+          """;
+          minOccurs 0;
+          maxOccurs 1;
+        }
+
+        item infra {
+          type InfraSpecification;
+          //default {
+          //  value AxiomValue;
+          //  item AxiomItem;
+          //}
+        }
+    }
+
+    type AxiomRootDefinition {
+        supertype AxiomItemDefinition;
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
+    }
+
+    // Axiom Model?
+
+    type AxiomModel {
+        supertype AxiomBaseDefinition;
+
+        item namespace {
+            type string;
+            documentation """
+                Namespace of model.
+            """;
+        }
+
+        item version {
+            type SemanticVersion;
+            documentation """
+                Version of model.
+
+                Model versioning follows Semantic Versioning 2.0.
+            """;
+        }
+
+        item import {
+            type AxiomImportDeclaration;
+            documentation """
+                Declaration of model imports.
+
+                Type definitions from imported models are referencable and
+                visible to all definition contained in this model.
+            """;
+        }
+
+        item root {
+            documentation """
+                Defines allowed root type for value serialization / deserialization.
+            """;
+            type AxiomRootDefinition;
+        }
+
+        item type {
+            type AxiomTypeDefinition;
+            documentation """
+                Declaration of a type. This type is visible to models
+                importing parent model namespace.
+            """;
+        }
+
+        item mixin {
+            type AxiomMixinDefinition;
+            documentation """
+                Declaration of mixin, a set of reusable item
+                definitions, which can be used in type definitions.
+            """;
+        }
+
+        // FIXME: should be augmentation
+        item augmentation {
+            type AxiomAugmentationDefinition;
+            documentation """
+                Declaration of augmentation. Augmentation adds new items
+                to already existing type, which can be defined in other
+                models (namespaces).
+            """;
+        }
+    }
+
+    type AxiomImportDeclaration {
+        argument namespace;
+
+        item prefix {
+            type AxiomName;
+        }
+
+        item namespace {
+            type string;
+        }
+    }
+
+    type InfraSpecification {
+      item value {
+        type AxiomTypeReference;
+        //  default AxiomValue;
+      }
+      item item {
+        type AxiomTypeReference;
+        //  default AxiomItem;
+      }
     }
 
     type AxiomTypeReference {
