@@ -8,7 +8,9 @@ package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -62,6 +64,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private PrismContext prismContext;
+
 //    private SecurityFilterChain authenticatedFilter;
     private AuthenticationsPolicyType authenticationPolicy;
     private PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
@@ -85,9 +90,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
 //        }
     }
 
-    public AuthenticationsPolicyType getDefaultAuthenticationPolicy() {
+    public AuthenticationsPolicyType getDefaultAuthenticationPolicy() throws SchemaException {
         if (authenticationPolicy == null) {
-            authenticationPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy();
+            authenticationPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(prismContext.getSchemaRegistry());
         }
         return authenticationPolicy;
     }
@@ -130,7 +135,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load Authentication policy", e);
-            authenticationsPolicy = getDefaultAuthenticationPolicy();
+            try {
+                authenticationsPolicy = getDefaultAuthenticationPolicy();
+            } catch (SchemaException schemaException) {
+                LOGGER.error("Couldn't get default authentication policy");
+                throw new IllegalArgumentException("Couldn't get default authentication policy", e);
+            }
         }
 
         if (SecurityUtils.isIgnoredLocalPath(authenticationsPolicy, httpRequest)) {

@@ -8,7 +8,11 @@ package com.evolveum.midpoint.web.security.filter;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
@@ -49,15 +53,18 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
 
     private AuthChannelRegistryImpl authChannelRegistry;
 
+    private PrismContext prismContext;
+
     private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private String key;
 
-    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, AuthChannelRegistryImpl authChannelRegistry,
+    public MidpointAnonymousAuthenticationFilter(AuthModuleRegistryImpl authRegistry, AuthChannelRegistryImpl authChannelRegistry, PrismContext prismContext,
                                                  String key, Object principal, List<GrantedAuthority> authorities) {
         super(key, principal, authorities);
         this.key = key;
         this.authRegistry = authRegistry;
         this.authChannelRegistry = authChannelRegistry;
+        this.prismContext = prismContext;
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -95,7 +102,13 @@ public class MidpointAnonymousAuthenticationFilter extends AnonymousAuthenticati
         Authentication auth = createBasicAuthentication(request);
 
         MidpointAuthentication authentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        AuthenticationsPolicyType authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy();
+        AuthenticationsPolicyType authenticationsPolicy = null;
+        try {
+            authenticationsPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(prismContext.getSchemaRegistry());
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get default authentication policy");
+            throw new IllegalArgumentException("Couldn't get default authentication policy", e);
+        }
         AuthenticationSequenceType sequence = SecurityPolicyUtil.createDefaultSequence();
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
         List<AuthModule> authModules = SecurityUtils.buildModuleFilters(authRegistry, sequence, request, authenticationsPolicy.getModules(),
