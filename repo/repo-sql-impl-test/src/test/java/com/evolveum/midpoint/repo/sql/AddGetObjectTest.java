@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -453,55 +454,21 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         return token;
     }
 
-//    @Test(enabled = false)
-//    public void deltaOperationSerializationPerformanceTest() throws Exception {
-//        List<PrismObject<? extends Objectable>> elements =
-//                prismContext.processorFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
-//
-//        //get user from objects.xml
-//        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
-//
-//        final int COUNT = 10000;
-//        //first conversion option
-//        System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
-//        //second conversion option
-//        //System.out.println("\n" + toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
-//
-//        long time = System.currentTimeMillis();
-//        for (int i = 0; i < COUNT; i++) {
-//            String xml = DeltaConvertor.toObjectDeltaTypeXml(delta);
-//        }
-//        time = System.currentTimeMillis() - time;
-//        System.out.println(">>> " + time);
-//
-//        time = System.currentTimeMillis();
-//        for (int i = 0; i < COUNT; i++) {
-//            ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
-//            String xml = toRepo(type, prismContext);
-//        }
-//        time = System.currentTimeMillis() - time;
-//        System.out.println(">>> " + time);
-//    }
-
     @Test
-    public void test() throws Exception {
-        OperationResult result = new OperationResult("asdf");
-        final List<PrismObject> objects = new ArrayList<>();
-        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
-
-            @Override
-            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                objects.add(object);
-                return true;
-            }
+    public void testSearchObjectsIterative() throws Exception {
+        final List<PrismObject<?>> objects = new ArrayList<>();
+        ResultHandler<ObjectType> handler = (object, parentResult) -> {
+            objects.add(object);
+            return true;
         };
 
-        repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, true, result);
-        assertTrue(!objects.isEmpty());
+        repositoryService.searchObjectsIterative(
+                ObjectType.class, null, handler, null, true, createOperationResult());
+        assertThat(objects).isNotEmpty();
     }
 
     @Test
-    private void addGetFullAccountShadow() throws Exception {
+    public void addGetFullAccountShadow() throws Exception {
         OperationResult result = new OperationResult("testAddAccountShadow");
         File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
         try {
