@@ -23,6 +23,7 @@ model axiom-model {
 
     type ItemCompleteness; // FIXME: Add definition
     type ValueSignificance; // FIXME: Add definition
+    type ValueMetadata;
     // Axiom Infra Model
 
     type AxiomItem {
@@ -50,7 +51,7 @@ model axiom-model {
             type ValueSignificance;
         }
         item metadata {
-            type AxiomItem;
+            type ValueMetadata;
         }
     }
 
