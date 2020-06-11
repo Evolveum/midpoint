@@ -11,10 +11,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
-import com.evolveum.axiom.api.ComplexValueImpl;
-import com.evolveum.axiom.api.SimpleValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -42,7 +39,7 @@ public class ModelReactorContext extends
 
     private static final AxiomName ROOT = AxiomName.from("root", "root");
 
-    private static final String AXIOM_LANG_RESOURCE = "/axiom-lang.axiom";
+    private static final String AXIOM_LANG_RESOURCE = "/axiom-model.axiom";
     private static final String AXIOM_BUILTIN_RESOURCE = "/axiom-base-types.axiom";
 
     private static final Lazy<AxiomModelStatementSource> BASE_LANGUAGE_SOURCE = Lazy.from(() -> {

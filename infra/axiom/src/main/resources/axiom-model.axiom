@@ -1,4 +1,4 @@
-model axiom-lang {
+model axiom-model {
 
     namespace "https://schema.evolveum.com/ns/axiom/model";
 
