@@ -24,6 +24,11 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,32 +62,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY;
@@ -459,6 +440,11 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
             if (focalAutoassignSpec == null) {
                 return true;
             }
+
+            if (!isApplicableFor(focalAutoassignSpec.getSelector(), context.getFocusContext(), objectResult)) {
+                return true;
+            }
+
             for (AutoassignMappingType autoMapping: focalAutoassignSpec.getMapping()) {
                 AutoassignMappingType mapping = autoMapping.clone();
                 setMappingTarget(mapping, new ItemPathType(SchemaConstants.PATH_ASSIGNMENT));
@@ -468,6 +454,19 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
             return true;
         };
         cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler, GetOperationOptions.createReadOnlyCollection(), true, result);
+    }
+
+    private <AH extends AssignmentHolderType> boolean isApplicableFor(ObjectSelectorType selector, LensFocusContext<AH> focusContext, OperationResult result) {
+        if (selector == null) {
+            return true;
+        }
+        try {
+            return cacheRepositoryService.selectorMatches(selector, focusContext.getObjectAny(), null, LOGGER, "");
+        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ObjectNotFoundException | ConfigurationException e) {
+            LOGGER.error("Failed to evaluate selector constraints, selector {}, focusContext {}\nReason: {}", selector, focusContext, e.getMessage(), e);
+            result.recordFatalError("Failed to evaluate selector constrains, selector: " + selector + ", focusContext: " + focusContext + "\nReason: " + e.getMessage(), e);
+            throw new SystemException(e);
+        }
     }
 
     private void setMappingTarget(MappingType mapping, ItemPathType path) {

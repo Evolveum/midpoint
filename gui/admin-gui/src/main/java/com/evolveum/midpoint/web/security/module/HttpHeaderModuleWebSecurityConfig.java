@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.MidpointProviderManager;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
@@ -41,7 +41,7 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
         filter.setPrincipalRequestHeader(getConfiguration().getPrincipalRequestHeader());
         filter.setExceptionIfHeaderMissing(false);
         filter.setAuthenticationManager(authenticationManager);
-        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
+        filter.setAuthenticationFailureHandler(new MidpointAuthenticationFailureHandler());
 
         return filter;
     }

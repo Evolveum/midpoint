@@ -45,6 +45,7 @@ import java.util.Collection;
  *
  * @author lazyman
  *
+ * TODO is this class ever used?
  */
 @Component
 public class ExpressionHandler {

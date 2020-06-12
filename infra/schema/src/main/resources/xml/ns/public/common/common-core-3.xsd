@@ -13116,7 +13116,7 @@
                              (abstract) role.
                          </p>
                          <p>
-                             Use with care. MidPoint will will have to process all the roles that
+                             Use with care. MidPoint will have to process all the roles that
                              have this flag set to true. All the roles will be looked up, autoassign
                              specification will be processed to see if the focus is matching.
                              This will happen all the time for all modification operations.
@@ -13177,6 +13177,15 @@
                          <p>
                              This is mostly equivalent to the object template mapping, but default
                              target is set to the assignment of this role.
+                         </p>
+                     </xsd:documentation>
+                 </xsd:annotation>
+             </xsd:element>
+             <xsd:element name="selector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="1">
+                 <xsd:annotation>
+                     <xsd:documentation>
+                         <p>
+                            Restrics autoassignment to concrete focus type.
                          </p>
                      </xsd:documentation>
                  </xsd:annotation>
@@ -13621,7 +13630,7 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
-    <xsd:complexType name="ObjectSelectorType">
+        <xsd:complexType name="ObjectSelectorType">
         <xsd:annotation>
             <xsd:documentation>
                 Selects some objects from all the objects in midPoint.

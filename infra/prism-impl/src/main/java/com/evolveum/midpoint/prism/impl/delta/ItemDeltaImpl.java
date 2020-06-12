@@ -1480,10 +1480,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         if (isDelete()) {
             triple.getMinusSet().addAll(PrismValueCollectionsUtil.cloneCollection(getValuesToDelete()));
         }
-        if (itemOld != null && itemOld.getValues() != null) {
+        if (itemOld != null) {
             for (V itemVal: itemOld.getValues()) {
-                if (!PrismValueCollectionsUtil.containsRealValue(valuesToDelete, itemVal) && !PrismValueCollectionsUtil
-                        .containsRealValue(valuesToAdd, itemVal)) {
+                if (!PrismValueCollectionsUtil.containsRealValue(valuesToDelete, itemVal) &&
+                        !PrismValueCollectionsUtil.containsRealValue(valuesToAdd, itemVal)) {
+                    //noinspection unchecked
                     triple.getZeroSet().add((V) itemVal.clone());
                 }
             }

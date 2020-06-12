@@ -235,6 +235,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
     public <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV,ID> findIdi(@NotNull ItemPath path, @Nullable DefinitionResolver<D,ID> additionalDefinitionResolver) throws SchemaException {
         if (path.isEmpty()) {
+            //noinspection unchecked
             return (ItemDeltaItem<IV,ID>) this;
         }
 
@@ -362,9 +363,6 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
         return false;
     }
 
-    /**
-     * @return
-     */
     public boolean isStructuredProperty() {
         if (!isProperty()) {
             return false;
@@ -384,12 +382,12 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 
     // Assumes that this IDI represents structured property
     public <X> ItemDeltaItem<PrismPropertyValue<X>,PrismPropertyDefinition<X>> resolveStructuredProperty(
-            ItemPath resolvePath, PrismPropertyDefinition outputDefinition, ItemPath outputPath,
+            ItemPath resolvePath, PrismPropertyDefinition outputDefinition,
             PrismContext prismContext) {
         ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>> thisIdi = (ItemDeltaItem<PrismPropertyValue<Structured>,PrismPropertyDefinition<Structured>>)this;
         PrismProperty<X> outputPropertyNew = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemNew(), resolvePath, outputDefinition);
         PrismProperty<X> outputPropertyOld = resolveStructuredPropertyItem((PrismProperty<Structured>) thisIdi.getItemOld(), resolvePath, outputDefinition);
-        PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, outputPath, prismContext);
+        PropertyDelta<X> outputDelta = resolveStructuredPropertyDelta((PropertyDelta<Structured>) thisIdi.getDelta(), resolvePath, outputDefinition, prismContext);
         return new ItemDeltaItem<>(outputPropertyOld, outputDelta, outputPropertyNew, outputDefinition);
     }
 
@@ -406,11 +404,13 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
     }
 
     private <X> PropertyDelta<X> resolveStructuredPropertyDelta(PropertyDelta<Structured> sourceDelta, ItemPath resolvePath,
-            PrismPropertyDefinition outputDefinition, ItemPath outputPath, PrismContext prismContext) {
+            PrismPropertyDefinition outputDefinition, PrismContext prismContext) {
         if (sourceDelta == null) {
             return null;
         }
-        PropertyDelta<X> outputDelta = (PropertyDelta<X>) outputDefinition.createEmptyDelta(outputPath);
+        // Path in output delta has no meaning anyway. The delta will never be applied, as it references sub-property object.
+        //noinspection unchecked
+        PropertyDelta<X> outputDelta = (PropertyDelta<X>) outputDefinition.createEmptyDelta(ItemPath.EMPTY_PATH);
         Collection<PrismPropertyValue<X>> outputValuesToAdd = resolveStructuredDeltaSet(sourceDelta.getValuesToAdd(), resolvePath, prismContext);
         if (outputValuesToAdd != null) {
             outputDelta.addValuesToAdd(outputValuesToAdd);

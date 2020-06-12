@@ -38,8 +38,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
         </dependency>
     </dependencies>
 
@@ -88,7 +88,7 @@
             <id>jaxb2-jdk-11</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <build>
                 <plugins>
@@ -114,6 +114,11 @@
                             <!-- JDK 11 does not need exclusions of imported files like JDK 8 -->
                         </configuration>
                         <dependencies>
+                            <!--
+                            Don't change this to org.glassfish.jaxb:xsom:${glassfish-jaxb.version} to avoid
+                            error: JAXP09020006: The argument 'systemId' can not be null.
+                            (Is it valid error? I don't know, but we may drop this with Axiom anyway.)
+                            -->
                             <dependency>
                                 <groupId>com.sun.xsom</groupId>
                                 <artifactId>xsom</artifactId>

@@ -52,12 +52,8 @@ public class SynchronizationServiceUtils {
             isApplicablePolicy = isPolicyApplicable(synchronizationPolicy, syncCtx);
         }
 
-        if (isApplicablePolicy) {
-            Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx, expressionFactory, result);
-            return conditionResult != null ? conditionResult : true;
-        } else {
-            return false;
-        }
+        return isApplicablePolicy &&
+                evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx, expressionFactory, result);
     }
 
     private static <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx)
@@ -85,23 +81,22 @@ public class SynchronizationServiceUtils {
         return SynchronizationUtils.isPolicyApplicable(null, kind, intent, synchronizationPolicy, resource);
     }
 
-    private static <F extends FocusType> Boolean evaluateSynchronizationPolicyCondition(
+    private static <F extends FocusType> boolean evaluateSynchronizationPolicyCondition(
             ObjectSynchronizationType synchronizationPolicy, SynchronizationContext<F> syncCtx,
             ExpressionFactory expressionFactory, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         if (synchronizationPolicy.getCondition() == null) {
-            return null;
+            return true;
         }
-        ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
+        ExpressionType conditionExpressionBean = synchronizationPolicy.getCondition();
         String desc = "condition in object synchronization " + synchronizationPolicy.getName();
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
                 syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
         try {
             ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(syncCtx.getTask(), result));
-            PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-                    conditionExpressionType, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), result);
-            return evaluateCondition.getValue();
+            return ExpressionUtil.evaluateConditionDefaultTrue(variables,
+                    conditionExpressionBean, syncCtx.getExpressionProfile(), expressionFactory, desc, syncCtx.getTask(), result);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }

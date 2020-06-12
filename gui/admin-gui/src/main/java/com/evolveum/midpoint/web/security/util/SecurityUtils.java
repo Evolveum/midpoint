@@ -13,6 +13,9 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.Validate;
@@ -361,17 +364,20 @@ public class SecurityUtils {
     }
 
     private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
-        modules.addAll(authenticationModulesType.getLoginForm());
-        modules.addAll(authenticationModulesType.getSaml2());
-        modules.addAll(authenticationModulesType.getHttpBasic());
-        modules.addAll(authenticationModulesType.getHttpHeader());
-        modules.addAll(authenticationModulesType.getHttpSecQ());
-        modules.addAll(authenticationModulesType.getMailNonce());
-        modules.addAll(authenticationModulesType.getOidc());
-        modules.addAll(authenticationModulesType.getSecurityQuestionsForm());
-        modules.addAll(authenticationModulesType.getSmsNonce());
-        modules.addAll(authenticationModulesType.getLdap());
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer c = (PrismContainer) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(c.getCompileTimeClass()))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue) x).asContainerable()));
+        });
 
         for (AbstractAuthenticationModuleType module : modules) {
             if (module.getName().equals(name)) {

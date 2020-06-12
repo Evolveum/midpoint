@@ -17,45 +17,47 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
- * @param <E> evaluator prism type
+ * @param <E> evaluator bean (configuration) type
  * @author Radovan Semancik
  */
-public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E> implements ExpressionEvaluator<V,D> {
+public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E>
+        implements ExpressionEvaluator<V> {
 
-    private final QName elementName;
-    private final E expressionEvaluatorType;
-    protected final PrismContext prismContext;
-    protected final D outputDefinition;
+    /**
+     * Qualified name of the evaluator.
+     */
+    @NotNull private final QName elementName;
+
+    /**
+     * Bean (i.e. configuration) for the evaluator.
+     * In some cases it can be null - e.g. for implicit asIs evaluator.
+     */
+    protected final E expressionEvaluatorBean;
+
+    /**
+     * Definition of the output item.
+     * TODO why it is important to be here?
+     */
+    @NotNull protected final D outputDefinition;
+
     protected final Protector protector;
+    @NotNull protected final PrismContext prismContext;
 
-    public AbstractExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
+    public AbstractExpressionEvaluator(@NotNull QName elementName, E expressionEvaluatorBean, @NotNull D outputDefinition,
+            Protector protector, @NotNull PrismContext prismContext) {
         this.elementName = elementName;
-        this.expressionEvaluatorType = expressionEvaluatorType;
+        this.expressionEvaluatorBean = expressionEvaluatorBean;
         this.outputDefinition = outputDefinition;
         this.prismContext = prismContext;
         this.protector = protector;
     }
 
     @Override
-    public QName getElementName() {
+    public @NotNull QName getElementName() {
         return elementName;
-    }
-
-    protected E getExpressionEvaluatorType() {
-        return expressionEvaluatorType;
-    }
-
-    protected PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    protected D getOutputDefinition() {
-        return outputDefinition;
-    }
-
-    protected Protector getProtector() {
-        return protector;
     }
 
     /**
@@ -70,4 +72,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
     }
 
+    public @NotNull PrismContext getPrismContext() {
+        return prismContext;
+    }
 }

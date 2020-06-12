@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
+
+import java.util.Objects;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Persister;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -21,21 +29,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Objects;
-
-/**
- * @author mederly
- */
 @JaxbType(type = OperationExecutionType.class)
 @Entity
 @QueryEntity
@@ -45,17 +41,13 @@ import java.util.Objects;
         @Index(name = "iOpExecInitiatorOid", columnList = "initiatorRef_targetOid"),
         @Index(name = "iOpExecStatus", columnList = "status"),
         @Index(name = "iOpExecStatus", columnList = "status"),
-        @Index(name = "iOpExecOwnerOid", columnList = "owner_oid")})
+        @Index(name = "iOpExecOwnerOid", columnList = "owner_oid") })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class ROperationExecution implements Container<RObject<?>> {
-
-    public static final String F_OWNER = "owner";
-
-    private static final Trace LOGGER = TraceManager.getTrace(ROperationExecution.class);
+public class ROperationExecution implements Container<RObject> {
 
     private Boolean trans;
 
-    private RObject<?> owner;
+    private RObject owner;
     private String ownerOid;
     private Integer id;
 
@@ -68,7 +60,7 @@ public class ROperationExecution implements Container<RObject<?>> {
         this(null);
     }
 
-    public ROperationExecution(RObject<?> owner) {
+    public ROperationExecution(RObject owner) {
         this.setOwner(owner);
     }
 
@@ -78,7 +70,7 @@ public class ROperationExecution implements Container<RObject<?>> {
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
     @Override
-    public RObject<?> getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 
@@ -160,42 +152,21 @@ public class ROperationExecution implements Container<RObject<?>> {
         this.trans = trans;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ROperationExecution))
-            return false;
-        ROperationExecution that = (ROperationExecution) o;
-        return Objects.equals(trans, that.trans) &&
-                Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(initiatorRef, that.initiatorRef) &&
-                Objects.equals(taskRef, that.taskRef) &&
-                Objects.equals(timestamp, that.timestamp) &&
-                status == that.status;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(trans, getOwnerOid(), id, initiatorRef, taskRef, status);
-    }
-
     public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-                                    RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
+            RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
         repo.setOwner(parent);
         fromJaxb(jaxb, repo, repositoryContext, null);
     }
 
     public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
             ObjectType parent, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) throws DtoTranslationException {
+            IdGeneratorResult generatorResult) {
         repo.setOwnerOid(parent.getOid());
         fromJaxb(jaxb, repo, repositoryContext, generatorResult);
     }
 
     private static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) {
         if (generatorResult != null) {
             repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
         }
@@ -204,6 +175,25 @@ public class ROperationExecution implements Container<RObject<?>> {
         repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.relationRegistry));
         repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         repo.setTimestamp(jaxb.getTimestamp());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ROperationExecution)) {
+            return false;
+        }
+
+        ROperationExecution that = (ROperationExecution) o;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, id);
     }
 
     @Override

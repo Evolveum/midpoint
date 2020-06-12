@@ -7,31 +7,30 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.util.SystemUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
-/**
- * @author lazyman
- */
+import org.apache.commons.configuration2.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.impl.crypto.KeyStoreBasedProtectorImpl;
+import com.evolveum.midpoint.util.SystemUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 public class ConfigurableProtectorFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurableProtectorFactory.class);
+
     @Autowired private MidpointConfiguration configuration;
+
     private ProtectorConfiguration protectorConfig;
 
     public void init() {
@@ -48,8 +47,6 @@ public class ConfigurableProtectorFactory {
             return;
         }
 
-        //todo improve
-        FileOutputStream fos = null;
         try {
             KeyStore keystore = KeyStore.getInstance("jceks");
             char[] password = "changeit".toCharArray();
@@ -62,19 +59,17 @@ public class ConfigurableProtectorFactory {
 
             keystore.setKeyEntry("default", secretKey, "midpoint".toCharArray(), null);
 
-            fos = new FileOutputStream(keyStorePath);
-            try {
-                SystemUtil.setPrivateFilePermissions(keyStorePath);
-            } catch (IOException e) {
-                LOGGER.warn("Unable to set file permissions for keystore {}: {}", keyStorePath, e.getMessage(), e);
-                // Non-critical, continue
+            try (FileOutputStream fos = new FileOutputStream(keyStorePath)) {
+                try {
+                    SystemUtil.setPrivateFilePermissions(keyStorePath);
+                } catch (IOException e) {
+                    LOGGER.warn("Unable to set file permissions for keystore {}: {}", keyStorePath, e.getMessage(), e);
+                    // Non-critical, continue
+                }
+                keystore.store(fos, password);
             }
-            keystore.store(fos, password);
-            fos.close();
         } catch (Exception ex) {
             throw new SystemException("Couldn't generate keystore, reason: " + ex.getMessage(), ex);
-        } finally {
-            IOUtils.closeQuietly(fos);
         }
     }
 

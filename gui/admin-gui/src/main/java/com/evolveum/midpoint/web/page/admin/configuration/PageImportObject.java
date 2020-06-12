@@ -7,27 +7,13 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.application.AuthorizationAction;
-import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,12 +32,26 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.file.File;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 
 /**
  * @author lazyman
@@ -87,9 +87,9 @@ public class PageImportObject extends PageAdminConfiguration {
     private static final Integer INPUT_FILE = 1;
     private static final Integer INPUT_XML = 2;
 
-    private LoadableModel<ImportOptionsType> optionsModel;
-    private IModel<Boolean> fullProcessingModel;
-    private IModel<String> xmlEditorModel;
+    private final LoadableModel<ImportOptionsType> optionsModel;
+    private final IModel<Boolean> fullProcessingModel;
+    private final IModel<String> xmlEditorModel;
 
     private String dataLanguage;
 
@@ -124,7 +124,7 @@ public class PageImportObject extends PageAdminConfiguration {
         mainForm.add(buttonBar);
 
         final IModel<Integer> groupModel = new Model<>(INPUT_FILE);
-        RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
+        RadioGroup<Integer> importRadioGroup = new RadioGroup<>(ID_IMPORT_RADIO_GROUP, groupModel);
         importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
             @Override
@@ -135,10 +135,10 @@ public class PageImportObject extends PageAdminConfiguration {
         });
         mainForm.add(importRadioGroup);
 
-        Radio fileRadio = new Radio(ID_FILE_RADIO, new Model(INPUT_FILE), importRadioGroup);
+        Radio<Integer> fileRadio = new Radio<>(ID_FILE_RADIO, new Model<>(INPUT_FILE), importRadioGroup);
         importRadioGroup.add(fileRadio);
 
-        Radio xmlRadio = new Radio(ID_XML_RADIO, new Model(INPUT_XML), importRadioGroup);
+        Radio<Integer> xmlRadio = new Radio<>(ID_XML_RADIO, new Model<>(INPUT_XML), importRadioGroup);
         importRadioGroup.add(xmlRadio);
 
         WebMarkupContainer inputAce = new WebMarkupContainer(ID_INPUT_ACE);
@@ -267,8 +267,9 @@ public class PageImportObject extends PageAdminConfiguration {
     }
 
     private static class InputDescription {
-        private InputStream inputStream;
-        private String dataLanguage;
+        private final InputStream inputStream;
+        private final String dataLanguage;
+
         InputDescription(InputStream inputStream, String dataLanguage) {
             this.inputStream = inputStream;
             this.dataLanguage = dataLanguage;
@@ -313,7 +314,7 @@ public class PageImportObject extends PageAdminConfiguration {
         }
     }
 
-    private void clearOldFeedback(){
+    private void clearOldFeedback() {
         getSession().getFeedbackMessages().clear();
         getFeedbackMessages().clear();
     }
@@ -348,18 +349,14 @@ public class PageImportObject extends PageAdminConfiguration {
             result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
         } finally {
-            if (stream != null) {
-                IOUtils.closeQuietly(stream);
-            }
-
+            IOUtils.closeQuietly(stream);
         }
+
         showResult(result);
-        if (result.isFatalError()){
+        if (result.isFatalError()) {
             target.add(getFeedbackPanel());
         } else {
             target.add(PageImportObject.this);
         }
     }
-
-
 }

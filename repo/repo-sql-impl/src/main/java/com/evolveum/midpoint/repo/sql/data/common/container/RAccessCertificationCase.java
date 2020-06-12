@@ -1,11 +1,24 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Persister;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -29,24 +42,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Persister;
-import org.jetbrains.annotations.NotNull;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-
-/**
- * @author lazyman
- * @author mederly
- */
 
 @JaxbType(type = AccessCertificationCaseType.class)
 @Entity
@@ -61,8 +56,6 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 public class RAccessCertificationCase implements Container<RAccessCertificationCampaign> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationCase.class);
-
-    public static final String F_OWNER = "owner";
 
     private Boolean trans;
 
@@ -116,7 +109,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAccessCertificationWorkItem> getWorkItems() {
         return workItems;
     }
@@ -254,6 +247,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     }
 
     // Notes to equals/hashCode: don't include trans nor owner
+    /*
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -284,6 +278,26 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return Objects.hash(fullObject, ownerOid, id, workItems, objectRef, targetRef, tenantRef, orgRef, activation,
                 reviewRequestedTimestamp, reviewDeadline, remediedTimestamp, currentStageOutcome, iteration, stageNumber,
                 outcome);
+    }
+    */
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RAccessCertificationCase)) {
+            return false;
+        }
+
+        RAccessCertificationCase that = (RAccessCertificationCase) o;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, id);
     }
 
     @Override
@@ -322,9 +336,9 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return rCase;
     }
 
-    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase, AccessCertificationCaseType case1,
-            RepositoryContext context) throws DtoTranslationException {
-        rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
+    private static RAccessCertificationCase toRepo(RAccessCertificationCase rCase,
+            AccessCertificationCaseType case1, RepositoryContext context) throws DtoTranslationException {
+        rCase.setTransient(null); // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
         rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.relationRegistry));
         rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), context.relationRegistry));
@@ -376,6 +390,5 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
             LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
             throw e;
         }
-        //aCase.asPrismContainerValue().removeReference(AccessCertificationCaseType.F_CAMPAIGN_REF);
     }
 }

@@ -8,31 +8,36 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
+public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OID = "oid";
+    private static final String ID_NAME = "name";
     private static final String ID_TYPE = "type";
     private static final String ID_RELATION = "relation";
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
@@ -66,6 +71,36 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
         oidField.setOutputMarkupId(true);
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(oidField);
+
+        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject().getValue()),
+                new AutoCompleteReferenceRenderer(),
+                getPageBase()){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Class<O> getReferenceTargetObjectType(){
+                List<QName> supportedTypes = getSupportedTargetList();
+                if (CollectionUtils.isNotEmpty(supportedTypes)){
+                    return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.get(0));
+                }
+                return (Class<O>) ObjectType.class;
+            }
+
+        };
+
+//        nameField.add(new AjaxFormComponentUpdatingBehavior("blur") {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//
+//            }
+//        });
+        nameField.setOutputMarkupId(true);
+        nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        add(nameField);
 
         DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".type"),
                 getSupportedTargetList(), new QNameObjectTypeChoiceRenderer());

@@ -59,36 +59,47 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
         try {
 
+            long attributesStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
                 Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES),
                     attributesSettingsBuilder.build());
             add(attributesPanel);
+            long attributesEnd = System.currentTimeMillis();
+            LOGGER.trace("Attributes finished in {} ms", attributesEnd - attributesStart);
 
+            long associationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION),
                     associationBuilder.build());
             associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
             add(associationsPanel);
+            long associationEnd = System.currentTimeMillis();
+            LOGGER.trace("Association finished in {} ms", associationEnd - associationStart);
 
-
+            long activationStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder activationBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION),
                     activationBuilder.build());
             activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
             add(activationPanel);
+            long activationEnd = System.currentTimeMillis();
+            LOGGER.trace("Activation finished in {} ms", activationEnd - activationStart);
 
+            long passwordStart = System.currentTimeMillis();
             ItemPanelSettingsBuilder passwordSettingsBuilder = new ItemPanelSettingsBuilder()
                     .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
             Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)),
                     passwordSettingsBuilder.build());
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
+            long passwordEnd = System.currentTimeMillis();
+            LOGGER.trace("Password finished in {} ms", passwordEnd - passwordStart);
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
-            LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
+            LOGGER.trace("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
 
         }
     }

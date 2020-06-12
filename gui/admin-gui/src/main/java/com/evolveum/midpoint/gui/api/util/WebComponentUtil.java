@@ -3117,6 +3117,21 @@ public final class WebComponentUtil {
         return filter;
     }
 
+    public static Behavior getSubmitOnEnterKeyDownBehavior(String submitButtonAboutAttribute){
+        return new Behavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind( component );
+
+                component.add( AttributeModifier.replace( "onkeydown",
+                        Model.of("if(event.keyCode == 13) {$('[about=\"" + submitButtonAboutAttribute +"\"]').click();}") ) );
+            }
+        };
+    }
+
     public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
                                                          AssignmentOrder assignmentOrder,
                                                          OperationResult result, Task task, PageBase pageBase){

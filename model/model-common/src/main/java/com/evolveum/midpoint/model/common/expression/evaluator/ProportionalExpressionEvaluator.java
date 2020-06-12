@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -24,14 +25,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalStyleTyp
 
 /**
  * @author skublik
- *
  */
 public class ProportionalExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
-        implements ExpressionEvaluator<V, D> {
+        implements ExpressionEvaluator<V> {
 
-    private ProportionalExpressionEvaluatorType proportionalEvaluatorType;
-    private D outputDefinition;
-    private PrismContext prismContext;
+    private final ProportionalExpressionEvaluatorType proportionalEvaluatorType;
+    private final D outputDefinition;
+    private final PrismContext prismContext;
 
     ProportionalExpressionEvaluator(ProportionalExpressionEvaluatorType proportionalEvaluatorType, D outputDefinition, PrismContext prismContext) {
         this.proportionalEvaluatorType = proportionalEvaluatorType;
@@ -39,14 +39,6 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
         this.prismContext = prismContext;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
-     * .util.Collection, java.util.Map, boolean, java.lang.String,
-     * com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -58,11 +50,11 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
             throw new IllegalArgumentException("Proportional expression cannot by evaluated without input of type "
                     + IntegerStatType.COMPLEX_TYPE);
         }
-        String numbermessage = "";
+        String numberMessage;
         Integer totalItems = integerStatType.getDomain();
         Integer actualItems = integerStatType.getValue();
 
-        switch(style) {
+        switch (style) {
 
             case PERCENTAGE:
                 validateInputNumbers(totalItems, actualItems, ProportionalStyleType.PERCENTAGE);
@@ -70,34 +62,38 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
                 float percentage = (totalItems==0 ? 0 : actualItems*100.0f/totalItems);
                 String format = "%.0f";
 
-                if(percentage < 100.0f && percentage % 10 != 0 && ((percentage % 10) % 1) != 0) {
+                if (percentage < 100.0f && percentage % 10 != 0 && ((percentage % 10) % 1) != 0) {
                     format = "%.1f";
                 }
-                numbermessage = String.format(format, percentage) + " %";
+                numberMessage = String.format(format, percentage) + " %";
                 integerStatType.setPercentage(percentage);
                 break;
             case VALUE_OF_DOMAIN:
                 validateInputNumbers(totalItems, actualItems, ProportionalStyleType.VALUE_OF_DOMAIN);
 
-                numbermessage = String.valueOf(actualItems) + " of " + String.valueOf(totalItems);
+                numberMessage = actualItems + " of " + totalItems;
                 break;
             case VALUE_SLASH_DOMAIN:
                 validateInputNumbers(totalItems, actualItems, ProportionalStyleType.VALUE_SLASH_DOMAIN);
 
-                numbermessage = String.valueOf(actualItems) + "/" + String.valueOf(totalItems);
+                numberMessage = actualItems + "/" + totalItems;
                 break;
             case VALUE_ONLY:
                 if(actualItems == null) {
                     throw new IllegalArgumentException("Proportional expression with " + ProportionalStyleType.VALUE_ONLY.value()
                     +" style cannot by evaluated without value and domain numbers in input of type " + IntegerStatType.COMPLEX_TYPE);
                 }
-                numbermessage = String.valueOf(actualItems);
+                numberMessage = String.valueOf(actualItems);
+                break;
+            default:
+                numberMessage = "";
                 break;
         }
 
+        //noinspection unchecked
         Item<V, D> output = outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
-            ((PrismProperty<String>) output).addRealValue(numbermessage);
+            ((PrismProperty<String>) output).addRealValue(numberMessage);
         } else {
             throw new UnsupportedOperationException(
                     "Can only generate values of property, not " + output.getClass());
@@ -106,22 +102,13 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
         return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
     }
 
-
-
     private void validateInputNumbers(Integer totalItems, Integer actualItems, ProportionalStyleType style) {
-        if(totalItems == null || actualItems == null) {
+        if (totalItems == null || actualItems == null) {
             throw new IllegalArgumentException("Proportional expression with " + style.value() +" style cannot by evaluated"
                     + " without value and domain numbers in input of type " + IntegerStatType.COMPLEX_TYPE);
         }
-
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
-     * shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "const:"+proportionalEvaluatorType.getStyle();
@@ -129,8 +116,6 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 
     @Override
     public QName getElementName() {
-        return IntegerStatType.COMPLEX_TYPE;
+        return SchemaConstantsGenerated.C_PROPORTIONAL;
     }
-
-
 }

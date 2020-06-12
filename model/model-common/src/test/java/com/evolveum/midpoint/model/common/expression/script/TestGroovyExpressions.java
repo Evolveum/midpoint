@@ -29,17 +29,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class TestGroovyExpressions extends AbstractScriptTest {
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
-     */
     @Override
     protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
         return new GroovyScriptEvaluator(prismContext, protector, localizationService);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#getTestDir()
-     */
     @Override
     protected File getTestDir() {
         return new File(BASE_TEST_DIR, "groovy");

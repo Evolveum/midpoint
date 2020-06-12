@@ -34,6 +34,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
  *
@@ -56,6 +58,7 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
         return scriptCache;
     }
 
+    @NotNull
     @Override
     public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
             ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -112,7 +115,7 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
         }
         LOGGER.trace("expected return type: XSD={}, Java={}", xsdReturnType, javaReturnType);
 
-        List<V> pvals = new ArrayList<>();
+        List<V> values = new ArrayList<>();
 
         // TODO: what about PrismContainer and
         // PrismReference? Shouldn't they be processed in the same way as
@@ -120,19 +123,19 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
         if (evalRawResult instanceof Collection) {
             for (Object evalRawResultElement : (Collection)evalRawResult) {
                 T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, context);
-                pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+                values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
             }
         } else if (evalRawResult instanceof PrismProperty<?>) {
-            pvals.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
+            values.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
         } else {
             T evalResult = convertScalarResult(javaReturnType, evalRawResult, context);
-            pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+            values.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
         }
 
-        return pvals;
+        return values;
     }
 
-    protected C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
+    private C getCompiledScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException, SecurityViolationException {
         C compiledScript = scriptCache.getCode(context.getExpressionProfile(), codeString);
         if (compiledScript != null) {
             return compiledScript;

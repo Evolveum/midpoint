@@ -187,4 +187,22 @@ public class ExpressionVariables extends VariablesMap {
         return "variables(" + super.toString() + ")";
     }
 
+    public boolean haveDeltas() {
+        for (Map.Entry<String, TypedValue> entry: entrySet()) {
+            if (entry.getValue() == null) {
+                continue;
+            }
+            Object value = entry.getValue().getValue();
+            if (value instanceof ObjectDeltaObject<?>) {
+                if (((ObjectDeltaObject<?>)value).getObjectDelta() != null && !((ObjectDeltaObject<?>)value).getObjectDelta().isEmpty()) {
+                    return true;
+                }
+            } else if (value instanceof ItemDeltaItem<?,?>) {
+                if (((ItemDeltaItem<?,?>)value).getDelta() != null && !((ItemDeltaItem<?,?>)value).getDelta().isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

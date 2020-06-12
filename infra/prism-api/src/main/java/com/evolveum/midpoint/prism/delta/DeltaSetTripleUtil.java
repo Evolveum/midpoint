@@ -56,6 +56,12 @@ public class DeltaSetTripleUtil {
         return triple;
     }
 
+    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> allToZeroSet(Collection<V> values, PrismContext prismContext) {
+        PrismValueDeltaSetTriple<V> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+        triple.addAllToZeroSet(values);
+        return triple;
+    }
+
     public static <T> DeltaSetTriple<? extends T> find(Map<? extends ItemPath, DeltaSetTriple<? extends T>> tripleMap, ItemPath path) {
         List<Map.Entry<? extends ItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
                 .filter(e -> path.equivalent(e.getKey()))

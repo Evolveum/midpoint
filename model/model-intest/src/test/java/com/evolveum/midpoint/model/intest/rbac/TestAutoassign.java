@@ -10,6 +10,10 @@ import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -20,11 +24,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -47,9 +46,14 @@ public class TestAutoassign extends AbstractRbacTest {
     protected static final String ROLE_UNIT_WALKER_OID = "a2bc45fc-bfec-11e7-bdfd-af4b3e689502";
     protected static final String ROLE_UNIT_WALKER_TITLE = "Walker";
 
+    protected static final File ROLE_UNIT_RIDER_FILE = new File(AUTOASSIGN_DIR, "role-unit-rider.xml");
+    protected static final String ROLE_UNIT_RIDER_OID = "9a60cdc6-f2ad-4414-964b-5fd1dfaec157";
+    protected static final String ROLE_UNIT_RIDER_TITLE = "Rider";
+
     protected static final String UNIT_WORKER = "worker";
     protected static final String UNIT_SLEEPER = "sleeper";
     protected static final String UNIT_WALKER = "walker";
+    protected static final String UNIT_RIDER = "rider";
 
     private static final XMLGregorianCalendar ROLE_SLEEPER_AUTOASSIGN_VALID_TO =
             XmlTypeConverter.createXMLGregorianCalendar(2222, 1, 2, 3, 4, 5);
@@ -62,16 +66,13 @@ public class TestAutoassign extends AbstractRbacTest {
         repoAddObjectFromFile(ROLE_UNIT_WORKER_FILE, RoleType.class, initResult);
         repoAddObjectFromFile(ROLE_UNIT_SLEEPER_FILE, RoleType.class, initResult);
         repoAddObjectFromFile(ROLE_UNIT_WALKER_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_UNIT_RIDER_FILE, RoleType.class, initResult);
 
-        // Temporarily using repository service because of MID-5497
-        repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                prismContext.deltaFor(SystemConfigurationType.class)
-                    .item(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED)
-                    .replace(true)
-                    .asItemDeltas(), initResult);
-//        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-//                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
-//                initTask, initResult, Boolean.TRUE);
+        repoAddObjectFromFile(ARCHETYPE_EMPLOYEE_FILE, ArchetypeType.class, initResult);
+
+        modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
+                initTask, initResult, Boolean.TRUE);
     }
 
     /**
@@ -238,6 +239,126 @@ public class TestAutoassign extends AbstractRbacTest {
             .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
                     ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE, ROLE_UNIT_SLEEPER_TITLE);
     }
+
+    @Test
+    public void test115ModifyUnitAddRider() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
+                createPolyString(UNIT_RIDER));
+
+        // THEN
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+                .assertOrganizationalUnits(UNIT_WORKER, UNIT_WALKER, UNIT_SLEEPER, UNIT_RIDER)
+                .assignments()
+                    .assertAssignments(3)
+                        .assertRole(ROLE_UNIT_WORKER_OID)
+                        .assertRole(ROLE_UNIT_WALKER_OID)
+                        .assertRole(ROLE_UNIT_SLEEPER_OID)
+                        .assertNoRole(ROLE_UNIT_RIDER_OID)
+                    .end()
+                .links()
+                    .single();
+
+        assertDummyAccountByUsername(null, USER_JACK_USERNAME)
+                .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+                        ROLE_UNIT_WORKER_TITLE, ROLE_UNIT_WALKER_TITLE, ROLE_UNIT_SLEEPER_TITLE);
+    }
+
+    /**
+     *  Prepare user guybrush for autoassignment
+     */
+    @Test
+    public void test200assignArchetypeGuybrush() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        //WHEN
+        assignArchetype(USER_GUYBRUSH_OID, ARCHETYPE_EMPLOYEE_OID, task, result);
+
+        //THEN
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID)
+                .assignments()
+                    .assertAssignments(1)
+                    .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
+                .end();
+
+    }
+
+    @Test
+    public void test201addUnitRiderGuybrush() throws Exception {
+        //GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        //WHEN
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_RIDER));
+
+        //THEN
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertOrganizationalUnits(UNIT_RIDER)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID)
+                .assignments()
+                    .assertAssignments(2)
+                    .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
+                    .assertRole(ROLE_UNIT_RIDER_OID)
+                .end()
+                .links()
+                    .single();
+    }
+
+    @Test
+    public void test202addUnitSleeperGuybrush() throws Exception {
+        //GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        //WHEN
+        modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_SLEEPER));
+
+        //THEN
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertOrganizationalUnits(UNIT_RIDER, UNIT_SLEEPER)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID)
+                .assignments()
+                    .assertAssignments(3)
+                        .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
+                        .assertRole(ROLE_UNIT_RIDER_OID)
+                        .assertRole(ROLE_UNIT_SLEEPER_OID)
+                    .end()
+                        .links()
+                    .single();
+    }
+
+    @Test
+    public void test203removeUnitRiderGuybrush() throws Exception {
+        //GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        //WHEN
+        modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, createPolyString(UNIT_RIDER));
+
+        //THEN
+        assertUserAfter(USER_GUYBRUSH_OID)
+                .assertArchetypeRef(ARCHETYPE_EMPLOYEE_OID)
+                .assignments()
+                    .assertAssignments(2)
+                        .assertArchetype(ARCHETYPE_EMPLOYEE_OID)
+                        .assertNoRole(ROLE_UNIT_RIDER_OID)
+                        .assertRole(ROLE_UNIT_SLEEPER_OID)
+                    .end()
+                .links()
+                    .single();
+    }
+
 
     // TODO: org and relation
 

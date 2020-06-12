@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,20 +8,15 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import java.io.Serializable;
+import java.util.Objects;
 
-/**
- * @author lazyman
- */
 public class RContainerId implements Serializable {
 
     private String ownerOid;
     private Integer id;
 
+    @SuppressWarnings("unused")
     public RContainerId() {
-    }
-
-    public RContainerId(String oid) {
-        this(0, oid);
     }
 
     public RContainerId(Integer id, String oid) {
@@ -47,22 +42,21 @@ public class RContainerId implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RContainerId)) {
+            return false;
+        }
 
         RContainerId that = (RContainerId) o;
-
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-
-        return true;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (id != null ? id.hashCode() : 0);
-        return result;
+        return Objects.hash(ownerOid, id);
     }
 
     @Override

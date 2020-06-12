@@ -160,6 +160,7 @@
             <xsd:element name="securityQuestionsForm" type="tns:AuthenticationModuleSecurityQuestionsFormType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="httpSecQ" type="tns:AuthenticationModuleHttpSecQType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ldap" type="tns:AuthenticationModuleLdapType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="other" type="tns:AuthenticationModuleOtherType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -338,6 +339,33 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationModuleOtherType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.1.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="factoryClass" type="xsd:string"/>
+                    <xsd:element name="parameter" type="tns:OtherAuthenticationModuleParameterType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OtherAuthenticationModuleParameterType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string"/>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AuthenticationModuleLdapType">

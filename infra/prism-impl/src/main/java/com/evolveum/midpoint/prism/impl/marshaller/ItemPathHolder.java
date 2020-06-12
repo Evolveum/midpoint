@@ -216,11 +216,11 @@ public final class ItemPathHolder {
 
     //region Serializing
 
-    public static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
+    static String serializeWithDeclarations(@NotNull ItemPath itemPath) {
         return new ItemPathHolder(UniformItemPath.from(itemPath)).getXPathWithDeclarations();
     }
 
-    public static String serializeWithForcedDeclarations(@NotNull ItemPath itemPath) {
+    static String serializeWithForcedDeclarations(@NotNull ItemPath itemPath) {
         return new ItemPathHolder(UniformItemPath.from(itemPath), true).getXPathWithDeclarations();
     }
 
@@ -229,6 +229,9 @@ public final class ItemPathHolder {
     }
 
     private ItemPathHolder(@NotNull UniformItemPath itemPath, boolean forceExplicitNamespaceDeclarations) {
+        if (forceExplicitNamespaceDeclarations) {
+            itemPath = generatePrefixesIfNeeded(itemPath);
+        }
         if (itemPath.getNamespaceMap() != null) {
             this.explicitNamespaceDeclarations.putAll(itemPath.getNamespaceMap());
         }
@@ -261,6 +264,45 @@ public final class ItemPathHolder {
             this.segments.add(xsegment);
         }
         this.absolute = false;
+    }
+
+    /**
+     * Generates prefixes for qualified names in the path. We need them so they will get into namespace declarations.
+     * Preliminary version.
+     */
+    private UniformItemPath generatePrefixesIfNeeded(UniformItemPath itemPath) {
+        List<ItemPathSegment> transformedSegments = new ArrayList<>();
+        boolean changed = false;
+        for (ItemPathSegment segment : itemPath.getSegments()) {
+            ItemPathSegment transformed = transformSegment(segment);
+            if (transformed != null) {
+                transformedSegments.add(transformed);
+                changed = true;
+            } else {
+                transformedSegments.add(segment);
+            }
+        }
+        return changed ? UniformItemPath.create(transformedSegments) : itemPath;
+    }
+
+    // TODO Remove/clean up: See See MID-6320.
+    private ItemPathSegment transformSegment(ItemPathSegment segment) {
+        if (segment instanceof NameItemPathSegment) {
+            ItemName name = ((NameItemPathSegment) segment).getName();
+            String namespaceURI = name.getNamespaceURI();
+            if (StringUtils.isNotEmpty(namespaceURI) && StringUtils.isEmpty(name.getPrefix())) {
+                String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(namespaceURI);
+                return new NameItemPathSegment(new ItemName(namespaceURI, name.getLocalPart(), prefix));
+            }
+        } else if (segment instanceof VariableItemPathSegment) {
+            ItemName name = ((VariableItemPathSegment) segment).getName();
+            String namespaceURI = name.getNamespaceURI();
+            if (StringUtils.isNotEmpty(namespaceURI) && StringUtils.isEmpty(name.getPrefix())) {
+                String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(namespaceURI);
+                return new VariableItemPathSegment(new ItemName(namespaceURI, name.getLocalPart(), prefix));
+            }
+        }
+        return null;
     }
 
     public String getXPathWithoutDeclarations() {

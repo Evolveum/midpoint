@@ -10,32 +10,46 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
+ * Calls specified custom function expression. It is something like a macro: Arguments for the function call
+ * (expression themselves) are evaluated into triples, which become additional sources for the function expression.
+ * Then the function expression is evaluated and the output triple is returned as an output triple for the function
+ * expression evaluation.
+ *
  * @author katkav
  * @author semancik
  */
-public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, FunctionExpressionEvaluatorType> {
+public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+        extends AbstractExpressionEvaluator<V, D, FunctionExpressionEvaluatorType> {
 
-    private ObjectResolver objectResolver;
+    private static final String OP_EVALUATE = FunctionExpressionEvaluator.class.getSimpleName() + ".evaluate";
+    private static final String OP_GET_FUNCTION_TO_EXECUTE = FunctionExpressionEvaluator.class.getSimpleName() + ".getFunctionToExecute";
+    private static final String OP_MAKE_EXPRESSION = FunctionExpressionEvaluator.class.getSimpleName() + ".makeExpression";
+    private static final String OP_RESOLVE_PARAMETER_VALUE = FunctionExpressionEvaluator.class.getSimpleName() + ".resolveParameterValue";
+    private static final String OP_EVALUATE_FUNCTION = FunctionExpressionEvaluator.class.getSimpleName() + ".evaluateFunction";
+
+    private final ObjectResolver objectResolver;
 
     FunctionExpressionEvaluator(QName elementName, FunctionExpressionEvaluatorType functionEvaluatorType, D outputDefinition,
             Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
@@ -43,114 +57,23 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         this.objectResolver = objectResolver;
     }
 
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java
-     * .util.Collection, java.util.Map, boolean, java.lang.String,
-     * com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         checkEvaluatorProfile(context);
 
-        List<ExpressionType> expressions;
-
-        ObjectReferenceType functionLibraryRef = getExpressionEvaluatorType().getLibraryRef();
-
+        ObjectReferenceType functionLibraryRef = expressionEvaluatorBean.getLibraryRef();
         if (functionLibraryRef == null) {
             throw new SchemaException("No functions library defined in "+context.getContextDescription());
         }
 
-        OperationResult result = parentResult.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveFunctionLibrary");
+        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {
-            Task task = context.getTask();
+            ExpressionType functionExpressionBean = getFunctionExpressionBean(functionLibraryRef, context, result);
+            Expression<V, D> functionExpression = createFunctionExpression(functionExpressionBean, context, result);
+            ExpressionEvaluationContext functionContext = createFunctionEvaluationContext(functionExpressionBean, context, result);
 
-            FunctionLibraryType functionLibraryType = objectResolver.resolve(functionLibraryRef, FunctionLibraryType.class,
-                    null, "resolving value policy reference in generateExpressionEvaluator", task, result);
-            expressions = functionLibraryType.getFunction();
-
-            if (CollectionUtils.isEmpty(expressions)) {
-                throw new ObjectNotFoundException(
-                        "No functions defined in referenced function library: " + functionLibraryType + " used in " + context
-                                .getContextDescription());
-            }
-
-            // TODO: this has to be determined from the library archetype
-            ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-
-            String functionName = getExpressionEvaluatorType().getName();
-
-            if (StringUtils.isEmpty(functionName)) {
-                throw new SchemaException(
-                        "Missing function name in " + shortDebugDump() + " in " + context.getContextDescription());
-            }
-
-            List<ExpressionType> filteredExpressions = expressions.stream()
-                    .filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
-            if (filteredExpressions.size() == 0) {
-                String possibleFunctions = "";
-                for (ExpressionType expression : expressions) {
-                    possibleFunctions += expression.getName() + ", ";
-                }
-                possibleFunctions = possibleFunctions.substring(0, possibleFunctions.lastIndexOf(","));
-                throw new ObjectNotFoundException("No function with name " + functionName + " found in " + shortDebugDump()
-                        + ". Function defined are: " + possibleFunctions + ". In " + context.getContextDescription());
-            }
-
-            ExpressionType functionToExecute = determineFunctionToExecute(filteredExpressions);
-
-            OperationResult functionExpressionResult = result
-                    .createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".makeExpression");
-            ExpressionFactory factory = context.getExpressionFactory();
-
-            // TODO: expression profile should be determined from the function library archetype
-            Expression<V, D> functionExpression;
-            try {
-                functionExpression = factory
-                        .makeExpression(functionToExecute, outputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                                "function execution", task, functionExpressionResult);
-                functionExpressionResult.recordSuccess();
-            } catch (SchemaException | ObjectNotFoundException e) {
-                functionExpressionResult
-                        .recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);
-                throw e;
-            }
-
-            ExpressionEvaluationContext functionContext = context.shallowClone();
-            ExpressionVariables functionVariables = new ExpressionVariables();
-
-            for (ExpressionParameterType param : getExpressionEvaluatorType().getParameter()) {
-                ExpressionType valueExpressionType = param.getExpression();
-                OperationResult variableResult = result
-                        .createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveVariable");
-                Expression<V, D> valueExpression = null;
-                try {
-                    variableResult.addArbitraryObjectAsParam("valueExpression", valueExpressionType);
-                    D variableOutputDefinition = determineVariableOutputDefinition(functionToExecute, param.getName(), context);
-
-                    valueExpression = factory
-                            .makeExpression(valueExpressionType, variableOutputDefinition, MiscSchemaUtil.getExpressionProfile(),
-                                    "parameters execution", task, variableResult);
-                    functionExpressionResult.recordSuccess();
-                    PrismValueDeltaSetTriple<V> evaluatedValue = valueExpression.evaluate(context, result);
-                    V value = ExpressionUtil.getExpressionOutputValue(evaluatedValue, " evaluated value for paramter");
-                    functionVariables.addVariableDefinition(param.getName(), value, variableOutputDefinition);
-                    variableResult.recordSuccess();
-                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                        | ConfigurationException | SecurityViolationException e) {
-                    variableResult
-                            .recordFatalError("Failed to resolve variable: " + valueExpression + ". Reason: " + e.getMessage());
-                    throw e;
-                }
-            }
-
-            functionContext.setVariables(functionVariables);
-
-            return functionExpression.evaluate(functionContext, result);
+            return evaluateFunctionExpression(functionExpression, functionContext, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -159,15 +82,59 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         }
     }
 
-    private ExpressionType determineFunctionToExecute(List<ExpressionType> filteredExpressions) {
+    private ExpressionType getFunctionExpressionBean(ObjectReferenceType functionLibraryRef, ExpressionEvaluationContext context,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Task task = context.getTask();
+        OperationResult result = parentResult.createMinorSubresult(OP_GET_FUNCTION_TO_EXECUTE);
+        try {
+            FunctionLibraryType functionLibrary = objectResolver.resolve(functionLibraryRef, FunctionLibraryType.class,
+                    null, "resolving value policy reference in generateExpressionEvaluator", task, result);
 
-        if (filteredExpressions.size() == 1) {
-            return filteredExpressions.iterator().next();
+            List<ExpressionType> allFunctions = functionLibrary.getFunction();
+            if (CollectionUtils.isEmpty(allFunctions)) {
+                throw new ObjectNotFoundException(
+                        "No functions defined in referenced function library: " + functionLibrary + " used in " +
+                                context.getContextDescription());
+            }
+
+            String functionName = expressionEvaluatorBean.getName();
+            if (StringUtils.isEmpty(functionName)) {
+                throw new SchemaException(
+                        "Missing function name in " + shortDebugDump() + " in " + context.getContextDescription());
+            }
+
+            List<ExpressionType> functionsMatchingName = allFunctions.stream()
+                    .filter(expression -> functionName.equals(expression.getName()))
+                    .collect(Collectors.toList());
+            if (functionsMatchingName.isEmpty()) {
+                String allFunctionNames = allFunctions.stream()
+                        .map(ExpressionType::getName)
+                        .collect(Collectors.joining(", "));
+                throw new ObjectNotFoundException("No function with name " + functionName + " found in " + shortDebugDump()
+                        + ". Function defined are: " + allFunctionNames + ". In " + context.getContextDescription());
+            }
+
+            return selectFromMatchingFunctions(functionsMatchingName, context);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @NotNull
+    private ExpressionType selectFromMatchingFunctions(List<ExpressionType> functionsMatchingName,
+            ExpressionEvaluationContext context) throws ObjectNotFoundException {
+
+        if (functionsMatchingName.size() == 1) {
+            return functionsMatchingName.iterator().next();
         }
 
-        List<ExpressionParameterType> functionParams = getExpressionEvaluatorType().getParameter();
+        List<ExpressionParameterType> functionParams = expressionEvaluatorBean.getParameter();
 
-        for (ExpressionType filteredExpression : filteredExpressions) {
+        for (ExpressionType filteredExpression : functionsMatchingName) {
             List<ExpressionParameterType> filteredExpressionParameters = filteredExpression.getParameter();
             if (functionParams.size() != filteredExpressionParameters.size()) {
                 continue;
@@ -177,14 +144,16 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             }
             return filteredExpression;
         }
-        return null;
+        String functionName = expressionEvaluatorBean.getName();
+        throw new ObjectNotFoundException("No matching function with name " + functionName + " found in " + shortDebugDump()
+                + ". " + functionsMatchingName.size() + " functions with this name found but none matches the parameters. In " +
+                context.getContextDescription());
     }
 
     private boolean compareParameters(List<ExpressionParameterType> functionParams, List<ExpressionParameterType> filteredExpressionParameters) {
         for (ExpressionParameterType  functionParam: functionParams ) {
             boolean found = false;
             for (ExpressionParameterType filteredExpressionParam : filteredExpressionParameters) {
-
                 if (filteredExpressionParam.getName().equals(functionParam.getName())) {
                     found = true;
                     break;
@@ -197,47 +166,103 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
         return true;
     }
 
-    private D determineVariableOutputDefinition(ExpressionType functionToExecute, String paramName, ExpressionEvaluationContext context) throws SchemaException {
+    private Expression<V, D> createFunctionExpression(ExpressionType functionToExecute, ExpressionEvaluationContext context,
+            OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createMinorSubresult(OP_MAKE_EXPRESSION);
+        try {
+            // TODO: expression profile should be determined from the function library archetype
+            ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-        ExpressionParameterType functionParameter = null;
-        for (ExpressionParameterType functionParam: functionToExecute.getParameter()) {
-            if (functionParam.getName().equals(paramName)) {
-                functionParameter = functionParam;
-                break;
+            return context.getExpressionFactory()
+                    .makeExpression(functionToExecute, outputDefinition, expressionProfile,
+                            "function execution", context.getTask(), result);
+        } catch (SchemaException | ObjectNotFoundException e) {
+            result.recordFatalError("Cannot make expression for " + functionToExecute + ". Reason: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @NotNull
+    private ExpressionEvaluationContext createFunctionEvaluationContext(ExpressionType functionExpressionBean,
+            ExpressionEvaluationContext context, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        ExpressionEvaluationContext functionContext = context.shallowClone();
+        ExpressionVariables functionVariables = new ExpressionVariables();
+
+        for (ExpressionParameterType param : expressionEvaluatorBean.getParameter()) {
+            ExpressionType parameterExpressionBean = param.getExpression();
+            OperationResult variableResult = parentResult.createMinorSubresult(OP_RESOLVE_PARAMETER_VALUE);
+            Expression<V, D> parameterExpression = null;
+            try {
+                variableResult.addArbitraryObjectAsParam("parameterExpression", parameterExpressionBean);
+                D variableOutputDefinition = determineVariableOutputDefinition(functionExpressionBean, param.getName());
+
+                // TODO: expression profile should be determined somehow
+                ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+
+                parameterExpression = context.getExpressionFactory()
+                        .makeExpression(parameterExpressionBean, variableOutputDefinition, expressionProfile,
+                                "parameter " + param.getName() + " evaluation in " + context.getContextDescription(),
+                                context.getTask(), variableResult);
+                PrismValueDeltaSetTriple<V> evaluatedValue = parameterExpression.evaluate(context, parentResult);
+                V value = ExpressionUtil.getExpressionOutputValue(evaluatedValue, "evaluated value for parameter " + param.getName());
+                functionVariables.addVariableDefinition(param.getName(), value, variableOutputDefinition);
+            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                    | ConfigurationException | SecurityViolationException e) {
+                variableResult.recordFatalError("Failed to resolve variable: " + parameterExpression + ". Reason: " + e.getMessage());
+                throw e;
+            } finally {
+                variableResult.computeStatusIfUnknown();
             }
         }
 
-        if (functionParameter == null) {
-            throw new SchemaException("Unexpected parameter " + paramName + " for function: " + functionToExecute);
-        }
+        functionContext.setVariables(functionVariables);
+        return functionContext;
+    }
+
+    private D determineVariableOutputDefinition(ExpressionType functionToExecute, String paramName) throws SchemaException {
+        ExpressionParameterType functionParameter = functionToExecute.getParameter().stream()
+                .filter(param -> param.getName().equals(paramName))
+                .findFirst()
+                .orElseThrow(() -> new SchemaException("Unknown parameter " + paramName + " for function: " + functionToExecute));
 
         QName returnType = functionParameter.getType();
-
         if (returnType == null) {
             throw new SchemaException("Cannot determine parameter output definition for " + functionParameter);
         }
 
-
-            D returnTypeDef = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
-            if (returnTypeDef == null) {
-                returnTypeDef = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
-                returnTypeDef.toMutable().setMaxOccurs(functionToExecute.getReturnMultiplicity() != null && functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
-            }
-
-            return returnTypeDef;
-
-
+        ItemDefinition returnTypeDef = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
+        if (returnTypeDef != null) {
+            //noinspection unchecked
+            return (D) returnTypeDef;
+        } else {
+            MutablePrismPropertyDefinition<?> dynamicReturnTypeDef =
+                    prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
+            dynamicReturnTypeDef.setMaxOccurs(functionToExecute.getReturnMultiplicity() == ExpressionReturnMultiplicityType.SINGLE ? 1 : -1);
+            //noinspection unchecked
+            return (D) dynamicReturnTypeDef;
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#
-     * shortDebugDump()
-     */
+    private PrismValueDeltaSetTriple<V> evaluateFunctionExpression(Expression<V, D> functionExpression,
+            ExpressionEvaluationContext functionContext, OperationResult parentResult) throws SchemaException,
+            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE_FUNCTION);
+        try {
+            return functionExpression.evaluate(functionContext, parentResult);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
     @Override
     public String shortDebugDump() {
-        return "function: " + getExpressionEvaluatorType().getName();
+        return "function: " + expressionEvaluatorBean.getName();
     }
-
 }

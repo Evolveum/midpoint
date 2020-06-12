@@ -11,6 +11,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
@@ -200,7 +201,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
                     + getIntent() + ", " + construction.getResolvedResource().resource
                     + " as defined in " + construction.getSource(), attrName);
         }
-        MappingImpl.Builder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = construction.getMappingFactory().createMappingBuilder(
+        MappingBuilder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = construction.getMappingFactory().createMappingBuilder(
                 outboundMappingType,
                 "for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + construction.getSource());
 
@@ -262,11 +263,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
                 throw new SchemaException("No outbound section in definition of association " + assocName
                         + " in construction in " + construction.getSource());
             }
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> assocMapping =
-                    evaluateAssociation(associationDefinitionType, task, result);
-            if (assocMapping != null) {
-                associationMappings.add(assocMapping);
-            }
+            associationMappings.add(evaluateAssociation(associationDefinitionType, task, result));
         }
     }
 
@@ -293,9 +290,9 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         }
         PrismContainerDefinition<ShadowAssociationType> outputDefinition = construction.getAssociationContainerDefinition();
 
-        MappingImpl.Builder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
+        MappingBuilder<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mappingBuilder =
                 construction.getMappingFactory().<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>createMappingBuilder()
-                        .mappingType(outboundMappingType)
+                        .mappingBean(outboundMappingType)
                         .contextDescription("for association " + PrettyPrinter.prettyPrint(assocName) + " in " + construction.getSource())
                         .originType(OriginType.ASSIGNMENTS)
                         .originObject(construction.getSource());
@@ -309,7 +306,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
-            MappingImpl.Builder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
+            MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 

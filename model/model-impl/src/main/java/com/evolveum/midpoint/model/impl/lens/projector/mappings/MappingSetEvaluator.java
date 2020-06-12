@@ -90,23 +90,19 @@ public class MappingSetEvaluator {
 
             PrismObject<T> targetObject = targetSpecification.getTargetObject(updatedFocusOdo);
 
-            MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context, request.getMapping(),
-                    request.getMappingKind(), request.getOriginObject(), updatedFocusOdo, request.constructDefaultSource(updatedFocusOdo),
-                    targetObject, request.getAssignmentPathVariables(), iteration, iterationToken,
+            MappingImpl<V,D> mapping = mappingEvaluator.createFocusMapping(mappingFactory, context,
+                    request, updatedFocusOdo, targetObject, iteration, iterationToken,
                     context.getSystemConfiguration(), now, description, task, result);
             if (mapping == null) {
                 continue;
             }
-
-            // Used to populate autoassign assignments
-            mapping.setMappingPreExpression(request);
 
             mappingEvaluator.evaluateMapping(mapping, context, task, result);
 
             // We need to update nextRecompute even for mappings with "time valid" state.
             nextRecompute = NextRecompute.update(mapping, nextRecompute);
 
-            if (!mapping.evaluateTimeConstraintValid(task, result)) {
+            if (!mapping.isTimeConstraintValid()) {
                 continue;
             }
 

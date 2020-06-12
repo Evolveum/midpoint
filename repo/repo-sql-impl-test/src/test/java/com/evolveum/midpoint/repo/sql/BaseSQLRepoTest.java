@@ -271,7 +271,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         return extItemDictionary.createOrFindItemDefinition(propertyDefinition, false);
     }
 
-    void assertExtension(RObject<?> object, RExtItem item, String... expectedValues) {
+    void assertExtension(RObject object, RExtItem item, String... expectedValues) {
         Set<String> realValues = object.getStrings().stream()
                 .filter(extString -> Objects.equals(extString.getItemId(), item.getId()))
                 .map(ROExtString::getValue)

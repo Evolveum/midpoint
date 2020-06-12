@@ -1158,7 +1158,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public long getSequenceCounter(String sequenceOid) throws ObjectNotFoundException, SchemaException {
-        return SequentialValueExpressionEvaluator.getSequenceCounter(sequenceOid, repositoryService, getCurrentResult());
+        return SequentialValueExpressionEvaluator.getSequenceCounterValue(sequenceOid, repositoryService, getCurrentResult());
     }
 
     // orgstruct related methods

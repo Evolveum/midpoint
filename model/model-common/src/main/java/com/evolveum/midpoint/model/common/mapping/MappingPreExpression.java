@@ -17,11 +17,12 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * @author semancik
- *
  */
 @FunctionalInterface
 public interface MappingPreExpression {
 
-    void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException;
 
 }
