@@ -11,14 +11,14 @@ package com.evolveum.midpoint.model.api.authentication;
  */
 
 public class AuthenticationModuleNameConstants {
-    public static String HTTP_BASIC = "Basic";
-    public static String SECURITY_QUESTIONS = "SecQ";
-    public static String SECURITY_QUESTIONS_FORM = "SecQForm";
-    public static String CLUSTER = "Cluster";
-    public static String HTTP_HEADER = "HttpHeader";
-    public static String LOGIN_FORM = "LoginForm";
-    public static String SAML_2 = "Saml2";
-    public static String LDAP = "LDAP";
-    public static String MAIL_NONCE = "MailNonce";
-    public static String OTHER = "Other";
+    public static final String HTTP_BASIC = "Basic";
+    public static final String SECURITY_QUESTIONS = "SecQ";
+    public static final String SECURITY_QUESTIONS_FORM = "SecQForm";
+    public static final String CLUSTER = "Cluster";
+    public static final String HTTP_HEADER = "HttpHeader";
+    public static final String LOGIN_FORM = "LoginForm";
+    public static final String SAML_2 = "Saml2";
+    public static final String LDAP = "LDAP";
+    public static final String MAIL_NONCE = "MailNonce";
+    public static final String OTHER = "Other";
 }
