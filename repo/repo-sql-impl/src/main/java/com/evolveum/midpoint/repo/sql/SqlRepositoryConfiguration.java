@@ -484,7 +484,8 @@ public class SqlRepositoryConfiguration {
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
         fullObjectFormat = configuration.getString(
-                PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML);
+                PROPERTY_FULL_OBJECT_FORMAT,
+                System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
 
         // requires asServer, baseDir, fileName, port
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, embedded ? getDefaultEmbeddedJdbcUrl() : null);
