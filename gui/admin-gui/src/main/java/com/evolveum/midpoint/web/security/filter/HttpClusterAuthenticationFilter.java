@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.BasicMidPointAuthenticationSuccessHandler;
@@ -54,7 +54,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
 
         String header = request.getHeader("Authorization");
 
-        if (header == null || !header.toLowerCase().startsWith(NameOfModuleType.CLUSTER.getName().toLowerCase() + " ")) {
+        if (header == null || !header.toLowerCase().startsWith(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + " ")) {
             chain.doFilter(request, response);
             return;
         }
@@ -100,7 +100,7 @@ public class HttpClusterAuthenticationFilter extends HttpAuthenticationFilter {
     private String extractAndDecodeHeader(String header, HttpServletRequest request)
             throws IOException {
 
-        int startIndex = NameOfModuleType.CLUSTER.getName().length() + 1;
+        int startIndex = AuthenticationModuleNameConstants.CLUSTER.length() + 1;
         byte[] base64Token = header.substring(startIndex).getBytes(StandardCharsets.UTF_8);
         byte[] decoded;
         try {

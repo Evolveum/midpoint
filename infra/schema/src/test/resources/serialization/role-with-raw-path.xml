@@ -1,0 +1,16 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ext="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <assignment>
+        <targetRef type="RoleType">
+            <filter>
+                <q:equal>
+                    <q:path>ext:name</q:path>
+                    <expression>
+                        <path>$ext:roleName</path>
+                    </expression>
+                </q:equal>
+            </filter>
+        </targetRef>
+    </assignment>
+</role>

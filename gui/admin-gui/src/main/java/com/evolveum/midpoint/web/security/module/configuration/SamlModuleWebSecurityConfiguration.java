@@ -58,19 +58,19 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         SamlModuleWebSecurityConfiguration.protector = protector;
     }
 
-    public static SamlModuleWebSecurityConfiguration build(AuthenticationModuleSaml2Type modelType, String prefixOfSequence,
+    public static SamlModuleWebSecurityConfiguration build(Saml2AuthenticationModuleType modelType, String prefixOfSequence,
             String publicHttpUrlPattern, ServletRequest request){
-        SamlModuleWebSecurityConfiguration configuration = buildInternal((AuthenticationModuleSaml2Type)modelType, prefixOfSequence, publicHttpUrlPattern, request);
+        SamlModuleWebSecurityConfiguration configuration = buildInternal(modelType, prefixOfSequence, publicHttpUrlPattern, request);
         configuration.validate();
         return configuration;
     }
 
-    private static SamlModuleWebSecurityConfiguration buildInternal(AuthenticationModuleSaml2Type modelType, String prefixOfSequence, String publicHttpUrlPattern,
+    private static SamlModuleWebSecurityConfiguration buildInternal(Saml2AuthenticationModuleType modelType, String prefixOfSequence, String publicHttpUrlPattern,
             ServletRequest request){
         SamlModuleWebSecurityConfiguration configuration = new SamlModuleWebSecurityConfiguration();
         build(configuration, modelType, prefixOfSequence);
         SamlServerConfiguration samlConfiguration = new SamlServerConfiguration();
-        AuthenticationModuleSaml2NetworkType networkType = modelType.getNetwork();
+        Saml2NetworkAuthenticationModuleType networkType = modelType.getNetwork();
         if (networkType != null) {
             NetworkConfiguration network = new NetworkConfiguration();
             if (networkType.getConnectTimeout() != 0) {
@@ -81,7 +81,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
             }
             samlConfiguration.setNetwork(network);
         }
-        AuthenticationModuleSaml2ServiceProviderType serviceProviderType = modelType.getServiceProvider();
+        Saml2ServiceProviderAuthenticationModuleType serviceProviderType = modelType.getServiceProvider();
         MidpointSamlLocalServiceProviderConfiguration serviceProvider = new MidpointSamlLocalServiceProviderConfiguration();
         serviceProvider.setEntityId(serviceProviderType.getEntityId())
                 .setSignMetadata(Boolean.TRUE.equals(serviceProviderType.isSignRequests()))
@@ -95,7 +95,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         }
 
         List<Object> objectList = new ArrayList<Object>();
-        for (AuthenticationModuleSaml2NameIdType nameIdType : serviceProviderType.getNameId()) {
+        for (Saml2NameIdAuthenticationModuleType nameIdType : serviceProviderType.getNameId()) {
             objectList.add(nameIdType.value());
         }
         serviceProvider.setNameIds(objectList);
@@ -105,7 +105,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         if (serviceProviderType.getDefaultSigningAlgorithm() != null) {
             serviceProvider.setDefaultSigningAlgorithm(AlgorithmMethod.fromUrn(serviceProviderType.getDefaultSigningAlgorithm().value()));
         }
-        AuthenticationModuleSaml2KeyType keysType = serviceProviderType.getKeys();
+        Saml2KeyAuthenticationModuleType keysType = serviceProviderType.getKeys();
         RotatingKeys key = new RotatingKeys();
         if (keysType != null) {
             ModuleSaml2SimpleKeyType activeSimpleKey = keysType.getActiveSimpleKey();
@@ -149,8 +149,8 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         serviceProvider.setAliasForPath(serviceProviderType.getAliasForPath());
 
         List<ExternalIdentityProviderConfiguration> providers = new ArrayList<ExternalIdentityProviderConfiguration>();
-        List<AuthenticationModuleSaml2ProviderType> providersType = serviceProviderType.getProvider();
-        for (AuthenticationModuleSaml2ProviderType providerType : providersType) {
+        List<Saml2ProviderAuthenticationModuleType> providersType = serviceProviderType.getProvider();
+        for (Saml2ProviderAuthenticationModuleType providerType : providersType) {
             ExternalIdentityProviderConfiguration provider = new ExternalIdentityProviderConfiguration();
             provider.setAlias(providerType.getAlias())
                     .setSkipSslValidation(Boolean.TRUE.equals(providerType.isSkipSslValidation()))
@@ -190,7 +190,7 @@ public class SamlModuleWebSecurityConfiguration extends ModuleWebSecurityConfigu
         return configuration;
     }
 
-    private static String createMetadata(AuthenticationModuleSaml2ProviderMetadataType metadata, boolean required) throws IOException {
+    private static String createMetadata(Saml2ProviderMetadataAuthenticationModuleType metadata, boolean required) throws IOException {
         if (metadata != null) {
             String metadataUrl = metadata.getMetadataUrl();
             if (StringUtils.isNotBlank(metadataUrl)) {

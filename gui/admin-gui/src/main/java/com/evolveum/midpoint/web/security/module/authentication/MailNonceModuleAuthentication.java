@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 
 /**
  * @author skublik
@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 public class MailNonceModuleAuthentication extends CredentialModuleAuthentication{
 
     public MailNonceModuleAuthentication() {
-        super(NameOfModuleType.MAIL_NONCE);
+        super(AuthenticationModuleNameConstants.MAIL_NONCE);
     }
 
     public ModuleAuthentication clone() {

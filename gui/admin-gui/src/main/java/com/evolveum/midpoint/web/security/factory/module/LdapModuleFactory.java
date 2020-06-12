@@ -59,7 +59,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleLdapType) {
+        if (moduleType instanceof LdapAuthenticationModuleType) {
             return true;
         }
         return false;
@@ -70,8 +70,8 @@ public class LdapModuleFactory extends AbstractModuleFactory {
             ServletRequest request, Map<Class<? extends Object>, Object> sharedObjects,
             AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
-        if (!(moduleType instanceof AuthenticationModuleLdapType)) {
-            LOGGER.error("This factory support only AuthenticationModuleLdapType, but modelType is " + moduleType);
+        if (!(moduleType instanceof LdapAuthenticationModuleType)) {
+            LOGGER.error("This factory support only LdapAuthenticationModuleType, but modelType is " + moduleType);
             return null;
         }
 
@@ -80,19 +80,19 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         ModuleWebSecurityConfigurationImpl configuration = LdapModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
         configuration.setPrefixOfSequence(prefixOfSequence);
 
-        configuration.addAuthenticationProvider(getProvider((AuthenticationModuleLdapType)moduleType, credentialPolicy));
+        configuration.addAuthenticationProvider(getProvider((LdapAuthenticationModuleType)moduleType, credentialPolicy));
 
         ModuleWebSecurityConfig module = createModule(configuration);
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
-        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication((AuthenticationModuleLdapType) moduleType, configuration);
+        ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication((LdapAuthenticationModuleType) moduleType, configuration);
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
 
-    protected AuthenticationProvider getProvider(AuthenticationModuleLdapType moduleType, CredentialsPolicyType credentialsPolicy){
+    protected AuthenticationProvider getProvider(LdapAuthenticationModuleType moduleType, CredentialsPolicyType credentialsPolicy){
         DefaultSpringSecurityContextSource ctx = new DefaultSpringSecurityContextSource(moduleType.getHost());
         ctx.setUserDn(moduleType.getUserDn());
 
@@ -129,7 +129,7 @@ public class LdapModuleFactory extends AbstractModuleFactory {
         return  getObjectObjectPostProcessor().postProcess(new LdapWebSecurityConfig((LdapModuleWebSecurityConfiguration) configuration));
     }
 
-    protected ModuleAuthentication createEmptyModuleAuthentication(AuthenticationModuleLdapType moduleType,
+    protected ModuleAuthentication createEmptyModuleAuthentication(LdapAuthenticationModuleType moduleType,
                                                                    ModuleWebSecurityConfiguration configuration) {
         LdapModuleAuthentication moduleAuthentication = new LdapModuleAuthentication();
         moduleAuthentication.setPrefix(configuration.getPrefix());

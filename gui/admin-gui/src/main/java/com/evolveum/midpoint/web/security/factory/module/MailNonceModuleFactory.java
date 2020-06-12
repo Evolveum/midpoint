@@ -27,7 +27,7 @@ public class MailNonceModuleFactory extends AbstractCredentialModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleMailNonceType) {
+        if (moduleType instanceof MailNonceAuthenticationModuleType) {
             return true;
         }
         return false;
