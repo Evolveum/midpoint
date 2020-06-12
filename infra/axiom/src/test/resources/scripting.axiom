@@ -1,0 +1,182 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+
+model scripting {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/model/scripting-3";
+    version "3.0.0";
+
+    type ScriptingExpressionEvaluationOptions {
+        documentation """
+            Options related to evaluation of scripting expression.
+            EXPERIMENTAL
+            In the future, these may become part of any scripting expression, allowing parts of a complex expression
+            to be evaluated differently from its other parts.
+        """;
+        item continueOnAnyError {
+            type boolean;
+        }
+        item hideOperationResults {
+            type boolean;
+        }
+    }
+
+    type ScriptingVariablesDefinition {
+        documentation """
+            Definition of scripting variables.
+        """;
+        item variable {
+            type ScriptingVariableDefinition;
+            maxOccurs unbounded;
+        }
+    }
+
+    type ScriptingVariableDefinition {
+        documentation """
+            Definition of a scripting variable.
+            Expression types other than path-based ones are to be considered EXPERIMENTAL.
+        """;
+        item name {
+            type string;
+            minOccurs 1;
+        }
+        item description {
+            type string;
+        }
+        item type {
+            type QName;
+        }
+        item maxOccurs {
+            type string;
+        }
+        item expression {
+            type Expression;
+            minOccurs 1;
+        }
+    }
+
+    type ScriptingExpression {
+        itemName scriptingExpression;
+        documentation """
+            Root of the expression type inheritance hierarchy.
+        """;
+    }
+
+    type ExpressionPipeline {
+        extends ScriptingExpression;
+        documentation """
+            Pipeline of expressions - they are executed one after another,
+            input sent to the pipeline as a whole is sent to the first expression.
+            Output from the N-th expression is sent as an input to the N+1-th expression.
+            Output of the last expression is considered to be the output of the whole
+            pipeline.
+        """;
+        item scriptingExpression {
+            type ScriptingExpression; // TODO make it works without this (i.e. as item ref)
+            maxOccurs unbounded;
+        }
+    }
+
+    item pipeline {
+        type ExpressionPipeline;
+        // substitution of scriptingExpression, heterogeneous list item
+    }
+
+    type ExpressionSequence {
+        extends ScriptingExpression;
+        documentation """
+            Sequence of expressions - they are executed one after another,
+            input sent to the sequence as a whole is then sent individually
+            to each expression. Output of the last expression is considered
+             to be the output of the whole sequence.
+        """;
+        item scriptingExpression {
+            type ScriptingExpression; // TODO make it works without this (i.e. as item ref)
+            maxOccurs unbounded;
+        }
+    }
+
+    item sequence {
+        type ExpressionSequence;
+        // substitution of scriptingExpression, heterogeneous list item
+    }
+
+    type SearchExpression {
+        extends ScriptingExpression;
+        documentation """
+            Queries the model for objects of a given type, optionally fulfilling given condition.
+        """;
+
+        item type {
+            type QName;
+            documentation """
+                Type whose instances are searched for.
+            """;
+        }
+
+        item query {
+            type Query;
+            documentation """
+                Query to apply when searching for instances. (Alternative to searchFilter. This is tried as the first one.)
+            """;
+        }
+
+        item searchFilter {
+            type SearchFilter;
+            documentation """
+                Filter to apply when searching for instances. (Alternative to query. This is tried as second one.)
+            """;
+        }
+
+        item options {
+            type SelectorQualifiedGetOptions;
+        }
+
+        item parameter {
+            type ActionParameterValue;
+            maxOccurs unbounded;
+        }
+
+        item scriptingExpression {
+            type ScriptingExpression; // TODO make it works without this (i.e. as item ref)
+            documentation """
+                Expression to evaluate for each object found.
+            """;
+        }
+
+        item aggregateOutput {
+            type boolean;
+            documentation """
+                Whether to aggregate and pass forward the output of expression evaluations that are done
+                for each object found. (Meaningful only if scriptingExpression is specified.)
+                Default is true for compatibility reasons. Set to false to optimize memory consumption.
+            """;
+            // since 3.7.1
+        }
+    }
+
+    item search {
+        type SearchExpression;
+        // substitution of scriptingExpression, heterogeneous list item
+    }
+
+    // and so on ...
+
+    // Types (temporary)
+
+    type ActionParameterValue;
+
+    // query-3
+    type Query;
+    type SearchFilter;
+
+    // common-3
+    type Expression;
+    type SelectorQualifiedGetOptions;
+
+    // basic
+    type QName;
+}
+

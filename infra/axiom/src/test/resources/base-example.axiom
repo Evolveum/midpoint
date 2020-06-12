@@ -1,0 +1,72 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+
+model model-header {
+
+    documentation """
+        This is showcase of baseline Axiom model header.
+
+        Standard model header should contain:
+          - description (optional)
+          - namespace (required)
+          - version (required)
+          - prefix (optional)
+        """;
+
+    namespace "https://ns.evolveum.com/example/axiom/model-header";
+    version "0.0.1";
+
+
+    type Address;
+    type Link;
+    type PolyString;
+
+    type Example {
+        documentation """
+            Example complex type. This type does not have supertype.
+            Type may contain items.
+        """;
+
+        item name {
+            type string;
+        }
+    }
+
+    object User {
+        itemName user;
+        item address { // shorthand syntax 'container address type Address';
+          type Address;
+          //identifier type; // All values should have unique value.
+          maxOccurs unbounded;
+        }
+        item name {
+          type PolyString;
+        }
+        item link {
+          type Link;
+          maxOccurs unbounded;
+        }
+    }
+
+    object {
+        name User2;
+        itemName user;
+    }
+
+    // Alternative representation of a prism object definition
+    // (doesn't interfere with item <name> { type ... } in structured types)
+    object {
+        name User2;
+        itemName user2;
+        // ...
+    }
+
+    // Yet another alternative representation of a prism object definition.
+    // To be decided.
+    type User3 {
+        object;
+        // ...
+    }
+}
