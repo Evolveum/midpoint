@@ -50,11 +50,6 @@ model model-header {
         }
     }
 
-    object {
-        name User2;
-        itemName user;
-    }
-
     // Alternative representation of a prism object definition
     // (doesn't interfere with item <name> { type ... } in structured types)
     object {

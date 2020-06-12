@@ -27,7 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
  * @author katka
  *
  */
-public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends AbstractItemWrapperColumnPanel<PrismReferenceWrapper<R>, PrismValueWrapper<R, PrismReferenceValue>> {
+public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends AbstractItemWrapperColumnPanel<PrismReferenceWrapper<R>, PrismValueWrapper<R>> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
@@ -37,12 +37,12 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     }
 
     @Override
-    protected String createLabel(PrismValueWrapper<R, PrismReferenceValue> object) {
+    protected String createLabel(PrismValueWrapper<R> object) {
         return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false, true);
     }
 
     @Override
-    protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model, PrismValueWrapper<R, PrismReferenceValue> object) {
+    protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model, PrismValueWrapper<R> object) {
 
         Panel panel;
         try {
@@ -57,7 +57,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     }
 
     @Override
-    protected Panel createLink(String id, IModel<PrismValueWrapper<R, PrismReferenceValue>> object) {
+    protected Panel createLink(String id, IModel<PrismValueWrapper<R>> object) {
         LinkPanel linkPanel = new LinkPanel(id, new IModel<String>() {
 
             @Override

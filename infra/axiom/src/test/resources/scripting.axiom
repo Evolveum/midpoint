@@ -65,7 +65,7 @@ model scripting {
     }
 
     type ExpressionPipeline {
-        extends ScriptingExpression;
+        supertype ScriptingExpression;
         documentation """
             Pipeline of expressions - they are executed one after another,
             input sent to the pipeline as a whole is sent to the first expression.
@@ -85,7 +85,7 @@ model scripting {
     }
 
     type ExpressionSequence {
-        extends ScriptingExpression;
+        supertype ScriptingExpression;
         documentation """
             Sequence of expressions - they are executed one after another,
             input sent to the sequence as a whole is then sent individually
@@ -104,7 +104,7 @@ model scripting {
     }
 
     type SearchExpression {
-        extends ScriptingExpression;
+        supertype ScriptingExpression;
         documentation """
             Queries the model for objects of a given type, optionally fulfilling given condition.
         """;

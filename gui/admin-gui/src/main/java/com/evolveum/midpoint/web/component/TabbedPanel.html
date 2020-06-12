@@ -7,7 +7,12 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 <ul class="nav nav-tabs" wicket:id="tabs-container">
-    <li wicket:id="tabs" style="height:46px;"><a class="tab-label" href="#" wicket:id="link"><span wicket:id="title"/><small class="badge" wicket:id="count"/></a></li>
+    <li wicket:id="tabs" style="height:46px;">
+        <a class="tab-label" href="#" wicket:id="link">
+            <span wicket:id="title"/>
+            <small class="badge" wicket:id="count"/>
+        </a>
+    </li>
     <wicket:remove><!-- TODO fix the style for rightSideTabItem --></wicket:remove>
     <li wicket:id="rightSideTabItem" class="pull-right" style="border-radius: 0; margin: 10px"><div wicket:id="rightSideTab"/></li>
 </ul>

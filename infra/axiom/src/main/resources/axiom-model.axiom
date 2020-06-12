@@ -1,0 +1,377 @@
+model axiom-model {
+
+    namespace "https://schema.evolveum.com/ns/axiom/model";
+
+    root model {
+        documentation """
+            Declaration of Axiom model.
+        """;
+        type AxiomModel;
+    }
+
+    // Axiom Baseline Types
+
+    type AxiomName {
+        documentation """
+            Qualified name. Consists of namespace and local name.
+        """;
+    }
+
+    type SemanticVersion {
+            supertype string;
+    }
+
+    type ItemCompleteness; // FIXME: Add definition
+    type ValueSignificance; // FIXME: Add definition
+    type ValueMetadata;
+    // Axiom Infra Model
+
+    type AxiomItem {
+        item name {
+            type AxiomName;
+        }
+        item definition {
+            type AxiomItemDefinition;
+            operational true;
+        }
+        item value {
+            type AxiomValue;
+        }
+
+        item completeness {
+            type ItemCompleteness;
+        }
+    }
+
+    type AxiomValue {
+        item type {
+            type AxiomTypeReference;
+        }
+        item significance {
+            type ValueSignificance;
+        }
+        item metadata {
+            type ValueMetadata;
+        }
+    }
+
+    type AxiomSimpleValue {
+        supertype AxiomValue;
+        argument value;
+        item value {
+            type anyType;
+        }
+    }
+
+    type AxiomComplexValue {
+        supertype AxiomValue;
+        item item {
+            type AxiomItem;
+        }
+    }
+
+    // Axiom Schema
+
+    type AxiomBaseDefinition {
+        argument name;
+
+        item name {
+            type AxiomName;
+        }
+
+        item documentation {
+            type string;
+        }
+
+        item since {
+            type SemanticVersion;
+        }
+
+        item status {
+            type string;
+            documentation """
+                Status of definition, could be experimental, stable, deprecated.
+              """;
+        }
+    }
+
+    type AxiomIdentifierDefinition {
+         argument key;
+         item key {
+            type AxiomName;
+            minOccurs "1";
+         }
+    }
+
+    type AxiomTypeDefinition {
+        supertype AxiomBaseDefinition;
+        documentation """
+            Definition of value type.
+
+            Defines type name, type supertype and set of value items.
+        """;
+
+        item argument {
+            type AxiomName;
+            documentation """
+                Name of item, which is target of short-form value declaration.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+        }
+
+        // FIXME: should be inherit
+        item supertype {
+            type AxiomTypeReference;
+            documentation """
+                Reference to super type definition, which is subtyped by this type.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+        }
+
+        // FIXME: should be use
+        item uses {
+            type AxiomTypeReference;
+            documentation """
+                Reference to mixin, from which this type definition reuses item definitions.
+            """;
+            minOccurs 0;
+        }
+
+        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
+        item itemName {
+            type AxiomName;
+        }
+
+        item item {
+            type AxiomItemDefinition;
+            identifier name;
+            documentation """
+                Definition of child items
+            """;
+            minOccurs 0;
+        }
+
+    }
+
+    type AxiomItemDefinition {
+        supertype AxiomBaseDefinition;
+
+        item identifier {
+            type AxiomIdentifierDefinition;
+            documentation """
+                Definition of value identifier for this item.
+            """;
+            minOccurs 0;
+        }
+
+        item type {
+            type AxiomTypeReference;
+            documentation """
+                Value type.
+                item minOccurs {
+
+                All values must be instances or referenced type or it's subtypes.
+            """;
+            minOccurs 1;
+            maxOccurs 1;
+        }
+
+        item minOccurs {
+            type string;
+            documentation """
+                Declares minimum count of values required for this item.
+            """;
+        }
+
+        item maxOccurs {
+            type string;
+            documentation """
+                Declares maximum possible count of values for this item.
+            """;
+        }
+
+        item operational {
+            type boolean;
+            documentation """
+                Marks if data are operational (provided by system).
+            """;
+        }
+
+        item inherited {
+            type boolean;
+            operational true;
+        }
+
+        item default {
+          type anyType; // This should somehow be same type as value of type
+          documentation """
+            Declares default value for item.
+          """;
+          minOccurs 0;
+          maxOccurs 1;
+        }
+
+        item infra {
+          type InfraSpecification;
+          //default {
+          //  value AxiomValue;
+          //  item AxiomItem;
+          //}
+        }
+    }
+
+    type AxiomRootDefinition {
+        supertype AxiomItemDefinition;
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
+    }
+
+    // Axiom Model?
+
+    type AxiomModel {
+        supertype AxiomBaseDefinition;
+
+        item namespace {
+            type string;
+            documentation """
+                Namespace of model.
+            """;
+        }
+
+        item version {
+            type SemanticVersion;
+            documentation """
+                Version of model.
+
+                Model versioning follows Semantic Versioning 2.0.
+            """;
+        }
+
+        item import {
+            type AxiomImportDeclaration;
+            documentation """
+                Declaration of model imports.
+
+                Type definitions from imported models are referencable and
+                visible to all definition contained in this model.
+            """;
+        }
+
+        item root {
+            documentation """
+                Defines allowed root type for value serialization / deserialization.
+            """;
+            type AxiomRootDefinition;
+        }
+
+        item type {
+            type AxiomTypeDefinition;
+            documentation """
+                Declaration of a type. This type is visible to models
+                importing parent model namespace.
+            """;
+        }
+
+        item mixin {
+            type AxiomMixinDefinition;
+            documentation """
+                Declaration of mixin, a set of reusable item
+                definitions, which can be used in type definitions.
+            """;
+        }
+
+        // FIXME: should be augmentation
+        item augmentation {
+            type AxiomAugmentationDefinition;
+            documentation """
+                Declaration of augmentation. Augmentation adds new items
+                to already existing type, which can be defined in other
+                models (namespaces).
+            """;
+        }
+
+        item metadata {
+          type AxiomMetadataDefinition;
+        }
+    }
+
+    type AxiomImportDeclaration {
+        argument namespace;
+
+        item prefix {
+            type AxiomName;
+        }
+
+        item namespace {
+            type string;
+        }
+    }
+
+    type InfraSpecification {
+      item value {
+        type AxiomTypeReference;
+        //  default AxiomValue;
+      }
+      item item {
+        type AxiomTypeReference;
+        //  default AxiomItem;
+      }
+    }
+
+    type AxiomTypeReference {
+        documentation """
+            Reference to type definition.
+
+            Referenced type definition is referenced by it's fully qualified
+            (namespace and local name).
+        """;
+        argument name;
+
+        item name {
+            type AxiomName;
+            documentation """
+                Name of referenced type definition.
+                The value must be name of existing type definition, which is
+                available (visible) to model using this type reference.
+            """;
+            minOccurs 1;
+            maxOccurs 1;
+        }
+        item target {
+            type AxiomTypeDefinition;
+            documentation """
+                Referenced Type Definition.
+
+                The value is resolved operational definition of referenced type.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+            operational true;
+        }
+    }
+
+    type AxiomMixinDefinition {
+        supertype AxiomTypeDefinition;
+    }
+
+    type AxiomAugmentationDefinition {
+        supertype AxiomMixinDefinition;
+        item target {
+            type AxiomTypeReference;
+        }
+    }
+
+    type AxiomMetadataDefinition {
+      supertype AxiomTypeDefinition;
+      //item itemName {
+      //    type AxiomName;
+      //}
+      // TODO: Add limits for specific types
+    }
+
+}

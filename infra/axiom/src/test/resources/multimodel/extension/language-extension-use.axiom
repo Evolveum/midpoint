@@ -1,0 +1,25 @@
+model language-extension-use {
+
+    namespace "https://example.org";
+
+    import "https://example.org/extension" {
+        prefix storage;
+    }
+
+    type Address {
+        item street {
+            type string;
+        }
+        storage:type embedded;
+    }
+
+    type Person {
+        item name {
+            type string;
+        }
+        item address {
+            type Address;
+        }
+        storage:type table;
+    }
+}

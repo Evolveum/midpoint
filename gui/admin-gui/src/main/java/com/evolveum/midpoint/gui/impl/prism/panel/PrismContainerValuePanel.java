@@ -131,7 +131,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     }
 
     protected LoadableDetachableModel<String> getLabelModel() {
-        return getPageBase().createStringResource(getModel().getObject().getDisplayName());
+        return getPageBase().createStringResource("${displayName}", getModel());
     }
 
     @Override
@@ -338,7 +338,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     private void initButtons(WebMarkupContainer header) {
         header.add(createExpandCollapseButton());
-        header.add(createMetadataButton());
+//        header.add(createMetadataButton());
         header.add(createSortButton());
         header.add(createAddMoreButton());
     }
@@ -360,29 +360,29 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return help;
     }
 
-    private ToggleIconButton<String> createMetadataButton() {
-        ToggleIconButton<String> showMetadataButton = new ToggleIconButton<String>(ID_SHOW_METADATA,
-                GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onShowMetadataClicked(target);
-            }
-
-            @Override
-            public boolean isOn() {
-                return PrismContainerValuePanel.this.getModelObject().isShowMetadata();
-            }
-
-
-        };
-        showMetadataButton.add(new AttributeModifier("title", new StringResourceModel("PrismContainerValuePanel.showMetadata.${showMetadata}", getModel())));
-        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject().hasMetadata() && shouldBeButtonsShown()));
-        showMetadataButton.setOutputMarkupId(true);
-        showMetadataButton.setOutputMarkupPlaceholderTag(true);
-        return showMetadataButton;
-    }
+//    private ToggleIconButton<String> createMetadataButton() {
+//        ToggleIconButton<String> showMetadataButton = new ToggleIconButton<String>(ID_SHOW_METADATA,
+//                GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                onShowMetadataClicked(target);
+//            }
+//
+//            @Override
+//            public boolean isOn() {
+//                return PrismContainerValuePanel.this.getModelObject().isShowMetadata();
+//            }
+//
+//
+//        };
+//        showMetadataButton.add(new AttributeModifier("title", new StringResourceModel("PrismContainerValuePanel.showMetadata.${showMetadata}", getModel())));
+//        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject().hasMetadata() && shouldBeButtonsShown()));
+//        showMetadataButton.setOutputMarkupId(true);
+//        showMetadataButton.setOutputMarkupPlaceholderTag(true);
+//        return showMetadataButton;
+//    }
 
     private ToggleIconButton<String> createSortButton() {
         ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
@@ -494,11 +494,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         refreshPanel(target);
     }
 
-    private void onShowMetadataClicked(AjaxRequestTarget target) {
-        CVW wrapper = getModelObject();
-        wrapper.setShowMetadata(!wrapper.isShowMetadata());
-        refreshPanel(target);
-    }
+//    private void onShowMetadataClicked(AjaxRequestTarget target) {
+//        CVW wrapper = getModelObject();
+//        wrapper.setShowMetadata(!wrapper.isShowMetadata());
+//        refreshPanel(target);
+//    }
 
 
     private void refreshPanel(AjaxRequestTarget target) {

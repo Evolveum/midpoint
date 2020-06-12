@@ -1,0 +1,22 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+
+// This is "common-core.axiom" file containing core definitions from the common-3 namespace.
+// Due to its size the common-3 schema is distributed across multiple files.
+
+model axiom-base-types {
+
+    namespace "https://schema.evolveum.com/ns/axiom/model";
+    version "0.1.0";
+
+    type string;
+    type boolean;
+    type uri;
+    type int;
+    type binary;
+    type dateTime;
+
+    type anyType;
+}

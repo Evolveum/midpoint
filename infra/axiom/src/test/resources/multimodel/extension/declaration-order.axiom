@@ -1,0 +1,17 @@
+model test-person {
+
+    namespace "https://example.org";
+
+    type Person {
+        item name {
+            type string;
+        }
+    }
+    
+    augmentation PersonExtension {
+        target Person;
+        item fullName {
+            type string;
+        }
+    }
+}

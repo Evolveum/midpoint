@@ -1,0 +1,76 @@
+model prism {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
+
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
+    }
+
+    root model {
+        type PrismModel;
+    }
+
+    augmentation PrismModelExtension {
+      target axiom:AxiomModel;
+
+      item object {
+          type PrismObjectDefinition;
+      }
+
+      item container {
+          type PrismContainerDefinition;
+      }
+
+      item reference {
+          type PrismReferenceDefinition;
+      }
+    }
+
+    type PrismModel {
+        supertype axiom:AxiomModel;
+        item type { // {}:type
+          type PrismTypeDefinition;
+        }
+    }
+
+    augmentation PrismTypeDefinitionAnnotation {
+        target axiom:AxiomTypeDefinition;
+        // TODO move to prism schema
+        item object {
+            type boolean;
+        }
+
+        // TODO move to prism schema
+        item container {
+            type boolean;
+        }
+        // TODO move to prism schema
+        item objectReference {
+            type boolean;
+        }
+        item itemName {
+            type axiom:AxiomName;
+        }
+    }
+
+    type PrismTypeDefinition {
+      supertype axiom:AxiomTypeDefinition;
+    }
+
+    type PrismObjectDefinition {
+        supertype PrismTypeDefinition;
+    }
+
+    type PrismContainerDefinition {
+        supertype PrismTypeDefinition;
+    }
+
+    type PrismReferenceDefinition {
+        supertype PrismTypeDefinition;
+    }
+
+    type PrismItemDefinition {
+        supertype PrismTypeDefinition;
+    }
+
+}

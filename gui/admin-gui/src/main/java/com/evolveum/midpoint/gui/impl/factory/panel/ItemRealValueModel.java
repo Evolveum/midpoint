@@ -17,7 +17,7 @@ public class ItemRealValueModel<T> extends PropertyModel<T>{
     private static final long serialVersionUID = 1L;
 
 
-    public ItemRealValueModel(IModel<? extends PrismValueWrapper<T,?>> modelObject) {
+    public ItemRealValueModel(IModel<? extends PrismValueWrapper<T>> modelObject) {
         super(modelObject, "realValue");
     }
 

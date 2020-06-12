@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
@@ -80,11 +81,10 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
                 LOGGER.trace("Query {} resulted in {} containers", type.getSimpleName(), list.size());
             }
 
-            PrismContainerWrapperFactoryImpl containerFactory = new PrismContainerWrapperFactoryImpl();
-
             for (C object : list) {
                 WrapperContext context = new WrapperContext(task, result);
-                getAvailableData().add(containerFactory.createContainerValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
+                PrismContainerWrapperFactory<C> factory = getPage().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
+                getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);

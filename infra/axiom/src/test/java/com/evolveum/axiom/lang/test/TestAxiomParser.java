@@ -10,45 +10,26 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
-
-import com.evolveum.axiom.api.AxiomIdentifier;
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.AxiomItemDefinition;
-import com.evolveum.axiom.lang.api.AxiomSchemaContext;
-import com.evolveum.axiom.lang.api.AxiomTypeDefinition;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomSchemaContext;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
-
-import com.evolveum.axiom.lang.impl.AxiomStatementSource;
-
-import com.evolveum.axiom.lang.impl.AxiomSyntaxException;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
-import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
-public class TestAxiomParser extends AbstractUnitTest {
+public class TestAxiomParser extends AbstractReactorTest {
 
-    private static final String COMMON_DIR_PATH = "src/test/resources/";
     private static final String BASE_EXAMPLE = "base-example.axiom";
     private static final String COMMON_CORE = "common-core.axiom";
     private static final String SCRIPTING = "scripting.axiom";
-    private static final String AXIOM_BUILTIN_TYPES = "axiom-base-types.axiom";
-    private static final Lazy<AxiomStatementSource> AXIOM_TYPES_SCHEMA = Lazy.from(() -> {
-        try {
-            InputStream stream = new FileInputStream(COMMON_DIR_PATH + AXIOM_BUILTIN_TYPES);
-            return AxiomStatementSource.from(AXIOM_BUILTIN_TYPES, stream);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    });
+
+
 
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
@@ -62,9 +43,9 @@ public class TestAxiomParser extends AbstractUnitTest {
         // Default reactor has Axiom model already loaded
         ModelReactorContext folowupContext = ModelReactorContext.reactor(modelContext);
         //folowupContext.loadModelFromSource(statementSource);
-        AxiomSchemaContext selfparsedContext = bootstrapContext.computeSchemaContext();
+        AxiomSchemaContext selfparsedContext = folowupContext.computeSchemaContext();
         assertNotNull(selfparsedContext.getRoot(Item.MODEL_DEFINITION.name()));
-        assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().item(Item.ID_MEMBER.name()).get().required());
+        assertTrue(selfparsedContext.getType(Type.IDENTIFIER_DEFINITION.name()).get().itemDefinition(Item.ID_MEMBER.name()).get().required());
     }
 
 
@@ -74,42 +55,8 @@ public class TestAxiomParser extends AbstractUnitTest {
         assertEquals(typeDef.superType().get().name(), Type.BASE_DEFINITION.name());
     }
 
-
     private void assertInstanceOf(Class<?> clz, Object value) {
         assertTrue(clz.isInstance(value));
     }
-
-    @Test
-    public void moduleHeaderTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(BASE_EXAMPLE);
-        assertNotNull(context.getType(AxiomIdentifier.axiom("Example")).get());
-    }
-
-    @Test
-    public void commonCoreTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(COMMON_CORE);
-    }
-
-    @Test
-    public void scriptingTest() throws IOException, AxiomSyntaxException {
-        AxiomSchemaContext context = parseFile(SCRIPTING);
-    }
-
-    private AxiomSchemaContext parseFile(String name) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        return parseInputStream(name, new FileInputStream(COMMON_DIR_PATH + name));
-    }
-
-    private AxiomSchemaContext parseInputStream(String name, InputStream stream) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        return parseInputStream(name, stream, AxiomBuiltIn.Item.MODEL_DEFINITION);
-    }
-
-    private AxiomSchemaContext parseInputStream(String name, InputStream stream, AxiomItemDefinition rootItemDefinition) throws AxiomSyntaxException, FileNotFoundException, IOException {
-        ModelReactorContext reactorContext =ModelReactorContext.defaultReactor();
-        AxiomStatementSource statementSource = AxiomStatementSource.from(name, stream);
-        reactorContext.loadModelFromSource(statementSource);
-        reactorContext.loadModelFromSource(AXIOM_TYPES_SCHEMA.get());
-        return reactorContext.computeSchemaContext();
-    }
-
 
 }

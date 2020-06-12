@@ -29,7 +29,7 @@ import com.evolveum.midpoint.web.model.PrismReferenceWrapperModel;
 /**
  * @author skublik
  */
-public class PrismReferenceWrapperColumn<C extends Containerable, R extends Referencable> extends AbstractItemWrapperColumn<C, PrismValueWrapper<R, PrismReferenceValue>> {
+public class PrismReferenceWrapperColumn<C extends Containerable, R extends Referencable> extends AbstractItemWrapperColumn<C, PrismValueWrapper<R>> {
 
     private static final long serialVersionUID = 1L;
 

@@ -11,17 +11,18 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomIdentifier;
+import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.axiom.concepts.Lazy.Supplier;
-import com.evolveum.axiom.lang.api.stmt.AxiomStatement;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.ImmutableSet;
 
 public class AxiomBuiltIn {
 
-    public static final Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> EMPTY = Lazy.instant(ImmutableMap.of());
+    public static final Lazy<Map<AxiomName, AxiomItemDefinition>> EMPTY = Lazy.instant(ImmutableMap.of());
     public static final Lazy<AxiomItemDefinition> NO_ARGUMENT = Lazy.nullValue();
 
 
@@ -29,7 +30,9 @@ public class AxiomBuiltIn {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static class Item implements AxiomItemDefinition, AxiomStatement<AxiomIdentifier> {
+
+
+    public static class Item implements AxiomItemDefinition {
         public static final Item NAME = new Item("name", Type.IDENTIFIER, true);
         public static final Item ARGUMENT = new Item("argument", Type.IDENTIFIER, false);
         public static final AxiomItemDefinition DOCUMENTATION = new Item("documentation", Type.STRING, true);
@@ -37,13 +40,21 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition VERSION = new Item("version", Type.STRING, true);
         public static final AxiomItemDefinition TYPE_REFERENCE = new Item("type", Type.TYPE_REFERENCE, true);
         public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
-        public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("extends", Type.TYPE_REFERENCE, false);
+
+        public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("supertype", Type.TYPE_REFERENCE, false);
         public static final Item ROOT_DEFINITION = new Item("root", Type.ROOT_DEFINITION, false);
-        public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false);
+        public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false) {
+
+            @Override
+            public Optional<AxiomIdentifierDefinition> identifierDefinition() {
+                return Optional.of(NAME_IDENTIFIER.get());
+            }
+        };
         public static final Item MODEL_DEFINITION = new Item("model", Type.MODEL, false);
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
         public static final AxiomItemDefinition TARGET_TYPE = new Item("targetType", Type.IDENTIFIER, true);
+        public static final AxiomItemDefinition OPERATIONAL = new Item("operational", Type.IDENTIFIER, true);
 
         public static final AxiomItemDefinition IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
 
@@ -51,20 +62,33 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition ID_SCOPE = new Item("scope", Type.STRING, false);
         public static final AxiomItemDefinition ID_SPACE = new Item("space", Type.IDENTIFIER, false);
 
+        public static final AxiomItemDefinition TARGET = new Item("target", Type.TYPE_REFERENCE, true);
+        public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
+        public static final AxiomItemDefinition USES = new Item("uses", Type.TYPE_REFERENCE, true);
 
-        private final AxiomIdentifier identifier;
+        public static final AxiomItemDefinition VALUE = new Item("value", null, true);
+
+        protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
+                ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
+
+        private final AxiomName identifier;
         private final AxiomTypeDefinition type;
         private boolean required;
 
 
         private Item(String identifier, AxiomTypeDefinition type, boolean required) {
-            this.identifier = AxiomIdentifier.axiom(identifier);
+            this.identifier = AxiomName.axiom(identifier);
             this.type = type;
             this.required = required;
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public Optional<AxiomTypeDefinition> type() {
+            return Optional.of(type);
+        }
+
+        @Override
+        public AxiomName name() {
             return identifier;
         }
 
@@ -75,7 +99,7 @@ public class AxiomBuiltIn {
 
 
         @Override
-        public AxiomTypeDefinition type() {
+        public AxiomTypeDefinition typeDefinition() {
             return type;
         }
 
@@ -85,35 +109,55 @@ public class AxiomBuiltIn {
         }
 
         @Override
+        public int minOccurs() {
+            return 0;
+        }
+
+        @Override
+        public boolean operational() {
+            return false;
+        }
+
+        @Override
+        public int maxOccurs() {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
         public String toString() {
             return AxiomItemDefinition.toString(this);
         }
 
         @Override
-        public Collection<AxiomStatement<?>> children() {
+        public AxiomTypeDefinition definingType() {
             return null;
         }
 
         @Override
-        public Collection<AxiomStatement<?>> children(AxiomIdentifier name) {
+        public Optional<AxiomIdentifierDefinition> identifierDefinition() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> itemMap() {
             return null;
         }
 
         @Override
-        public AxiomIdentifier keyword() {
+        public Map<AxiomName, AxiomItem<?>> infraItems() {
             return null;
-        }
-        @Override
-        public AxiomIdentifier value() {
-            return identifier;
         }
     }
 
     public static class Type implements AxiomTypeDefinition {
         public static final Type UUID = new Type("uuid");
         public static final Type STRING = new Type("string");
-        public static final Type IDENTIFIER = new Type("AxiomIdentifier");
-        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference");
+        public static final Type IDENTIFIER = new Type("AxiomName");
+
+        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference", null, () -> Item.NAME, () -> itemDefs(
+                    Item.NAME,
+                    Item.REF_TARGET
+                ));
         public static final Type BASE_DEFINITION =
                 new Type("AxiomBaseDefinition", null, () -> Item.NAME, () -> itemDefs(
                         Item.NAME,
@@ -132,48 +176,21 @@ public class AxiomBuiltIn {
         public static final Type TYPE_DEFINITION =
                 new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.ARGUMENT,
-                    Item.IDENTIFIER_DEFINITION,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION
-                )) {
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
-                return TYPE_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> TYPE_IDENTIFIER_DEFINITION = Lazy.from(()->
-            ImmutableSet.of(AxiomIdentifierDefinition.global(TYPE_DEFINITION.name(), Item.NAME)));
+                ));
 
 
         public static final Type ITEM_DEFINITION =
                 new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.TYPE_REFERENCE,
+                    Item.IDENTIFIER_DEFINITION,
                     Item.MIN_OCCURS,
-                    Item.MAX_OCCURS
-                )) {
+                    Item.MAX_OCCURS,
+                    Item.OPERATIONAL
+                ));
 
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
-                return ITEM_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        public static final Type ROOT_DEFINITION =
-                new Type("AxiomRootDefinition", ITEM_DEFINITION, () -> itemDefs()) {
-
-            @Override
-            public Collection<AxiomIdentifierDefinition> identifiers() {
-                return ROOT_IDENTIFIER_DEFINITION.get();
-            }
-        };
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> ITEM_IDENTIFIER_DEFINITION = Lazy.from(()->
-        ImmutableSet.of(AxiomIdentifierDefinition.local(ITEM_DEFINITION.name(), Item.NAME)));
-
-        protected static final Lazy<Collection<AxiomIdentifierDefinition>> ROOT_IDENTIFIER_DEFINITION = Lazy.from(()->
-        ImmutableSet.of(AxiomIdentifierDefinition.global(AxiomItemDefinition.ROOT_SPACE, Item.NAME)));
-
+        public static final Type ROOT_DEFINITION = new Type("AxiomRootDefinition", ITEM_DEFINITION);
 
         public static final Type IDENTIFIER_DEFINITION =
                 new Type("AxiomIdentifierDefinition", BASE_DEFINITION, () -> Item.ID_MEMBER, () -> itemDefs(
@@ -181,40 +198,52 @@ public class AxiomBuiltIn {
                     Item.ID_SCOPE,
                     Item.ID_SPACE
                 ));
-        private final AxiomIdentifier identifier;
+        public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
+        public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition",TYPE_DEFINITION);
+
+        public static final Type AXIOM_VALUE = new Type("AxiomValue", null, () -> itemDefs(
+                Item.TYPE_REFERENCE,
+                Item.VALUE
+                ));
+
+        private final AxiomName identifier;
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;
-        private final Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> items;
+        private final Lazy<Map<AxiomName, AxiomItemDefinition>> items;
 
 
         private Type(String identifier) {
             this(identifier, null, Lazy.nullValue(), EMPTY);
         }
 
-        private Type(String identifier, Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+        private Type(String identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, null, Lazy.nullValue(), Lazy.from(items));
         }
 
-        private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+        private Type(String identifier, AxiomTypeDefinition superType) {
+            this(identifier, superType, NO_ARGUMENT, EMPTY);
+        }
+
+        private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, superType, NO_ARGUMENT, Lazy.from(items));
         }
 
 
         private Type(String identifier, AxiomTypeDefinition superType, Lazy.Supplier<AxiomItemDefinition> argument,
-                Lazy.Supplier<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
+                Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, superType, Lazy.from(argument), Lazy.from(items));
         }
 
         private Type(String identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
-                Lazy<Map<AxiomIdentifier, AxiomItemDefinition>> items) {
-            this.identifier = AxiomIdentifier.axiom(identifier);
+                Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
+            this.identifier = AxiomName.axiom(identifier);
             this.argument = argument;
             this.superType = superType;
             this.items = items;
         }
 
         @Override
-        public AxiomIdentifier name() {
+        public AxiomName name() {
             return identifier;
         }
 
@@ -229,12 +258,12 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomIdentifier, AxiomItemDefinition> items() {
+        public Map<AxiomName, AxiomItemDefinition> itemDefinitions() {
             return items.get();
         }
 
-        private static Map<AxiomIdentifier, AxiomItemDefinition> itemDefs(AxiomItemDefinition... items) {
-            Builder<AxiomIdentifier, AxiomItemDefinition> builder = ImmutableMap.builder();
+        private static Map<AxiomName, AxiomItemDefinition> itemDefs(AxiomItemDefinition... items) {
+            Builder<AxiomName, AxiomItemDefinition> builder = ImmutableMap.builder();
 
             for (AxiomItemDefinition item : items) {
                 builder.put(item.name(), item);
@@ -243,7 +272,7 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Collection<AxiomIdentifierDefinition> identifiers() {
+        public Collection<AxiomIdentifierDefinition> identifierDefinitions() {
             return Collections.emptyList();
         }
 
@@ -258,6 +287,29 @@ public class AxiomBuiltIn {
             return Optional.empty();
         }
 
+        @Override
+        public String toString() {
+            // TODO Auto-generated method stub
+            return "typedef " + name();
+        }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> itemMap() {
+            return null;
+        }
+
+        @Override
+        public boolean isComplex() {
+            if(superType != null && superType.isComplex()) {
+                return true;
+            }
+            return !itemDefinitions().isEmpty();
+        }
+
+        @Override
+        public Map<AxiomName, AxiomItem<?>> infraItems() {
+            return null;
+        }
     }
 
 
