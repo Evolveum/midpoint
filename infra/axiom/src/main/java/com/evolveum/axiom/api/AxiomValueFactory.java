@@ -6,7 +6,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 public interface AxiomValueFactory<V> {
 
-    AxiomValueFactory<Object> DEFAULT_FACTORY = new AxiomValueFactory<>() {
+    AxiomValueFactory<Object> DEFAULT_FACTORY = new AxiomValueFactory<Object>() {
 
         @Override
         public AxiomComplexValue createComplex(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> items,

@@ -125,7 +125,7 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
                         }
                         return ItemVisibility.AUTO;
                     });
-                    return new PrismContainerValuePanel<>(panelId, getModel(), s) {
+                    return new PrismContainerValuePanel(panelId, getModel(), s) {
 
                     };
                 }
