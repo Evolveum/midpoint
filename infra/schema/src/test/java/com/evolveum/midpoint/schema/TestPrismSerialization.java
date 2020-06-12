@@ -8,11 +8,9 @@ package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
+import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.testng.annotations.Test;
 
@@ -24,7 +22,10 @@ import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.CheckedConsumer;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -35,6 +36,10 @@ import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
  * (This is, in fact, a simplification of complex parse-serialize-parse tests.)
  */
 public class TestPrismSerialization extends AbstractSchemaTest {
+
+    private static final File TEST_DIR = new File("src/test/resources/serialization");
+
+    private static final File ROLE_WITH_RAW_PATH_FILE = new File(TEST_DIR, "role-with-raw-path.xml");
 
     @Test
     public void testSerializeTrace() throws Exception {
@@ -142,12 +147,39 @@ public class TestPrismSerialization extends AbstractSchemaTest {
                 .asItemDeltas();
 
         ItemDeltaCollectionsUtil.applyTo(deltas2, collection.asPrismObject());
-        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_XML);
-        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_JSON);
-        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_YAML);
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_XML, null);
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_JSON, null);
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_YAML, null);
     }
 
-    private void checkRoundTrip(PrismObject<?> prismObject, String language) throws SchemaException {
+    /**
+     * Another issue with item path serialization. If the namespace prefix is defined in upper
+     * parts of the DOM tree, serializer does not see it.
+     *
+     * MID-6321
+     */
+    @Test(enabled = false)
+    public void testSerializeRawItemPathWithPrefix() throws Exception {
+        PrismContext prismContext = getPrismContext();
+
+        PrismObject<RoleType> role = prismContext.parserFor(ROLE_WITH_RAW_PATH_FILE).parse();
+
+        displayValue("Role", role);
+        SearchFilterType filterBean = role.asObjectable().getAssignment().get(0).getTargetRef().getFilter();
+        displayValue("Filter", filterBean);
+
+        checkRoundTrip(role, PrismContext.LANG_XML, this::checkPath);
+        checkRoundTrip(role, PrismContext.LANG_JSON, this::checkPath);
+        checkRoundTrip(role, PrismContext.LANG_YAML, this::checkPath);
+    }
+
+    private void checkPath(PrismObject<?> role) throws SchemaException {
+        SearchFilterType filterBean = ((RoleType) role.asObjectable()).getAssignment().get(0).getTargetRef().getFilter();
+        ObjectFilter filter = getPrismContext().getQueryConverter().parseFilter(filterBean, RoleType.class);
+        System.out.println("Filter: " + filter);
+    }
+
+    private void checkRoundTrip(PrismObject<?> prismObject, String language, CheckedConsumer<PrismObject<?>> consumer) throws CommonException {
         PrismContext prismContext = getPrismContext();
 
         String serialized = prismContext.serializerFor(language).serialize(prismObject);
@@ -155,5 +187,9 @@ public class TestPrismSerialization extends AbstractSchemaTest {
 
         PrismObject<?> reparsed = prismContext.parserFor(serialized).language(language).parse();
         displayValue("Re-parsed", reparsed);
+
+        if (consumer != null) {
+            consumer.accept(reparsed);
+        }
     }
 }
