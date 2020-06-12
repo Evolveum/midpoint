@@ -4345,7 +4345,7 @@
                                 </p>
                                 <p>
                                 Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
-                                a desired state of things (cf. linkRef).
+                                a desired state of things (cf. linkRef, roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4426,6 +4426,11 @@
                                   This is an operational property. It is set and managed by the system. It is used
                                   for efficient search of all current role members, e.g. for the purpose of displaying this
                                   information in the GUI.
+                                </p>
+                                <p>
+                                    Note: roleMembershipRef will be probably renamed to something like linkRef or
+                                    outboundLinkRef. We need to generalize it to contain information on generic links
+                                    between objects (e.g. between child and its parents).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4525,6 +4530,11 @@
                                 <p>
                                 Links define what the object HAS. The links reflect real state of things
                                 (cf. assignment).
+                                </p>
+                                <p>
+                                    Note: linkRef will be probably renamed to projectionRef or projectionLinkRef.
+                                    There are more kinds of links between objects than focus - projection links
+                                    (cf. roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
