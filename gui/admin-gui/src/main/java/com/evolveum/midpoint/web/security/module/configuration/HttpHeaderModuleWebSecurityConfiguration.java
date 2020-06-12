@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module.configuration;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleHttpHeaderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
 
 /**
  * @author skublik
@@ -30,7 +30,7 @@ public class HttpHeaderModuleWebSecurityConfiguration extends LoginFormModuleWeb
         this.principalRequestHeader = principalRequestHeader;
     }
 
-    public static HttpHeaderModuleWebSecurityConfiguration build(AuthenticationModuleHttpHeaderType module, String prefixOfSequence){
+    public static HttpHeaderModuleWebSecurityConfiguration build(HttpHeaderAuthenticationModuleType module, String prefixOfSequence){
         HttpHeaderModuleWebSecurityConfiguration configuration = new HttpHeaderModuleWebSecurityConfiguration();
         configuration.setDefaultSuccessLogoutURL(module.getLogoutUrl());
         build(configuration, module, prefixOfSequence);

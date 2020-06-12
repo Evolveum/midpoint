@@ -195,10 +195,10 @@ public class SecurityPolicyUtil {
         @NotNull PrismObject<SecurityPolicyType> secPolicy = secPolicyDef.instantiate();
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         AuthenticationModulesType modules = new AuthenticationModulesType();
-        AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
+        LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
         loginForm.name(DEFAULT_MODULE_NAME);
         modules.loginForm(loginForm);
-        AuthenticationModuleHttpBasicType httpBasic = new AuthenticationModuleHttpBasicType();
+        HttpBasicAuthenticationModuleType httpBasic = new HttpBasicAuthenticationModuleType();
         httpBasic.name(HTTP_BASIC_MODULE_NAME);
         modules.httpBasic(httpBasic);
         authenticationPolicy.setModules(modules);

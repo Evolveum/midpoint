@@ -27,7 +27,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleHttpSecQType) {
+        if (moduleType instanceof HttpSecQAuthenticationModuleType) {
             return true;
         }
         return false;

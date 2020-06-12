@@ -62,7 +62,7 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleSaml2Type) {
+        if (moduleType instanceof Saml2AuthenticationModuleType) {
             return true;
         }
         return false;
@@ -71,15 +71,15 @@ public class Saml2ModuleFactory extends AbstractModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
                                          Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
-        if (!(moduleType instanceof AuthenticationModuleSaml2Type)) {
-            LOGGER.error("This factory support only AuthenticationModuleSaml2Type, but modelType is " + moduleType);
+        if (!(moduleType instanceof Saml2AuthenticationModuleType)) {
+            LOGGER.error("This factory support only Saml2AuthenticationModuleType, but modelType is " + moduleType);
             return null;
         }
 
         isSupportedChannel(authenticationChannel);
 
         SamlModuleWebSecurityConfiguration.setProtector(protector);
-        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((AuthenticationModuleSaml2Type)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
+        SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((Saml2AuthenticationModuleType)moduleType, prefixOfSequence, getPublicUrlPrefix(request), request);
         configuration.setPrefixOfSequence(prefixOfSequence);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));
 //        MidpointSamlProviderServerBeanConfiguration beanConfiguration =getObjectObjectPostProcessor().postProcess(new MidpointSamlProviderServerBeanConfiguration(configuration));

@@ -128,7 +128,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
             AuthenticationSequenceType sequence = SecurityPolicyUtil.createPasswordResetSequence();
             Map<Class<? extends Object>, Object> sharedObjects = new HashMap<>();
             AuthenticationModulesType modules = new AuthenticationModulesType();
-            AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
+            LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
             loginForm.name(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
             modules.loginForm(loginForm);
             AuthModule authModule = null;

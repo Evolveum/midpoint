@@ -6,9 +6,10 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleOtherType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherAuthenticationModuleType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -31,7 +32,7 @@ public class OtherModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType module) {
-        if (module instanceof AuthenticationModuleOtherType) {
+        if (module instanceof OtherAuthenticationModuleType) {
             return true;
         }
 
@@ -43,12 +44,12 @@ public class OtherModuleFactory extends AbstractModuleFactory {
             Map<Class<?>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy,
             CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
 
-        if (!(module instanceof AuthenticationModuleOtherType)) {
-            LOGGER.error("This factory support only AuthenticationModuleOtherType, but module is " + module);
+        if (!(module instanceof OtherAuthenticationModuleType)) {
+            LOGGER.error("This factory support only OtherAuthenticationModuleType, but module is " + module);
             return null;
         }
 
-        AuthenticationModuleOtherType other = (AuthenticationModuleOtherType) module;
+        OtherAuthenticationModuleType other = (OtherAuthenticationModuleType) module;
 
         String factoryClass = other.getFactoryClass();
 
