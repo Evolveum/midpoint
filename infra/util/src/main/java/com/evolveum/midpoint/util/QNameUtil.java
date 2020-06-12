@@ -7,24 +7,25 @@
 
 package com.evolveum.midpoint.util;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * QName &lt;-&gt; URI conversion.
- *
+ * <p>
  * Very simplistic but better than nothing.
  *
  * @author semancik
@@ -46,7 +47,7 @@ public class QNameUtil {
 
     // ThreadLocal "safe mode" override for the above value (MID-2218)
     // This can be set to true for raw reads, allowing to manually fix broken objects
-    private static ThreadLocal<Boolean> temporarilyTolerateUndeclaredPrefixes = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> TEMPORARILY_TOLERATE_UNDECLARED_PREFIXES = new ThreadLocal<>();
 
     public static String qNameToUri(QName qname) {
         return qNameToUri(qname, true);
@@ -90,8 +91,8 @@ public class QNameUtil {
     }
 
     public static QName qualifyIfNeeded(QName name, String defaultNamespace) {
-        return hasNamespace(name) ?
-                name
+        return hasNamespace(name)
+                ? name
                 : new QName(defaultNamespace, name.getLocalPart());
     }
 
@@ -148,6 +149,7 @@ public class QNameUtil {
     public static class QNameInfo {
         @NotNull public final QName name;
         public final boolean explicitEmptyNamespace;
+
         private QNameInfo(@NotNull QName name, boolean explicitEmptyNamespace) {
             this.name = name;
             this.explicitEmptyNamespace = explicitEmptyNamespace;
@@ -175,16 +177,15 @@ public class QNameUtil {
         int index = uri.lastIndexOf("#");
         if (index != -1) {
             String ns = uri.substring(0, index);
-            String name = uri.substring(index+1);
+            String name = uri.substring(index + 1);
             return new QNameInfo(new QName(ns, name), "".equals(ns));
         }
         index = uri.lastIndexOf("/");
         // TODO check if this is still in the path section, e.g.
-        // if the matched slash is not a beginning of authority
-        // section
+        // if the matched slash is not a beginning of authority section
         if (index != -1) {
             String ns = uri.substring(0, index);
-            String name = uri.substring(index+1);
+            String name = uri.substring(index + 1);
             return new QNameInfo(new QName(ns, name), "".equals(ns));
         }
         if (allowUnqualified) {
@@ -195,7 +196,7 @@ public class QNameUtil {
     }
 
     public static QName getNodeQName(Node node) {
-        return new QName(node.getNamespaceURI(),node.getLocalName());
+        return new QName(node.getNamespaceURI(), node.getLocalName());
     }
 
     public static boolean compareQName(QName qname, Node node) {
@@ -239,14 +240,11 @@ public class QNameUtil {
     }
 
     public static boolean unorderedCollectionMatch(Collection<QName> a, Collection<QName> b) {
-        return MiscUtil.unorderedCollectionCompare(a, b, new Comparator<QName>() {
-            @Override
-            public int compare(QName o1, QName o2) {
-                if (match(o1,o2)) {
-                    return 0;
-                } else {
-                    return 1;
-                }
+        return MiscUtil.unorderedCollectionCompare(a, b, (o1, o2) -> {
+            if (match(o1, o2)) {
+                return 0;
+            } else {
+                return 1;
             }
         });
     }
@@ -264,10 +262,10 @@ public class QNameUtil {
             return null;
         }
         QName found = null;
-        for (QName b: col) {
+        for (QName b : col) {
             if (match(a, b)) {
                 if (found != null) {
-                    throw new IllegalStateException("Found more than one suitable qnames( "+ found + b + ") for attribute: " + a);
+                    throw new IllegalStateException("Found more than one suitable qnames( " + found + b + ") for attribute: " + a);
                 }
                 found = b;
             }
@@ -313,15 +311,15 @@ public class QNameUtil {
     }
 
     public static void setTemporarilyTolerateUndeclaredPrefixes(Boolean value) {
-        temporarilyTolerateUndeclaredPrefixes.set(value);
+        TEMPORARILY_TOLERATE_UNDECLARED_PREFIXES.set(value);
     }
 
     public static void reportUndeclaredNamespacePrefix(String prefix, String context) {
-        if (tolerateUndeclaredPrefixes ||
-                (temporarilyTolerateUndeclaredPrefixes != null && Boolean.TRUE.equals(temporarilyTolerateUndeclaredPrefixes.get()))) {
-            LOGGER.error("Undeclared namespace prefix '" + prefix+"' in '"+context+"'.");
+        if (tolerateUndeclaredPrefixes
+                || Boolean.TRUE.equals(TEMPORARILY_TOLERATE_UNDECLARED_PREFIXES.get())) {
+            LOGGER.error("Undeclared namespace prefix '" + prefix + "' in '" + context + "'.");
         } else {
-            throw new IllegalArgumentException("Undeclared namespace prefix '"+prefix+"' in '"+context+"'");
+            throw new IllegalArgumentException("Undeclared namespace prefix '" + prefix + "' in '" + context + "'");
         }
     }
 
@@ -360,7 +358,7 @@ public class QNameUtil {
         if (array == null) {
             return false;
         }
-        for (QName element: array) {
+        for (QName element : array) {
             if (match(qname, element)) {
                 return true;
             }
@@ -379,7 +377,7 @@ public class QNameUtil {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < name.length(); i++) {
             char ch = name.charAt(i);
-            if (allowed(ch, i==0)) {
+            if (allowed(ch, i == 0)) {
                 sb.append(ch);
             } else {
                 sb.append("_x").append(Long.toHexString(ch));
