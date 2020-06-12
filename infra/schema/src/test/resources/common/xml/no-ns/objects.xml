@@ -16,4 +16,14 @@
     <role>
         <name>r1</name>
     </role>
+    <objectCollection>
+        <name>oc</name>
+        <type>UserType</type>
+        <filter>
+            <equal>
+                <path>costCenter</path>
+                <value>100</value>
+            </equal>
+        </filter>
+    </objectCollection>
 </objects>

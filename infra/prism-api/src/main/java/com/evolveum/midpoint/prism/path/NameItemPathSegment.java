@@ -24,10 +24,6 @@ public class NameItemPathSegment extends ItemPathSegment {
         this.name = ItemName.fromQName(name);
     }
 
-    public NameItemPathSegment(@NotNull QName name, boolean isVariable) {
-        this.name = ItemName.fromQName(name);
-    }
-
     @NotNull
     public ItemName getName() {
         return name;

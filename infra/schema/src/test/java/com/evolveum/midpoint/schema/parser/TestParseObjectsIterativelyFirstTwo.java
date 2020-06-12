@@ -57,6 +57,7 @@ public class TestParseObjectsIterativelyFirstTwo extends AbstractParserTest {
         assertEquals("Wrong class of object 2", UserType.class, objects.get(1).asObjectable().getClass());
 
         List<PrismObject<?>> objectsStandard = prismContext.parserFor(getFile()).parseObjects();
+        objectsStandard.remove(3);
         objectsStandard.remove(2);
         assertEquals("Objects are different if read in a standard way", objectsStandard, objects);
     }

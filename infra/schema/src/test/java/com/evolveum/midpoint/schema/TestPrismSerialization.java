@@ -6,31 +6,40 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static org.testng.AssertJUnit.*;
-
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.io.File;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.SerializationUtil;
+import com.evolveum.midpoint.util.CheckedConsumer;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 
 /**
- * @author semancik
+ * Tests prism serialization of various objects.
+ * (This is, in fact, a simplification of complex parse-serialize-parse tests.)
  */
-public class TestSerialization extends AbstractSchemaTest {
+public class TestPrismSerialization extends AbstractSchemaTest {
+
+    private static final File TEST_DIR = new File("src/test/resources/serialization");
+
+    private static final File ROLE_WITH_RAW_PATH_FILE = new File(TEST_DIR, "role-with-raw-path.xml");
 
     @Test
     public void testSerializeTrace() throws Exception {
@@ -117,83 +126,70 @@ public class TestSerialization extends AbstractSchemaTest {
         System.out.println(xml);
     }
 
+    /**
+     * See MID-6320.
+     */
     @Test
-    public void testSerializeResource() throws Exception {
-        serializationRoundTrip(TestConstants.RESOURCE_FILE);
+    public void testSerializeObjectCollectionWithFilter() throws Exception {
+        PrismContext prismContext = getPrismContext();
+        ObjectCollectionType collection = new ObjectCollectionType(prismContext)
+                .name("collection")
+                .type(UserType.COMPLEX_TYPE);
+
+        ObjectFilter filter = prismContext.queryFor(UserType.class)
+                .item(UserType.F_COST_CENTER).eq("100")
+                .buildFilter();
+        SearchFilterType filterBean = prismContext.getQueryConverter().createSearchFilterType(filter);
+
+        List<ItemDelta<?, ?>> deltas2 = prismContext.deltaFor(ObjectCollectionType.class)
+                .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
+                .item(ObjectCollectionType.F_FILTER).replace(filterBean)
+                .asItemDeltas();
+
+        ItemDeltaCollectionsUtil.applyTo(deltas2, collection.asPrismObject());
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_XML, null);
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_JSON, null);
+        checkRoundTrip(collection.asPrismObject(), PrismContext.LANG_YAML, null);
     }
 
-    @Test
-    public void testSerializeUser() throws Exception {
-        serializationRoundTrip(TestConstants.USER_FILE);
-    }
-
-    @Test
-    public void testSerializeRole() throws Exception {
+    /**
+     * Another issue with item path serialization. If the namespace prefix is defined in upper
+     * parts of the DOM tree, serializer does not see it.
+     *
+     * MID-6321
+     */
+    @Test(enabled = false)
+    public void testSerializeRawItemPathWithPrefix() throws Exception {
         PrismContext prismContext = getPrismContext();
 
-        PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
+        PrismObject<RoleType> role = prismContext.parserFor(ROLE_WITH_RAW_PATH_FILE).parse();
 
-        System.out.println("Parsed object:");
-        System.out.println(parsedObject.debugDump(1));
+        displayValue("Role", role);
+        SearchFilterType filterBean = role.asObjectable().getAssignment().get(0).getTargetRef().getFilter();
+        displayValue("Filter", filterBean);
 
-        RoleType parsedRoleType = parsedObject.asObjectable();
-        AdminGuiConfigurationType adminGuiConfiguration = parsedRoleType.getAdminGuiConfiguration();
-        String defaultTimezone = adminGuiConfiguration.getDefaultTimezone();
-        assertEquals("Wrong defaultTimezone", "Europe/Bratislava", defaultTimezone);
-
-        // WHEN
-        serializationRoundTripPrismObject(parsedObject);
-        serializationRoundTripObjectType(parsedRoleType);
+        checkRoundTrip(role, PrismContext.LANG_XML, this::checkPath);
+        checkRoundTrip(role, PrismContext.LANG_JSON, this::checkPath);
+        checkRoundTrip(role, PrismContext.LANG_YAML, this::checkPath);
     }
 
-    private <O extends ObjectType> void serializationRoundTrip(File file) throws Exception {
+    private void checkPath(PrismObject<?> role) throws SchemaException {
+        SearchFilterType filterBean = ((RoleType) role.asObjectable()).getAssignment().get(0).getTargetRef().getFilter();
+        ObjectFilter filter = getPrismContext().getQueryConverter().parseFilter(filterBean, RoleType.class);
+        System.out.println("Filter: " + filter);
+    }
+
+    private void checkRoundTrip(PrismObject<?> prismObject, String language, CheckedConsumer<PrismObject<?>> consumer) throws CommonException {
         PrismContext prismContext = getPrismContext();
 
-        PrismObject<O> parsedObject = prismContext.parseObject(file);
+        String serialized = prismContext.serializerFor(language).serialize(prismObject);
+        displayValue("Serialized to " + language, serialized);
 
-        System.out.println("\nParsed object:");
-        System.out.println(parsedObject.debugDump());
+        PrismObject<?> reparsed = prismContext.parserFor(serialized).language(language).parse();
+        displayValue("Re-parsed", reparsed);
 
-        serializationRoundTripPrismObject(parsedObject);
-        serializationRoundTripObjectType(parsedObject.asObjectable());
+        if (consumer != null) {
+            consumer.accept(reparsed);
+        }
     }
-
-    private <O extends ObjectType> void serializationRoundTripPrismObject(PrismObject<O> parsedObject) throws Exception {
-
-        // WHEN
-        String serializedObject = SerializationUtil.toString(parsedObject);
-
-        // THEN
-        System.out.println("\nSerialized object:");
-        System.out.println(serializedObject);
-        PrismObject<O> deserializedObject = SerializationUtil.fromString(serializedObject);
-
-        System.out.println("\nDeserialized object (PrismObject):");
-        System.out.println(deserializedObject.debugDump());
-        deserializedObject.revive(getPrismContext());
-
-        ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
-        assertTrue("Something changed in serialization of " + parsedObject + " (PrismObject): " + diff, diff.isEmpty());
-
-        ItemDefinition nameDef = deserializedObject.getDefinition().findLocalItemDefinition(ObjectType.F_NAME);
-        assertNotNull("No 'name' definition in deserialized object", nameDef);
-    }
-
-    private <O extends ObjectType> void serializationRoundTripObjectType(O parsedObject) throws Exception {
-
-        // WHEN
-        String serializedObject = SerializationUtil.toString(parsedObject);
-
-        // THEN
-        O deserializedObject = SerializationUtil.fromString(serializedObject);
-
-        deserializedObject.asPrismObject().revive(getPrismContext());
-
-        System.out.println("Deserialized object (ObjectType):");
-        System.out.println(deserializedObject.asPrismObject().debugDump());
-
-        ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
-        assertTrue("Something changed in serializetion of " + parsedObject + " (ObjectType): " + diff, diff.isEmpty());
-    }
-
 }
