@@ -348,7 +348,8 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-                <a:since>4.1.1</a:since>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -362,6 +363,16 @@
     </xsd:complexType>
 
     <xsd:complexType name="OtherAuthenticationModuleParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="value" type="xsd:string"/>

@@ -20,10 +20,12 @@ import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
 import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Experimental
 public class OtherModuleAuthentication extends ModuleAuthentication {
 
     public OtherModuleAuthentication() {

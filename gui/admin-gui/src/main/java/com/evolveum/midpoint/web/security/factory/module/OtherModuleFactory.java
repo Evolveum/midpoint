@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthModule;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
@@ -20,6 +21,7 @@ import java.util.Map;
  * Created by Viliam Repan (lazyman).
  */
 @Component
+@Experimental
 public class OtherModuleFactory extends AbstractModuleFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(OtherModuleFactory.class);
