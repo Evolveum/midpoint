@@ -44,7 +44,7 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
                         sb.append(", ");
                     }
                     first = false;
-                    sb.append(moduleAuthentication.getNameOfModuleType().getName())
+                    sb.append(moduleAuthentication.getNameOfModuleType())
                             .append(" realm=\"").append(moduleAuthentication.getNameOfModule()).append("\"");
                 }
                 response.setHeader("WWW-Authenticate",sb.toString());

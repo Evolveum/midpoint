@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.web.security.util.IdentityProvider;
 import com.evolveum.midpoint.web.security.util.RequestState;
@@ -28,7 +28,7 @@ public class Saml2ModuleAuthentication extends ModuleAuthentication {
     private RequestState requestState;
 
     public Saml2ModuleAuthentication() {
-        super(NameOfModuleType.SAML_2);
+        super(AuthenticationModuleNameConstants.SAML_2);
         setType(ModuleType.REMOTE);
         setState(StateOfModule.LOGIN_PROCESSING);
     }

@@ -28,19 +28,19 @@ public class ModuleAuthentication {
 
     private String prefix;
 
-    private NameOfModuleType nameOfType;
+    private String nameOfType;
 
     private QName focusType;
 
     private boolean internalLogout = false;
 
-    public ModuleAuthentication(NameOfModuleType nameOfType) {
+    public ModuleAuthentication(String nameOfType) {
         Validate.notNull(nameOfType);
         this.nameOfType = nameOfType;
         setState(StateOfModule.LOGIN_PROCESSING);
     }
 
-    public NameOfModuleType getNameOfModuleType() {
+    public String getNameOfModuleType() {
         return nameOfType;
     }
 
