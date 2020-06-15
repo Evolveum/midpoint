@@ -162,7 +162,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
                 return new SingleContainerPanel<TaskWorkManagementType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), TaskType.F_WORK_MANAGEMENT), TaskWorkManagementType.COMPLEX_TYPE) {
 
                     @Override
-                    protected ItemVisibility getVisibity(ItemPath itemPath) {
+                    protected ItemVisibility getVisibility(ItemPath itemPath) {
                         return getWorkManagementVisibility(itemPath);
                     }
 

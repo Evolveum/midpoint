@@ -215,7 +215,7 @@ public class PageNewReport extends PageAdmin {
             stream = new ReaderInputStream(reader, reader.getEncoding());
             byte[] reportIn = IOUtils.toByteArray(stream);
 
-            setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(reportIn))));
+            setResponsePage(new PageJasperReport(new ReportDto(Base64.encodeBase64(reportIn))));
         } catch (Exception ex) {
             result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
@@ -239,7 +239,7 @@ public class PageNewReport extends PageAdmin {
 
         OperationResult result = new OperationResult(OPERATION_IMPORT_REPORT_XML);
         try {
-            setResponsePage(new PageReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
+            setResponsePage(new PageJasperReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
             result.recordFatalError(getString("PageNewReport.message.importReportFromStreamPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Error occured during xml import", ex);

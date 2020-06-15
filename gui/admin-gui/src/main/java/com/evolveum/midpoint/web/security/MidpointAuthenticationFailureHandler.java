@@ -30,7 +30,7 @@ import java.io.IOException;
  * @author skublik
  */
 
-public class MidpointAuthenticationFauileHandler extends SimpleUrlAuthenticationFailureHandler {
+public class MidpointAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     private RequestCache requestCache = new HttpSessionRequestCache();
 

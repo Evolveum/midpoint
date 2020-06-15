@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.annotations.Test;
@@ -42,10 +43,11 @@ public class TestParseObjects extends AbstractParserTest {
 
         System.out.println("Objects as parsed: " + DebugUtil.debugDump(objects));
 
-        assertEquals("Wrong # of objects", 3, objects.size());
+        assertEquals("Wrong # of objects", 4, objects.size());
         assertEquals("Wrong class of object 1", UserType.class, objects.get(0).asObjectable().getClass());
         assertEquals("Wrong class of object 2", UserType.class, objects.get(1).asObjectable().getClass());
-        assertEquals("Wrong class of object 2", RoleType.class, objects.get(2).asObjectable().getClass());
+        assertEquals("Wrong class of object 3", RoleType.class, objects.get(2).asObjectable().getClass());
+        assertEquals("Wrong class of object 4", ObjectCollectionType.class, objects.get(3).asObjectable().getClass());
 
         PrismSerializer<String> serializer = prismContext.serializerFor(language);
         String serializedAsObjects = serializer.serializeObjects(objects, SchemaConstants.C_OBJECTS);

@@ -8,8 +8,8 @@ package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.web.security.module.HttpSecurityQuestionsModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
@@ -27,7 +27,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleHttpSecQType) {
+        if (moduleType instanceof HttpSecQAuthenticationModuleType) {
             return true;
         }
         return false;
@@ -57,7 +57,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
 
     @Override
     protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
-        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(NameOfModuleType.SECURITY_QUESTIONS);
+        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.SECURITY_QUESTIONS);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());

@@ -134,8 +134,7 @@ public class DashboardReportBasicConfigurationPanel extends BasePanel<ReportDto>
     private ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper) {
         if(itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, ReportType.F_DESCRIPTION))
                 || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, ReportType.F_NAME))
-                || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, ReportType.F_DOCUMENTATION))
-                || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, ReportType.F_REPORT_ENGINE))) {
+                || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, ReportType.F_DOCUMENTATION))) {
 
             return ItemVisibility.AUTO;
         }

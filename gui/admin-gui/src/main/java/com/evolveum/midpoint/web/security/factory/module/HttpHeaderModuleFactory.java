@@ -19,9 +19,10 @@ import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurity
 import com.evolveum.midpoint.web.security.provider.PasswordProvider;
 import com.evolveum.midpoint.web.security.util.AuthModuleImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAuthenticationModuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModuleHttpHeaderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationModulesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpHeaderAuthenticationModuleType;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Component;
@@ -42,7 +43,7 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleHttpHeaderType) {
+        if (moduleType instanceof HttpHeaderAuthenticationModuleType) {
             return true;
         }
         return false;
@@ -51,14 +52,14 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
     @Override
     public AuthModule createModuleFilter(AbstractAuthenticationModuleType moduleType, String prefixOfSequence, ServletRequest request,
                                          Map<Class<? extends Object>, Object> sharedObjects, AuthenticationModulesType authenticationsPolicy, CredentialsPolicyType credentialPolicy, AuthenticationChannel authenticationChannel) throws Exception {
-        if (!(moduleType instanceof AuthenticationModuleHttpHeaderType)) {
-            LOGGER.error("This factory support only AuthenticationModuleHttpHeaderType, but modelType is " + moduleType);
+        if (!(moduleType instanceof HttpHeaderAuthenticationModuleType)) {
+            LOGGER.error("This factory support only HttpHeaderAuthenticationModuleType, but modelType is " + moduleType);
             return null;
         }
 
         isSupportedChannel(authenticationChannel);
 
-        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build((AuthenticationModuleHttpHeaderType)moduleType, prefixOfSequence);
+        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
         configuration.addAuthenticationProvider(new PasswordProvider());
         ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfig(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());

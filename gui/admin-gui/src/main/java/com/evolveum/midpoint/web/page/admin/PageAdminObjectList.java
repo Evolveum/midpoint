@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -119,12 +118,30 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             protected String getStorageKey() {
                 return super.getStorageKey();
             }
+
+            @Override
+            protected IColumn<SelectableBean<O>, String> createCheckboxColumn() {
+                if (isCreateCheckColumnEnabled()) {
+                    return super.createCheckboxColumn();
+                }
+                return null;
+            }
+
+            @Override
+            protected boolean getNewObjectGenericButtonVisibility() {
+                return PageAdminObjectList.this.getNewObjectGenericButtonVisibility();
+            }
         };
 
         userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
         userListPanel.setOutputMarkupId(true);
         mainForm.add(userListPanel);
     }
+
+    protected boolean getNewObjectGenericButtonVisibility(){
+        return true;
+    }
+
     protected BaseSortableDataProvider<SelectableBean<O>> getCustomProvider() {
         return null;
     }
@@ -170,6 +187,10 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     public MainObjectListPanel<O> getObjectListPanel() {
         return (MainObjectListPanel<O>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
+
+    protected boolean isCreateCheckColumnEnabled() {
+        return true;
     }
 
 }

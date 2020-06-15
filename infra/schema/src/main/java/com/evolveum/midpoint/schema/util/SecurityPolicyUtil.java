@@ -8,10 +8,16 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 public class SecurityPolicyUtil {
 
@@ -184,24 +190,27 @@ public class SecurityPolicyUtil {
         return Collections.unmodifiableList(modules);
     }
 
-    public static AuthenticationsPolicyType createDefaultAuthenticationPolicy() {
+    public static AuthenticationsPolicyType createDefaultAuthenticationPolicy(SchemaRegistry schemaRegistry) throws SchemaException {
+        PrismObjectDefinition<SecurityPolicyType> secPolicyDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(SecurityPolicyType.class);
+        @NotNull PrismObject<SecurityPolicyType> secPolicy = secPolicyDef.instantiate();
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         AuthenticationModulesType modules = new AuthenticationModulesType();
-        AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
+        LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
         loginForm.name(DEFAULT_MODULE_NAME);
         modules.loginForm(loginForm);
-        AuthenticationModuleHttpBasicType httpBasic = new AuthenticationModuleHttpBasicType();
+        HttpBasicAuthenticationModuleType httpBasic = new HttpBasicAuthenticationModuleType();
         httpBasic.name(HTTP_BASIC_MODULE_NAME);
         modules.httpBasic(httpBasic);
         authenticationPolicy.setModules(modules);
         authenticationPolicy.sequence(createDefaultSequence());
         authenticationPolicy.sequence(createRestSequence());
         authenticationPolicy.sequence(createActuatorSequence());
-        authenticationPolicy.sequence(createPaswordResetSequence());
+        authenticationPolicy.sequence(createPasswordResetSequence());
         for (String ignoredPath : IGNORED_LOCAL_PATH) {
             authenticationPolicy.ignoredLocalPath(ignoredPath);
         }
-        return authenticationPolicy;
+        secPolicy.asObjectable().setAuthentication(authenticationPolicy);
+        return secPolicy.asObjectable().getAuthentication();
     }
 
     public static AuthenticationSequenceType createDefaultSequence() {
@@ -221,7 +230,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createRestSequence() {
+    private static AuthenticationSequenceType createRestSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(REST_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
@@ -237,7 +246,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createActuatorSequence() {
+    private static AuthenticationSequenceType createActuatorSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(ACTUATOR_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
@@ -253,7 +262,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createPaswordResetSequence() {
+    public static AuthenticationSequenceType createPasswordResetSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();

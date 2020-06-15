@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 
 /**
  * @author skublik
@@ -17,7 +16,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthentication{
 
     private String proxyUserOid;
 
-    public HttpModuleAuthentication(NameOfModuleType nameOfType) {
+    public HttpModuleAuthentication(String nameOfType) {
         super(nameOfType);
     }
 

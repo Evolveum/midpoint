@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.MidpointHttpServletRequest;
@@ -42,13 +42,13 @@ public class HttpBasicAuthenticationFilter extends HttpAuthenticationFilter {
 
         String header = request.getHeader("Authorization");
 
-        if (header == null || !header.toLowerCase().startsWith(NameOfModuleType.HTTP_BASIC.getName().toLowerCase() + " ")) {
+        if (header == null || !header.toLowerCase().startsWith(AuthenticationModuleNameConstants.HTTP_BASIC.toLowerCase() + " ")) {
             chain.doFilter(request, response);
             return;
         }
         HttpServletRequest newRequest = request;
         try {
-            int startIndex = NameOfModuleType.HTTP_BASIC.getName().length()+1;
+            int startIndex = AuthenticationModuleNameConstants.HTTP_BASIC.length()+1;
             String[] tokens = extractAndDecodeHeader(header, request, startIndex);
             assert tokens.length == 2;
 

@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -102,12 +102,12 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
        try {
            if (authentication instanceof MidpointAuthentication) {
                if (request.getHeader(AUTHENTICATION_HEADER) != null
-                       && request.getHeader(AUTHENTICATION_HEADER).toLowerCase().startsWith(NameOfModuleType.SECURITY_QUESTIONS.getName().toLowerCase())) {
+                       && request.getHeader(AUTHENTICATION_HEADER).toLowerCase().startsWith(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase())) {
                    String header = request.getHeader(AUTHENTICATION_HEADER);
-                   if (header.toLowerCase().equals(NameOfModuleType.SECURITY_QUESTIONS.getName().toLowerCase())) {
+                   if (header.toLowerCase().equals(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase())) {
                        createSecurityQuestionAbortMessage(response, DEFAULT_JSON);
                    } else {
-                       byte[] jsonByte = Base64Utility.decode(header.substring(NameOfModuleType.SECURITY_QUESTIONS.getName().length() + 1));
+                       byte[] jsonByte = Base64Utility.decode(header.substring(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.length() + 1));
                        String json = new String(jsonByte);
                        JSONObject jsonObject =  new JSONObject(json);
                        if (jsonObject.keySet().size() == 1 && jsonObject.keySet().contains(HttpSecurityQuestionsAuthenticationFilter.J_USER)) {
@@ -149,7 +149,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
     }
 
     public static void createSecurityQuestionAbortMessage(HttpServletResponse request, String json){
-        String value = NameOfModuleType.SECURITY_QUESTIONS.getName() + " " + Base64Utility.encode(json.getBytes());
+        String value = AuthenticationModuleNameConstants.SECURITY_QUESTIONS + " " + Base64Utility.encode(json.getBytes());
         request.setHeader(WWW_AUTHENTICATION_HEADER, value);
     }
 

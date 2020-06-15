@@ -7,7 +7,7 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="panel">
+    <form wicket:id="mainForm">
 
         <p align="center">
             <div wicket:id="warningMessage"/>
@@ -18,10 +18,9 @@
                 </div>
                 <div class="col-md-10 col-sm-12" wicket:id="name"/>
             </div>
-            <div wicket:id="tabPanel" style="padding: 5px;" />
-            <a class="btn btn-primary btn-sm" wicket:id="createReport"/>
+            <div wicket:id="table" style="float: left; padding-bottom: 5px;" />
             <a class="btn btn-primary btn-sm" wicket:id="export"/>
             <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
         </p>
-    </div>
+    </form>
 </wicket:panel>

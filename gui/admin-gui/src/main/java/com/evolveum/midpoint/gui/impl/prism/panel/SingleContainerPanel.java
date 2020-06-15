@@ -45,20 +45,24 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
 
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(wrapper -> getVisibity(wrapper.getPath()))
+                    .visibilityHandler(wrapper -> getVisibility(wrapper.getPath()))
                     .editabilityHandler(getEditabilityHandler())
                     .mandatoryHandler(getMandatoryHandler());
-            Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());
+            Panel panel = getPageBase().initItemPanel(ID_CONTAINER, getTypeName(), getModel(), builder.build());
             add(panel);
         } catch (SchemaException e) {
-            LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
-            getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
+            LOGGER.error("Cannot create panel for {}, {}", getTypeName(), e.getMessage(), e);
+            getSession().error("Cannot create panel for " + getTypeName()); // TODO opertion result? localization?
 
         }
 
     }
 
-    protected ItemVisibility getVisibity(ItemPath itemPath) {
+    protected QName getTypeName() {
+        return typeName;
+    }
+
+    protected ItemVisibility getVisibility(ItemPath itemPath) {
         return ItemVisibility.AUTO;
     }
 

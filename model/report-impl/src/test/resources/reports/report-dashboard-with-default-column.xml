@@ -7,7 +7,6 @@
   -->
 <report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a8582">
     <name>Dashboard report with default columns</name>
-    <reportEngine>dashboard</reportEngine>
     <dashboard>
         <dashboardRef oid="00000000-0000-0000-0001-000000001231" relation="default" type="DashboardType"/>
     </dashboard>

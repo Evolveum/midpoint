@@ -13,6 +13,9 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.Validate;
@@ -241,16 +244,15 @@ public class SecurityUtils {
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        // TODO: what exactly does this do, can't it be channel.equals(SchemaConstants.CHANNEL_REST_URI)?
-        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                    sequence.setName(NameOfModuleType.CLUSTER.getName());
+                    sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
-                    seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                    seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
                     return sequence;
                 }
             }
@@ -339,13 +341,13 @@ public class SecurityUtils {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     List<AuthModule> authModules = new ArrayList<>();
                     WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
                     HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
-                    module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                    module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                     try {
                         authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
                                 sharedObjects, authenticationModulesType, credentialPolicy, null));
@@ -361,17 +363,20 @@ public class SecurityUtils {
     }
 
     private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
-        modules.addAll(authenticationModulesType.getLoginForm());
-        modules.addAll(authenticationModulesType.getSaml2());
-        modules.addAll(authenticationModulesType.getHttpBasic());
-        modules.addAll(authenticationModulesType.getHttpHeader());
-        modules.addAll(authenticationModulesType.getHttpSecQ());
-        modules.addAll(authenticationModulesType.getMailNonce());
-        modules.addAll(authenticationModulesType.getOidc());
-        modules.addAll(authenticationModulesType.getSecurityQuestionsForm());
-        modules.addAll(authenticationModulesType.getSmsNonce());
-        modules.addAll(authenticationModulesType.getLdap());
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer c = (PrismContainer) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(c.getCompileTimeClass()))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue) x).asContainerable()));
+        });
 
         for (AbstractAuthenticationModuleType module : modules) {
             if (module.getName().equals(name)) {

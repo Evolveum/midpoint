@@ -41,6 +41,10 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     @Autowired
     private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
+    public void setPasswordAuthenticationEvaluator(AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator) {
+        this.passwordAuthenticationEvaluator = passwordAuthenticationEvaluator;
+    }
+
     @Override
     protected AuthenticationEvaluator<PasswordAuthenticationContext> getEvaluator() {
         return passwordAuthenticationEvaluator;

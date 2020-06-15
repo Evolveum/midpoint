@@ -11,7 +11,6 @@ import java.util.*;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.web.security.factory.channel.ResetPasswordChannelFactory;
-import com.evolveum.midpoint.web.security.factory.module.AbstractModuleFactory;
 import com.evolveum.midpoint.web.security.factory.module.LoginFormModuleFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -22,7 +21,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -127,10 +125,10 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
             authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
             Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
             authz.add(selfServiceCredentialsAuthz);
-            AuthenticationSequenceType sequence = SecurityPolicyUtil.createPaswordResetSequence();
+            AuthenticationSequenceType sequence = SecurityPolicyUtil.createPasswordResetSequence();
             Map<Class<? extends Object>, Object> sharedObjects = new HashMap<>();
             AuthenticationModulesType modules = new AuthenticationModulesType();
-            AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
+            LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
             loginForm.name(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
             modules.loginForm(loginForm);
             AuthModule authModule = null;
