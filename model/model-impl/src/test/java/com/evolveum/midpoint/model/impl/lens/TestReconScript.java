@@ -131,7 +131,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         afterRecon.asObjectable();
 
         PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-        AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some probelm in recon occured.", user);
+        AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some problem in recon occurred.", user);
 
         for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
 
@@ -174,7 +174,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         AssertJUnit.assertNotNull(shadow);
 
         PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-        AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some probelm in dry run occured.", user);
+        AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some problem in dry run occurred.", user);
     }
 
     @Test

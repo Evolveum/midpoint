@@ -123,9 +123,9 @@ public class TestMapleLeaf extends AbstractStoryTest {
         assertNotNull("No system configuration", systemConfiguration);
         display("System config", systemConfiguration);
 
-        PrismObject<RoleType> roleSquirel = modelService.getObject(RoleType.class,
+        PrismObject<RoleType> roleSquirrel = modelService.getObject(RoleType.class,
                 ROLE_SQUIRREL_OID, null, task, result);
-        assertNotNull("No role squirel, probably probelm with initialization", roleSquirel);
+        assertNotNull("No role squirrel, probably problem with initialization", roleSquirrel);
         result.computeStatus();
         assertSuccess("Role not fetch successfully", result);
 

@@ -242,7 +242,7 @@ public class PageNewReport extends PageAdmin {
             setResponsePage(new PageJasperReport(new ReportDto(Base64.encodeBase64(xml.getBytes()))));
         } catch (Exception ex) {
             result.recordFatalError(getString("PageNewReport.message.importReportFromStreamPerformed.fatalError"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Error occured during xml import", ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during xml import", ex);
         }
 
         if (result.isSuccess()) {
