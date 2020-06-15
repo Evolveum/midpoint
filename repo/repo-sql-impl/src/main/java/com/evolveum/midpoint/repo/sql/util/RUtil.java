@@ -233,6 +233,7 @@ public final class RUtil {
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         if (repo instanceof OperationResultFull) {
             try {
+                // TODO MID-6303 should this be affected by configured fullObjectFormat?
                 String full = prismContext.xmlSerializer().serializeRealValue(jaxb, itemName);
                 byte[] data = RUtil.getBytesFromSerializedForm(full, true);
                 ((OperationResultFull) repo).setFullResult(data);

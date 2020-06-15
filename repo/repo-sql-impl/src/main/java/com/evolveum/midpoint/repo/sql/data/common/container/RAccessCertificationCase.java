@@ -366,7 +366,6 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         String serializedForm;
         try {
             serializedForm = context.prismContext
-                    // TODO MID-6303 check how it works - how about minimized JSON without whitespaces?
                     .serializerFor(context.configuration.getFullObjectFormat())
                     .serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
@@ -383,15 +382,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return createJaxb(fullObject, prismContext);
     }
 
-    // TODO find appropriate name
     public static AccessCertificationCaseType createJaxb(
             byte[] fullObject, PrismContext prismContext) throws SchemaException {
         String serializedFrom = RUtil.getSerializedFormFromBytes(fullObject);
         LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
             return prismContext.parserFor(serializedFrom)
-                    // TODO MID-6303 just check and delete
-//                    .language(SqlRepositoryServiceImpl.DATA_LANGUAGE)
                     .compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
             LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, serializedFrom);
