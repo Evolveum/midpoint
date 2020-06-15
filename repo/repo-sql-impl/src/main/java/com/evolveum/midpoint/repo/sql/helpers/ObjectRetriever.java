@@ -575,10 +575,12 @@ public class ObjectRetriever {
                 query.setParameter("oid", prismObject.getOid());
                 byte[] opResult = (byte[]) query.uniqueResult();
                 if (opResult != null) {
-                    String xmlResult = RUtil.getSerializedFormFromBytes(opResult);
-                    OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                    String serializedResult = RUtil.getSerializedFormFromBytes(opResult);
+                    OperationResultType resultType = prismContext.parserFor(serializedResult)
+                            .parseRealValue(OperationResultType.class);
 
-                    PrismProperty<OperationResultType> resultProperty = prismObject.findOrCreateProperty(TaskType.F_RESULT);
+                    PrismProperty<OperationResultType> resultProperty =
+                            prismObject.findOrCreateProperty(TaskType.F_RESULT);
                     resultProperty.setRealValue(resultType);
                     resultProperty.setIncomplete(false);
 
@@ -730,7 +732,7 @@ public class ObjectRetriever {
         if (prismObject.getDefinition() != null) {
             PrismContainerDefinition<?> extensionDefinition = prismObject.getDefinition().getExtensionDefinition();
             if (extensionDefinition != null) {
-                for (ItemDefinition definition : extensionDefinition.getDefinitions()) {
+                for (ItemDefinition<?> definition : extensionDefinition.getDefinitions()) {
                     if (definition.isIndexOnly()) {
                         rv.add(definition);
                     }
@@ -740,10 +742,11 @@ public class ObjectRetriever {
         return rv;
     }
 
-    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
-            PrismObject object, Session session) throws SchemaException {
+    private void applyShadowAttributeDefinitions(
+            Class<? extends RAnyValue> anyValueType, PrismObject object, Session session)
+            throws SchemaException {
 
-        PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
         Query query = session.getNamedQuery("getDefinition." + anyValueType.getSimpleName());
         query.setParameter("oid", object.getOid());
@@ -909,7 +912,7 @@ public class ObjectRetriever {
             main:
             while (remaining > 0) {
                 paging.setOffset(offset);
-                paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
+                paging.setMaxSize(Math.min(remaining, batchSize));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);
 
