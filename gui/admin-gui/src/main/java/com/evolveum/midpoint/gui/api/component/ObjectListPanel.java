@@ -27,7 +27,6 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -230,7 +229,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 //    }
 
     protected Search createSearch() {
-        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanel() ? getCollectionNameParameterValue().toString() : null,
+        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
                 null, getPageBase(), true);
     }
 
@@ -537,6 +536,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 return isCountingEnabled();
             }
         };
+        provider.setOptions(createOptions(options));
+        setDefaultSorting(provider);
+        provider.setQuery(getQuery());
+
+        return provider;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> createOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
+                && !getObjectCollectionView().getOptions().isEmpty()) {
+            return getObjectCollectionView().getOptions();
+        }
+
         if (options == null){
             if (ResourceType.class.equals(type.getClassDefinition())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -546,19 +559,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
                 root.setNoFetch(Boolean.TRUE);
             }
-            provider.setOptions(options);
         }
-        setDefaultSorting(provider);
-        provider.setQuery(getQuery());
-
-        return provider;
+        return options;
     }
 
     protected String getTableIdKeyValue(){
         if (tableId == null) {
             return null;
         }
-        if (!isCollectionViewPanel()) {
+        if (!isCollectionViewPanelForCompiledView()) {
             return tableId.name();
         }
         return tableId.name() + "." + getCollectionNameParameterValue().toString();
@@ -650,7 +659,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected String getStorageKey(){
 
-        if (isCollectionViewPanel()) {
+        if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = getCollectionNameParameterValue();
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
@@ -730,22 +739,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             if (dashboard != null) {
                 for (DashboardWidgetType widget :dashboard.getWidget()) {
                     if (widget.getIdentifier().equals(dashboardWidgetName)
-                            && widget.getData() != null && widget.getData().getCollection() != null
-                            && widget.getData().getCollection().getCollectionRef() != null) {
-                        ObjectReferenceType ref = widget.getData().getCollection().getCollectionRef();
-                        ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
-                                getPageBase(), task, task.getResult()).getRealValue();
+                            && widget.getData() != null && widget.getData().getCollection() != null) {
+                        CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
                         try {
                             @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
-                                    .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
+                                    .compileObjectCollectionView(collectionSpec, null, task, task.getResult());
                             if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
                                 getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
                             }
                             compiledView.setCollection(widget.getData().getCollection());
                             dashboardWidgetView = compiledView;
+                            return dashboardWidgetView;
                         } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
                                 | ObjectNotFoundException e) {
-                            LOGGER.error("Couldn't compile collection " + collection.getName(), e);
+                            LOGGER.error("Couldn't compile collection " + collectionSpec, e);
                         }
                         break;
                     }
@@ -761,8 +768,22 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
-    protected boolean isCollectionViewPanel() {
+    protected boolean isCollectionViewPanelForWidget() {
+        PageParameters parameters = getPageBase().getPageParameters();
+        if (parameters != null) {
+            StringValue widget = parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME);
+            StringValue dashboardOid = parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID);
+            return widget != null && widget.toString() != null && dashboardOid != null && dashboardOid.toString() != null;
+        }
+        return false;
+    }
+
+    protected boolean isCollectionViewPanelForCompiledView() {
         return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
+    }
+
+    protected boolean isCollectionViewPanel() {
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
     }
 
 

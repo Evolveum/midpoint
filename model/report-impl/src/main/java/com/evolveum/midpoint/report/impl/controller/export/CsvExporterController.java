@@ -13,10 +13,14 @@ import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -141,23 +145,20 @@ public class CsvExporterController extends ExportController {
         byte[] csvFile;
         boolean isAuditCollection = collection != null && collection.getAuditSearch() != null;
         if (!isAuditCollection) {
-            csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection, task, result);
+            csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection,
+                    collectionConfig.getCondition(), task, result);
         } else {
-            csvFile = createTableBoxForAuditView(collection, compiledCollection, task, result);
+            csvFile = createTableForAuditView(collectionRefSpecification, compiledCollection, collectionConfig.getCondition(), task, result);
         }
 
 
         return csvFile;
     }
 
-    private byte[] createTableBoxForAuditView(ObjectCollectionType collection, CompiledObjectCollectionView compiledCollection, Task task, OperationResult result) {
-        Map<String, Object> parameters = new HashMap<>();
-        String query = DashboardUtils
-                .getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, getReportService().getClock()));
-        List<AuditEventRecord> auditRecords = getReportService().getAuditService().listRecords(query, parameters, result);
-        if (auditRecords == null) {
-            auditRecords = new ArrayList<>();
-        }
+    private byte[] createTableForAuditView(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection,
+            ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        List<AuditEventRecord> auditRecords = getReportService().getDashboardService().searchObjectFromCollection(collectionRef, condition, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
@@ -221,12 +222,12 @@ public class CsvExporterController extends ExportController {
         return null;
     }
 
-    private byte[] createTableBoxForObjectView(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, Task task, OperationResult result)
+    private byte[] createTableBoxForObjectView(CollectionRefSpecificationType collection, CompiledObjectCollectionView compiledCollection, ExpressionType condition, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
-        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
+        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, condition, task, result);
         if (values.isEmpty()) {
             values = new ArrayList<>();
         }

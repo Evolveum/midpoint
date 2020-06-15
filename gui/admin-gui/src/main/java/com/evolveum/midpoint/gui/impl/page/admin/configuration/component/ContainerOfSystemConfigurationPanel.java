@@ -46,7 +46,7 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
         super(id, model, typeName);
     }
 
-    protected ItemVisibility getVisibity(ItemPath itemPath) {
+    protected ItemVisibility getVisibility(ItemPath itemPath) {
         ItemName name = itemPath.firstToNameOrNull();
         if (name == null) {
             return ItemVisibility.HIDDEN;

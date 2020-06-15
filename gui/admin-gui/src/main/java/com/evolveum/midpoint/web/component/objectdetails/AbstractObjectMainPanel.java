@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -160,7 +161,15 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                 target.add(parentPage.getFeedbackPanel());
             }
         };
-        saveButton.add(new VisibleEnableBehaviour(){
+        saveButton.add(getVisibilityForSaveButton());
+        saveButton.setOutputMarkupId(true);
+        saveButton.setOutputMarkupPlaceholderTag(true);
+        mainForm.setDefaultButton(saveButton);
+        mainForm.add(saveButton);
+    }
+
+    protected VisibleEnableBehaviour getVisibilityForSaveButton(){
+        return new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -182,11 +191,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                 }
                 return true;
             }
-        });
-        saveButton.setOutputMarkupId(true);
-        saveButton.setOutputMarkupPlaceholderTag(true);
-        mainForm.setDefaultButton(saveButton);
-        mainForm.add(saveButton);
+        };
     }
 
     // TEMPORARY

@@ -15,11 +15,14 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +41,9 @@ public class ReportConfigurationPanel extends BasePanel<ReportDto> {
     }
 
     protected void initLayout() {
-        ReportEngineSelectionType reportEngineType = getModel().getObject().getReportEngineType();
+        @NotNull ReportType report = getModel().getObject().getObject().asObjectable();
 
-        if(ReportEngineSelectionType.JASPER.equals(reportEngineType)) {
+        if(report.getJasper() != null) {
             add(new JasperReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));
         } else {
             add(new DashboardReportBasicConfigurationPanel(ID_BASIC_PANEL, getModel()));

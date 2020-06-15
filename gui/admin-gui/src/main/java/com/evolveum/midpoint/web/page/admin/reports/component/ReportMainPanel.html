@@ -1,0 +1,32 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <form wicket:id="mainForm" class="col-xs-12 form-horizontal" style="padding:0px;">
+
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
+
+          <div class="options-container" wicket:id="executeOptions" />
+
+           <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back"/>
+            </span>
+            <a class="btn btn-info" wicket:id="previewChanges"/>
+            <a class="btn btn-primary" wicket:id="save"/>
+            <a class="btn btn-primary" wicket:id="saveAndRun"/>
+
+            <wicket:child />
+
+            <a class="btn btn-default pull-right" wicket:id="editXml"/>
+        </div>
+    </form>
+</wicket:panel>
+</body>
+</html>

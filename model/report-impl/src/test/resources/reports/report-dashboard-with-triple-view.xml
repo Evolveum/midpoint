@@ -7,7 +7,6 @@
   -->
 <report oid="2b87aa2e-dd86-4842-bcf5-76200a9a8533">
     <name>Dashboard report with triple view</name>
-    <reportEngine>dashboard</reportEngine>
     <dashboard>
         <dashboardRef oid="00000000-0000-0000-0001-000022661231" relation="default" type="DashboardType"/>
         <view>

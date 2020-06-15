@@ -167,8 +167,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
 
     private boolean isJasperReport(PrismObject<ReportType> object) {
-        if(object.getRealValue() != null && object.getRealValue().getReportEngine() != null
-                && object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
+        if(object.getRealValue() != null && object.getRealValue().getJasper() != null) {
             return true;
         }
         return false;

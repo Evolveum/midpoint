@@ -121,14 +121,14 @@ public class HtmlExportController extends ExportController {
 
                 switch (sourceType) {
                     case OBJECT_COLLECTION:
-                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, false, task, result);
+                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
                         break;
                     case AUDIT_SEARCH:
                         if (collection == null) {
                             LOGGER.error("CollectionRef is null for report of audit records");
                             throw new IllegalArgumentException("CollectionRef is null for report of audit records");
                         }
-                        tableBox = createTableBoxForAuditView(widgetData.getLabel(), collection, compiledCollection, false, task, result);
+                        tableBox = createTableBoxForAuditView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
                         break;
                 }
                 if (tableBox != null) {
@@ -215,9 +215,11 @@ public class HtmlExportController extends ExportController {
         ContainerTag tableBox;
         boolean isAuditCollection = collection != null && collection.getAuditSearch() != null;
         if (!isAuditCollection) {
-            tableBox = createTableBoxForObjectView(label, collectionConfig.getCollection(), compiledCollection, true, task, result);
+            tableBox = createTableBoxForObjectView(label, collectionRefSpecification, compiledCollection,
+                    collectionConfig.getCondition(), task, result, true);
         } else {
-            tableBox = createTableBoxForAuditView(label, collection, compiledCollection, true, task, result);
+            tableBox = createTableBoxForAuditView(label, collectionRefSpecification, compiledCollection,
+                    collectionConfig.getCondition(), task, result, true);
         }
 
         body.append(tableBox.render());
@@ -364,13 +366,13 @@ public class HtmlExportController extends ExportController {
     }
 
     private ContainerTag createTableBoxForObjectView(String label, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            boolean recordProgress, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
         List<PrismObject<ObjectType>> values = getReportService().getDashboardService()
-                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
+                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, condition, task, result);
         if (values == null || values.isEmpty()) {
             if (recordProgress) {
                 values = new ArrayList<>();
@@ -391,16 +393,11 @@ public class HtmlExportController extends ExportController {
     }
 
     private ContainerTag createTableBoxForAuditView(
-            String label, ObjectCollectionType collection, @NotNull CompiledObjectCollectionView compiledCollection,
-            boolean recordProgress, Task task, OperationResult result) {
-        Map<String, Object> parameters = new HashMap<>();
+            String label, CollectionRefSpecificationType collection, @NotNull CompiledObjectCollectionView compiledCollection,
+            ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        String query = DashboardUtils
-                .getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, getReportService().getClock()));
-        List<AuditEventRecord> records = getReportService().getAuditService().listRecords(query, parameters, result);
-        if (records == null || records.isEmpty()) {
-            return null;
-        }
+        List<AuditEventRecord> records = getReportService().getDashboardService().searchObjectFromCollection(collection, condition, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
