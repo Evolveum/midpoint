@@ -450,7 +450,7 @@ public interface ModelInteractionService {
 
     @Experimental
     @NotNull
-    CompiledObjectCollectionView compileObjectCollectionView(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+    CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException;
 

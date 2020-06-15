@@ -20,6 +20,7 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -608,18 +609,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     }
 
                     @Override
-                    protected void createReportPerformed(String name, SearchFilterType filter, List<Integer> object, AjaxRequestTarget target) {
-
-                    }
-
-                    @Override
                     protected DataTable<?, ?> getDataTable() {
                         return getAuditLogViewerTable().getDataTable();
-                    }
-
-                    @Override
-                    public boolean isVisibleCreateReportOption() {
-                        return false;
                     }
                 };
 

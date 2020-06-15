@@ -844,6 +844,8 @@ CREATE INDEX iOpExecStatus
   ON m_operation_execution (status) INITRANS 30;
 CREATE INDEX iOpExecOwnerOid
   ON m_operation_execution (owner_oid) INITRANS 30;
+CREATE INDEX iOpExecTimestampValue
+  ON m_operation_execution (timestampValue) INITRANS 30;
 CREATE INDEX iAncestor
   ON m_org_closure (ancestor_oid) INITRANS 30;
 CREATE INDEX iDescendant

@@ -67,6 +67,10 @@ public class GuiStyleConstants {
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON = "fa fa-gavel";
     public static final String CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED = CLASS_OBJECT_CERT_CAMPAIGN_ICON + " object-task-color";        // TODO
 
+    public static final String CLASS_OBJECT_COLLECTION_ICON = "fa fa-filter";
+
+    public static final String CLASS_REPORT_ICON = "fa fa-pie-chart";
+
     public static final String CLASS_ICON_STYLE = "icon-style-";  //some icon styles start with this string
     public static final String CLASS_ICON_STYLE_NORMAL = "icon-style-normal";
     public static final String CLASS_ICON_STYLE_DISABLED = "icon-style-disabled";

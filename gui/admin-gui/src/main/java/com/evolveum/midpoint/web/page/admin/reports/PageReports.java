@@ -8,43 +8,30 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -65,73 +52,46 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_URL,
                 label = "PageReports.auth.reports.label",
                 description = "PageReports.auth.reports.description")})
-public class PageReports extends PageAdmin {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
+public class PageReports extends PageAdminObjectList<ReportType> {
+    private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_REPORTS_TABLE = "reportsTable";
-
     public PageReports() {
-        initLayout();
+        super();
     }
 
-    private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-        add(mainForm);
-
-        MainObjectListPanel<ReportType> table =
-                new MainObjectListPanel<ReportType>(ID_REPORTS_TABLE, ReportType.class, UserProfileStorage.TableId.PAGE_REPORTS,
-                null) {
-
-            @Override
-            protected IColumn<SelectableBean<ReportType>, String> createCheckboxColumn() {
-                return null;
-            }
-
-            @Override
-            public void objectDetailsPerformed(AjaxRequestTarget target, ReportType report) {
-                if (report != null) {
-                    PageReports.this.reportDetailsPerformed(target, report.getOid());
-                }
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<ReportType>, String>> createColumns() {
-                return PageReports.this.initColumns();
-            }
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return PageReports.this.createInlineMenu();
-            }
-
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                navigateToNext(PageNewReport.class);
-            }
-        };
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
-
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, ReportType reportType) {
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OnePageParameterEncoder.PARAMETER, reportType.getOid());
+        if (reportType.getJasper() != null) {
+            navigateToNext(PageJasperReport.class, pageParameters);
+        } else {
+            navigateToNext(PageReport.class, pageParameters);
+        }
     }
 
-    private List<IColumn<SelectableBean<ReportType>, String>> initColumns() {
-        List<IColumn<SelectableBean<ReportType>, String>> columns = new ArrayList<>();
-
-        IColumn column = new PropertyColumn(createStringResource("PageReports.table.description"), "value.description");
-        columns.add(column);
-
-        return columns;
+    @Override
+    protected Class<ReportType> getType() {
+        return ReportType.class;
     }
 
-    private void reportDetailsPerformed(AjaxRequestTarget target, String oid) {
-        PageParameters params = new PageParameters();
-        params.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageCreatedReports.class, params);
+    @Override
+    protected List<IColumn<SelectableBean<ReportType>, String>> initColumns() {
+
+        return ColumnUtils.getDefaultObjectColumns();
+    }
+
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        return createInlineMenu();
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.PAGE_REPORTS;
     }
 
     private List<InlineMenuItem> createInlineMenu(){
@@ -188,8 +148,35 @@ public class PageReports extends PageAdmin {
                 return false;
             }
         });
-        return menu;
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.showOutput")) {
+            private static final long serialVersionUID = 1L;
 
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ReportType reportObject = getRowModel().getObject().getValue();
+                        PageParameters pageParameters = new PageParameters();
+                        pageParameters.add(OnePageParameterEncoder.PARAMETER, reportObject.getOid());
+                        navigateToNext(PageCreatedReports.class, pageParameters);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder("fa fa-files-o");
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
+        return menu;
     }
 
     private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
@@ -205,14 +192,12 @@ public class PageReports extends PageAdmin {
         }
 
         showResult(result);
-        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
-        hideMainPopup(target);
-
+        target.add(getFeedbackPanel());
     }
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-        if(report.getReportEngine() != null && !report.getReportEngine().equals(ReportEngineSelectionType.JASPER)) {
+        if(report.getJasper() == null) {
             runConfirmPerformed(target, report, null);
             return;
         }
@@ -234,10 +219,16 @@ public class PageReports extends PageAdmin {
     private void configurePerformed(AjaxRequestTarget target, ReportType report) {
         PageParameters params = new PageParameters();
         params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
-        navigateToNext(PageReport.class, params);
+        navigateToNext(PageJasperReport.class, params);
     }
 
-    private Table getReportTable() {
-        return (Table) get(createComponentPath(ID_MAIN_FORM, ID_REPORTS_TABLE));
+    @Override
+    protected boolean isCreateCheckColumnEnabled() {
+        return false;
+    }
+
+    @Override
+    protected boolean getNewObjectGenericButtonVisibility() {
+        return false;
     }
 }

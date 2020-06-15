@@ -45,59 +45,73 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Override
-    public void test010CreateObjectCollectionReportWithDefaultColumn() throws Exception {
+    public void test101CreateAuditCollectionReportWithDefaultColumn() throws Exception {
+        expectedColumns = 8;
+        expectedRow = -1;
+        super.test101CreateAuditCollectionReportWithDefaultColumn();
+    }
+
+    @Override
+    public void test102CreateAuditCollectionReportWithView() throws Exception {
+        expectedColumns = 2;
+        expectedRow = -1;
+        super.test102CreateAuditCollectionReportWithView();
+    }
+
+    @Override
+    public void test103CreateAuditCollectionReportWithDoubleView() throws Exception {
+        expectedColumns = 3;
+        expectedRow = -1;
+        super.test103CreateAuditCollectionReportWithDoubleView();
+    }
+
+    @Test
+    public void test104CreateAuditCollectionReportWithCondition() throws Exception {
+        expectedColumns = 8;
+        expectedRow = 2;
+        super.test104CreateAuditCollectionReportWithCondition();
+    }
+
+    @Override
+    public void test110CreateObjectCollectionReportWithDefaultColumn() throws Exception {
         expectedColumns = 6;
         expectedRow = 4;
-        super.test010CreateObjectCollectionReportWithDefaultColumn();
+        super.test110CreateObjectCollectionReportWithDefaultColumn();
     }
 
     @Override
-    public void test011CreateObjectCollectionReportWithView() throws Exception {
+    public void test111CreateObjectCollectionReportWithView() throws Exception {
         expectedColumns = 2;
         expectedRow = 2;
-        super.test011CreateObjectCollectionReportWithView();
+        super.test111CreateObjectCollectionReportWithView();
     }
 
     @Override
-    public void test012CreateObjectCollectionReportWithDoubleView() throws Exception {
+    public void test112CreateObjectCollectionReportWithDoubleView() throws Exception {
         expectedColumns = 3;
         expectedRow = 4;
-        super.test012CreateObjectCollectionReportWithDoubleView();
+        super.test112CreateObjectCollectionReportWithDoubleView();
     }
 
     @Override
-    public void test013CreateAuditCollectionReportWithDefaultColumn() throws Exception {
-        expectedColumns = 8;
-        expectedRow = 46;
-        super.test013CreateAuditCollectionReportWithDefaultColumn();
-    }
-
-    @Override
-    public void test014CreateAuditCollectionReportWithView() throws Exception {
-        expectedColumns = 2;
-        expectedRow = 48;
-        super.test014CreateAuditCollectionReportWithView();
-    }
-
-    @Override
-    public void test015CreateAuditCollectionReportWithDoubleView() throws Exception {
-        expectedColumns = 3;
-        expectedRow = 50;
-        super.test015CreateAuditCollectionReportWithDoubleView();
-    }
-
-    @Override
-    public void test016CreateObjectCollectionReportWithFilter() throws Exception {
+    public void test113CreateObjectCollectionReportWithFilter() throws Exception {
         expectedColumns = 2;
         expectedRow = 3;
-        super.test016CreateObjectCollectionReportWithFilter();
+        super.test113CreateObjectCollectionReportWithFilter();
     }
 
     @Override
-    public void test017CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
+    public void test114CreateObjectCollectionReportWithFilterAndBasicCollection() throws Exception {
         expectedColumns = 2;
         expectedRow = 2;
-        super.test017CreateObjectCollectionReportWithFilterAndBasicCollection();
+        super.test114CreateObjectCollectionReportWithFilterAndBasicCollection();
+    }
+
+    @Test
+    public void test115CreateObjectCollectionReportWithCondition() throws Exception {
+        expectedColumns = 6;
+        expectedRow = 2;
+        super.test115CreateObjectCollectionReportWithCondition();
     }
 
     private void setExpectedValueForDashboardReport() {
@@ -115,8 +129,12 @@ public class TestCsvReport extends BasicNewReportTest {
     protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         List<String> lines = super.basicCheckOutputFile(report);
 
-        if (lines.size() != expectedRow) {
+        if (expectedRow != -1 && lines.size() != expectedRow) {
             fail("Unexpected count of rows of csv report. Expected: " + expectedRow + ", Actual: " + lines.size());
+        }
+
+        if (expectedRow == -1 && lines.size() < 2) {
+            fail("Unexpected count of rows of csv report. Expected: more as one, Actual: " + lines.size());
         }
 
         int actualColumns = getNumberOfColumns(lines);
