@@ -131,7 +131,7 @@ model axiom-model {
         }
 
         // FIXME: should be use
-        item uses {
+        item include {
             type AxiomTypeReference;
             documentation """
                 Reference to mixin, from which this type definition reuses item definitions.
