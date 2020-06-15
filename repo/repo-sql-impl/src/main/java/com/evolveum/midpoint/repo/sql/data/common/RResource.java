@@ -21,7 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RResourceAdministrativeState;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -146,7 +146,7 @@ public class RResource extends RObject {
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.toRObjectReferenceSet(business.getApproverRef(),
-                        repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATION_APPROVER, repositoryContext.relationRegistry));
+                        repo, RReferenceType.RESOURCE_BUSINESS_CONFIGURATION_APPROVER, repositoryContext.relationRegistry));
                 repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
                         RResourceAdministrativeState.class));
             }

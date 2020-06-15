@@ -16,7 +16,7 @@ import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -99,7 +99,7 @@ public class RAssignmentReference extends RContainerReference {
 
     @Id
     @Column(name = REFERENCE_TYPE, nullable = false)
-    public RCReferenceOwner getReferenceType() {
+    public RCReferenceType getReferenceType() {
         return super.getReferenceType();
     }
 

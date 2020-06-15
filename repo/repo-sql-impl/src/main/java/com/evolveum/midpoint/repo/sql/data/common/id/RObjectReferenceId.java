@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 
 import java.io.Serializable;
 
@@ -19,7 +19,7 @@ public class RObjectReferenceId implements Serializable {
     private String ownerOid;
     private String targetOid;
     private String relation;
-    private RReferenceOwner referenceType;
+    private RReferenceType referenceType;
 
     public RObjectReferenceId() {
     }
@@ -48,11 +48,11 @@ public class RObjectReferenceId implements Serializable {
         this.relation = relation;
     }
 
-    public RReferenceOwner getReferenceType() {
+    public RReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(RReferenceOwner referenceType) {
+    public void setReferenceType(RReferenceType referenceType) {
         this.referenceType = referenceType;
     }
 

@@ -20,8 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @author lazyman
  */
-//TODO MID-6303: RReferenceType
-public enum RReferenceOwner {
+public enum RReferenceType {
 
     OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),      // 0
 
@@ -52,7 +51,7 @@ public enum RReferenceOwner {
     private final Class<? extends ObjectType> typeClass;
     private final QName elementName;
 
-    RReferenceOwner(Class<? extends ObjectType> typeClass, QName elementName) {
+    RReferenceType(Class<? extends ObjectType> typeClass, QName elementName) {
         this.typeClass = typeClass;
         this.elementName = elementName;
     }
@@ -65,11 +64,11 @@ public enum RReferenceOwner {
         return elementName;
     }
 
-    public static RReferenceOwner getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
+    public static RReferenceType getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
         Validate.notNull(typeClass, "Jaxb type class must not be null");
         Validate.notNull(qname, "QName must not be null");
 
-        for (RReferenceOwner owner : values()) {
+        for (RReferenceType owner : values()) {
             if (QNameUtil.match(qname, owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
                 return owner;
             }

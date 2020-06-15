@@ -20,7 +20,7 @@ import org.hibernate.annotations.Persister;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -48,7 +48,7 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     private Boolean trans;
 
-    private RReferenceOwner referenceType;
+    private RReferenceType referenceType;
 
     //owner
     private RObject owner;
@@ -117,11 +117,11 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     @Id
     @Column(name = REFERENCE_TYPE, nullable = false)
-    public RReferenceOwner getReferenceType() {
+    public RReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(RReferenceOwner referenceType) {
+    public void setReferenceType(RReferenceType referenceType) {
         this.referenceType = referenceType;
     }
 

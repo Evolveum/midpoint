@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -102,6 +102,6 @@ public class RObjectTemplate extends RObject {
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.toRObjectReferenceSet(
-                jaxb.getIncludeRef(), repo, RReferenceOwner.INCLUDE, repositoryContext.relationRegistry));
+                jaxb.getIncludeRef(), repo, RReferenceType.INCLUDE, repositoryContext.relationRegistry));
     }
 }

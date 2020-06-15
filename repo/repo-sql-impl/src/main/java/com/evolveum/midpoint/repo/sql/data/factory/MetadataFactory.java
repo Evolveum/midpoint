@@ -18,8 +18,8 @@ import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -106,22 +106,22 @@ public class MetadataFactory {
             repo.getCreateApproverRef().clear();
             repo.getCreateApproverRef().addAll(
                     RUtil.toRObjectReferenceSet(jaxb.getCreateApproverRef(),
-                            (RObject) repo, RReferenceOwner.CREATE_APPROVER, relationRegistry));
+                            (RObject) repo, RReferenceType.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
             repo.getModifyApproverRef().addAll(
                     RUtil.toRObjectReferenceSet(jaxb.getModifyApproverRef(),
-                            (RObject) repo, RReferenceOwner.MODIFY_APPROVER, relationRegistry));
+                            (RObject) repo, RReferenceType.MODIFY_APPROVER, relationRegistry));
         } else {
             repo.getCreateApproverRef().clear();
             repo.getCreateApproverRef().addAll(
                     safeListReferenceToSet(
                             jaxb.getCreateApproverRef(), (RAssignment) repo,
-                            RCReferenceOwner.CREATE_APPROVER, relationRegistry));
+                            RCReferenceType.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
             repo.getModifyApproverRef().addAll(
                     safeListReferenceToSet(
                             jaxb.getModifyApproverRef(), (RAssignment) repo,
-                            RCReferenceOwner.MODIFY_APPROVER, relationRegistry));
+                            RCReferenceType.MODIFY_APPROVER, relationRegistry));
         }
     }
 
@@ -157,7 +157,7 @@ public class MetadataFactory {
     }
 
     public static Set<RAssignmentReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-            RAssignment owner, RCReferenceOwner refOwner, RelationRegistry relationRegistry) {
+            RAssignment owner, RCReferenceType refOwner, RelationRegistry relationRegistry) {
         Set<RAssignmentReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -173,7 +173,7 @@ public class MetadataFactory {
     }
 
     public static RAssignmentReference jaxbRefToRepo(ObjectReferenceType reference,
-            RAssignment owner, RCReferenceOwner refOwner, RelationRegistry relationRegistry) {
+            RAssignment owner, RCReferenceType refOwner, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }

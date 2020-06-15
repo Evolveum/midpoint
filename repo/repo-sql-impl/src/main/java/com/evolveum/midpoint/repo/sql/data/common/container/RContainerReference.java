@@ -14,7 +14,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
@@ -39,7 +39,7 @@ public abstract class RContainerReference extends RReference implements EntitySt
 
     private Boolean trans;
 
-    private RCReferenceOwner referenceType;
+    private RCReferenceType referenceType;
 
     //owner
     private String ownerOid;
@@ -71,11 +71,11 @@ public abstract class RContainerReference extends RReference implements EntitySt
         return null;
     }
 
-    protected RCReferenceOwner getReferenceType() {
+    protected RCReferenceType getReferenceType() {
         return referenceType;
     }
 
-    public void setReferenceType(RCReferenceOwner referenceType) {
+    public void setReferenceType(RCReferenceType referenceType) {
         this.referenceType = referenceType;
     }
 

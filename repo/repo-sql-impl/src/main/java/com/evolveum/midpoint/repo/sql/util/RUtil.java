@@ -50,7 +50,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -120,7 +120,7 @@ public final class RUtil {
     }
 
     public static <T extends RObject> Set<RObjectReference<T>> toRObjectReferenceSet(
-            List<ObjectReferenceType> list, RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
+            List<ObjectReferenceType> list, RObject owner, RReferenceType refOwner, RelationRegistry relationRegistry) {
         return CollectionUtils.emptyIfNull(list)
                 .stream()
                 .<RObjectReference<T>>map(
@@ -129,7 +129,7 @@ public final class RUtil {
     }
 
     public static <T extends RObject> RObjectReference<T> jaxbRefToRepo(ObjectReferenceType reference,
-            RObject owner, RReferenceOwner refType, RelationRegistry relationRegistry) {
+            RObject owner, RReferenceType refType, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }
