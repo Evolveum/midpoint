@@ -16214,6 +16214,7 @@
                     </xsd:element>
 
                     <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0"/>
+
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -16566,6 +16567,21 @@
                     <xsd:appinfo>
                         <a:since>4.2</a:since>
                         <a:displayName>SystemConfigurationAuditEventRecordingType.escapeIllegalCharacters</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordSessionlessAccess" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There are services in midPoint that are not using concept of access session.
+                        No session is created for such services.
+                        Therefore there are no audit records about session creation or termination.
+                        Access to such services is not recorded in the audit log by default.
+                        Setting `recordSessionlessAccess` to `true` will force recording of session start/end events even for session-less services.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.recordSessionlessAccess</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
