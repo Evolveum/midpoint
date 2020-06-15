@@ -4745,6 +4745,15 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="behavior" type="tns:BehaviorType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusType.behavior</a:displayName>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5105,7 +5114,7 @@
             <xsd:documentation>
                 This is a container type for various credentials types: passwords, public keys, one-time password
                 scheme identifiers, etc. However, we expect that password will be the most widely used credential
-                type and that's actually also the only supported type.
+                type.
 
                 The reason to "formalize" this structure is the ability to synchronize credentials. If the password
                 would be just an ordinary attribute, we cannot automatically synchronize user and account passwords.
@@ -5113,10 +5122,6 @@
                 Note: marking password with a special attribute type will not be enough. There may be numerous passwords
                 with various meanings, we need to distinguish the "primary" one to synchronize. We also need to store
                 user password somewhere.
-
-                This is not perfect. It may change in the future.
-
-                TODO: support for "old password", e.g. some resource need it to change password.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5144,35 +5149,46 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- More credential types may be here, such as OTP seeds, X.509 credentials,
-                etc. -->
+            <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
 
-    <xsd:complexType name="AbstractCredentialType" abstract="true">
+    <xsd:complexType name="BehaviorType">
         <xsd:annotation>
+            <xsd:documentation>
+                General-purpose behavioral data.
+                In a more specific meaning: behavioral data of an agent (user or system), usually represented in midPoint by focus.
+                This data structure records informational data about the agent's behavior, such as authentications, interaction with systems and so on.
+                Such data are inherently _observed_, e.g. they are not configured by the user.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the credential. It is used as an identifier that
-                        specifies credential purpose. E.g. it may specify whether
-                        this is default user password or administration password,
-                        whether this is a nonce for registration or password reset
-                        and so on. Simply speaking the name is used to distinguish
-                        credentials that have the same type but different purpose.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                    </xsd:appinfo>
-                </xsd:annotation>
+            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="1">
             </xsd:element>
+            <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
+                 Even compiled data may appear here, e.g. last access of user to any of his accounts.
+                 Maybe we should even make this extensible, so custom items may be added here. -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationBehavioralDataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Behavioral data about past authentications.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5219,37 +5235,65 @@
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: lockoutTimestamp -->
-            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Timestamps and general metadata describing the credential change.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If it is required to change password. E.g. there are situation when you set first password
-                        for the user, but after the user fist log in to the system, he/she has to change his/her password.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCredentialType.forceChange</a:displayName>
-                        <a:experimental>true</a:experimental>
-                        <a:since>3.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+
+    <xsd:complexType name="AbstractCredentialType" abstract="true">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthenticationBehavioralDataType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the credential. It is used as an identifier that
+                                specifies credential purpose. E.g. it may specify whether
+                                this is default user password or administration password,
+                                whether this is a nonce for registration or password reset
+                                and so on. Simply speaking the name is used to distinguish
+                                credentials that have the same type but different purpose.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Timestamps and general metadata describing the credential change.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If it is required to change password. E.g. there are situation when you set first password
+                                for the user, but after the user fist log in to the system, he/she has to change his/her password.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractCredentialType.forceChange</a:displayName>
+                                <a:experimental>true</a:experimental>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
 
     <xsd:complexType name="PasswordType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
+                <!-- TODO: support for "old password", e.g. some resource need it to change password. -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
