@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.marshaller.*;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
@@ -91,6 +92,9 @@ public final class PrismContextImpl implements PrismContext {
 
     @Experimental // temporary
     private ValueMetadataMockUpFactory valueMetadataMockUpFactory;
+
+    @Experimental
+    private ValueMetadataFactory valueMetadataFactory;
 
     private ParsingMigrator parsingMigrator;
     private PrismMonitor monitor = null;
@@ -679,5 +683,15 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public ValueMetadataMockUpFactory getValueMetadataMockUpFactory() {
         return valueMetadataMockUpFactory;
+    }
+
+    @Override
+    public void setValueMetadataFactory(ValueMetadataFactory valueMetadataFactory) {
+        this.valueMetadataFactory = valueMetadataFactory;
+    }
+
+    @Override
+    public ValueMetadataFactory getValueMetadataFactory() {
+        return valueMetadataFactory;
     }
 }

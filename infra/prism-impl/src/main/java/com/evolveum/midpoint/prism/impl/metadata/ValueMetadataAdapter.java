@@ -511,8 +511,8 @@ public class ValueMetadataAdapter implements ValueMetadata {
         delegate.assertDefinitions(tolerateRaw, sourceDescription);
     }
 
-    public PrismContainerValue<Containerable> clone() {
-        return delegate.clone();
+    public ValueMetadata clone() {
+        return holding(delegate.clone());
     }
 
     public PrismContainerValue<Containerable> createImmutableClone() {

@@ -49,6 +49,10 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     @Experimental
     Optional<ValueMetadata> valueMetadata() throws SchemaException;
 
+    @Experimental
+    default void createLiveMetadata() {
+    }
+
     @NotNull
     ItemPath getPath();
 

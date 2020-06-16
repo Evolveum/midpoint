@@ -5,4 +5,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 @Experimental
 public interface ValueMetadata extends PrismContainerValue<Containerable> {
 
+    ValueMetadata clone();
+
 }

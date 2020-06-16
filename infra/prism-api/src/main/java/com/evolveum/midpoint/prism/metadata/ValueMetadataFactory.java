@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.prism.metadata;
 
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
-import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Provides mock up value metadata for given prism value.
+ * Provides empty value metadata.
  */
 @Experimental
-public interface ValueMetadataMockUpFactory {
+public interface ValueMetadataFactory {
 
-    Optional<ValueMetadata> createValueMetadata(PrismValue value) throws SchemaException;
+    @NotNull
+    ValueMetadata createEmpty();
 
 }
