@@ -229,6 +229,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
+    public <V> AxiomValueReference<V> asReference() {
+        return (AxiomValueReference<V>) reference;
+    }
+
+    @Override
     public void replaceValue(V object) {
         mutable().value = object;
     }
@@ -306,6 +311,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
                 }
                 return null;
             }));
+        }
+
+        @Override
+        public Dependency<AxiomValueContext<?>> modify() {
+            return Dependency.immediate(ValueContext.this);
         }
 
         @Override

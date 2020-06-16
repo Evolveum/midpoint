@@ -35,6 +35,8 @@ public interface AxiomStatementRule<V> {
 
         Dependency<AxiomValueContext<?>> modify(AxiomName identifierSpace, IdentifierSpaceKey identifier);
 
+        Dependency<AxiomValueContext<?>> modify();
+
         Dependency.Search<AxiomValue<?>> global(AxiomName identifierSpace, IdentifierSpaceKey identifier);
 
         Dependency.Search<AxiomValueReference<?>> reference(AxiomName identifierSpace, IdentifierSpaceKey identifier);

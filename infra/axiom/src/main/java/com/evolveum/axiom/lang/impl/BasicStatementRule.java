@@ -1,6 +1,5 @@
 package com.evolveum.axiom.lang.impl;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,20 +9,16 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
-import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -150,6 +145,21 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
                 addFromType(typeDef.get(), superTypeValue.parentValue());
             });
         }
+    },
+    ITEM_FROM_SUBSTITUTION(items(Item.SUBSTITUTION_DEFINITION), types(Type.SUBSTITUTION_DEFINITION)) {
+
+        @Override
+        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
+            // FIXME: Resolve original item
+            /*action.require(context.child(Item.NAME,AxiomName.class).flatMap(v -> {
+
+            }));*/
+            Dependency<AxiomValueContext<?>> parent = action.require(context.parentValue().modify());
+            action.apply(value -> {
+                parent.get().childItem(Item.ITEM_DEFINITION).addOperationalValue(value.asReference());
+            });
+        }
+
     },
     IMPORT_DEFAULT_TYPES(all(), types(Type.MODEL)) {
         @Override

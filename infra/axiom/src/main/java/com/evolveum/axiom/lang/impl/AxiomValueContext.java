@@ -36,6 +36,8 @@ public interface AxiomValueContext<V> {
 
     void replaceValue(V object);
 
+    <V> AxiomValueReference<V> asReference();
+
     /*V requireValue() throws AxiomSemanticException;
 
     AxiomItemDefinition definition();

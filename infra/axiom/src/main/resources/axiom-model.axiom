@@ -151,6 +151,16 @@ model axiom-model {
                 Definition of child items
             """;
             minOccurs 0;
+            allowsSubstitution true;
+        }
+
+        substitution substitution {
+            type AxiomSubstitutionDefinition;
+            identifier name;
+            documentation """
+                Definition of Substitution;
+            """;
+            minOccurs 0;
         }
 
     }
@@ -219,6 +229,17 @@ model axiom-model {
           //  value AxiomValue;
           //  item AxiomItem;
           //}
+        }
+        
+        item allowsSubstitution {
+          type boolean;
+        }
+    }
+
+    type AxiomSubstitutionDefinition {
+        supertype AxiomItemDefinition;
+        item target {
+            type AxiomName;
         }
     }
 
