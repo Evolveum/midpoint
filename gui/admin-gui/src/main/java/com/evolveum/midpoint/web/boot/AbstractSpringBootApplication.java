@@ -8,9 +8,14 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.DispatcherType;
 
+import com.evolveum.midpoint.web.security.SessionAndRequestScopeImpl;
+
 import org.apache.wicket.Application;
 import org.apache.wicket.protocol.http.WicketFilter;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.servlet.WebMvcEndpointManagementContextConfiguration;
@@ -138,5 +143,15 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
     @Bean
     public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public static BeanFactoryPostProcessor beanFactoryPostProcessor() {
+        return new BeanFactoryPostProcessor() {
+            @Override
+            public void postProcessBeanFactory(ConfigurableListableBeanFactory factory) throws BeansException {
+                factory.registerScope("sessionAndRequest", new SessionAndRequestScopeImpl());
+            }
+        };
     }
 }

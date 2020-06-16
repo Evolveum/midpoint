@@ -93,6 +93,7 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
 
         MidpointFilterChainProxy.VirtualFilterChain vfc = new MidpointFilterChainProxy.VirtualFilterChain(fwRequest, chain, filters);
         vfc.doFilter(fwRequest, fwResponse);
+        int i = 0;
     }
 
     private List<Filter> getFilters(HttpServletRequest request) {

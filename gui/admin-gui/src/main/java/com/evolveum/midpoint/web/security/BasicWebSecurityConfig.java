@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.UUID;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,9 +29,12 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
@@ -43,7 +46,8 @@ import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.filter.MidpointAnonymousAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.AuthFilterConfigurer;
 
-import org.springframework.web.context.annotation.SessionScope;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author skublik
@@ -111,6 +115,14 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
     }
 
+    @Bean
+    @SessionAndRequestScope
+    @Override
+    protected MidpointAuthenticationManager authenticationManager() throws Exception {
+        List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
+        return new MidpointProviderManager(providers);
+    }
+
     @Override
     public void configure(WebSecurity web) throws Exception {
         super.configure(web);
@@ -146,18 +158,29 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .securityContext();
         http.apply(new AuthFilterConfigurer());
 
+        createSessionContextRepository(http);
+
         http.sessionManagement()
                 .maximumSessions(-1)
                 .sessionRegistry(sessionRegistry)
                 .maxSessionsPreventsLogin(true);
     }
 
-    @Bean
-    @SessionScope
-    @Override
-    protected MidpointAuthenticationManager authenticationManager() throws Exception {
-        List<AuthenticationProvider> providers = new ArrayList<AuthenticationProvider>();
-        return new MidpointProviderManager(providers);
+    private void createSessionContextRepository(HttpSecurity http) {
+        HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
+            @Override
+            public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
+                if(!SecurityUtils.isRestOrActuatorChannel(request)) {
+                    super.saveContext(context, request, response);
+                }
+            }
+        };
+        httpSecurityRepository.setDisableUrlRewriting(true);
+        AuthenticationTrustResolver trustResolver = http.getSharedObject(AuthenticationTrustResolver.class);
+        if (trustResolver != null) {
+            httpSecurityRepository.setTrustResolver(trustResolver);
+        }
+        http.setSharedObject(SecurityContextRepository.class, httpSecurityRepository);
     }
 
 //    TODO not used, don't delete because of possible future implementation authentication module

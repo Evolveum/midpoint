@@ -627,4 +627,16 @@ public class SecurityUtils {
         }
         return true;
     }
+
+    public static boolean isRestOrActuatorChannel(HttpServletRequest httpRequest){
+        if (httpRequest != null) {
+            String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+            String channel = SecurityUtils.searchChannelByPath(localePath);
+            if (SchemaConstants.CHANNEL_REST_URI.equals(channel)
+                    || SchemaConstants.CHANNEL_ACTUATOR_URI.equals(channel)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
