@@ -67,6 +67,9 @@
             <xsd:documentation>
                 Audit event record describes a single event (usually data change) in a format suitable for audit.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="1">
