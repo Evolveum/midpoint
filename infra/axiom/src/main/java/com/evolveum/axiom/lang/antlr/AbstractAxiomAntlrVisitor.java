@@ -20,6 +20,7 @@ import com.evolveum.axiom.lang.antlr.AxiomParser.ItemBodyContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.MetadataContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
@@ -42,7 +43,9 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private AxiomName statementIdentifier(IdentifierContext identifier) {
         String prefix = nullableText(identifier.prefix());
         String localName = identifier.localIdentifier().getText();
-        return resolveItemName(prefix, localName);
+        AxiomName ret = resolveItemName(prefix, localName);
+        AxiomSemanticException.check(ret != null, sourceLocation(identifier.start), "Item %s not allowed at this place.", identifier.getText());
+        return ret;
     }
 
 

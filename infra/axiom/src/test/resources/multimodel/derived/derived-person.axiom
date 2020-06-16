@@ -19,5 +19,14 @@ model derived-person {
         item lastName {
             type string;
         }
+        substitution givenName {
+            type string;
+            target firstName;
+        }
+
+        substitution familyName {
+            type string;
+            target lastName;
+        }
     }
 }

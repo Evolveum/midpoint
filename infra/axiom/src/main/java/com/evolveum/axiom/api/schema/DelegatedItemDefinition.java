@@ -84,4 +84,9 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     public Map<AxiomName, AxiomItem<?>> infraItems() {
         return delegate().infraItems();
     }
+
+    @Override
+    public Optional<AxiomName> substitutionOf() {
+        return delegate().substitutionOf();
+    }
 }

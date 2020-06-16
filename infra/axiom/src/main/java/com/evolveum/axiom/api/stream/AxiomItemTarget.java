@@ -11,6 +11,7 @@ import com.evolveum.axiom.api.AxiomValueBuilder;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
@@ -114,10 +115,14 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public ValueBuilder startValue(Object value, SourceLocation loc) {
+        public Value<V> startValue(Object value, SourceLocation loc) {
             Value<V> newValue = new Value<>((V) value, builder.definition().typeDefinition());
-            builder.addValue(newValue);
+            addValue(newValue);
             return newValue;
+        }
+
+        protected void addValue(Value<V> value) {
+            builder.addValue(value);
         }
 
         @Override
@@ -128,6 +133,25 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public AxiomItem<V> get() {
             return builder.get();
+        }
+    }
+
+    private final class SubstitutionItem<V> extends Item<V> {
+
+        private Lazy<? extends Item<V>> target;
+
+        public SubstitutionItem(AxiomItemDefinition definition, Lazy<? extends Item<V>> target) {
+            super(definition);
+            this.target = target;
+        }
+
+
+
+        @Override
+        public Value<V> startValue(Object value, SourceLocation loc) {
+            Value<V> valueCtx = super.startValue(value, loc);
+            target.get().addValue(valueCtx);
+            return valueCtx;
         }
 
     }
@@ -252,11 +276,16 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public ItemBuilder startItem(AxiomName name, SourceLocation loc) {
+        public Item<?> startItem(AxiomName name, SourceLocation loc) {
             Object itemImpl = builder.get(name, (id) -> {
-                return new Item(childItemDef(name).get());
+                AxiomItemDefinition childDef = childItemDef(name).get();
+                if(childDef.substitutionOf().isPresent()) {
+                    Lazy<Item<?>> targetItem = Lazy.from(() -> startItem(childDef.substitutionOf().get(), loc));
+                    return new SubstitutionItem<>(childDef, targetItem);
+                }
+                return new Item<>(childItemDef(name).get());
             });
-            return (Item) (itemImpl);
+            return (Item<?>) (itemImpl);
         }
 
         @Override

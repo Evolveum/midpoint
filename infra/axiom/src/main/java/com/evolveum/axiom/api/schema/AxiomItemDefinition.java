@@ -101,4 +101,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexV
     }
 
     Optional<AxiomIdentifierDefinition> identifierDefinition();
+
+    Optional<AxiomName> substitutionOf();
+
 }

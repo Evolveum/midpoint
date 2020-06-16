@@ -56,6 +56,11 @@ public class AxiomBuiltIn {
             public Optional<AxiomIdentifierDefinition> identifierDefinition() {
                 return Optional.of(NAME_IDENTIFIER.get());
             }
+
+            @Override
+            public Optional<AxiomName> substitutionOf() {
+                return Optional.of(ITEM_DEFINITION.name());
+            }
         };
         public static final Item MODEL_DEFINITION = new Item("model", Type.MODEL, false);
         public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
@@ -150,6 +155,11 @@ public class AxiomBuiltIn {
         @Override
         public Map<AxiomName, AxiomItem<?>> infraItems() {
             return null;
+        }
+
+        @Override
+        public Optional<AxiomName> substitutionOf() {
+            return Optional.empty();
         }
     }
 
