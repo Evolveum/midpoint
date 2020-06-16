@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 
 public class HttpModuleAuthentication extends CredentialModuleAuthentication{
 
+    private String realm;
     private String proxyUserOid;
 
     public HttpModuleAuthentication(String nameOfType) {
@@ -28,10 +29,17 @@ public class HttpModuleAuthentication extends CredentialModuleAuthentication{
         this.proxyUserOid = proxyUserOid;
     }
 
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
+    }
+
     public ModuleAuthentication clone() {
         HttpModuleAuthentication module = new HttpModuleAuthentication(this.getNameOfModuleType());
-        module.setProxyUserOid(this.getProxyUserOid());
-        super.clone(module);
+        clone(module);
         return module;
     }
 
@@ -39,6 +47,7 @@ public class HttpModuleAuthentication extends CredentialModuleAuthentication{
     protected void clone(ModuleAuthentication module) {
         if (module instanceof HttpModuleAuthentication) {
             ((HttpModuleAuthentication)module).setProxyUserOid(this.getProxyUserOid());
+            ((HttpModuleAuthentication)module).setRealm(this.getRealm());
         }
         super.clone(module);
     }

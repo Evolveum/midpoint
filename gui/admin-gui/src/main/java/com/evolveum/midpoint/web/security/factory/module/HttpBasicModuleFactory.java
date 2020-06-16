@@ -62,6 +62,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<Modu
         moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setRealm(((HttpBasicAuthenticationModuleType) moduleType).getRealm());
         return moduleAuthentication;
     }
 
