@@ -1279,8 +1279,8 @@ public class ShadowCache {
         } catch (ObjectNotFoundException ex) {
             parentResult.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(),
                     ex);
-            throw new ObjectNotFoundException("An error occured while deleting resource object " + repoShadow
-                    + "whith identifiers " + repoShadow + ": " + ex.getMessage(), ex);
+            throw new ObjectNotFoundException("An error occurred while deleting resource object " + repoShadow
+                    + " with identifiers " + repoShadow + ": " + ex.getMessage(), ex);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
         }

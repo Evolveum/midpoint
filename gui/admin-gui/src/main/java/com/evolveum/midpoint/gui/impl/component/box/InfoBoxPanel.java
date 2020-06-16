@@ -6,13 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.component.box;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -51,18 +66,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -258,29 +261,23 @@ public abstract class InfoBoxPanel extends Panel{
             ObjectCollectionType collection = getObjectCollectionType();
             if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
                 Class<? extends WebPage> pageType = getLinksRefCollections().get(collection.getType().getLocalPart());
+                PageParameters parameters = new PageParameters();
+                if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
+                    pageType = PageResource.class;
+                    String oid = getResourceOid(collection.getFilter().getFilterClauseXNode());
+                    if (oid != null) {
+                        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+                        Integer tab = getResourceTab(collection.getFilter().getFilterClauseXNode());
+                        if (tab != null) {
+                            parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
+                        } else {
+                            parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
+                        }
+                    }
+                }
                 if(pageType == null) {
                     return null;
                 }
-                PageParameters parameters = new PageParameters();
-//                CompiledObjectCollectionView existingCompiledView = getPageBase().getCompiledGuiProfile()
-//                        .findObjectCollectionView(collection.getType(), model.getObject().getIdentifier());
-//                if (existingCompiledView == null || !existingCompiledView.getViewIdentifier().equals(model.getObject().getIdentifier())) {
-//                    Task task = getPageBase().createSimpleTask("Compiling collection view");
-//                    try {
-//                        @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
-//                                .compileObjectCollectionView(collection.asPrismObject(), null, task, task.getResult());
-//                        if (!isViewOfWidgetNull(model)) {
-//                            getPageBase().getModelInteractionService().applyView(compiledView, model.getObject().getPresentation().getView());
-//                        }
-//                        compiledView.setCollection(model.getObject().getData().getCollection());
-//                        compiledView.setViewIdentifier(model.getObject().getIdentifier());
-//                        getPageBase().getCompiledGuiProfile().getObjectCollectionViews().add(compiledView);
-//                    } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
-//                            | ObjectNotFoundException e) {
-//                        LOGGER.error("Couldn't compile collection " + collection.getName(), e);
-//                    }
-//                }
-
                 parameters.add(PageBase.PARAMETER_DASHBOARD_TYPE_OID, getDashboardOid());
                 parameters.add(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME, model.getObject().getIdentifier());
                 return getPageBase().createWebPage(pageType, parameters);
@@ -320,6 +317,76 @@ public abstract class InfoBoxPanel extends Panel{
     return null;
     }
 
+    private Integer getResourceTab(MapXNode mapXNode) {
+        for (QName name : mapXNode.keySet()) {
+            XNode xNode = mapXNode.get(name);
+            if (QNameUtil.match(name, new QName("equal"))) {
+                List<MapXNode> listXNode = new ArrayList<>();
+                if (xNode instanceof MapXNode) {
+                    listXNode.add((MapXNode) xNode);
+                } else if (xNode instanceof ListXNode) {
+                    listXNode.addAll((Collection<? extends MapXNode>) ((ListXNode) xNode).asList());
+                }
+                for (MapXNode equalXNode : listXNode) {
+                    if (equalXNode.get(new QName("path")) != null
+                            && ((ItemPathType) ((PrimitiveXNode) equalXNode.get(new QName("path")))
+                            .getValue()).getItemPath().equivalent(ItemPath.create("kind"))) {
+                        XNode value = equalXNode.get(new QName("value"));
+                        if (value != null && value instanceof PrimitiveXNode) {
+                            ShadowKindType kind = ShadowKindType.fromValue(((PrimitiveXNode)value).getValueParser().getStringValue());
+                            if (ShadowKindType.ACCOUNT.equals(kind)) {
+                                return 2;
+                            } else if (ShadowKindType.ENTITLEMENT.equals(kind)) {
+                                return 3;
+                            } else if (ShadowKindType.GENERIC.equals(kind)) {
+                                return 4;
+                            }
+                            return null;
+                        }
+                    }
+                }
+            }
+            if (xNode instanceof MapXNode) {
+                Integer ret = getResourceTab((MapXNode) xNode);
+                if (ret != null) {
+                    return ret;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getResourceOid(MapXNode mapXNode) {
+        for (QName name : mapXNode.keySet()) {
+            XNode xNode = mapXNode.get(name);
+            if (QNameUtil.match(name, new QName("ref"))) {
+                List<MapXNode> listXNode = new ArrayList<>();
+                if (xNode instanceof MapXNode) {
+                    listXNode.add((MapXNode) xNode);
+                } else if (xNode instanceof ListXNode) {
+                    listXNode.addAll((Collection<? extends MapXNode>) ((ListXNode) xNode).asList());
+                }
+                for (MapXNode equalXNode : listXNode) {
+                    if (equalXNode.get(new QName("path")) != null
+                            && ((ItemPathType) ((PrimitiveXNode) equalXNode.get(new QName("path")))
+                            .getValue()).getItemPath().equivalent(ItemPath.create("resourceRef"))) {
+                        XNode value = equalXNode.get(new QName("value"));
+                        if (value != null && value instanceof MapXNode) {
+                            PrimitiveXNode oid = ((PrimitiveXNode) ((MapXNode) value).get(new QName("oid")));
+                            if (oid != null) {
+                                return oid.getValueParser().getStringValue();
+                            }
+                        }
+                    }
+                }
+            }
+            if (xNode instanceof MapXNode) {
+                return getResourceOid((MapXNode) xNode);
+            }
+        }
+        return null;
+    }
+
     protected boolean existLinkRef() {
         IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
         DashboardWidgetSourceTypeType sourceType = getSourceType(model);
@@ -327,6 +394,10 @@ public abstract class InfoBoxPanel extends Panel{
         case OBJECT_COLLECTION:
             ObjectCollectionType collection = getObjectCollectionType();
             if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
+                if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
+                    String oid = getResourceOid(collection.getFilter().getFilterClauseXNode());
+                    return !StringUtils.isEmpty(oid);
+                }
                 return getLinksRefCollections().containsKey(collection.getType().getLocalPart());
             }  else {
                 return false;

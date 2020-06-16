@@ -13,7 +13,6 @@
    <description>Users listed in MidPoint.</description>
 
    <!-- No archetype here. Default expression profile. -->
-    <reportEngine>jasper</reportEngine>
     <jasper>
    <parent>true</parent>
    <!-- Expression query is trying to access java.lang.System.getProperties() -->

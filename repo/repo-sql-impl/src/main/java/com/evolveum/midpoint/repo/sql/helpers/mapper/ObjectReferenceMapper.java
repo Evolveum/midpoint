@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -33,7 +33,7 @@ public class ObjectReferenceMapper extends ReferenceMapper<RObjectReference> {
 
         Class<? extends ObjectType> jaxbObjectType = RObjectType.getType(owner.getClass()).getJaxbClass();
 
-        RReferenceOwner refType = RReferenceOwner.getOwnerByQName(jaxbObjectType, context.getDelta().getPath().lastName());
+        RReferenceType refType = RReferenceType.getOwnerByQName(jaxbObjectType, context.getDelta().getPath().lastName());
 
         return RUtil.jaxbRefToRepo(objectRef, owner, refType, context.getRelationRegistry());
     }

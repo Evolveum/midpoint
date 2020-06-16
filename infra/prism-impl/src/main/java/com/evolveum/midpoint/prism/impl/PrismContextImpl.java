@@ -468,11 +468,6 @@ public final class PrismContextImpl implements PrismContext {
         return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null, this, null);
     }
 
-    @Override
-    public boolean canSerialize(Object value) {
-        return prismMarshaller.canSerialize(value);
-    }
-
     //endregion
 
     @NotNull

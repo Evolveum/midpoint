@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
 
@@ -21,7 +20,7 @@ public class CredentialModuleAuthentication extends ModuleAuthentication {
     private String credentialName = null;
     private Class<? extends CredentialPolicyType> credentialType;
 
-    public CredentialModuleAuthentication(NameOfModuleType nameOfType) {
+    public CredentialModuleAuthentication(String nameOfType) {
         super(nameOfType);
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
@@ -45,8 +44,7 @@ public class CredentialModuleAuthentication extends ModuleAuthentication {
 
     public ModuleAuthentication clone() {
         CredentialModuleAuthentication module = new CredentialModuleAuthentication(this.getNameOfModuleType());
-        module.setCredentialName(getCredentialName());
-        super.clone(module);
+        clone(module);
         return module;
     }
 
@@ -54,6 +52,7 @@ public class CredentialModuleAuthentication extends ModuleAuthentication {
     protected void clone(ModuleAuthentication module) {
         if (module instanceof CredentialModuleAuthentication) {
             ((CredentialModuleAuthentication)module).setCredentialName(getCredentialName());
+            ((CredentialModuleAuthentication)module).setCredentialType(getCredentialType());
         }
         super.clone(module);
     }

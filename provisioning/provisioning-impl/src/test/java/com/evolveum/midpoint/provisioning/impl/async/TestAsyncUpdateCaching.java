@@ -7,17 +7,16 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
-import org.jetbrains.annotations.NotNull;
+import static java.util.Collections.singletonList;
 
 import java.io.File;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
+import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
 public class TestAsyncUpdateCaching extends TestAsyncUpdate {
+
+    static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
 
     @Override
     protected File getResourceFile() {

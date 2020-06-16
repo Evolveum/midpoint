@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RAccessCertificationCampaign;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -42,6 +41,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+
+/**
+ * @author lazyman
+ * @author mederly
+ */
 
 @JaxbType(type = AccessCertificationCaseType.class)
 @Entity
@@ -70,7 +74,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     private REmbeddedReference targetRef;
     private REmbeddedReference tenantRef;
     private REmbeddedReference orgRef;
-    private RActivation activation;                 // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
+    // we need mainly validFrom + validTo + maybe adminStatus; for simplicity we added whole ActivationType here
+    private RActivation activation;
 
     private XMLGregorianCalendar reviewRequestedTimestamp;
     private XMLGregorianCalendar reviewDeadline;
@@ -246,14 +251,12 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         this.fullObject = fullObject;
     }
 
+    /* TODO: remove in 2021 if no problem apears
     // Notes to equals/hashCode: don't include trans nor owner
-    /*
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAccessCertificationCase))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RAccessCertificationCase)) { return false; }
         RAccessCertificationCase that = (RAccessCertificationCase) o;
         return Arrays.equals(fullObject, that.fullObject) &&
                 Objects.equals(ownerOid, that.ownerOid) &&
@@ -360,34 +363,37 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         rCase.setStageNumber(case1.getStageNumber());
         rCase.setOutcome(case1.getOutcome());
         PrismContainerValue<AccessCertificationCaseType> cvalue = case1.asPrismContainerValue();
-        String xml;
+        String serializedForm;
         try {
-            xml = context.prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
+            serializedForm = context.prismContext
+                    .serializerFor(context.configuration.getFullObjectFormat())
+                    .serialize(cvalue, SchemaConstantsGenerated.C_VALUE);
         } catch (SchemaException e) {
             throw new IllegalStateException("Couldn't serialize certification case to string", e);
         }
-        LOGGER.trace("RAccessCertificationCase full object\n{}", xml);
-        byte[] fullObject = RUtil.getByteArrayFromXml(xml, false);
+        LOGGER.trace("RAccessCertificationCase full object\n{}", serializedForm);
+        byte[] fullObject = RUtil.getBytesFromSerializedForm(serializedForm, false);
         rCase.setFullObject(fullObject);
 
         return rCase;
     }
 
     public AccessCertificationCaseType toJAXB(PrismContext prismContext) throws SchemaException {
-        return createJaxb(fullObject, prismContext, true);
+        return createJaxb(fullObject, prismContext);
     }
 
-    // TODO find appropriate name
-    public static AccessCertificationCaseType createJaxb(byte[] fullObject, PrismContext prismContext, boolean removeCampaignRef) throws SchemaException {
-        String xml = RUtil.getXmlFromByteArray(fullObject, false);
-        LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", xml);
+    public static AccessCertificationCaseType createJaxb(
+            byte[] fullObject, PrismContext prismContext) throws SchemaException {
+        String serializedFrom = RUtil.getSerializedFormFromBytes(fullObject);
+        LOGGER.trace("RAccessCertificationCase full object to be parsed\n{}", serializedFrom);
         try {
-            return prismContext.parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).compat().parseRealValue(AccessCertificationCaseType.class);
+            return prismContext.parserFor(serializedFrom)
+                    .compat().parseRealValue(AccessCertificationCaseType.class);
         } catch (SchemaException e) {
-            LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, xml);
+            LOGGER.debug("Couldn't parse certification case because of schema exception ({}):\nData: {}", e, serializedFrom);
             throw e;
         } catch (RuntimeException e) {
-            LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, xml);
+            LOGGER.debug("Couldn't parse certification case because of unexpected exception ({}):\nData: {}", e, serializedFrom);
             throw e;
         }
     }

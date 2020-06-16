@@ -4568,7 +4568,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Authentication createMpAuthentication(Authentication authentication) {
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(NameOfModuleType.LOGIN_FORM);
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(AuthenticationModuleNameConstants.LOGIN_FORM);
         moduleAuthentication.setAuthentication(authentication);
         moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
         moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);

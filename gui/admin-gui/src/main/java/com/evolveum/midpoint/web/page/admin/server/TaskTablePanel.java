@@ -196,7 +196,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     private List<IColumn<SelectableBean<TaskType>, String>> initTaskColumns() {
         List<IColumn<SelectableBean<TaskType>, String>> columns = new ArrayList<>();
 
-        if (!isCollectionViewPanel()){
+        if (!isCollectionViewPanelForCompiledView()){
             columns.add(createTaskCategoryColumn());
         }
         columns.addAll(initCustomTaskColumns());

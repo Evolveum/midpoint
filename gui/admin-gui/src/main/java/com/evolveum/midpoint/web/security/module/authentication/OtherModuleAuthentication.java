@@ -17,17 +17,19 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
+@Experimental
 public class OtherModuleAuthentication extends ModuleAuthentication {
 
     public OtherModuleAuthentication() {
-        super(NameOfModuleType.OTHER);
+        super(AuthenticationModuleNameConstants.OTHER);
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
     }

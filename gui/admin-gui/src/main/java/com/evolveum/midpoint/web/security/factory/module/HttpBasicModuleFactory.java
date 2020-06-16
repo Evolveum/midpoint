@@ -8,8 +8,8 @@ package com.evolveum.midpoint.web.security.factory.module;
 
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleWebSecurityConfiguration;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.web.security.module.HttpBasicModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
@@ -27,7 +27,7 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<Modu
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleHttpBasicType) {
+        if (moduleType instanceof HttpBasicAuthenticationModuleType) {
             return true;
         }
         return false;
@@ -57,11 +57,12 @@ public class HttpBasicModuleFactory extends AbstractCredentialModuleFactory<Modu
 
     @Override
     protected ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
-        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(NameOfModuleType.HTTP_BASIC);
+        HttpModuleAuthentication moduleAuthentication = new HttpModuleAuthentication(AuthenticationModuleNameConstants.HTTP_BASIC);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setCredentialName(((AbstractPasswordAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setRealm(((HttpBasicAuthenticationModuleType) moduleType).getRealm());
         return moduleAuthentication;
     }
 

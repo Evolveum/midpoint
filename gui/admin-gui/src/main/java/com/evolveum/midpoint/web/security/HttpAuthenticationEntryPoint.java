@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthentication;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +25,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * @author skublik
  */
 public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
+
+    private static final String DEFAULT_REALM = "midpoint";
 
     @Override
     public void commence(
@@ -44,8 +48,8 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
                         sb.append(", ");
                     }
                     first = false;
-                    sb.append(moduleAuthentication.getNameOfModuleType().getName())
-                            .append(" realm=\"").append(moduleAuthentication.getNameOfModule()).append("\"");
+                    sb.append(moduleAuthentication.getNameOfModuleType())
+                            .append(" realm=\"").append(getRealm(moduleAuthentication)).append("\"");
                 }
                 response.setHeader("WWW-Authenticate",sb.toString());
             }
@@ -54,5 +58,13 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint{
         response.getWriter().write(" test error ");
         response.getWriter().flush();
         response.getWriter().close();
+    }
+
+    private String getRealm(ModuleAuthentication moduleAuthentication) {
+        if (moduleAuthentication instanceof HttpModuleAuthentication
+                && ((HttpModuleAuthentication) moduleAuthentication).getRealm() != null) {
+            return ((HttpModuleAuthentication) moduleAuthentication).getRealm();
+        }
+        return DEFAULT_REALM;
     }
 }

@@ -15,7 +15,6 @@
         <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">test report</norm>
     </name>
     <description>TEST Report with DataSource parameter.</description>
-    <reportEngine>jasper</reportEngine>
     <jasper>
     <!-- flag if this report is "parent" report, used for gui -->
     <parent>true</parent>

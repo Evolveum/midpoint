@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestionsAuthenticationToken;
@@ -58,7 +58,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
                         + " Please use form 'Authorization: <type> <credentials>' for successful authentication");
             }
 
-            if (header == null || !header.toLowerCase().startsWith(NameOfModuleType.SECURITY_QUESTIONS.getName().toLowerCase() + " ")) {
+            if (header == null || !header.toLowerCase().startsWith(AuthenticationModuleNameConstants.SECURITY_QUESTIONS.toLowerCase() + " ")) {
                 chain.doFilter(request, response);
                 return;
             }
@@ -112,7 +112,7 @@ public class HttpSecurityQuestionsAuthenticationFilter extends HttpAuthenticatio
     private JSONObject extractAndDecodeHeader(String header, HttpServletRequest request)
             throws IOException {
 
-        int startIndex = NameOfModuleType.SECURITY_QUESTIONS.getName().length() + 1;
+        int startIndex = AuthenticationModuleNameConstants.SECURITY_QUESTIONS.length() + 1;
         byte[] base64Token = header.substring(startIndex).getBytes(StandardCharsets.UTF_8);
         byte[] decoded;
         try {

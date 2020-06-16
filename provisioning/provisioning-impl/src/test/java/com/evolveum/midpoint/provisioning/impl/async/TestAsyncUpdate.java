@@ -62,10 +62,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     protected static final File TEST_DIR = new File("src/test/resources/async/");
 
-    static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
-    static final File RESOURCE_ASYNC_CACHING_INDEX_ONLY_FILE = new File(TEST_DIR, "resource-async-caching-index-only.xml");
-    static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
-    static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
     private static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
     private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
@@ -135,8 +131,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
         OperationResult result = getTestOperationResult();
 
         // Check that there is a schema, but no capabilities before test (pre-condition)
-        ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID,
-                null, result).asObjectable();
+        ResourceType resourceBefore = repositoryService.getObject(
+                ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
 
         ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
 

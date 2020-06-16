@@ -1,28 +1,36 @@
-*~
+# ending with / = directory, starting with / = absolute (from .gitignore location)
+# e.g. target/ is target directory ignored anywhere in the tree, /.idea/ is only in the root
+# to override generic rule, use !, e.g. !/some/module/build/ would not be ignored
+
+# build tool files
+target/
+build/
+test-output/
+dependency-reduced-pom.xml
+
+# IDEA files
+/.idea/
+*.iml
+
+# Eclipse files
 .project
 .classpath
 .settings
-/.idea/
-*.iml
-*.log
-*.versionsBackup
-target/
+
+# JRebel files
 rebel.xml
-samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/bin
-samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/obj
-velocity.log
+
+# jenv related, I guess
 .java-version
 
-dependency-reduced-pom.xml
+# NetBeans files
 /nb-configuration.xml
 /nbactions.xml
 
+# backup, log and other files
+*~
+*.log
+*.versionsBackup
 .DS_Store
-
-tools/schrodinger/build
-testing/schrodingertest/build
-
-test-output/
-
 _mess
 .checkstyle

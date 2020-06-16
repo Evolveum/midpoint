@@ -7,7 +7,6 @@
   -->
 <report oid="2b44aa2e-dd86-4842-bcf5-762c8a9a85ab">
     <name>Object Collection report with default columns</name>
-    <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
             <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>

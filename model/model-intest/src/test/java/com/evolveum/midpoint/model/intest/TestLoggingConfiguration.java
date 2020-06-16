@@ -400,9 +400,9 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         applyTestLoggingConfig(logging);
 
-        AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
+        LoggingAuditingConfigurationType auditingConfigurationType = logging.getAuditing();
         if (auditingConfigurationType == null) {
-            auditingConfigurationType = new AuditingConfigurationType();
+            auditingConfigurationType = new LoggingAuditingConfigurationType();
             logging.setAuditing(auditingConfigurationType);
         }
         auditingConfigurationType.setEnabled(true);

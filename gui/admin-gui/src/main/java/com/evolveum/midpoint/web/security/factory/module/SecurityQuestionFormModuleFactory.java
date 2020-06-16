@@ -27,7 +27,7 @@ public class SecurityQuestionFormModuleFactory extends AbstractCredentialModuleF
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleSecurityQuestionsFormType) {
+        if (moduleType instanceof SecurityQuestionsFormAuthenticationModuleType) {
             return true;
         }
         return false;

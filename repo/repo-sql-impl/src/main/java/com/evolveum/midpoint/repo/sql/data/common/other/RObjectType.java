@@ -48,8 +48,8 @@ public enum RObjectType {
     ARCHETYPE(RArchetype.class, ArchetypeType.class),
     DASHBOARD(RDashboard.class, DashboardType.class);
 
-    private Class<? extends RObject> clazz;
-    private Class<? extends ObjectType> jaxbClass;
+    private final Class<? extends RObject> clazz;
+    private final Class<? extends ObjectType> jaxbClass;
 
     RObjectType(Class<? extends RObject> clazz, Class<? extends ObjectType> jaxbClass) {
         this.clazz = clazz;

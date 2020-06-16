@@ -7,18 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Reference containing the name of referenced object.
@@ -48,7 +50,7 @@ public class REmbeddedNamedReference extends REmbeddedReference {
         return super.getRelation();
     }
 
-    @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true)
+    @Column(length = RUtil.COLUMN_LENGTH_OID)
     @Override
     public String getTargetOid() {
         return super.getTargetOid();
@@ -56,27 +58,24 @@ public class REmbeddedNamedReference extends REmbeddedReference {
 
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RObjectType getType() {
-        return super.getType();
+    public RObjectType getTargetType() {
+        return super.getTargetType();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof REmbeddedNamedReference)) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (!(o instanceof REmbeddedNamedReference)) { return false; }
+        if (!super.equals(o)) { return false; }
 
         REmbeddedNamedReference that = (REmbeddedNamedReference) o;
 
-        return !(targetName != null ? !targetName.equals(that.targetName) : that.targetName != null);
-
+        return Objects.equals(targetName, that.targetName);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (targetName != null ? targetName.hashCode() : 0);
-        return result;
+        return Objects.hash(targetName);
     }
 
     @Override
@@ -91,15 +90,6 @@ public class REmbeddedNamedReference extends REmbeddedReference {
 
         jaxb.setTargetName(RPolyString.copyToJAXB(repo.getTargetName(), prismContext));
     }
-
-//    public static void copyFromJAXB(ObjectReferenceType jaxb, REmbeddedNamedReference repo) {
-//        Validate.notNull(repo, "Repo object must not be null.");
-//        Validate.notNull(jaxb, "JAXB object must not be null.");
-//        Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
-//        REmbeddedReference.copyFromJAXB(jaxb, repo);
-//
-//        repo.setTargetName(RPolyString.copyFromJAXB(jaxb.getTargetName()));
-//    }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();

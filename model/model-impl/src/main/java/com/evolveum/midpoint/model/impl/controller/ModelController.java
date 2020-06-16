@@ -1021,6 +1021,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         return count;
     }
 
+    // See MID-6323 in Jira
 //    // TODO - fix this temporary implementation (perhaps by storing 'groups' in user context on logon)
 //    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
 //    public List<PrismReferenceValue> getGroupsForUser(UserType user) {

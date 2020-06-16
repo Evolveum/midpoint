@@ -7,12 +7,10 @@
 
 package com.evolveum.midpoint.prism.impl.marshaller;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
+import java.util.*;
+import java.util.Map.Entry;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.DOMException;
@@ -20,17 +18,20 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.impl.xml.GlobalDynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Holds internal (parsed) form of midPoint-style XPath-like expressions.
  * It is able to retrieve/export these expressions from/to various forms (text, text in XML document,
  * XPathSegment list, prism path specification).
- *
+ * <p>
  * Assumes relative XPath, but somehow can also work with absolute XPaths.
- *
+ * <p>
  * NOT to be used outside prism module (except for XPathTest in schema - but this is also to be resolved).
  *
  * @author semancik
@@ -38,8 +39,6 @@ import java.util.Map.Entry;
  */
 public final class ItemPathHolder {
 
-//    private static final Trace LOGGER = TraceManager.getTrace(ItemPathHolder.class);
-//    public static final String DEFAULT_PREFIX = "c";
     private boolean absolute;
     private List<PathHolderSegment> segments;
     private final Map<String, String> explicitNamespaceDeclarations = new HashMap<>();
@@ -122,7 +121,7 @@ public final class ItemPathHolder {
                 if (!segmentStr.endsWith("]")) {
                     throw new IllegalArgumentException("ItemPath " + itemPath + " has a ID segment not ending with ']': '" + segmentStr + "'");
                 }
-                String value = segmentStr.substring(idValuePosition+1, segmentStr.length()-1);
+                String value = segmentStr.substring(idValuePosition + 1, segmentStr.length() - 1);
                 segmentStr = segmentStr.substring(0, idValuePosition);
                 idValueFilterSegment = new PathHolderSegment(value);
             } else {
@@ -236,7 +235,7 @@ public final class ItemPathHolder {
             this.explicitNamespaceDeclarations.putAll(itemPath.getNamespaceMap());
         }
         this.segments = new ArrayList<>();
-        for (ItemPathSegment segment: itemPath.getSegments()) {
+        for (ItemPathSegment segment : itemPath.getSegments()) {
             PathHolderSegment xsegment;
             if (segment instanceof NameItemPathSegment) {
                 QName name = ((NameItemPathSegment) segment).getName();
@@ -363,7 +362,7 @@ public final class ItemPathHolder {
                 } else {
                     if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
                         String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(qname.getNamespaceURI());
-                        seg.setQNamePrefix(prefix);     // hack - we modify the path segment here (only the form, not the meaning), but nevertheless it's ugly
+                        seg.setQNamePrefix(prefix); // hack - we modify the path segment here (only the form, not the meaning), but nevertheless it's ugly
                         sb.append(seg.getQName().getPrefix()).append(':').append(seg.getQName().getLocalPart());
                     } else {
                         // no namespace, no prefix
@@ -373,57 +372,6 @@ public final class ItemPathHolder {
             }
         }
     }
-
-//    public String toCanonicalPath(Class objectType, PrismContext prismContext) {
-//        StringBuilder sb = new StringBuilder("\\");
-//
-//        boolean first = true;
-//
-//        PrismObjectDefinition objDef = null;
-//        if (objectType != null) {
-//             objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-//        }
-//        ItemDefinition def = null;
-//        for (PathHolderSegment seg : segments) {
-//
-//            if (seg.isIdValueFilter()) {
-//                //for now, we don't want to save concrete id, just the path
-//                continue;
-//
-//            } else {
-//
-//                QName qname = seg.getQName();
-//
-//                if (!first) {
-//                    sb.append("\\");
-//                    if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
-//                        if (def instanceof PrismContainerDefinition) {
-//                            PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
-//                            def = containerDef.findItemDefinition(ItemName.fromQName(qname));
-//                        }
-//
-//                        if (def != null) {
-//                            qname = def.getName();
-//                        }
-//                    }
-//                } else {
-//                    if (StringUtils.isBlank(qname.getNamespaceURI()) && objDef != null) {
-//                        def = objDef.findItemDefinition(ItemName.fromQName(qname));
-//                        if (def != null) {
-//                            qname = def.getName();
-//                        }
-//                    }
-//                    first = false;
-//                }
-//
-//
-//
-//                sb.append(QNameUtil.qNameToUri(qname));
-//            }
-//        }
-//
-//        return sb.toString();
-//    }
 
     public Map<String, String> getNamespaceMap() {
         Map<String, String> namespaceMap = new HashMap<>();
@@ -455,7 +403,7 @@ public final class ItemPathHolder {
                 try {
                     element.setPrefix(prefix);
                 } catch (DOMException e) {
-                    throw new SystemException("Error setting XML prefix '"+prefix+"' to element {"+elementNamespace+"}"+localElementName+": "+e.getMessage(), e);
+                    throw new SystemException("Error setting XML prefix '" + prefix + "' to element {" + elementNamespace + "}" + localElementName + ": " + e.getMessage(), e);
                 }
             }
         }
@@ -525,18 +473,13 @@ public final class ItemPathHolder {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (absolute ? 1231 : 1237);
-        result = prime * result + ((segments == null) ? 0 : segments.hashCode());
-        return result;
-    }
-
-    @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
 
         // Special case
         if (obj instanceof QName) {
@@ -547,15 +490,17 @@ public final class ItemPathHolder {
             return segment.getQName().equals(obj);
         }
 
-        if (getClass() != obj.getClass()) return false;
-        ItemPathHolder other = (ItemPathHolder) obj;
-        if (absolute != other.absolute) return false;
-        if (segments == null) {
-            if (other.segments != null) return false;
-        } else if (!segments.equals(other.segments)) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-        return true;
+        ItemPathHolder other = (ItemPathHolder) obj;
+        return absolute == other.absolute
+                && Objects.equals(segments, other.segments);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(absolute, segments);
     }
 
     private Long idToLong(String stringVal) {

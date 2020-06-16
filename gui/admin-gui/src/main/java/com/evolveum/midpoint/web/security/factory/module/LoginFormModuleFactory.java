@@ -30,7 +30,7 @@ public class LoginFormModuleFactory extends AbstractCredentialModuleFactory {
 
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
-        if (moduleType instanceof AuthenticationModuleLoginFormType) {
+        if (moduleType instanceof LoginFormAuthenticationModuleType) {
             return true;
         }
         return false;

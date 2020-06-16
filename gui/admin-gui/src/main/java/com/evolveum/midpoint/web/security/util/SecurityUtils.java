@@ -244,16 +244,15 @@ public class SecurityUtils {
     private static AuthenticationSequenceType getSpecificSequence(HttpServletRequest httpRequest) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
-        // TODO: what exactly does this do, can't it be channel.equals(SchemaConstants.CHANNEL_REST_URI)?
-        if (LOCAL_PATH_AND_CHANNEL.get("ws").equals(channel)) {
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                    sequence.setName(NameOfModuleType.CLUSTER.getName());
+                    sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
-                    seqChannel.setUrlSuffix(NameOfModuleType.CLUSTER.getName().toLowerCase());
+                    seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
                     return sequence;
                 }
             }
@@ -342,13 +341,13 @@ public class SecurityUtils {
             String header = httpRequest.getHeader("Authorization");
             if (header != null) {
                 String type = header.split(" ")[0];
-                if (NameOfModuleType.CLUSTER.getName().toLowerCase().equals(type.toLowerCase())) {
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     List<AuthModule> authModules = new ArrayList<>();
                     WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
                     HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
-                    module.setName(NameOfModuleType.CLUSTER.getName().toLowerCase() + "-module");
+                    module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                     try {
                         authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
                                 sharedObjects, authenticationModulesType, credentialPolicy, null));

@@ -251,7 +251,7 @@ public class CertificationCaseHelper {
                 if (fullObject == null) {
                     throw new ObjectNotFoundException("Couldn't update cert campaign " + campaignOid + " + by delta with path " + deltaPath + " - specified case does not exist");
                 }
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
 
                 delta = delta.clone();                                      // to avoid changing original modifications
                 delta.setParentPath(delta.getParentPath().rest(2));         // remove "case[id]" from the delta path
@@ -280,7 +280,7 @@ public class CertificationCaseHelper {
                     throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
                 }
                 byte[] fullObject = (byte[]) o;
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
                 Long id = aCase.getId();
                 if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
                     RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
@@ -316,7 +316,7 @@ public class CertificationCaseHelper {
             Session session, OperationResult operationResult) throws SchemaException {
 
         byte[] fullObject = result.getFullObject();
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();

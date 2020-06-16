@@ -191,8 +191,6 @@ public class ObjectUpdater {
                 version = (version == null) ? 0 : ++version;
 
                 rObject.setVersion(version);
-//            } catch (QueryException ex) {
-//                baseHelper.handleGeneralCheckedException(ex, session, null);
             } catch (ObjectNotFoundException ex) {
                 //it's ok that object was not found, therefore we won't be overwriting it
             }
@@ -248,13 +246,13 @@ public class ObjectUpdater {
             itemsToSkip.add(TaskType.F_RESULT);
         }
 
-        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+        String xml = prismContext.serializerFor(getConfiguration().getFullObjectFormat())
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
                         .skipIndexOnly(true))
                 .serialize(savedObject);
-        byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
+        byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
 
@@ -342,8 +340,8 @@ public class ObjectUpdater {
             }
 
             session.getTransaction().commit();
-            return new DeleteObjectResult(RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip()),
-                    SqlRepositoryServiceImpl.DATA_LANGUAGE);
+            return new DeleteObjectResult(
+                    RUtil.getSerializedFormFromBytes(object.getFullObject()));
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
@@ -546,7 +544,7 @@ public class ObjectUpdater {
         return rv;
     }
 
-    private <T extends ObjectType> boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
+    private boolean containsPhotoModification(Collection<? extends ItemDelta> modifications) {
         for (ItemDelta delta : modifications) {
             ItemPath path = delta.getPath();
             if (path.isEmpty()) {
@@ -581,7 +579,7 @@ public class ObjectUpdater {
     }
 
     private boolean isNoFetchExtensionValueInsertionException(ConstraintViolationException ex) {
-        return true;        // keep things safe
+        return true; // keep things safe
     }
 
     public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)

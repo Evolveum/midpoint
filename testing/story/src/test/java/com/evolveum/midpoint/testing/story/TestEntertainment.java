@@ -86,7 +86,7 @@ public class TestEntertainment extends AbstractStoryTest {
 
         PrismObject<RoleType> metaRole = modelService.getObject(RoleType.class,
                 ROLE_META_CREATE_ORG_GROUPS_OID, null, task, result);
-        assertNotNull("No metarole, probably probelm with initialization", metaRole);
+        assertNotNull("No metarole, probably problem with initialization", metaRole);
         result.computeStatus();
         assertSuccess("Role not fetch successfully", result);
 

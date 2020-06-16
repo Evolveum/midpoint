@@ -21,14 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-/**
- *
- */
 public class TestAsyncUpdateCachingAmqp extends TestAsyncUpdateCaching {
 
-    private final EmbeddedBroker embeddedBroker = new EmbeddedBroker();
+    private static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
 
     private static final String QUEUE_NAME = "testQueue";
+
+    private final EmbeddedBroker embeddedBroker = new EmbeddedBroker();
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

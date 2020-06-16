@@ -10,11 +10,16 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
+import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -246,20 +251,24 @@ public class DashboardServiceImpl implements DashboardService {
 
     private String generateNumberMessageForCollection(DashboardWidgetType widget, DashboardWidget data, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
-        ObjectCollectionType valueCollection = getObjectCollectionType(widget, task, result);
-        if(valueCollection != null && valueCollection.getType() != null &&
-                valueCollection.getType().getLocalPart() != null) {
+        CollectionRefSpecificationType collectionSpec = getCollectionRefSpecificationType(widget, task, result);
+        if(collectionSpec != null) {
 
             CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
-                    valueCollection.asPrismObject(), null, task, task.getResult());
+                    collectionSpec, null, task, task.getResult());
             CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
 
             int value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
-            Collection<EvaluatedPolicyRule> evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
-                    valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
+            Collection<EvaluatedPolicyRule> evalPolicyRules = new ArrayList<>();
+            if (collectionSpec.getCollectionRef() != null
+                    && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionSpec.getCollectionRef().getType())) {
+                ObjectCollectionType valueCollection = getObjectCollectionType(widget, task, result);
+                evalPolicyRules = modelInteractionService.evaluateCollectionPolicyRules(
+                        valueCollection.asPrismObject(), compiledCollection, null, task, task.getResult());
+            }
             Collection<String> policySituations = new ArrayList<>();
             for(EvaluatedPolicyRule evalPolicyRule : evalPolicyRules) {
                 if(!evalPolicyRule.getAllTriggers().isEmpty()) {
@@ -269,7 +278,7 @@ public class DashboardServiceImpl implements DashboardService {
             return generateNumberMessage(widget, createVariables(null, statType, policySituations), data);
 
         }  else {
-            LOGGER.error("CollectionType from collectionRef is null in widget " + widget.getIdentifier());
+            LOGGER.error("CollectionRefSpecificationType is null in widget " + widget.getIdentifier());
         }
         return null;
     }
@@ -374,91 +383,93 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        SearchFilterType searchFilter;
-        SearchFilterType searchFilterForMerge = null;
-        Class<ObjectType> type;
+    public List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, QName typeForFilter,
+            Collection<SelectorOptions<GetOperationOptions>> defaultOptions, ExpressionType condition, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<ObjectType> type = null;
 
         if (collectionConfig.getCollectionRef() != null && collectionConfig.getFilter() != null) {
             LOGGER.error("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
             throw new IllegalArgumentException("CollectionRefSpecificationType contains CollectionRef and Filter, please define only one");
         }
+        if (typeForFilter != null) {
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        }
+        CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
+                collectionConfig, type, task, task.getResult());
 
+        ObjectFilter filter = compiledCollection.getFilter();
+        if (filter == null ) {
+            LOGGER.error("Couldn't find filter");
+            throw new ConfigurationException("Couldn't find filter");
+        }
+
+        filter = collectionProcessor.evaluateExpressionsInFilter(filter, result, task);
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        query.setFilter(filter);
+
+        if (compiledCollection.getTargetClass() == null) {
+            if (typeForFilter == null) {
+                LOGGER.error("Type of objects is null");
+                throw new ConfigurationException("Type of objects is null");
+            }
+            type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
+        } else {
+            type = compiledCollection.getTargetClass();
+        }
+
+        Collection<SelectorOptions<GetOperationOptions>> options;
+        if (compiledCollection.getOptions() == null) {
+            options = defaultOptions;
+        } else {
+            options = compiledCollection.getOptions();
+        }
+
+        List<PrismObject<ObjectType>> values;
+        values = modelService.searchObjects(type, query, options, task, result);
+        if(condition != null) {
+            return evaluateCondition(condition, values, task, result);
+        }
+        return values;
+    }
+
+    @Override
+    public List<AuditEventRecord> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ExpressionType condition, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        List<AuditEventRecord> auditRecords = new ArrayList<>();
         if (collectionConfig.getCollectionRef() != null) {
             ObjectReferenceType ref = collectionConfig.getCollectionRef();
             Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
             ObjectCollectionType collection = (ObjectCollectionType) modelService
                     .getObject(refType, ref.getOid(), null, task, result).asObjectable();
-            type = (Class<ObjectType>) prismContext.getSchemaRegistry()
-                    .getCompileTimeClassForObjectType(collection.getType());
-            searchFilter = collection.getFilter();
-        } else {
-            searchFilter = collectionConfig.getFilter();
-            if (collectionConfig.getBaseCollectionRef() != null &&
-                    (collectionConfig.getBaseCollectionRef().getCollectionRef() != null || collectionConfig.getBaseCollectionRef().getFilter() != null)) {
-                Class<ObjectType> typeFromBaseCollection = null;
-                if (collectionConfig.getBaseCollectionRef().getCollectionRef() != null) {
-                    ObjectReferenceType ref = collectionConfig.getBaseCollectionRef().getCollectionRef();
-                    Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
-                    ObjectCollectionType collection = (ObjectCollectionType) modelService
-                            .getObject(refType, ref.getOid(), null, task, result).asObjectable();
-
-                    searchFilterForMerge = collection.getFilter();
-                    typeFromBaseCollection = (Class<ObjectType>) prismContext.getSchemaRegistry()
-                            .getCompileTimeClassForObjectType(collection.getType());
-                } else {
-                    searchFilterForMerge = collectionConfig.getBaseCollectionRef().getFilter();
+            if (collection.getAuditSearch() != null) {
+                Map<String, Object> parameters = new HashMap<>();
+                String query = DashboardUtils.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
+                auditRecords = auditService.listRecords(query, parameters, result);
+                if (auditRecords == null) {
+                    auditRecords = new ArrayList<>();
                 }
-                if (typeForFilter == null) {
-                    if (typeFromBaseCollection == null) {
-                        LOGGER.error("Type of objects is null");
-                        throw new IllegalArgumentException("Type of objects is null");
-                    }
-                    type = typeFromBaseCollection;
-                } else {
-                    type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
-                    if (typeFromBaseCollection != null && !typeFromBaseCollection.isAssignableFrom(type)) {
-                        LOGGER.error("Type of objects from filter don't inherit from type from base collection");
-                        throw new IllegalArgumentException("Type of objects from filter don't inherit from type from base collection");
-                    }
+                if (condition != null) {
+                    return evaluateCondition(condition, auditRecords, task, result);
                 }
-            } else {
-                if (typeForFilter == null) {
-                    LOGGER.error("Type of objects is null");
-                    throw new IllegalArgumentException("Type of objects is null");
-                }
-                type = prismContext.getSchemaRegistry().determineClassForType(typeForFilter);
             }
-
         }
+        return auditRecords;
+    }
 
-        if (searchFilter == null && searchFilterForMerge == null) {
-            LOGGER.error("Couldn't find filter");
-            throw new IllegalArgumentException("Couldn't find filter");
-        }
-
-        ObjectQuery query = prismContext.queryFactory().createQuery();
-            try {
-                if (searchFilter == null) {
-                    searchFilter = searchFilterForMerge;
-                    searchFilterForMerge = null;
-                }
-                query.setFilter(prismContext.getQueryConverter().parseFilter(searchFilter, type));
-                if (searchFilterForMerge != null) {
-                    query.addFilter(prismContext.getQueryConverter().parseFilter(searchFilterForMerge, type));
-                }
-            } catch (Exception e) {
-                LOGGER.error("Filter couldn't parse in collectionRef " + collectionConfig.toString(), e);
-                throw new IllegalArgumentException("Filter couldn't parse in collectionRef " + collectionConfig.toString(), e);
+    private <T extends Object> List<T> evaluateCondition(ExpressionType condition, List<T> values, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        List<T> newValues = new ArrayList();
+        for (T value : values) {
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+            PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, expressionFactory,
+                    "Evaluate condition", task, result);
+            if (conditionValue != null && Boolean.TRUE.equals(conditionValue.getRealValue())) {
+                newValues.add(value);
             }
-
-
-        ObjectFilter objectFilter = query.getFilter();
-        objectFilter = collectionProcessor.evaluateExpressionsInFilter(objectFilter, task.getResult(), task);
-        query.setFilter(objectFilter);
-        List<PrismObject<ObjectType>> values;
-        values = modelService.searchObjects(type, query, options, task, task.getResult());
-        return values;
+        }
+        return newValues;
     }
 
     @Override

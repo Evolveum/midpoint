@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 
 /**
@@ -18,7 +18,7 @@ import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 public class HttpHeaderModuleAuthentication extends ModuleAuthentication {
 
     public HttpHeaderModuleAuthentication() {
-        super(NameOfModuleType.HTTP_HEADER);
+        super(AuthenticationModuleNameConstants.HTTP_HEADER);
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
     }
