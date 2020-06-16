@@ -24,14 +24,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * <p>Identity Repository Interface.</p>
- * <p>
  * <ul>
  *   <li>Status: public</li>
  *   <li>Stability: stable</li>
  * </ul>
- *
- * @author Radovan Semancik
- * </p><p>
+ * <p>
  * This service provides repository for objects that are commonly found
  * in identity management deployments. It is used for storage and retrieval
  * of objects. It also supports modifications (relative changes), searching
@@ -103,6 +100,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *  <li>TODO: task coordination</li>
  * </ul>
  * </p>
+ *
+ * @author Radovan Semancik
  * @version 3.1.1
  */
 public interface RepositoryService {

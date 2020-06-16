@@ -6,25 +6,25 @@
  */
 package com.evolveum.midpoint.repo.sql.data.factory;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -51,11 +51,11 @@ public class MetadataFactory {
         }
 
         if (repo instanceof RObject) {
-            List refs = RUtil.safeSetReferencesToList(repo.getCreateApproverRef(), context);
+            List refs = RUtil.toObjectReferenceTypeList(repo.getCreateApproverRef());
             if (!refs.isEmpty()) {
                 jaxb.getCreateApproverRef().addAll(refs);
             }
-            refs = RUtil.safeSetReferencesToList(repo.getModifyApproverRef(), context);
+            refs = RUtil.toObjectReferenceTypeList(repo.getModifyApproverRef());
             if (!refs.isEmpty()) {
                 jaxb.getModifyApproverRef().addAll(refs);
             }
@@ -75,8 +75,8 @@ public class MetadataFactory {
                 && repo.getModifierRef() == null;
     }
 
-    public static void fromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext,
-            RelationRegistry relationRegistry)
+    public static void fromJaxb(
+            MetadataType jaxb, Metadata repo, RelationRegistry relationRegistry)
             throws DtoTranslationException {
         if (jaxb == null) {
             repo.setCreateChannel(null);
@@ -104,46 +104,60 @@ public class MetadataFactory {
 
         if (repo instanceof RObject) {
             repo.getCreateApproverRef().clear();
-            repo.getCreateApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getCreateApproverRef(),
-                    (RObject) repo, RReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getCreateApproverRef().addAll(
+                    RUtil.toRObjectReferenceSet(jaxb.getCreateApproverRef(),
+                            (RObject) repo, RReferenceType.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
-            repo.getModifyApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getModifyApproverRef(),
-                    (RObject) repo, RReferenceOwner.MODIFY_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().addAll(
+                    RUtil.toRObjectReferenceSet(jaxb.getModifyApproverRef(),
+                            (RObject) repo, RReferenceType.MODIFY_APPROVER, relationRegistry));
         } else {
             repo.getCreateApproverRef().clear();
-            repo.getCreateApproverRef().addAll(safeListReferenceToSet(jaxb.getCreateApproverRef(),
-                    (RAssignment) repo, RCReferenceOwner.CREATE_APPROVER, relationRegistry));
+            repo.getCreateApproverRef().addAll(
+                    safeListReferenceToSet(
+                            jaxb.getCreateApproverRef(), (RAssignment) repo,
+                            RCReferenceType.CREATE_APPROVER, relationRegistry));
             repo.getModifyApproverRef().clear();
-            repo.getModifyApproverRef().addAll(safeListReferenceToSet(jaxb.getModifyApproverRef(),
-                    (RAssignment) repo, RCReferenceOwner.MODIFY_APPROVER, relationRegistry));
+            repo.getModifyApproverRef().addAll(
+                    safeListReferenceToSet(
+                            jaxb.getModifyApproverRef(), (RAssignment) repo,
+                            RCReferenceType.MODIFY_APPROVER, relationRegistry));
         }
     }
 
     public static boolean equals(Metadata m1, Metadata m2) {
-        if (m1 == m2) return true;
+        if (m1 == m2) { return true; }
 
-        if (m1.getCreateApproverRef() != null ? !m1.getCreateApproverRef().equals(m2.getCreateApproverRef()) : m2.getCreateApproverRef() != null)
+        if (m1.getCreateApproverRef() != null ? !m1.getCreateApproverRef().equals(m2.getCreateApproverRef()) : m2.getCreateApproverRef() != null) {
             return false;
-        if (m1.getCreateChannel() != null ? !m1.getCreateChannel().equals(m2.getCreateChannel()) : m2.getCreateChannel() != null)
+        }
+        if (m1.getCreateChannel() != null ? !m1.getCreateChannel().equals(m2.getCreateChannel()) : m2.getCreateChannel() != null) {
             return false;
-        if (m1.getCreateTimestamp() != null ? !m1.getCreateTimestamp().equals(m2.getCreateTimestamp()) : m2.getCreateTimestamp() != null)
+        }
+        if (m1.getCreateTimestamp() != null ? !m1.getCreateTimestamp().equals(m2.getCreateTimestamp()) : m2.getCreateTimestamp() != null) {
             return false;
-        if (m1.getCreatorRef() != null ? !m1.getCreatorRef().equals(m2.getCreatorRef()) : m2.getCreatorRef() != null)
+        }
+        if (m1.getCreatorRef() != null ? !m1.getCreatorRef().equals(m2.getCreatorRef()) : m2.getCreatorRef() != null) {
             return false;
-        if (m1.getModifierRef() != null ? !m1.getModifierRef().equals(m2.getModifierRef()) : m2.getModifierRef() != null)
+        }
+        if (m1.getModifierRef() != null ? !m1.getModifierRef().equals(m2.getModifierRef()) : m2.getModifierRef() != null) {
             return false;
-        if (m1.getModifyApproverRef() != null ? !m1.getModifyApproverRef().equals(m2.getModifyApproverRef()) : m2.getModifyApproverRef() != null)
+        }
+        if (m1.getModifyApproverRef() != null ? !m1.getModifyApproverRef().equals(m2.getModifyApproverRef()) : m2.getModifyApproverRef() != null) {
             return false;
-        if (m1.getModifyChannel() != null ? !m1.getModifyChannel().equals(m2.getModifyChannel()) : m2.getModifyChannel() != null)
+        }
+        if (m1.getModifyChannel() != null ? !m1.getModifyChannel().equals(m2.getModifyChannel()) : m2.getModifyChannel() != null) {
             return false;
-        if (m1.getModifyTimestamp() != null ? !m1.getModifyTimestamp().equals(m2.getModifyTimestamp()) : m2.getModifyTimestamp() != null)
+        }
+        if (m1.getModifyTimestamp() != null ? !m1.getModifyTimestamp().equals(m2.getModifyTimestamp()) : m2.getModifyTimestamp() != null) {
             return false;
+        }
 
         return true;
     }
 
     public static Set<RAssignmentReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-            RAssignment owner, RCReferenceOwner refOwner, RelationRegistry relationRegistry) {
+            RAssignment owner, RCReferenceType refOwner, RelationRegistry relationRegistry) {
         Set<RAssignmentReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -159,7 +173,7 @@ public class MetadataFactory {
     }
 
     public static RAssignmentReference jaxbRefToRepo(ObjectReferenceType reference,
-            RAssignment owner, RCReferenceOwner refOwner, RelationRegistry relationRegistry) {
+            RAssignment owner, RCReferenceType refOwner, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }

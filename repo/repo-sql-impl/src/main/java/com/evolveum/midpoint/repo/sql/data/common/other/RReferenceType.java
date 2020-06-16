@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * This is just helper enumeration for different types of reference entities
@@ -19,13 +20,13 @@ import javax.xml.namespace.QName;
  *
  * @author lazyman
  */
-public enum RReferenceOwner {
+public enum RReferenceType {
 
     OBJECT_PARENT_ORG(ObjectType.class, ObjectType.F_PARENT_ORG_REF),      // 0
 
     USER_ACCOUNT(FocusType.class, FocusType.F_LINK_REF),                   // 1
 
-    RESOURCE_BUSINESS_CONFIGURATON_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
+    RESOURCE_BUSINESS_CONFIGURATION_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
 
     @Deprecated // REMOVED from schema in 4.0
     ROLE_APPROVER(AbstractRoleType.class, null /* was: AbstractRoleType.F_APPROVER_REF */),              // 3
@@ -47,10 +48,10 @@ public enum RReferenceOwner {
 
     ARCHETYPE(AssignmentHolderType.class, AssignmentHolderType.F_ARCHETYPE_REF);                    // 11
 
-    private Class<? extends ObjectType> typeClass;
-    private QName elementName;
+    private final Class<? extends ObjectType> typeClass;
+    private final QName elementName;
 
-    RReferenceOwner(Class<? extends ObjectType> typeClass, QName elementName) {
+    RReferenceType(Class<? extends ObjectType> typeClass, QName elementName) {
         this.typeClass = typeClass;
         this.elementName = elementName;
     }
@@ -63,11 +64,11 @@ public enum RReferenceOwner {
         return elementName;
     }
 
-    public static RReferenceOwner getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
+    public static RReferenceType getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
         Validate.notNull(typeClass, "Jaxb type class must not be null");
         Validate.notNull(qname, "QName must not be null");
 
-        for (RReferenceOwner owner : values()) {
+        for (RReferenceType owner : values()) {
             if (QNameUtil.match(qname, owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {
                 return owner;
             }

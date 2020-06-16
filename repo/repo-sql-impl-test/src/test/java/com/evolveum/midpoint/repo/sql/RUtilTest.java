@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,9 +18,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-/**
- * @author lazyman
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class RUtilTest extends BaseSQLRepoTest {
@@ -29,13 +26,15 @@ public class RUtilTest extends BaseSQLRepoTest {
 
     @Test
     public void test100XmlToByteArrayCompressionEnabled() throws Exception {
-        String xml = IOUtils.toString(new FileInputStream(
-                new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)), StandardCharsets.UTF_8.name());
+        String xml = IOUtils.toString(
+                new FileInputStream(new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)),
+                StandardCharsets.UTF_8);
 
-        byte[] array = RUtil.getByteArrayFromXml(xml, true);
-        logger.info("Compression ratio: {}", getCompressRatio(xml.getBytes(StandardCharsets.UTF_8.name()).length, array.length));
+        byte[] array = RUtil.getBytesFromSerializedForm(xml, true);
+        logger.info("Compression ratio: {}",
+                getCompressRatio(xml.getBytes(StandardCharsets.UTF_8).length, array.length));
 
-        String xmlNew = RUtil.getXmlFromByteArray(array, true);
+        String xmlNew = RUtil.getSerializedFormFromBytes(array);
 
         AssertJUnit.assertEquals(xml, xmlNew);
     }
@@ -43,14 +42,14 @@ public class RUtilTest extends BaseSQLRepoTest {
     @Test
     public void test200XmlToByteArrayCompressionDisabled() throws Exception {
         String xml = IOUtils.toString(new FileInputStream(
-                new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)), StandardCharsets.UTF_8.name());
+                new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)), StandardCharsets.UTF_8);
 
-        byte[] array = RUtil.getByteArrayFromXml(xml, false);
-        logger.info("Compression ratio: {}", getCompressRatio(xml.getBytes(StandardCharsets.UTF_8.name()).length, array.length));
+        byte[] array = RUtil.getBytesFromSerializedForm(xml, false);
+        logger.info("Compression ratio: {}", getCompressRatio(xml.getBytes(StandardCharsets.UTF_8).length, array.length));
 
-        AssertJUnit.assertEquals(xml.getBytes(StandardCharsets.UTF_8.name()), array);
+        AssertJUnit.assertEquals(xml.getBytes(StandardCharsets.UTF_8), array);
 
-        String xmlNew = RUtil.getXmlFromByteArray(array, false);
+        String xmlNew = RUtil.getSerializedFormFromBytes(array);
 
         AssertJUnit.assertEquals(xml, xmlNew);
     }
@@ -58,11 +57,11 @@ public class RUtilTest extends BaseSQLRepoTest {
     @Test
     public void test250ByteArrayToXmlShouldBeCompressed() throws Exception {
         String xml = IOUtils.toString(new FileInputStream(
-                new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)), StandardCharsets.UTF_8.name());
+                new File(BaseSQLRepoTest.FOLDER_BASIC, USER_BIG)), StandardCharsets.UTF_8);
 
-        byte[] array = RUtil.getByteArrayFromXml(xml, false);
+        byte[] array = RUtil.getBytesFromSerializedForm(xml, false);
 
-        String xmlNew = RUtil.getXmlFromByteArray(array, true);
+        String xmlNew = RUtil.getSerializedFormFromBytes(array);
 
         AssertJUnit.assertEquals(xml, xmlNew);
     }

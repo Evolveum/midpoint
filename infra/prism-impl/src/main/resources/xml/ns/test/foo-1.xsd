@@ -165,17 +165,17 @@
                     </xsd:element>
                     <!-- element that has different names in XML/JSON/YAML and in java bean -->
                     <xsd:element name="special" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-                    <!-- single-occurence container -->
+                    <!-- single-occurrence container -->
                     <xsd:element name="singleActivation" type="tns:ActivationType" minOccurs="0" />
-                    <!-- multi-occurence container -->
+                    <!-- multi-occurrence container -->
                     <xsd:element name="multiActivation" type="tns:ActivationType" minOccurs="0" maxOccurs="unbounded" />
-                    <!-- multi-occurence container -->
+                    <!-- multi-occurrence container -->
                     <xsd:element name="multiActivationCopy" type="tns:ActivationType" minOccurs="0" maxOccurs="unbounded" />
-                    <!-- single-occurence structured property (not a container) -->
+                    <!-- single-occurrence structured property (not a container) -->
                     <xsd:element name="singleConstruction" type="tns:AccountConstructionType" minOccurs="0" />
-                    <!-- multi-occurence container -->
+                    <!-- multi-occurrence container -->
                     <xsd:element name="multiConstruction" type="tns:AccountConstructionType" minOccurs="0" maxOccurs="unbounded" />
-                    <!-- multi-occurence container -->
+                    <!-- multi-occurrence container -->
                     <xsd:element name="multiConstructionCopy" type="tns:AccountConstructionType" minOccurs="0" maxOccurs="unbounded" />
 
                 </xsd:sequence>

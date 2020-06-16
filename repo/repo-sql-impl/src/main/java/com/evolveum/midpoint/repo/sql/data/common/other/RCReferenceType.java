@@ -13,7 +13,7 @@ package com.evolveum.midpoint.repo.sql.data.common.other;
  *
  * @author lazyman
  */
-public enum RCReferenceOwner {
+public enum RCReferenceType {
 
     CREATE_APPROVER,        // 0
 

@@ -50,7 +50,7 @@ public class AuditEventRecord implements DebugDumpable {
     private Long repoId;
 
     /**
-     * Timestamp when the event occured.
+     * Timestamp when the event occurred.
      * Timestamp in millis.
      */
     private Long timestamp;
@@ -80,7 +80,7 @@ public class AuditEventRecord implements DebugDumpable {
     private String requestIdentifier;
 
     /**
-     * Identification of (interactive) session in which the event occured.
+     * Identification of (interactive) session in which the event occurred.
      */
     private String sessionIdentifier;
 

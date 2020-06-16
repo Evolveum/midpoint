@@ -7,18 +7,19 @@
 
 package com.evolveum.midpoint.provisioning.impl.async;
 
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import java.io.File;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.io.File;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
-/**
- *
- */
 public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
+
+    static final File RESOURCE_ASYNC_CACHING_INDEX_ONLY_FILE =
+            new File(TEST_DIR, "resource-async-caching-index-only.xml");
 
     @Autowired
     @Qualifier("sqlRepositoryServiceImpl")
