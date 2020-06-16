@@ -824,4 +824,12 @@ public interface TaskManager {
      * @return true if this node has recently checked in. It might be starting or up.
      */
     boolean isCheckingIn(NodeType node);
+
+    /**
+     * @return Collection of node groups that the current cluster node belongs to.
+     *
+     * The collection is unmodifiable. Groups are represented by abstract roles.
+     * (Current implementation uses node archetypes to keep this information.)
+     */
+    Collection<ObjectReferenceType> getLocalNodeGroups();
 }

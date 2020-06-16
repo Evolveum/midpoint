@@ -72,12 +72,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return object.asObjectable();
     }
 
-    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow) {
-        return new PrismObjectAsserter<>(shadow);
+    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> object) {
+        return new PrismObjectAsserter<>(object);
     }
 
-    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow, String details) {
-        return new PrismObjectAsserter<>(shadow, details);
+    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> object, String details) {
+        return new PrismObjectAsserter<>(object, details);
     }
 
     public PrismObjectAsserter<O,RA> assertOid() {

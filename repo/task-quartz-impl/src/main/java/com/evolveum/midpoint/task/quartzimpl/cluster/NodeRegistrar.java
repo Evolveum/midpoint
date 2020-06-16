@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.NetworkUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -37,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,17 +57,19 @@ import java.util.*;
 
 /**
  * Takes care about node registration in repository.
- *
- * @author Pavol Mederly
  */
-public class NodeRegistrar {
+public class NodeRegistrar implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(NodeRegistrar.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(NodeRegistrar.class.getName() + ".content");
+
     private static final int SECRET_LENGTH = 20;
     private static final long SECRET_RENEWAL_PERIOD = 86400L * 1000L * 10L;
 
-    private TaskManagerQuartzImpl taskManager;
-    private ClusterManager clusterManager;
+    private static final String OP_REFRESH_CACHED_LOCAL_NODE_OBJECT = NodeRegistrar.class.getName() + ".refreshCachedLocalNodeObject";
+
+    private final TaskManagerQuartzImpl taskManager;
+    private final ClusterManager clusterManager;
     private long lastDiscovery;
 
     private volatile NodeOperationalStatusType operationalStatus = NodeOperationalStatusType.STARTING;
@@ -78,20 +82,28 @@ public class NodeRegistrar {
      * In such cases we keep last 'good' information here.
      *
      * So it should be non-null in all reasonable conditions.
+     *
+     * TODO Think about thread safety of this reference. E.g. what if it is replaced unexpectedly by some 'invalidate' call?
+     *  See MID-6324.
      */
-    private PrismObject<NodeType> cachedLocalNodeObject;
+    private volatile PrismObject<NodeType> cachedLocalNodeObject;
 
     private String discoveredUrlScheme;
     private Integer discoveredHttpPort;
 
     NodeRegistrar(TaskManagerQuartzImpl taskManager, ClusterManager clusterManager) {
-        Validate.notNull(taskManager);
-        Validate.notNull(clusterManager);
-
         this.taskManager = taskManager;
         this.clusterManager = clusterManager;
 
         discoverUrlSchemeAndPort();
+    }
+
+    void postConstruct() {
+        taskManager.getCacheRegistry().registerCacheableService(this);
+    }
+
+    void preDestroy() {
+        taskManager.getCacheRegistry().unregisterCacheableService(this);
     }
 
     /**
@@ -349,7 +361,7 @@ public class NodeRegistrar {
         String nodeOid = getLocalNodeObjectOid();
         String nodeName = taskManager.getNodeId();
         try {
-            setCachedLocalNodeObject(getRepositoryService().getObject(NodeType.class, nodeOid, null, result));
+            refreshCachedLocalNodeObject(nodeOid, result);
             LOGGER.trace("Updating this node registration:\n{}", cachedLocalNodeObject.debugDumpLazily());
 
             XMLGregorianCalendar currentTime = getCurrentTime();
@@ -380,7 +392,7 @@ public class NodeRegistrar {
             }
             getRepositoryService().modifyObject(NodeType.class, nodeOid, modifications, result);
             LOGGER.trace("Node registration successfully updated.");
-            setCachedLocalNodeObject(getRepositoryService().getObject(NodeType.class, nodeOid, null, result));
+            refreshCachedLocalNodeObject(nodeOid, result);
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it "
                             + "does not exist in repository. It is probably caused by cluster misconfiguration (other "
@@ -401,6 +413,10 @@ public class NodeRegistrar {
         }
     }
 
+    private void refreshCachedLocalNodeObject(String nodeOid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        setCachedLocalNodeObject(getRepositoryService().getObject(NodeType.class, nodeOid, null, result));
+    }
 
     /**
      * Checks whether this Node object was not overwritten by another node (implying there is duplicate node ID in cluster).
@@ -423,15 +439,14 @@ public class NodeRegistrar {
                         "there are two or more nodes with the same name '{}'. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
                 registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
-                return null;
             } else {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found). It  " +
                         "seems it was deleted in the meantime. Please check the reason. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
                 // actually we could re-register the node, but it is safer (and easier for now :) to stop the node instead
                 registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
-                return null;
             }
+            return null;
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
             registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
@@ -680,8 +695,7 @@ public class NodeRegistrar {
         return taskManager.getPrismContext();
     }
 
-    public void deleteNode(String nodeOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-
+    void deleteNode(String nodeOid, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(NodeRegistrar.class.getName() + ".deleteNode");
         result.addParam("nodeOid", nodeOid);
 
@@ -707,5 +721,46 @@ public class NodeRegistrar {
     void registerNodeUp(OperationResult result) {
         setLocalNodeOperationalStatus(NodeOperationalStatusType.UP);
         updateNodeObject(result);
+    }
+
+    @Override
+    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        // TODO is it a good idea to fetch local node immediately on invalidation?
+        //  Maybe we could postpone it to next call of 'get local node'
+        //  See MID-6324.
+        PrismObject<NodeType> currentNode = this.cachedLocalNodeObject;
+        if (currentNode == null) {
+            return; // nothing to invalidate
+        }
+        if (oid != null) {
+            if (oid.equals(currentNode.getOid())) {
+                refreshCachedLocalNodeObject(currentNode.getOid());
+            }
+        } else {
+            if (type == null || type.isAssignableFrom(NodeType.class)) {
+                refreshCachedLocalNodeObject(currentNode.getOid());
+            }
+        }
+    }
+
+    private void refreshCachedLocalNodeObject(String oid) {
+        OperationResult result = new OperationResult(OP_REFRESH_CACHED_LOCAL_NODE_OBJECT);
+        try {
+            refreshCachedLocalNodeObject(oid, result);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh cached local node object on invalidation", t);
+        }
+    }
+
+    @Override
+    public @NotNull Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.singleton(new SingleCacheStateInformationType(taskManager.getPrismContext())
+                .name(NodeRegistrar.class.getName())
+                .size(cachedLocalNodeObject != null ? 1 : 0));
+    }
+
+    @Override
+    public void dumpContent() {
+        LOGGER_CONTENT.info("Current node:\n{}", DebugUtil.debugDumpLazily(cachedLocalNodeObject));
     }
 }

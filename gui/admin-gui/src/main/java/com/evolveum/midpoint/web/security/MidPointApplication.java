@@ -34,7 +34,7 @@ import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
