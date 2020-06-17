@@ -87,7 +87,7 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
                 Visitor resolutionVisitor = visitable -> {
                     if (visitable instanceof JpaEntityDefinition) {
                         JpaEntityDefinition entityDef = ((JpaEntityDefinition) visitable);
-                        Class superclass = entityDef.getJpaClass().getSuperclass();
+                        Class<?> superclass = entityDef.getJpaClass().getSuperclass();
                         if (superclass == null || !RObject.class.isAssignableFrom(superclass)) {
                             return;
                         }
@@ -99,7 +99,7 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
                     } else if (visitable instanceof JpaEntityPointerDefinition) {
                         JpaEntityPointerDefinition entPtrDef = ((JpaEntityPointerDefinition) visitable);
                         if (!entPtrDef.isResolved()) {
-                            Class referencedEntityJpaClass = entPtrDef.getJpaClass();
+                            Class<?> referencedEntityJpaClass = entPtrDef.getJpaClass();
                             JpaEntityDefinition realEntDef = definitionsByClass.get(referencedEntityJpaClass);
                             if (realEntDef == null) {
                                 throw new IllegalStateException("Couldn't find entity definition for " + referencedEntityJpaClass);

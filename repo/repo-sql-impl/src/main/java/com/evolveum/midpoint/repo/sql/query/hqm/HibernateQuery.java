@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -14,11 +20,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Query in HQL that is being created.
@@ -35,11 +36,11 @@ public abstract class HibernateQuery {
     /**
      * Primary entity for this query, along with joined entities.
      * For example,
-     *   RUser u
+     * RUser u
      * Or,
-     *   RUser u
-     *     left join u.assignments a with ...
-     *
+     * RUser u
+     * left join u.assignments a with ...
+     * <p>
      * (originally, we thought about cross-joins with other entities, hence "primary entity")
      */
     private EntityReference primaryEntity;          // not null
@@ -70,7 +71,6 @@ public abstract class HibernateQuery {
 
     private List<Ordering> orderingList = new ArrayList<>();
 
-
     public static class Grouping {
         @NotNull private final String byProperty;
 
@@ -85,7 +85,6 @@ public abstract class HibernateQuery {
     }
 
     private List<Grouping> groupingList = new ArrayList<>();
-
 
     public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
@@ -146,7 +145,7 @@ public abstract class HibernateQuery {
             sb.append("\n");
             indent(sb, indent);
             sb.append("where\n");
-            Condition.dumpToHql(sb, conditions, indent+1);
+            Condition.dumpToHql(sb, conditions, indent + 1);
         }
         if (!orderingList.isEmpty()) {
             sb.append("\n");
@@ -162,9 +161,14 @@ public abstract class HibernateQuery {
                 sb.append(ordering.byProperty);
                 if (ordering.direction != null) {
                     switch (ordering.direction) {
-                        case DESCENDING: sb.append(" desc"); break;
-                        case ASCENDING: sb.append(" asc"); break;
-                        default: throw new IllegalStateException("Unknown ordering: " + ordering.direction);
+                        case DESCENDING:
+                            sb.append(" desc");
+                            break;
+                        case ASCENDING:
+                            sb.append(" asc");
+                            break;
+                        default:
+                            throw new IllegalStateException("Unknown ordering: " + ordering.direction);
                     }
                 }
             }
@@ -264,14 +268,13 @@ public abstract class HibernateQuery {
         return groupingList;
     }
 
-
     public abstract RootHibernateQuery getRootQuery();
 
     // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemValueRestriction processing)
     public void narrowPrimaryEntity(JpaEntityDefinition newDefinition) throws QueryException {
         String oldEntityName = getPrimaryEntity().getName();
         Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);
-        Class<? extends RObject> newEntityClass = newDefinition.getJpaClass();
+        Class<?> newEntityClass = newDefinition.getJpaClass();
         if (!(oldEntityClass.isAssignableFrom(newEntityClass))) {
             throw new QueryException("Cannot narrow primary entity definition from " + oldEntityClass + " to " + newEntityClass);
         }

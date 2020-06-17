@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -50,21 +49,22 @@ public abstract class JpaDataNodeDefinition<T extends JpaDataNodeDefinition<T>>
     /**
      * JPA class - either "composite" (RObject, RUser, RAssignment, ...) or "primitive" (String, Integer, int, ...)
      */
-    @NotNull private final Class<? extends RObject> jpaClass;
+    @NotNull private final Class<?> jpaClass;
 
     /**
-     * JAXB class - either "composite" (ObjectType, UserType, AssignmentType, ...) or "primitive" (String, Integer, int, ...)
+     * JAXB class - either "composite" (ObjectType, UserType, AssignmentType, ...)
+     * or "primitive" (String, Integer, int, ...).
      * Null if not known.
      */
     @Nullable private final Class<?> jaxbClass;
 
-    public JpaDataNodeDefinition(@NotNull Class<? extends RObject> jpaClass, @Nullable Class<?> jaxbClass) {
+    public JpaDataNodeDefinition(@NotNull Class<?> jpaClass, @Nullable Class<?> jaxbClass) {
         this.jpaClass = jpaClass;
         this.jaxbClass = jaxbClass;
     }
 
     @NotNull
-    public Class<? extends RObject> getJpaClass() {
+    public Class<?> getJpaClass() {
         return jpaClass;
     }
 

@@ -7,31 +7,32 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ComparativeFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.hqm.condition.ConstantCondition;
-import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
+import com.evolveum.midpoint.repo.sql.query.definition.JpaPropertyDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.ConstantCondition;
+import com.evolveum.midpoint.repo.sql.query.resolution.HqlDataInstance;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -44,7 +45,7 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
     private JpaLinkDefinition<JpaPropertyDefinition> linkDefinition;
 
     public PropertyRestriction(InterpretationContext context, PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
-                               Restriction parent, JpaLinkDefinition<JpaPropertyDefinition> linkDefinition) {
+            Restriction parent, JpaLinkDefinition<JpaPropertyDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
         Validate.notNull(linkDefinition, "linkDefinition");
         this.linkDefinition = linkDefinition;
