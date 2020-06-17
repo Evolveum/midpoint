@@ -7,14 +7,16 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author semancik
  */
 public abstract class PrismValueAsserter<V extends PrismValue, RA> extends AbstractAsserter<RA> {
 
-    private V prismValue;
+    private final V prismValue;
 
     public PrismValueAsserter(V prismValue) {
         super();
@@ -41,4 +43,8 @@ public abstract class PrismValueAsserter<V extends PrismValue, RA> extends Abstr
         return getDetails();
     }
 
+    public PrismValueAsserter<V, RA> display() {
+        IntegrationTestTools.display(desc(), DebugUtil.debugDump(prismValue));
+        return this;
+    }
 }

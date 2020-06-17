@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -390,6 +391,22 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             return Optional.of(valueMetadata);
         } else {
             return createMockUpValueMetadata();
+        }
+    }
+
+    @Override
+    public ValueMetadata getValueMetadata() throws SchemaException {
+        if (valueMetadata != null) {
+            return valueMetadata;
+        } else {
+            Optional<ValueMetadata> mockup = createMockUpValueMetadata();
+            if (mockup.isPresent()) {
+                return mockup.get();
+            } else if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
+                return prismContext.getValueMetadataFactory().createEmpty();
+            } else {
+                return ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
+            }
         }
     }
 

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="b1005d3d-6ef4-4347-b235-313666824ed8"
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Template for regular users</name>
+
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+        <metadataHandling>
+            <mapping>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>'low'</code> <!-- todo -->
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/loa</path>
+                </target>
+            </mapping>
+        </metadataHandling>
+    </mapping>
+</objectTemplate>

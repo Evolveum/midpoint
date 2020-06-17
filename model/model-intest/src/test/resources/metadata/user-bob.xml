@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:mm="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-mockup-3"
+      xmlns:sm="http://midpoint.evolveum.com/xml/ns/samples/metadata"
+      oid="cab2344d-06c0-4881-98ee-7075bf5d1309">
+    <name>bob</name>
+    <extension>
+        <mm:attachedValueMetadata>
+            <mm:path>givenName</mm:path>
+            <mm:metadata>
+                <c:extension>
+                    <sm:loa>low</sm:loa>
+                </c:extension>
+            </mm:metadata>
+        </mm:attachedValueMetadata>
+        <mm:attachedValueMetadata>
+            <mm:path>familyName</mm:path>
+            <mm:metadata>
+                <c:extension>
+                    <sm:loa>high</sm:loa>
+                </c:extension>
+            </mm:metadata>
+        </mm:attachedValueMetadata>
+    </extension>
+    <subtype>regular</subtype>
+    <givenName>Bob</givenName>
+    <familyName>Green</familyName>
+</user>

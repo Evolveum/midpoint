@@ -145,8 +145,15 @@ public class ValueMetadataAdapter implements ValueMetadata {
         delegate.setParent(parent);
     }
 
+    // TODO is this correct?
     public Optional<ValueMetadata> valueMetadata() {
         return Optional.of(this);
+    }
+
+    // TODO is this correct?
+    @Override
+    public ValueMetadata getValueMetadata() {
+        return this;
     }
 
     public @NotNull ItemPath getPath() {

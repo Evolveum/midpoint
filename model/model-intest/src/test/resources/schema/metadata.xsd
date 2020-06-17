@@ -86,5 +86,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    <xsd:element name="loa" type="tns:LevelOfAssuranceType" />
 
 </xsd:schema>

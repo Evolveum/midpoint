@@ -9763,7 +9763,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractMappingType" />
+            <xsd:extension base="tns:AbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
