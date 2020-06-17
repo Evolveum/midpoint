@@ -7,6 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +54,7 @@ class AbstractRestController {
     @Autowired protected AuditService auditService;
     @Autowired protected SecurityHelper securityHelper;
     @Autowired protected TaskManager taskManager;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     protected Task initRequest() {
         // No need to audit login. it was already audited during authentication
@@ -165,6 +172,16 @@ class AbstractRestController {
     }
 
     private void auditEvent() {
+        String channel = SchemaConstants.CHANNEL_REST_URI;
+        SystemConfigurationType system = null;
+        try {
+            system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();
+        } catch (SchemaException e) {
+            logger.error("Couldn't get system configuration from cache", e);
+        }
+        if (!SecurityUtil.isAuditedLoginAndLogout(system, channel)) {
+            return;
+        }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
         String name = null;
@@ -177,7 +194,7 @@ class AbstractRestController {
 
         Task task = taskManager.createTaskInstance();
         task.setOwner(user);
-        task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user);

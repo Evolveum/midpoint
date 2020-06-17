@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 import org.springframework.beans.factory.ObjectFactory;
@@ -15,7 +14,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.ws.spi.http.HttpExchange;
 
 /**
  * @author skublik
@@ -69,6 +67,6 @@ public class SessionAndRequestScopeImpl extends AbstractRequestAttributesScope {
             HttpServletRequest request = ((ServletRequestAttributes)requestAttributes).getRequest();
             httpRequest = request;
         }
-        return SecurityUtils.isRestOrActuatorChannel(httpRequest);
+        return SecurityUtils.isRecordSessionlessAccessChannel(httpRequest);
     }
 }

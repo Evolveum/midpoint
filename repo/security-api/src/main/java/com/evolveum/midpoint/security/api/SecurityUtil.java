@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -363,5 +364,26 @@ public class SecurityUtil {
 
     public static Authentication getAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    public static boolean isRecordSessionlessAccessChannel(String channel) {
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)
+                || SchemaConstants.CHANNEL_ACTUATOR_URI.equals(channel)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isAuditedLoginAndLogout(SystemConfigurationType systemConfiguration, String channel) {
+        boolean isAudited = false;
+        if (systemConfiguration != null && systemConfiguration.getAudit() != null && systemConfiguration.getAudit().getEventRecording() != null) {
+            isAudited = Boolean.TRUE.equals(systemConfiguration.getAudit().getEventRecording().isRecordSessionlessAccess());
+        }
+        boolean isRecordSessionlessAccessChannel = isRecordSessionlessAccessChannel(channel);
+
+        if (!isRecordSessionlessAccessChannel){
+            return true;
+        }
+        return isAudited;
     }
 }

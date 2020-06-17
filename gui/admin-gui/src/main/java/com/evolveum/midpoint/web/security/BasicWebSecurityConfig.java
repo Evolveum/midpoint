@@ -170,7 +170,7 @@ public class BasicWebSecurityConfig extends WebSecurityConfigurerAdapter {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
             @Override
             public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
-                if(!SecurityUtils.isRestOrActuatorChannel(request)) {
+                if(!SecurityUtils.isRecordSessionlessAccessChannel(request)) {
                     super.saveContext(context, request, response);
                 }
             }

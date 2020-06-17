@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.impl.security;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +52,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private PrismContext prismContext;
+    @Autowired private SystemObjectCache systemObjectCache;
 
     @Override
     public void auditLoginSuccess(@NotNull FocusType user, @NotNull ConnectionEnvironment connEnv) {
@@ -65,8 +70,12 @@ public class SecurityHelper implements ModelAuditRecorder {
 
     private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
             @Nullable String message) {
+        String channel = connEnv.getChannel();
+        if(!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), channel)){
+            return;
+        }
         Task task = taskManager.createTaskInstance();
-        task.setChannel(connEnv.getChannel());
+        task.setChannel(channel);
 
         LOGGER.debug("Login {} username={}, channel={}: {}",
                 status == OperationResultStatus.SUCCESS ? "success" : "failure", username,
@@ -87,12 +96,25 @@ public class SecurityHelper implements ModelAuditRecorder {
 
     @Override
     public void auditLogout(ConnectionEnvironment connEnv, Task task) {
+        if(!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), connEnv.getChannel())){
+            return;
+        }
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiatorAndLoginParameter(task.getOwner());
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         storeConnectionEnvironment(record, connEnv);
         auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
+    }
+
+    private SystemConfigurationType getSystemConfig(){
+        SystemConfigurationType system = null;
+        try {
+            system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get system configuration from cache", e);
+        }
+        return system;
     }
 
     private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {

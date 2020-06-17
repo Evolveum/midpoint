@@ -13,8 +13,11 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+
+import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -628,14 +631,11 @@ public class SecurityUtils {
         return true;
     }
 
-    public static boolean isRestOrActuatorChannel(HttpServletRequest httpRequest){
+    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest){
         if (httpRequest != null) {
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
             String channel = SecurityUtils.searchChannelByPath(localePath);
-            if (SchemaConstants.CHANNEL_REST_URI.equals(channel)
-                    || SchemaConstants.CHANNEL_ACTUATOR_URI.equals(channel)) {
-                return true;
-            }
+            return SecurityUtil.isRecordSessionlessAccessChannel(channel);
         }
         return false;
     }

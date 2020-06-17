@@ -48,9 +48,4 @@
         <rootLoggerLevel>INFO</rootLoggerLevel>
     </logging>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="SecurityPolicyType"/>
-    <audit>
-        <eventRecording>
-            <recordSessionlessAccess>true</recordSessionlessAccess>
-        </eventRecording>
-    </audit>
 </systemConfiguration>
