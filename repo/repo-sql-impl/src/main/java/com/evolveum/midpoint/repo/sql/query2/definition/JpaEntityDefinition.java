@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,37 +7,33 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
 /**
  * @author lazyman
  * @author mederly
  */
-public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugDumpable, Visitable {
-
-    private static final Trace LOGGER = TraceManager.getTrace(JpaEntityDefinition.class);
+public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefinition> {
 
     /**
      * child definitions of this entity
      */
-    private List<JpaLinkDefinition> definitions = new ArrayList<>();
+    private final List<JpaLinkDefinition<?>> definitions = new ArrayList<>();
     private JpaEntityDefinition superclassDefinition;
 
-    public JpaEntityDefinition(Class jpaClass, Class jaxbClass) {
+    public JpaEntityDefinition(Class<? extends RObject> jpaClass, Class jaxbClass) {
         super(jpaClass, jaxbClass);
     }
 
@@ -85,9 +81,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
      * @param path ItemPath to resolve. Non-empty!
      * @param itemDefinition Definition of the final path segment, if it's "any" property.
      * @param type Type of definition to be found
-     * @return
-     *
-     * If successful, returns correct definition + empty path.
+     * @return If successful, returns correct definition + empty path.
      * If unsuccessful, return null.
      */
     public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
@@ -98,7 +92,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
             ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler, PrismContext prismContext) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
-        for (;;) {
+        for (; ; ) {
             DataSearchResult<?> result = currentDefinition.nextLinkDefinition(path, itemDefinition, prismContext);
             if (result == null) {   // oops
                 return null;
@@ -152,7 +146,6 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
             return new DataSearchResult<>(link, path.rest(link.getItemPath().size()));
         }
     }
-
 
     @Override
     public void accept(Visitor visitor) {

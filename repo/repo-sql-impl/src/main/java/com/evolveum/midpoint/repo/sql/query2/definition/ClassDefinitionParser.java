@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
-import com.evolveum.midpoint.prism.path.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.Index;
+
+import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.data.Marker;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -19,23 +35,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.Index;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.Lob;
-import javax.persistence.Transient;
-import javax.xml.namespace.QName;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -45,7 +44,7 @@ public class ClassDefinitionParser {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassDefinitionParser.class);
 
-    public JpaEntityDefinition parseRootClass(Class jpaClass) {
+    public JpaEntityDefinition parseRootClass(Class<?> jpaClass) {
         return parseClass(jpaClass);
     }
 
@@ -107,7 +106,7 @@ public class ClassDefinitionParser {
 
         ItemPath itemPath = getJaxbName(method);
         String jpaName = getJpaName(method);
-        Class jpaClass = getClass(returnedContentType);
+        Class<? extends RObject> jpaClass = getClass(returnedContentType);
 
         // sanity check
         if (Set.class.isAssignableFrom(jpaClass)) {
@@ -167,9 +166,10 @@ public class ClassDefinitionParser {
         return linkDefinition;
     }
 
-    private Class<?> getClass(Type type) {
+    private Class<? extends RObject> getClass(Type type) {
         if (type instanceof Class) {
-            return ((Class) type);
+            //noinspection unchecked
+            return ((Class<? extends RObject>) type);
         } else if (type instanceof ParameterizedType) {
             return getClass(((ParameterizedType) type).getRawType());
         } else {
@@ -186,11 +186,10 @@ public class ClassDefinitionParser {
     }
 
     private void addVirtualDefinitionsForClass(Class jpaClass, JpaEntityDefinition entityDef) {
-        if (!jpaClass.isAnnotationPresent(QueryEntity.class)) {
+        QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
+        if (qEntity == null) {
             return;
         }
-
-        QueryEntity qEntity = (QueryEntity) jpaClass.getAnnotation(QueryEntity.class);
 
         for (VirtualAny any : qEntity.anyElements()) {
             ItemName jaxbName = new ItemName(any.jaxbNameNamespace(), any.jaxbNameLocalPart());
@@ -208,29 +207,10 @@ public class ClassDefinitionParser {
             JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, colSpec, false, content);
             entityDef.addDefinition(linkDefinition);
         }
-
-        for (VirtualEntity entity : qEntity.entities()) {
-            ItemName jaxbName = createItemName(entity.jaxbName());
-            String jpaName = normalizeJpaName(entity.jpaName());
-            if (jpaName != null) {
-                throw new IllegalStateException("Only self-pointing virtual entities are supported for now; this one is not: " + jaxbName + " in " + entityDef);
-            }
-            JpaDataNodeDefinition target = new JpaEntityPointerDefinition(entityDef);         // pointer to avoid loops
-            JpaLinkDefinition linkDefinition = new JpaLinkDefinition<>(jaxbName, jpaName, null, false, target);
-            entityDef.addDefinition(linkDefinition);
-        }
     }
 
     private ItemName createItemName(JaxbName name) {
         return new ItemName(name.namespace(), name.localPart());
-    }
-
-    private String normalizeJpaName(String name) {
-        if (StringUtils.isEmpty(name)) {
-            return null;        // "" -> null
-        } else {
-            return name;
-        }
     }
 
     private boolean isEntity(Class type) {
@@ -263,7 +243,7 @@ public class ClassDefinitionParser {
 
     // second parameter is just to optimize
     private Class getJaxbClass(Method method, Class returnedClass) {
-        JaxbType annotation = (JaxbType) method.getAnnotation(JaxbType.class);
+        JaxbType annotation = method.getAnnotation(JaxbType.class);
         if (annotation != null) {
             return annotation.type();
         }
@@ -304,6 +284,6 @@ public class ClassDefinitionParser {
         }
 
         char first = Character.toLowerCase(methodName.charAt(startIndex));
-        return Character.toString(first) + StringUtils.substring(methodName, startIndex + 1, methodName.length());
+        return first + StringUtils.substring(methodName, startIndex + 1, methodName.length());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
@@ -23,11 +24,11 @@ import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
  *
  * @author mederly
  */
-public class JpaEntityPointerDefinition extends JpaDataNodeDefinition {
+public class JpaEntityPointerDefinition extends JpaDataNodeDefinition<JpaEntityPointerDefinition> {
 
-    private JpaEntityDefinition resolvedEntityDefinition;           // lazily evaluated
+    private JpaEntityDefinition resolvedEntityDefinition; // lazily evaluated
 
-    public JpaEntityPointerDefinition(Class jpaClass) {
+    public JpaEntityPointerDefinition(Class<? extends RObject> jpaClass) {
         super(jpaClass, null);
     }
 

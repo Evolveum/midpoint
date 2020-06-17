@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,9 +19,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 /**
  * @author lazyman
  */
-public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
+public class JpaAnyContainerDefinition<T extends JpaAnyContainerDefinition<T>>
+        extends JpaDataNodeDefinition<T> {
 
-    public JpaAnyContainerDefinition(Class jpaClass) {
+    public JpaAnyContainerDefinition(Class<? extends RObject> jpaClass) {
         super(jpaClass, null);
     }
 

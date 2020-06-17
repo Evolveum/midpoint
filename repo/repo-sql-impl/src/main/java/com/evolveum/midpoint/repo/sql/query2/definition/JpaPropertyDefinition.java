@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,12 +11,14 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 
 /**
  * @author lazyman
  */
-public class JpaPropertyDefinition extends JpaDataNodeDefinition {
+public class JpaPropertyDefinition<T extends JpaPropertyDefinition<T>>
+        extends JpaDataNodeDefinition<T> {
 
     private final boolean lob;
     private final boolean enumerated;
@@ -24,8 +26,9 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
     private final boolean count;            // "count"-type variable, like RShadow.pendingOperationCount
     private final boolean neverNull;
 
-    JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed, boolean count,
-            boolean neverNull) {
+    JpaPropertyDefinition(
+            Class<? extends RObject> jpaClass, Class jaxbClass, boolean lob,
+            boolean enumerated, boolean indexed, boolean count, boolean neverNull) {
         super(jpaClass, jaxbClass);
         this.lob = lob;
         this.enumerated = enumerated;

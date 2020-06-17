@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,22 +7,26 @@
 
 package com.evolveum.midpoint.repo.sql.query2.definition;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.query2.resolution.DataSearchResult;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import org.apache.commons.lang.Validate;
 
 /**
  * @author lazyman
  */
-public class JpaReferenceDefinition extends JpaDataNodeDefinition {
+public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
+        extends JpaDataNodeDefinition<T> {
 
-    private JpaEntityPointerDefinition referencedEntityDefinition;          // lazily evaluated
+    private final JpaEntityPointerDefinition referencedEntityDefinition;
 
-    public JpaReferenceDefinition(Class jpaClass, Class referencedEntityJpaClass) {
+    public JpaReferenceDefinition(
+            Class<? extends RObject> jpaClass, Class<? extends RObject> referencedEntityJpaClass) {
         super(jpaClass, null);          // JAXB class not important here
         Validate.notNull(referencedEntityJpaClass, "referencedEntityJpaClass");
         this.referencedEntityDefinition = new JpaEntityPointerDefinition(referencedEntityJpaClass);
@@ -34,7 +38,7 @@ public class JpaReferenceDefinition extends JpaDataNodeDefinition {
     }
 
     @Override
-    public DataSearchResult nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
         if (ItemPath.isObjectReference(path.first())) {
             // returning artificially created transition definition, used to allow dereferencing target object in a generic way
             return new DataSearchResult<>(

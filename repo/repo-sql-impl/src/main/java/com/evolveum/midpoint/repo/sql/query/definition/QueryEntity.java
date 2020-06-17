@@ -19,11 +19,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QueryEntity {
 
-    VirtualProperty[] properties() default {};
-
     VirtualCollection[] collections() default {};
-
-    VirtualEntity[] entities() default {};
 
     VirtualAny[] anyElements() default {};
 }
