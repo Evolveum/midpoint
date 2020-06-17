@@ -30,7 +30,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
         super(def, keywordMap, infraItems);
 
         ImmutableMap.Builder<AxiomName, AxiomItemDefinition> builder =  ImmutableMap.builder();
-        Optional<AxiomItem<AxiomItemDefinition>> itemDef = item(Item.ITEM_DEFINITION.name());
+        Optional<AxiomItem<AxiomItemDefinition>> itemDef = as(AxiomItemDefinition.class, item(Item.ITEM_DEFINITION.name()));
         if(itemDef.isPresent()) {
             supplyAll(name(),builder, itemDef.get().values());
         }
@@ -38,8 +38,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
 
         superType = onlyValue(AxiomTypeDefinition.class,Item.SUPERTYPE_REFERENCE, Item.REF_TARGET).map(v -> from(v.asComplex().get()));
 
-
-        argument = this.<AxiomName>item(Item.ARGUMENT.name()).flatMap(v -> itemDefinition(v.onlyValue().value()));
+        argument = as(AxiomName.class,item(Item.ARGUMENT.name())).flatMap(v -> itemDefinition(v.onlyValue().value()));
         identifiers = Collections2.transform((this.item(Item.IDENTIFIER_DEFINITION).map(v -> v.values()).orElse(Collections.emptyList())),
                  AxiomIdentifierDefinitionImpl::from);
     }
@@ -52,7 +51,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
     }
 
     @Override
-    public <V> Optional<AxiomItem<V>> item(AxiomName name) {
+    public Optional<? extends AxiomItem<?>> item(AxiomName name) {
         return super.item(name);
     }
 

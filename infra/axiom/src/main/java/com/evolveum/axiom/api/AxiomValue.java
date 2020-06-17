@@ -10,10 +10,20 @@ public interface AxiomValue<V> extends AxiomInfraValue {
 
     AxiomName TYPE = AxiomName.axiom("type");
     AxiomName VALUE = AxiomName.axiom("value");
+    AxiomName METADATA = AxiomName.axiom("metadata");
 
     Optional<AxiomTypeDefinition> type();
 
     V value();
+
+
+    default Optional<? extends AxiomComplexValue> metadata() {
+        return infraItem(METADATA).flatMap(v -> v.onlyValue().asComplex());
+    }
+
+    default Optional<? extends AxiomItem<?>> metadata(AxiomName name) {
+        return metadata().flatMap(m -> m.item(name));
+    }
 
     default Optional<AxiomComplexValue> asComplex() {
         if(this instanceof AxiomComplexValue)  {

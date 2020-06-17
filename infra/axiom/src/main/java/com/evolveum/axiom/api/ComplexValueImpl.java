@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 public class ComplexValueImpl implements AxiomComplexValue {
@@ -38,8 +39,12 @@ public class ComplexValueImpl implements AxiomComplexValue {
     }
 
     @Override
-    public <T> Optional<AxiomItem<T>> item(AxiomName name) {
-        return Optional.ofNullable((AxiomItem<T>) items.get(name));
+    public Optional<? extends AxiomItem<?>> item(AxiomName name) {
+        return Optional.ofNullable(items.get(name));
+    }
+
+    protected AxiomItem<?> requireItem(AxiomName name) {
+        return item(name).orElseThrow(() -> new IllegalStateException(Strings.lenientFormat("Required item %s not present.", name)));
     }
 
     public Collection<AxiomItem<?>> items() {
@@ -54,5 +59,10 @@ public class ComplexValueImpl implements AxiomComplexValue {
     @Override
     public Map<AxiomName, AxiomItem<?>> infraItems() {
         return infraItems;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> Optional<AxiomItem<T>> as(Class<T> type, Optional<? extends AxiomItem<?>> item) {
+        return (Optional<AxiomItem<T>>) item;
     }
 }

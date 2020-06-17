@@ -41,7 +41,7 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     }
 
     @Override
-    public <T> Optional<AxiomItem<T>> item(AxiomName name) {
+    public Optional<? extends AxiomItem<?>> item(AxiomName name) {
         return delegate().asComplex().get().item(name);
     }
 

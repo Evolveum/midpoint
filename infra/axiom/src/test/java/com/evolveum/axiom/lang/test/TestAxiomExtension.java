@@ -87,7 +87,7 @@ public class TestAxiomExtension extends AbstractReactorTest {
         Optional<AxiomTypeDefinition> personDef = schemaContext.getType(PERSON);
         assertTrue(personDef.isPresent());
 
-        AxiomItem<Object> extension = personDef.get().asComplex().get().item(STORAGE).get();
+        AxiomItem<?> extension = personDef.get().asComplex().get().item(STORAGE).get();
 
         assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());

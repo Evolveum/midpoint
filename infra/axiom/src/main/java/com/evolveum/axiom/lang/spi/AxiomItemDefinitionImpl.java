@@ -24,8 +24,8 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
         super(axiomItemDefinition, items, infraItems);
         this.valueType = require(asComplex().get().onlyValue(AxiomTypeDefinition.class,Item.TYPE_REFERENCE, Item.REF_TARGET));
         this.identifierDef = asComplex().get().onlyValue(AxiomIdentifierDefinition.class, Item.IDENTIFIER_DEFINITION).map(v -> AxiomIdentifierDefinitionImpl.from(v));
-        minOccurs = this.<String>item(Item.MIN_OCCURS.name());
-        substitutionOf = this.<AxiomName>item(Item.SUBSTITUTION_OF.name()).map(v -> v.onlyValue().value());
+        minOccurs = as(String.class,item(Item.MIN_OCCURS.name()));
+        substitutionOf = as(AxiomName.class, item(Item.SUBSTITUTION_OF.name())).map(v -> v.onlyValue().value());
     }
 
     @Override

@@ -20,9 +20,8 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
         return (Optional) item(def.name());
     }
 
-    @SuppressWarnings("unchecked")
-    default <T> Optional<AxiomItem<T>> item(AxiomName name) {
-        return Optional.ofNullable((AxiomItem<T>) itemMap().get(name));
+    default Optional<? extends AxiomItem<?>> item(AxiomName name) {
+        return Optional.ofNullable(itemMap().get(name));
     }
 
    default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {

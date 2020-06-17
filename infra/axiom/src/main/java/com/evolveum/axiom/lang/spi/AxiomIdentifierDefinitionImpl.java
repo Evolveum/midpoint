@@ -21,7 +21,7 @@ public class AxiomIdentifierDefinitionImpl extends ComplexValueImpl implements A
         super(axiomItemDefinition, items, infraItems);
 
         ImmutableList.Builder<AxiomName> components = ImmutableList.builder();
-        for (AxiomValue<AxiomName> val : this.<AxiomName>item(Item.ID_MEMBER.name()).get().values()) {
+        for (AxiomValue<AxiomName> val : as(AxiomName.class,item(Item.ID_MEMBER.name())).get().values()) {
             components.add(val.value());
         }
         this.components = components.build();
