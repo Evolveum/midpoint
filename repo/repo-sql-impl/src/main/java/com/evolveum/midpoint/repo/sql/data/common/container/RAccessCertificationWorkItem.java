@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,31 +7,29 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
-import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
-import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import static com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem.TABLE;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem.TABLE;
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemId;
+import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 /**
  * @author mederly
@@ -40,19 +38,15 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 @JaxbType(type = AccessCertificationWorkItemType.class)
 @Entity
 @IdClass(RCertWorkItemId.class)
-@Table(name = TABLE, indexes = {
-})
+@Table(name = TABLE)
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RAccessCertificationWorkItem implements L2Container<RAccessCertificationCase> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RAccessCertificationWorkItem.class);
-
     public static final String TABLE = "m_acc_cert_wi";
-    public static final String F_OWNER = "owner";
 
     private Boolean trans;
 
-    private String ownerOwnerOid;                        // campaign OID
+    private String ownerOwnerOid; // campaign OID
     private RAccessCertificationCase owner;
     private Integer ownerId;
     private Integer id;
@@ -140,7 +134,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCertWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
@@ -188,10 +182,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAccessCertificationWorkItem))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RAccessCertificationWorkItem)) { return false; }
         RAccessCertificationWorkItem that = (RAccessCertificationWorkItem) o;
         return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
                 Objects.equals(ownerId, that.ownerId) &&
@@ -220,7 +212,9 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
         this.trans = trans;
     }
 
-    public static RAccessCertificationWorkItem toRepo(RAccessCertificationCase _case, AccessCertificationWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
+    public static RAccessCertificationWorkItem toRepo(RAccessCertificationCase _case,
+            AccessCertificationWorkItemType workItem, RepositoryContext context) {
+
         RAccessCertificationWorkItem rWorkItem = new RAccessCertificationWorkItem();
         rWorkItem.setOwner(_case);
         toRepo(rWorkItem, workItem, context);
@@ -237,8 +231,9 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
     }
 
     private static void toRepo(RAccessCertificationWorkItem rWorkItem,
-            AccessCertificationWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
-        rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
+            AccessCertificationWorkItemType workItem, RepositoryContext context) {
+        // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
+        rWorkItem.setTransient(null);
         Integer idInt = RUtil.toInteger(workItem.getId());
         if (idInt == null) {
             throw new IllegalArgumentException("No ID for access certification work item: " + workItem);

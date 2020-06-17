@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,30 +7,30 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem.TABLE;
+
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.*;
+
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RCase;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.*;
-
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem.TABLE;
 
 /**
  * @author mederly
@@ -39,13 +39,11 @@ import static com.evolveum.midpoint.repo.sql.data.common.container.RCaseWorkItem
 @JaxbType(type = CaseWorkItemType.class)
 @Entity
 @IdClass(RCaseWorkItemId.class)
-@Table(name = TABLE, indexes = {
-})
+@Table(name = TABLE)
 @Persister(impl = MidPointSingleTablePersister.class)
 public class RCaseWorkItem implements Container<RCase> {
 
     public static final String TABLE = "m_case_wi";
-    public static final String F_OWNER = "owner";
 
     private Boolean trans;
 
@@ -127,7 +125,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @JaxbName(localPart = "assigneeRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getAssigneeRef() {
         return assigneeRef;
     }
@@ -140,7 +138,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @JaxbName(localPart = "candidateRef")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RCaseWorkItemReference> getCandidateRef() {
         return candidateRef;
     }
@@ -158,7 +156,7 @@ public class RCaseWorkItem implements Container<RCase> {
         this.performerRef = performerRef;
     }
 
-    @JaxbPath(itemPath = {@JaxbName(localPart = "output"), @JaxbName(localPart = "outcome")})
+    @JaxbPath(itemPath = { @JaxbName(localPart = "output"), @JaxbName(localPart = "outcome") })
     @Column
     public String getOutcome() {
         return outcome;
@@ -197,10 +195,8 @@ public class RCaseWorkItem implements Container<RCase> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RCaseWorkItem))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RCaseWorkItem)) { return false; }
         RCaseWorkItem that = (RCaseWorkItem) o;
         return Objects.equals(ownerOid, that.ownerOid) &&
                 Objects.equals(id, that.id) &&
@@ -236,14 +232,14 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     public static RCaseWorkItem toRepo(String caseOid, CaseWorkItemType workItem,
-                                       RepositoryContext context) throws DtoTranslationException {
+            RepositoryContext context) throws DtoTranslationException {
         RCaseWorkItem rWorkItem = new RCaseWorkItem();
         rWorkItem.setOwnerOid(caseOid);
         toRepo(rWorkItem, workItem, context);
         return rWorkItem;
     }
 
-    private static void toRepo(RCaseWorkItem rWorkItem, CaseWorkItemType workItem, RepositoryContext context) throws DtoTranslationException {
+    private static void toRepo(RCaseWorkItem rWorkItem, CaseWorkItemType workItem, RepositoryContext context) {
         rWorkItem.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         Integer idInt = RUtil.toInteger(workItem.getId());
         rWorkItem.setId(idInt);
