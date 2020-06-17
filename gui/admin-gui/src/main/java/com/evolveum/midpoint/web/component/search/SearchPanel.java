@@ -785,14 +785,14 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private void searchConfigurationPerformed(AjaxRequestTarget target){
-        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(), getModel()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected @NotNull Class getObjectClass() {
-                return SearchPanel.this.getModelObject().getType();
-            }
-        };
-        getPageBase().showMainPopup(configPanel, target);
+//        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(), getModel()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected @NotNull Class getObjectClass() {
+//                return SearchPanel.this.getModelObject().getType();
+//            }
+//        };
+//        getPageBase().showMainPopup(configPanel, target);
     }
 }
