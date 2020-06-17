@@ -17,6 +17,7 @@ model axiom-data {
     
     type AxiomComplexValue {
         supertype AxiomValue;
+
         item item {
             type AxiomItem;
         }

@@ -6,13 +6,13 @@ model foaf-person {
 
     type Person {
         item givenName {
-            type string;
+            type String;
         }
         item familyName {
-            type string;
+            type String;
         }
         item additionalName {
-            type string;
+            type String;
         }
     }
 

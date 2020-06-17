@@ -4,14 +4,14 @@ model test-person {
 
     type Person {
         item name {
-            type string;
+            type String;
         }
     }
     
     augmentation PersonExtension {
         target Person;
         item fullName {
-            type string;
+            type String;
         }
     }
 }

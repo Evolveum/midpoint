@@ -8,15 +8,18 @@
 
 model axiom-base-types {
 
-    namespace "https://schema.evolveum.com/ns/axiom/model";
+    namespace "https://schema.evolveum.com/ns/axiom/types";
     version "0.1.0";
 
-    type string;
-    type boolean;
-    type uri;
-    type int;
-    type binary;
-    type dateTime;
+    type String;
+    type Boolean;
+    type Uri;
+    type Integer;
+    type Binary;
+    type DateTime;
 
-    type anyType;
+    type QName {
+        supertype Uri;
+    }
+
 }

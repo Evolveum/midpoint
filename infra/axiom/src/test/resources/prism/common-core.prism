@@ -70,7 +70,7 @@ prism:model common-core {
         // item documentation; // TODO make this work
 
         item subtype {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
                 Type of the object. It is used to distinguish what a specific object
@@ -137,7 +137,7 @@ prism:model common-core {
         }
 
         item lifecycleState {
-            type string;
+            type String;
             documentation """
                 Lifecycle state of the object. This property defines whether the
                 object represents a draft, proposed definition, whether it is active,
@@ -162,7 +162,7 @@ prism:model common-core {
                 - archived: Inactive historical definition. It is no longer used.
                             It is maintained only for historical, auditing and
                             sentimental reasons.
-                - failed: Unexpected error has occurred during object lifecycle. Result
+                - failed: Unexpected error has occurred dUring object lifecycle. Result
                             of that event is that the object is rendered inactive.
                             The situation cannot be automatically remedied. Manual action
                             is needed.
@@ -194,7 +194,7 @@ prism:model common-core {
         }
 
         item policySituation {
-            type uri;
+            type Uri;
             maxOccurs unbounded;
             documentation """
                 The policy situation(s) of this object. The situations are result of
@@ -256,7 +256,7 @@ prism:model common-core {
         }
 
         item iteration {
-            type int; // TODO
+            type Integer; // TODO
             documentation """
                 Iteration number. Starts with 0. It is used to iteratively find unique identifier
                 for the object.
@@ -265,7 +265,7 @@ prism:model common-core {
         }
 
         item iterationToken {
-            type string;
+            type String;
             documentation """
                 Iteration token. String value that is usually a suffix to the identifier based
                 on iteration number. E.g. ".007". It is used to iteratively find unique identifier
@@ -300,7 +300,7 @@ prism:model common-core {
             documentation """
                 References to abstract roles (roles, orgs, services) that this focus currently belongs to - directly
                 or indirectly. This reference points to all the roles in the role hierarchy. It only points to
-                the roles that were evaluated as active during last recompute (conditions were true, validity
+                the roles that were evaluated as active dUring last recompute (conditions were true, validity
                 constraints not violated).
 
                 Note: the value of this reference is only updated when a focal object is recomputed.
@@ -411,7 +411,7 @@ prism:model common-core {
         }
 
         item jpegPhoto {
-            type binary;
+            type Binary;
             documentation """
                 Photo corresponding to the user / org / role / service.
             """;
@@ -419,7 +419,7 @@ prism:model common-core {
         }
 
         item costCenter {
-            type string;
+            type String;
             documentation """
                 The name, identifier or code of the cost center to which the object belongs.
 
@@ -446,7 +446,7 @@ prism:model common-core {
         }
 
         item preferredLanguage {
-            type string;
+            type String;
             documentation """
                 Indicates user's preferred language, usually for the purpose of localizing
                 user interfaces. The format is IETF language tag defined in BCP 47, where
@@ -470,7 +470,7 @@ prism:model common-core {
         }
 
         item locale {
-            type string;
+            type String;
             documentation """
                 Defines user's preference in displaying currency, dates and other items
                 related to location and culture. The format is IETF language tag defined in BCP 47, where
@@ -494,7 +494,7 @@ prism:model common-core {
         }
 
         item timezone {
-            type string;
+            type String;
             documentation """
                 User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
                 format. If not specified then system default timezone is assumed.
@@ -508,7 +508,7 @@ prism:model common-core {
         }
 
         item emailAddress {
-            type string;
+            type String;
             documentation """
                 E-Mail address of the user, org. unit, etc. This is the address
                 supposed to be used for communication with the
@@ -522,7 +522,7 @@ prism:model common-core {
         }
 
         item telephoneNumber {
-            type string;
+            type String;
             documentation """
                 Primary telephone number of the user, org. unit, etc.
             """;
@@ -657,7 +657,7 @@ prism:model common-core {
 
                 This property is single-valued. If more
                 than one title is applicable, they have to be represented in
-                a single string (concatenated) form in the correct order.
+                a single String (concatenated) form in the correct order.
             """;
             // <a:displayName>UserType.honorificPrefix</a:displayName>
             // <a:displayOrder>150</a:displayOrder>
@@ -674,7 +674,7 @@ prism:model common-core {
 
                 This property is single-valued. If more
                 than one title is applicable, they have to be represented in
-                a single string (concatenated) form in the correct order.
+                a single String (concatenated) form in the correct order.
             """;
             // <a:displayName>UserType.honorificSuffix</a:displayName>
             // <a:displayOrder>160</a:displayOrder>
@@ -687,7 +687,7 @@ prism:model common-core {
                 organization.
                 Examples:
                  - CEO
-                 - Security Officer
+                 - SecUrity Officer
                  - Assistant
             """;
             // <a:displayName>UserType.title</a:displayName>
@@ -695,7 +695,7 @@ prism:model common-core {
         }
 
         item employeeNumber {
-            type string;
+            type String;
             documentation """
                 Unique, business-oriented identifier of the employee.
                 Typically used as correlation identifier and for
@@ -707,7 +707,7 @@ prism:model common-core {
         }
 
         item employeeType {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
                 Employee type specification such as internal employee,
@@ -785,7 +785,7 @@ prism:model common-core {
         item filter {
             type SearchFilter; // TODO namespace of "query-3"
             documentation """
-                Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+                Filter that can be used to dynamically lookup the reference OID e.g. dUring imports.
                 It must not be used for normal operations. The filter may be stored in the repository
                 to avoid data loss. But even if it is stored it will not be used beyond initial
                 import or unless explicitly requested (e.g. by setting resolutionTime).
@@ -842,7 +842,7 @@ prism:model common-core {
 
     mixin Description {
         item description {
-            type string;
+            type String;
             documentation """
                 Free-form textual description of the object. It is supposed to describe
                 the object or a construct that it is attached to.
@@ -863,7 +863,7 @@ prism:model common-core {
 
     mixin Documentation { 
         item documentation {
-            type string;
+            type String;
             documentation """
                 Technical documentation for a particular object or construct.
 
@@ -923,7 +923,7 @@ prism:model common-core {
             enforced for this type of objects if technically possible.
         """;
         item objectType {
-            type uri; // TODO
+            type Uri; // TODO
             // deprecated
         }
     }
@@ -935,20 +935,20 @@ prism:model common-core {
             at specified time or under some other condition.
         """;
         item timestamp {
-            type dateTime; // TODO
+            type DateTime; // TODO
             documentation """
                 The time when a trigger needs to be activated.
             """;
         }
         item handlerUri {
-            type uri; // TODO
+            type Uri; // TODO
             documentation """
                 Handler URI indirectly specifies which class is responsible to handle the task. The handler will
                 to be used to handle trigger activation.
             """;
         }
         item originDescription {
-            type string;
+            type String;
             documentation """
                 Short description of trigger origin, e.g. name of the mapping.
                 Used for diagnostic purposes.
@@ -978,7 +978,7 @@ prism:model common-core {
             modification, last approval, etc. There is no history. The last operation overwrites data
             about the previous operation.
 
-            These data are informational only. They should not be used for security purposes (use auditing
+            These data are informational only. They should not be used for secUrity purposes (use auditing
             subsystem for that). But presence of metadata simplifies system administration and may provide
             some basic information "at the glance" which may be later confirmed by the audit logs.
 
@@ -990,7 +990,7 @@ prism:model common-core {
         // <a:displayName>Metadata</a:displayName>
 
         item requestTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of "create" operation request. It is set once and should never be changed.
 
@@ -1016,7 +1016,7 @@ prism:model common-core {
         }
 
         item requestorComment {
-            type string;
+            type String;
             documentation """
                 Comment of the user that requested the "create" operation for this object or assignment.
             """;
@@ -1026,7 +1026,7 @@ prism:model common-core {
         }
 
         item createTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of data creation. It is set once and should never be changed.
 
@@ -1055,10 +1055,10 @@ prism:model common-core {
         }
 
         item createApproverComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
-                Comments of the approvers during the creation of the data. Note that these comments are in no
+                Comments of the approvers dUring the creation of the data. Note that these comments are in no
                 particular order, so basically it is not known who entered which comment.
             """;
             // <a:displayName>MetadataType.createApprovalComment</a:displayName>
@@ -1067,7 +1067,7 @@ prism:model common-core {
         }
 
         item createApprovalTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of creation approval.
             """;
@@ -1077,7 +1077,7 @@ prism:model common-core {
         }
 
         item createChannel {
-            type uri;
+            type Uri;
             documentation """
                 Channel in which the object was created.
             """;
@@ -1098,7 +1098,7 @@ prism:model common-core {
         }
 
         item modifyTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.modifyTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             // <a:indexed>true</a:indexed>
@@ -1122,7 +1122,7 @@ prism:model common-core {
         }
 
         item modifyApprovalComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             // <a:displayName>MetadataType.modifyApprovalComment</a:displayName>
             // <a:operational>true</a:operational>
@@ -1130,7 +1130,7 @@ prism:model common-core {
         }
 
         item modifyChannel {
-            type uri;
+            type Uri;
             // <a:displayName>MetadataType.modifyChannel</a:displayName>
             // <a:operational>true</a:operational>
             // <a:indexed>true</a:indexed>
@@ -1145,21 +1145,21 @@ prism:model common-core {
         }
 
         item lastProvisioningTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.lastProvisioningTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             since "3.6.1";
         }
 
         item certificationFinishedTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.certificationFinishedTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";
         }
 
         item certificationOutcome {
-            type string;
+            type String;
             // <a:displayName>MetadataType.certificationOutcome</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";
@@ -1174,7 +1174,7 @@ prism:model common-core {
         }
 
         item certifierComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             // <a:displayName>MetadataType.certifierComment</a:displayName>
             // <a:operational>true</a:operational>
@@ -1182,7 +1182,7 @@ prism:model common-core {
         }
 
         item originMappingName {
-            type string;
+            type String;
             // <a:displayName>MetadataType.originMappingName</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";

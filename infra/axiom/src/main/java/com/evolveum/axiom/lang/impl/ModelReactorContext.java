@@ -39,26 +39,15 @@ public class ModelReactorContext extends
 
     private static final AxiomName ROOT = AxiomName.from("root", "root");
 
-    private static final String AXIOM_LANG_RESOURCE = "/axiom-model.axiom";
-    private static final String AXIOM_BUILTIN_RESOURCE = "/axiom-base-types.axiom";
 
-    private static final Lazy<AxiomModelStatementSource> BASE_LANGUAGE_SOURCE = Lazy.from(() -> {
-        InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_LANG_RESOURCE);
-        try {
-            return AxiomModelStatementSource.from(AXIOM_LANG_RESOURCE, stream);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    });
+    private static final String AXIOM_DATA_RESOURCE = "/axiom-data.axiom";
+    private static final String AXIOM_MODEL_RESOURCE = "/axiom-model.axiom";
+    private static final String AXIOM_TYPES_RESOURCE = "/axiom-types.axiom";
 
-    private static final Lazy<AxiomModelStatementSource> BASE_TYPES_SOURCE = Lazy.from(() -> {
-        InputStream stream = AxiomBuiltIn.class.getResourceAsStream(AXIOM_BUILTIN_RESOURCE);
-        try {
-            return AxiomModelStatementSource.from(AXIOM_BUILTIN_RESOURCE, stream);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    });
+    private static final Lazy<AxiomModelStatementSource> LANGUAGE_SOURCE = source(AXIOM_MODEL_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> TYPES_SOURCE = source(AXIOM_TYPES_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> INFRA_SOURCE = source(AXIOM_DATA_RESOURCE);
+
 
     public static final Lazy<AxiomSchemaContext> BASE_LANGUAGE = Lazy.from(() -> {
         ModelReactorContext reactor = boostrapReactor();
@@ -69,6 +58,18 @@ public class ModelReactorContext extends
         ModelReactorContext reactorContext = new ModelReactorContext(context);
         defaults(reactorContext);
         return reactorContext;
+    }
+
+    private static Lazy<AxiomModelStatementSource> source(String axiomModelResource) {
+        return Lazy.from(() -> {
+            InputStream stream = AxiomBuiltIn.class.getResourceAsStream(axiomModelResource);
+            try {
+                return AxiomModelStatementSource.from(axiomModelResource, stream);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 
     public static final ModelReactorContext boostrapReactor() {
@@ -88,8 +89,9 @@ public class ModelReactorContext extends
         reactorContext.addStatementFactory(Type.ITEM_DEFINITION.name(), AxiomItemDefinitionImpl.FACTORY);
         reactorContext.addStatementFactory(Type.IDENTIFIER_DEFINITION.name(), AxiomIdentifierDefinitionImpl.FACTORY);
 
-        reactorContext.loadModelFromSource(BASE_LANGUAGE_SOURCE.get());
-        reactorContext.loadModelFromSource(BASE_TYPES_SOURCE.get());
+        reactorContext.loadModelFromSource(LANGUAGE_SOURCE.get());
+        reactorContext.loadModelFromSource(INFRA_SOURCE.get());
+        reactorContext.loadModelFromSource(TYPES_SOURCE.get());
 
     }
 

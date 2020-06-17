@@ -8,7 +8,7 @@
 
 model common-core {
 
-    namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+    namespace "http://midpoInteger.evolveum.com/xml/ns/public/common/common-3";
     version "3.0.0";
 
     import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
@@ -36,13 +36,13 @@ model common-core {
                 Human-readable, mutable name of the object. It
                 may also be an identifier (login name, group name).
                 It is usually unique in the respective context of
-                interpretation. E.g. the name of the UserType subtype
+                Integererpretation. E.g. the name of the UserType subtype
                 is usually unique in the whole system.
                 The name of the ShadowType subtype is usually unique in the
                 scope of resource (target system) that it belongs to.
 
                 The name may not be human-readable in a sense to display
-                to a common end-user. It is intended to be displayed to
+                to a common end-user. It is Integerended to be displayed to
                 IDM system administrator. Therefore it may contain quite
                 a "ugly" structures such as LDAP DN or URL.
 
@@ -70,7 +70,7 @@ model common-core {
         // item documentation; // TODO make this work
 
         item subtype {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
                 Type of the object. It is used to distinguish what a specific object
@@ -127,7 +127,7 @@ model common-core {
             type ObjectReference;
             documentation """
                 Reference to the tenant to which this object belongs. It is a computed value set automatically
-                by midPoint. It is determined from the organizational structure. Even though this value is
+                by midPoInteger. It is determined from the organizational structure. Even though this value is
                 computed it is also stored in the repository due to performance reasons.
             """;
             // <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
@@ -137,7 +137,7 @@ model common-core {
         }
 
         item lifecycleState {
-            type string;
+            type String;
             documentation """
                 Lifecycle state of the object. This property defines whether the
                 object represents a draft, proposed definition, whether it is active,
@@ -160,9 +160,9 @@ model common-core {
                               be used for new assignments. E.g. it should not be requested,
                               it should not be approved, etc.
                 - archived: Inactive historical definition. It is no longer used.
-                            It is maintained only for historical, auditing and
+                            It is maIntegerained only for historical, auditing and
                             sentimental reasons.
-                - failed: Unexpected error has occurred during object lifecycle. Result
+                - failed: Unexpected error has occurred dUring object lifecycle. Result
                             of that event is that the object is rendered inactive.
                             The situation cannot be automatically remedied. Manual action
                             is needed.
@@ -194,7 +194,7 @@ model common-core {
         }
 
         item policySituation {
-            type uri;
+            type Uri;
             maxOccurs unbounded;
             documentation """
                 The policy situation(s) of this object. The situations are result of
@@ -228,7 +228,7 @@ model common-core {
             // <a:experimental>true</a:experimental>
         }
 
-        // Note that oid and version are not defined here. These are intrinsic parts of prism objects
+        // Note that oid and version are not defined here. These are Integerrinsic parts of prism objects
         // so they do not have to be mentioned in the schema.
         // TODO: is this OK? See also related questions in ObjectReference type.
     }
@@ -246,7 +246,7 @@ model common-core {
             documentation """
                 Set of object's assignments.
                 Assignments define the privileges and "features" that this object should have, that
-                this object is entitled to. Typical assignment will point to a role or define
+                this object is entitled to. Typical assignment will poInteger to a role or define
                 a construction of an account.
 
                 Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
@@ -256,7 +256,7 @@ model common-core {
         }
 
         item iteration {
-            type int; // TODO
+            type Integer; // TODO
             documentation """
                 Iteration number. Starts with 0. It is used to iteratively find unique identifier
                 for the object.
@@ -265,7 +265,7 @@ model common-core {
         }
 
         item iterationToken {
-            type string;
+            type String;
             documentation """
                 Iteration token. String value that is usually a suffix to the identifier based
                 on iteration number. E.g. ".007". It is used to iteratively find unique identifier
@@ -299,9 +299,9 @@ model common-core {
             maxOccurs unbounded;
             documentation """
                 References to abstract roles (roles, orgs, services) that this focus currently belongs to - directly
-                or indirectly. This reference points to all the roles in the role hierarchy. It only points to
-                the roles that were evaluated as active during last recompute (conditions were true, validity
-                constraints not violated).
+                or indirectly. This reference poIntegers to all the roles in the role hierarchy. It only points to
+                the roles that were evaluated as active dUring last recompute (conditions were true, validity
+                constraIntegers not violated).
 
                 Note: the value of this reference is only updated when a focal object is recomputed.
                 Therefore if a role definition changes then all the affected focal objects must be recomputed
@@ -341,9 +341,9 @@ model common-core {
             maxOccurs unbounded;
             documentation """
                 References to abstract roles (roles and orgs) that this focus may directly belong to.
-                This reference only points to the next role in the hierarchy. However, it is backed by
+                This reference only poIntegers to the next role in the hierarchy. However, it is backed by
                 a "closure" index in the repository subsystem. Therefore it can efficiently support tree-like
-                queries. This reference points to the roles for whose the condition is not true.
+                queries. This reference poIntegers to the roles for whose the condition is not true.
                 Therefore it does not reliably show
                 who actually has a role. It shows potential role members - all the object that are possibly
                 influenced when a role definition changes.
@@ -363,7 +363,7 @@ model common-core {
         supertype AssignmentHolder;
         prism:itemName focus;
         documentation """
-            Abstract supertype for all object types that can be focus of full midPoint computation.
+            Abstract supertype for all object types that can be focus of full midPoInteger computation.
             This basically means objects that have projections. But focal objects also have
             activation, they may have personas, etc.
         """;
@@ -375,7 +375,7 @@ model common-core {
                 E.g. a set of accounts linked to a user. This is the set of
                 shadows that belongs to the focal object in a sense
                 that these shadows represents the focal object on the resource.
-                E.g. The set of accounts that represent the same midPoint user (the
+                E.g. The set of accounts that represent the same midPoInteger user (the
                 same physical person, they are "analogous").
 
                 Links define what the object HAS. The links reflect real state of things
@@ -411,7 +411,7 @@ model common-core {
         }
 
         item jpegPhoto {
-            type binary;
+            type Binary;
             documentation """
                 Photo corresponding to the user / org / role / service.
             """;
@@ -419,7 +419,7 @@ model common-core {
         }
 
         item costCenter {
-            type string;
+            type String;
             documentation """
                 The name, identifier or code of the cost center to which the object belongs.
 
@@ -446,10 +446,10 @@ model common-core {
         }
 
         item preferredLanguage {
-            type string;
+            type String;
             documentation """
                 Indicates user's preferred language, usually for the purpose of localizing
-                user interfaces. The format is IETF language tag defined in BCP 47, where
+                user Integererfaces. The format is IETF language tag defined in BCP 47, where
                 underscore is used as a subtag separator. This is usually a ISO 639-1 two-letter
                 language code optionally followed by ISO 3166-1 two letter country code
                 separated by underscore. The languages that do not have country-specific
@@ -470,7 +470,7 @@ model common-core {
         }
 
         item locale {
-            type string;
+            type String;
             documentation """
                 Defines user's preference in displaying currency, dates and other items
                 related to location and culture. The format is IETF language tag defined in BCP 47, where
@@ -494,7 +494,7 @@ model common-core {
         }
 
         item timezone {
-            type string;
+            type String;
             documentation """
                 User's preferred timezone. It is specified in the "tz database" (a.k.a "Olson")
                 format. If not specified then system default timezone is assumed.
@@ -508,7 +508,7 @@ model common-core {
         }
 
         item emailAddress {
-            type string;
+            type String;
             documentation """
                 E-Mail address of the user, org. unit, etc. This is the address
                 supposed to be used for communication with the
@@ -522,7 +522,7 @@ model common-core {
         }
 
         item telephoneNumber {
-            type string;
+            type String;
             documentation """
                 Primary telephone number of the user, org. unit, etc.
             """;
@@ -544,7 +544,7 @@ model common-core {
         documentation """
             User object represents a physical user of the system.
             It differs from the account, as "account" represents a data structure in a target system while
-            "user" represents data structure in midPoint. One user typically has many accounts.
+            "user" represents data structure in midPoInteger. One user typically has many accounts.
             Properties of User object typically describe the user as a physical person.
             Therefore the user object defines handful of properties that are commonly used to describe users
             in the IDM solutions (employees, customers, partners, etc.) Custom extensions are possible by utilizing
@@ -558,7 +558,7 @@ model common-core {
                 middle name initials, honorific title and any
                 other structure that is usual in the cultural
                 environment that the system operates in. This
-                element is intended to be displayed to
+                element is Integerended to be displayed to
                 a common user of the system.
 
                 Examples:
@@ -637,7 +637,7 @@ model common-core {
                  - Bobby<
 
                 The meaning of this property is to take part in the formatted full
-                name of the person, e.g. William "Bootstrap" Turner. It is not intended
+                name of the person, e.g. William "Bootstrap" Turner. It is not Integerended
                 to be used as a username or login name. This value is usually changeable
                 by the user itself and it defines how the user wants other to address him.
                 Therefore it is not ideal for use as an identifier.
@@ -657,7 +657,7 @@ model common-core {
 
                 This property is single-valued. If more
                 than one title is applicable, they have to be represented in
-                a single string (concatenated) form in the correct order.
+                a single String (concatenated) form in the correct order.
             """;
             // <a:displayName>UserType.honorificPrefix</a:displayName>
             // <a:displayOrder>150</a:displayOrder>
@@ -674,7 +674,7 @@ model common-core {
 
                 This property is single-valued. If more
                 than one title is applicable, they have to be represented in
-                a single string (concatenated) form in the correct order.
+                a single String (concatenated) form in the correct order.
             """;
             // <a:displayName>UserType.honorificSuffix</a:displayName>
             // <a:displayOrder>160</a:displayOrder>
@@ -687,7 +687,7 @@ model common-core {
                 organization.
                 Examples:
                  - CEO
-                 - Security Officer
+                 - SecUrity Officer
                  - Assistant
             """;
             // <a:displayName>UserType.title</a:displayName>
@@ -695,7 +695,7 @@ model common-core {
         }
 
         item employeeNumber {
-            type string;
+            type String;
             documentation """
                 Unique, business-oriented identifier of the employee.
                 Typically used as correlation identifier and for
@@ -707,10 +707,10 @@ model common-core {
         }
 
         item employeeType {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
-                Employee type specification such as internal employee,
+                Employee type specification such as Integerernal employee,
                 external or partner. The specific values are
                 deployment-specific. However it is generally assumed that this
                 will be enumeration of several type names or codes that define
@@ -736,7 +736,7 @@ model common-core {
                 may be used to provide easy-to-use data about organizational membership of the user.
 
                 This is multi-valued property to allow membership of a user to several
-                organizations. Please note that midPoint does not maintain ordering in
+                organizations. Please note that midPoInteger does not maintain ordering in
                 multi-value properties therefore this is not usable to model a complex
                 organization hierarchies. Use OrgType instead.
             """;
@@ -753,7 +753,7 @@ model common-core {
                 may be used to provide easy-to-use data about organizational membership of the user.
 
                 This is multi-valued property to allow membership of a user to several
-                organizational units. Please note that midPoint does not maintain ordering in
+                organizational units. Please note that midPoInteger does not maintain ordering in
                 multi-value properties therefore this is not usable to model a complex
                 organization hierarchies. Use OrgType instead.
             """;
@@ -785,7 +785,7 @@ model common-core {
         item filter {
             type SearchFilter; // TODO namespace of "query-3"
             documentation """
-                Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+                Filter that can be used to dynamically lookup the reference OID e.g. dUring imports.
                 It must not be used for normal operations. The filter may be stored in the repository
                 to avoid data loss. But even if it is stored it will not be used beyond initial
                 import or unless explicitly requested (e.g. by setting resolutionTime).
@@ -817,7 +817,7 @@ model common-core {
             // TODO defaultValue "default";
             documentation """
                 Definition of the behavior related to non-existence of object with specified target OID.
-                (Currently supported only at selected places in midPoint.)
+                (Currently supported only at selected places in midPoInteger.)
             """;
             since "4.1";
         }
@@ -836,18 +836,18 @@ model common-core {
 
         // TODO what about (attributes) oid, type, and relation?
         //  Should they be listed here even if they are defined in PrismReferenceValue?
-        //  But if not, why should we list filter, resolution time, referential integrity here,
+        //  But if not, why should we list filter, resolution time, referential Integeregrity here,
         //  as they are also defined in PrismReferenceValue.
     }
 
     mixin Description {
         item description {
-            type string;
+            type String;
             documentation """
                 Free-form textual description of the object. It is supposed to describe
                 the object or a construct that it is attached to.
 
-                This information may be presented to midPoint users, even to ordinary end users.
+                This information may be presented to midPoInteger users, even to ordinary end users.
                 For example role description may be presented to users when they are selecting
                 roles to request. Therefore the description should be written in a language that
                 the users can understand.
@@ -863,14 +863,14 @@ model common-core {
 
     mixin Documentation {
         item documentation {
-            type string;
+            type String;
             documentation """
                 Technical documentation for a particular object or construct.
 
                 The purpose of this element is to document system configuration and behavior.
                 The documentation will not be presented to end users. In fact, it will probably
-                not be presented at all in midPoint user interface. This documentation element
-                is supposed to be a part of the technical documentation of midPoint deployment.
+                not be presented at all in midPoInteger user interface. This documentation element
+                is supposed to be a part of the technical documentation of midPoInteger deployment.
                 The tools than generate deployment configuration will look for these elements
                 and combine them to compiled documentation document.
 
@@ -923,7 +923,7 @@ model common-core {
             enforced for this type of objects if technically possible.
         """;
         item objectType {
-            type uri; // TODO
+            type Uri; // TODO
             // deprecated
         }
     }
@@ -935,20 +935,20 @@ model common-core {
             at specified time or under some other condition.
         """;
         item timestamp {
-            type dateTime; // TODO
+            type DateTime; // TODO
             documentation """
                 The time when a trigger needs to be activated.
             """;
         }
         item handlerUri {
-            type uri; // TODO
+            type Uri; // TODO
             documentation """
                 Handler URI indirectly specifies which class is responsible to handle the task. The handler will
                 to be used to handle trigger activation.
             """;
         }
         item originDescription {
-            type string;
+            type String;
             documentation """
                 Short description of trigger origin, e.g. name of the mapping.
                 Used for diagnostic purposes.
@@ -978,7 +978,7 @@ model common-core {
             modification, last approval, etc. There is no history. The last operation overwrites data
             about the previous operation.
 
-            These data are informational only. They should not be used for security purposes (use auditing
+            These data are informational only. They should not be used for secUrity purposes (use auditing
             subsystem for that). But presence of metadata simplifies system administration and may provide
             some basic information "at the glance" which may be later confirmed by the audit logs.
 
@@ -990,7 +990,7 @@ model common-core {
         // <a:displayName>Metadata</a:displayName>
 
         item requestTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of "create" operation request. It is set once and should never be changed.
 
@@ -1016,7 +1016,7 @@ model common-core {
         }
 
         item requestorComment {
-            type string;
+            type String;
             documentation """
                 Comment of the user that requested the "create" operation for this object or assignment.
             """;
@@ -1026,7 +1026,7 @@ model common-core {
         }
 
         item createTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of data creation. It is set once and should never be changed.
 
@@ -1055,10 +1055,10 @@ model common-core {
         }
 
         item createApproverComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             documentation """
-                Comments of the approvers during the creation of the data. Note that these comments are in no
+                Comments of the approvers dUring the creation of the data. Note that these comments are in no
                 particular order, so basically it is not known who entered which comment.
             """;
             // <a:displayName>MetadataType.createApprovalComment</a:displayName>
@@ -1067,7 +1067,7 @@ model common-core {
         }
 
         item createApprovalTimestamp {
-            type dateTime;
+            type DateTime;
             documentation """
                 The timestamp of creation approval.
             """;
@@ -1077,7 +1077,7 @@ model common-core {
         }
 
         item createChannel {
-            type uri;
+            type Uri;
             documentation """
                 Channel in which the object was created.
             """;
@@ -1098,7 +1098,7 @@ model common-core {
         }
 
         item modifyTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.modifyTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             // <a:indexed>true</a:indexed>
@@ -1122,7 +1122,7 @@ model common-core {
         }
 
         item modifyApprovalComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             // <a:displayName>MetadataType.modifyApprovalComment</a:displayName>
             // <a:operational>true</a:operational>
@@ -1130,7 +1130,7 @@ model common-core {
         }
 
         item modifyChannel {
-            type uri;
+            type Uri;
             // <a:displayName>MetadataType.modifyChannel</a:displayName>
             // <a:operational>true</a:operational>
             // <a:indexed>true</a:indexed>
@@ -1145,21 +1145,21 @@ model common-core {
         }
 
         item lastProvisioningTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.lastProvisioningTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             since "3.6.1";
         }
 
         item certificationFinishedTimestamp {
-            type dateTime;
+            type DateTime;
             // <a:displayName>MetadataType.certificationFinishedTimestamp</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";
         }
 
         item certificationOutcome {
-            type string;
+            type String;
             // <a:displayName>MetadataType.certificationOutcome</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";
@@ -1174,7 +1174,7 @@ model common-core {
         }
 
         item certifierComment {
-            type string;
+            type String;
             maxOccurs unbounded;
             // <a:displayName>MetadataType.certifierComment</a:displayName>
             // <a:operational>true</a:operational>
@@ -1182,7 +1182,7 @@ model common-core {
         }
 
         item originMappingName {
-            type string;
+            type String;
             // <a:displayName>MetadataType.originMappingName</a:displayName>
             // <a:operational>true</a:operational>
             since "3.7";

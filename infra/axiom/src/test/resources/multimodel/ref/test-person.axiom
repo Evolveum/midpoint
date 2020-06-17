@@ -11,7 +11,7 @@ model schema-org-person {
 
     type Person {
         item name {
-            type string;
+            type String;
         }
         item foaf {
             type foaf:Person;

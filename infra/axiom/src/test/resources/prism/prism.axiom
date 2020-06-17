@@ -11,7 +11,7 @@ model prism {
     }
 
     augmentation PrismModelExtension {
-      target axiom:AxiomModel;
+      target axiom:Model;
 
       item object {
           type PrismObjectDefinition;
@@ -27,34 +27,34 @@ model prism {
     }
 
     type PrismModel {
-        supertype axiom:AxiomModel;
+        supertype axiom:Model;
         item type { // {}:type
           type PrismTypeDefinition;
         }
     }
 
     augmentation PrismTypeDefinitionAnnotation {
-        target axiom:AxiomTypeDefinition;
+        target axiom:TypeDefinition;
         // TODO move to prism schema
         item object {
-            type boolean;
+            type Boolean;
         }
 
         // TODO move to prism schema
         item container {
-            type boolean;
+            type Boolean;
         }
         // TODO move to prism schema
         item objectReference {
-            type boolean;
+            type Boolean;
         }
         item itemName {
-            type axiom:AxiomName;
+            type QName;
         }
     }
 
     type PrismTypeDefinition {
-      supertype axiom:AxiomTypeDefinition;
+      supertype axiom:TypeDefinition;
     }
 
     type PrismObjectDefinition {

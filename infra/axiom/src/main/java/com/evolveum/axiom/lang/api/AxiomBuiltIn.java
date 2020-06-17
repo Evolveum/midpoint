@@ -75,7 +75,9 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
         public static final AxiomItemDefinition SUBSTITUTION_OF = new Item("target", Type.IDENTIFIER, true);
         public static final AxiomItemDefinition USES = new Item("include", Type.TYPE_REFERENCE, true);
-        public static final AxiomItemDefinition VALUE = new Item("value", null, true);
+        public static final AxiomItemDefinition VALUE = new Item("value", Type.STRING, true);
+        public static final AxiomItemDefinition IMPORT = new Item("import", Type.IMPORT, true);
+        public static final AxiomItemDefinition IMPORT_PREFIX = new Item("prefix", Type.STRING, true);
 
         protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
                 ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
@@ -166,29 +168,37 @@ public class AxiomBuiltIn {
     public static class Type implements AxiomTypeDefinition {
         public static final Type UUID = new Type("uuid");
         public static final Type STRING = new Type("string");
-        public static final Type IDENTIFIER = new Type("AxiomName");
+        public static final Type IDENTIFIER = new Type("QName");
 
-        public static final Type TYPE_REFERENCE = new Type("AxiomTypeReference", null, () -> Item.NAME, () -> itemDefs(
+        public static final Type TYPE_REFERENCE = new Type("TypeReference", null, () -> Item.NAME, () -> itemDefs(
                     Item.NAME,
                     Item.REF_TARGET
                 ));
+
+
+        public static final Type IMPORT = new Type("ImportDeclaration", null, () -> Item.NAMESPACE, () -> itemDefs(
+                Item.NAMESPACE,
+                Item.IMPORT_PREFIX
+            ));
+
         public static final Type BASE_DEFINITION =
-                new Type("AxiomBaseDefinition", null, () -> Item.NAME, () -> itemDefs(
+                new Type("BaseDefinition", null, () -> Item.NAME, () -> itemDefs(
                         Item.NAME,
                         Item.DOCUMENTATION
                 ));
 
         public static final Type MODEL =
-                new Type("AxiomModel", BASE_DEFINITION,  () -> itemDefs(
+                new Type("Model", BASE_DEFINITION,  () -> itemDefs(
                     Item.NAMESPACE,
                     Item.VERSION,
+                    Item.IMPORT,
                     Item.TYPE_DEFINITION,
                     Item.ROOT_DEFINITION
                 ));
 
 
         public static final Type TYPE_DEFINITION =
-                new Type("AxiomTypeDefinition", BASE_DEFINITION, () -> itemDefs(
+                new Type("TypeDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.ARGUMENT,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION,
@@ -197,7 +207,7 @@ public class AxiomBuiltIn {
 
 
         public static final Type ITEM_DEFINITION =
-                new Type("AxiomItemDefinition", BASE_DEFINITION, () -> itemDefs(
+                new Type("ItemDefinition", BASE_DEFINITION, () -> itemDefs(
                     Item.TYPE_REFERENCE,
                     Item.IDENTIFIER_DEFINITION,
                     Item.ALLOWS_SUBSTITUTION,
@@ -207,22 +217,22 @@ public class AxiomBuiltIn {
                 ));
 
         public static final Type SUBSTITUTION_DEFINITION =
-                new Type("AxiomSubstitutionDefinition", ITEM_DEFINITION, () -> itemDefs(
+                new Type("SubstitutionDefinition", ITEM_DEFINITION, () -> itemDefs(
                     Item.SUBSTITUTION_OF
                 ));
 
-        public static final Type ROOT_DEFINITION = new Type("AxiomRootDefinition", ITEM_DEFINITION);
+        public static final Type ROOT_DEFINITION = new Type("RootDefinition", ITEM_DEFINITION);
 
         public static final Type IDENTIFIER_DEFINITION =
-                new Type("AxiomIdentifierDefinition", BASE_DEFINITION, () -> Item.ID_MEMBER, () -> itemDefs(
+                new Type("IdentifierDefinition", BASE_DEFINITION, () -> Item.ID_MEMBER, () -> itemDefs(
                     Item.ID_MEMBER,
                     Item.ID_SCOPE,
                     Item.ID_SPACE
                 ));
-        public static final Type IMPORT_DEFINITION = new Type("AxiomImportDeclaration");
-        public static final Type AUGMENTATION_DEFINITION = new Type("AxiomAugmentationDefinition",TYPE_DEFINITION);
+        public static final Type IMPORT_DEFINITION = new Type("ImportDeclaration");
+        public static final Type AUGMENTATION_DEFINITION = new Type("AugmentationDefinition",TYPE_DEFINITION);
 
-        public static final Type AXIOM_VALUE = new Type("AxiomValue", null, () -> itemDefs(
+        public static final Type AXIOM_VALUE = new Type("Value", null, () -> itemDefs(
                 Item.TYPE_REFERENCE,
                 Item.VALUE
                 ));
@@ -231,7 +241,6 @@ public class AxiomBuiltIn {
         private final AxiomTypeDefinition superType;
         private final Lazy<AxiomItemDefinition> argument;
         private final Lazy<Map<AxiomName, AxiomItemDefinition>> items;
-
 
         private Type(String identifier) {
             this(identifier, null, Lazy.nullValue(), EMPTY);

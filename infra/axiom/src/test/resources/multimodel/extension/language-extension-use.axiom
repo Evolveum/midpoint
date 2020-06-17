@@ -8,14 +8,14 @@ model language-extension-use {
 
     type Address {
         item street {
-            type string;
+            type String;
         }
         storage:type embedded;
     }
 
     type Person {
         item name {
-            type string;
+            type String;
         }
         item address {
             type Address;

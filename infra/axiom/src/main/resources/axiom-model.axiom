@@ -1,86 +1,40 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
 model axiom-model {
 
     namespace "https://schema.evolveum.com/ns/axiom/model";
+
+    import "https://schema.evolveum.com/ns/axiom/data" {
+        prefix data;
+    }
 
     root model {
         documentation """
             Declaration of Axiom model.
         """;
-        type AxiomModel;
+        type Model;
     }
 
     // Axiom Baseline Types
 
-    type AxiomName {
-        documentation """
-            Qualified name. Consists of namespace and local name.
-        """;
-    }
-
     type SemanticVersion {
-            supertype string;
+            supertype String;
     }
 
-    type ItemCompleteness; // FIXME: Add definition
-    type ValueSignificance; // FIXME: Add definition
-    type ValueMetadata;
-    // Axiom Infra Model
-
-    type AxiomItem {
-        item name {
-            type AxiomName;
-        }
-        item definition {
-            type AxiomItemDefinition;
-            operational true;
-        }
-        item value {
-            type AxiomValue;
-        }
-
-        item completeness {
-            type ItemCompleteness;
-        }
-    }
-
-    type AxiomValue {
-        item type {
-            type AxiomTypeReference;
-        }
-        item significance {
-            type ValueSignificance;
-        }
-        item metadata {
-            type ValueMetadata;
-        }
-    }
-
-    type AxiomSimpleValue {
-        supertype AxiomValue;
-        argument value;
-        item value {
-            type anyType;
-        }
-    }
-
-    type AxiomComplexValue {
-        supertype AxiomValue;
-        item item {
-            type AxiomItem;
-        }
-    }
 
     // Axiom Schema
 
-    type AxiomBaseDefinition {
+    type BaseDefinition {
         argument name;
 
         item name {
-            type AxiomName;
+            type QName;
         }
 
         item documentation {
-            type string;
+            type String;
         }
 
         item since {
@@ -88,23 +42,23 @@ model axiom-model {
         }
 
         item status {
-            type string;
+            type String;
             documentation """
                 Status of definition, could be experimental, stable, deprecated.
               """;
         }
     }
 
-    type AxiomIdentifierDefinition {
+    type IdentifierDefinition {
          argument key;
          item key {
-            type AxiomName;
+            type QName;
             minOccurs "1";
          }
     }
 
-    type AxiomTypeDefinition {
-        supertype AxiomBaseDefinition;
+    type TypeDefinition {
+        supertype BaseDefinition;
         documentation """
             Definition of value type.
 
@@ -112,7 +66,7 @@ model axiom-model {
         """;
 
         item argument {
-            type AxiomName;
+            type QName;
             documentation """
                 Name of item, which is target of short-form value declaration.
             """;
@@ -122,7 +76,7 @@ model axiom-model {
 
         // FIXME: should be inherit
         item supertype {
-            type AxiomTypeReference;
+            type TypeReference;
             documentation """
                 Reference to super type definition, which is subtyped by this type.
             """;
@@ -132,7 +86,7 @@ model axiom-model {
 
         // FIXME: should be use
         item include {
-            type AxiomTypeReference;
+            type TypeReference;
             documentation """
                 Reference to mixin, from which this type definition reuses item definitions.
             """;
@@ -141,11 +95,11 @@ model axiom-model {
 
         // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
         item itemName {
-            type AxiomName;
+            type QName;
         }
 
         item item {
-            type AxiomItemDefinition;
+            type ItemDefinition;
             identifier name;
             documentation """
                 Definition of child items
@@ -155,7 +109,7 @@ model axiom-model {
         }
 
         substitution substitution {
-            type AxiomSubstitutionDefinition;
+            type SubstitutionDefinition;
             identifier name;
             documentation """
                 Definition of Substitution;
@@ -165,11 +119,11 @@ model axiom-model {
 
     }
 
-    type AxiomItemDefinition {
-        supertype AxiomBaseDefinition;
+    type ItemDefinition {
+        supertype BaseDefinition;
 
         item identifier {
-            type AxiomIdentifierDefinition;
+            type IdentifierDefinition;
             documentation """
                 Definition of value identifier for this item.
             """;
@@ -177,7 +131,7 @@ model axiom-model {
         }
 
         item type {
-            type AxiomTypeReference;
+            type TypeReference;
             documentation """
                 Value type.
                 item minOccurs {
@@ -189,33 +143,33 @@ model axiom-model {
         }
 
         item minOccurs {
-            type string;
+            type String;
             documentation """
                 Declares minimum count of values required for this item.
             """;
         }
 
         item maxOccurs {
-            type string;
+            type String;
             documentation """
                 Declares maximum possible count of values for this item.
             """;
         }
 
         item operational {
-            type boolean;
+            type Boolean;
             documentation """
                 Marks if data are operational (provided by system).
             """;
         }
 
         item inherited {
-            type boolean;
+            type Boolean;
             operational true;
         }
 
         item default {
-          type anyType; // This should somehow be same type as value of type
+          type data:DynamicType; // This should somehow be same type as value of type
           documentation """
             Declares default value for item.
           """;
@@ -226,25 +180,25 @@ model axiom-model {
         item infra {
           type InfraSpecification;
           //default {
-          //  value AxiomValue;
-          //  item AxiomItem;
+          //  value data:AxiomValue;
+          //  item data:AxiomItem;
           //}
         }
         
         item allowsSubstitution {
-          type boolean;
+          type Boolean;
         }
     }
 
-    type AxiomSubstitutionDefinition {
-        supertype AxiomItemDefinition;
+    type SubstitutionDefinition {
+        supertype ItemDefinition;
         item target {
-            type AxiomName;
+            type QName;
         }
     }
 
-    type AxiomRootDefinition {
-        supertype AxiomItemDefinition;
+    type RootDefinition {
+        supertype ItemDefinition;
         documentation """
             Root item definition.
 
@@ -254,11 +208,11 @@ model axiom-model {
 
     // Axiom Model?
 
-    type AxiomModel {
-        supertype AxiomBaseDefinition;
+    type Model {
+        supertype BaseDefinition;
 
         item namespace {
-            type string;
+            type String;
             documentation """
                 Namespace of model.
             """;
@@ -274,7 +228,7 @@ model axiom-model {
         }
 
         item import {
-            type AxiomImportDeclaration;
+            type ImportDeclaration;
             documentation """
                 Declaration of model imports.
 
@@ -287,11 +241,11 @@ model axiom-model {
             documentation """
                 Defines allowed root type for value serialization / deserialization.
             """;
-            type AxiomRootDefinition;
+            type RootDefinition;
         }
 
         item type {
-            type AxiomTypeDefinition;
+            type TypeDefinition;
             documentation """
                 Declaration of a type. This type is visible to models
                 importing parent model namespace.
@@ -299,7 +253,7 @@ model axiom-model {
         }
 
         item mixin {
-            type AxiomMixinDefinition;
+            type MixinDefinition;
             documentation """
                 Declaration of mixin, a set of reusable item
                 definitions, which can be used in type definitions.
@@ -308,7 +262,7 @@ model axiom-model {
 
         // FIXME: should be augmentation
         item augmentation {
-            type AxiomAugmentationDefinition;
+            type AugmentationDefinition;
             documentation """
                 Declaration of augmentation. Augmentation adds new items
                 to already existing type, which can be defined in other
@@ -316,35 +270,36 @@ model axiom-model {
             """;
         }
 
-        item metadata {
-          type AxiomMetadataDefinition;
+        substitution metadata {
+          type MetadataDefinition;
+          target augmentation;
         }
     }
 
-    type AxiomImportDeclaration {
+    type ImportDeclaration {
         argument namespace;
 
         item prefix {
-            type AxiomName;
+            type QName;
         }
 
         item namespace {
-            type string;
+            type String;
         }
     }
 
     type InfraSpecification {
       item value {
-        type AxiomTypeReference;
+        type TypeReference;
         //  default AxiomValue;
       }
       item item {
-        type AxiomTypeReference;
+        type TypeReference;
         //  default AxiomItem;
       }
     }
 
-    type AxiomTypeReference {
+    type TypeReference {
         documentation """
             Reference to type definition.
 
@@ -354,7 +309,7 @@ model axiom-model {
         argument name;
 
         item name {
-            type AxiomName;
+            type QName;
             documentation """
                 Name of referenced type definition.
                 The value must be name of existing type definition, which is
@@ -364,7 +319,7 @@ model axiom-model {
             maxOccurs 1;
         }
         item target {
-            type AxiomTypeDefinition;
+            type TypeDefinition;
             documentation """
                 Referenced Type Definition.
 
@@ -376,23 +331,23 @@ model axiom-model {
         }
     }
 
-    type AxiomMixinDefinition {
-        supertype AxiomTypeDefinition;
+    type MixinDefinition {
+        supertype TypeDefinition;
     }
 
-    type AxiomAugmentationDefinition {
-        supertype AxiomMixinDefinition;
+    type AugmentationDefinition {
+        supertype MixinDefinition;
         item target {
-            type AxiomTypeReference;
+            type TypeReference;
         }
     }
 
-    type AxiomMetadataDefinition {
-      supertype AxiomTypeDefinition;
-      //item itemName {
-      //    type AxiomName;
-      //}
+    type MetadataDefinition {
+      supertype AugmentationDefinition;
       // TODO: Add limits for specific types
+      //item target {
+      //  default data:ValueMetadata;
+      //}
     }
 
 }

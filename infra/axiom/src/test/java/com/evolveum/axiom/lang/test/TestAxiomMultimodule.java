@@ -24,12 +24,30 @@ public class TestAxiomMultimodule extends AbstractReactorTest {
     private static final String TEST = DIR + "test-person.axiom";
     private static final String TEST_INVALID = DIR + "test-person.axiom.invalid";
 
+    private static final String CYCLES_DIR = "multimodel/cycles/";
+    private static final String CYCLES_DATA = CYCLES_DIR + "data.axiom";
+    private static final String CYCLES_SCHEMA = CYCLES_DIR + "schema.axiom";
+
+
+
     @Test
     public void axiomTestImports() throws IOException, AxiomSyntaxException {
         ModelReactorContext context = ModelReactorContext.defaultReactor();
         context.loadModelFromSource(source(SCHEMA_ORG));
         context.loadModelFromSource(source(FOAF));
         context.loadModelFromSource(source(TEST));
+        AxiomSchemaContext schemaContext = context.computeSchemaContext();
+
+        AxiomItemDefinition modelDef = schemaContext.getRoot(Item.MODEL_DEFINITION.name()).get();
+        assertEquals(modelDef.name(), Item.MODEL_DEFINITION.name());
+
+        }
+
+    @Test
+    public void testCycles() throws IOException, AxiomSyntaxException {
+        ModelReactorContext context = ModelReactorContext.defaultReactor();
+        context.loadModelFromSource(source(CYCLES_DATA));
+        context.loadModelFromSource(source(CYCLES_SCHEMA));
         AxiomSchemaContext schemaContext = context.computeSchemaContext();
 
         AxiomItemDefinition modelDef = schemaContext.getRoot(Item.MODEL_DEFINITION.name()).get();

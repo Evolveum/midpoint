@@ -7,10 +7,10 @@ model language-extension {
     }
 
     augmentation Storage {
-        target axiom:AxiomTypeDefinition;
+        target axiom:TypeDefinition;
 
         item type {
-            type string;
+            type String;
         }
     }
 }

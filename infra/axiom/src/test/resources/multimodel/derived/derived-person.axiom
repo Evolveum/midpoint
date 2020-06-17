@@ -14,18 +14,18 @@ model derived-person {
         supertype base:Person;
         
         item firstName {
-            type string;
+            type String;
         }
         item lastName {
-            type string;
+            type String;
         }
         substitution givenName {
-            type string;
+            type String;
             target firstName;
         }
 
         substitution familyName {
-            type string;
+            type String;
             target lastName;
         }
     }

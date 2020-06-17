@@ -4,7 +4,7 @@ model test-person {
 
     type Person {
         item name {
-            type string;
+            type String;
         }
     }
 }

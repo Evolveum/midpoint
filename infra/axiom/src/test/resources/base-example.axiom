@@ -30,7 +30,7 @@ model model-header {
         """;
 
         item name {
-            type string;
+            type String;
         }
     }
 
@@ -51,7 +51,7 @@ model model-header {
     }
 
     // Alternative representation of a prism object definition
-    // (doesn't interfere with item <name> { type ... } in structured types)
+    // (doesn't Integererfere with item <name> { type ... } in structured types)
     object {
         name User2;
         itemName user2;

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 public interface AxiomNameResolver {
 
     final AxiomNameResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomName.AXIOM_NAMESPACE);
-    final Set<String> BUILTINS = ImmutableSet.of("string","boolean","uri", "int", "binary", "dateTime");
+    final Set<String> BUILTINS = ImmutableSet.of("String","Boolean","Uri", "Integer", "Binary", "DateTime", "QName");
     final AxiomNameResolver BUILTIN_TYPES = (prefix, localName) -> {
         if((prefix == null || prefix.isEmpty()) && BUILTINS.contains(localName)) {
             return AxiomName.axiom(localName);

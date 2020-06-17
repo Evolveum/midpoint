@@ -5,7 +5,7 @@ model base-person {
     type Person {
         argument name;
         item name {
-            type string;
+            type String;
         }
     }
 }

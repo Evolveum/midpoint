@@ -10,10 +10,10 @@ model schema-org-person {
         target base:Person;
 
         item honorificPrefix {
-            type string;
+            type String;
         }
         item honorificSuffix {
-            type string;
+            type String;
         }
     }
 }
