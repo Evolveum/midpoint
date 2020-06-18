@@ -52,9 +52,9 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -135,7 +135,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0001QueryNameNorm() throws Exception {
+    public void test001QueryNameNorm() throws Exception {
         Session session = open();
 
         try {
@@ -152,7 +152,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  u.nameCopy.norm = :norm";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -160,7 +160,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0002QueryNameOrig() throws Exception {
+    public void test002QueryNameOrig() throws Exception {
         Session session = open();
 
         try {
@@ -177,7 +177,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  u.nameCopy.orig = :orig";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -185,7 +185,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0003QueryNameStrict() throws Exception {
+    public void test003QueryNameStrict() throws Exception {
         Session session = open();
 
         try {
@@ -202,7 +202,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( u.nameCopy.orig = :orig and u.nameCopy.norm = :norm )";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -210,7 +210,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0010QueryOrganizationNorm() throws Exception {
+    public void test005QueryOrganizationNorm() throws Exception {
         Session session = open();
 
         try {
@@ -228,7 +228,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.norm = :norm";
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             assertEqualsIgnoreWhitespace(expected, real);
 
@@ -239,7 +239,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0011QueryOrganizationOrig() throws Exception {
+    public void test006QueryOrganizationOrig() throws Exception {
         Session session = open();
         try {
             /*
@@ -256,7 +256,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  o.orig = :orig";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -264,7 +264,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0012QueryOrganizationStrict() throws Exception {
+    public void test007QueryOrganizationStrict() throws Exception {
         Session session = open();
         try {
             /*
@@ -281,7 +281,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( o.orig = :orig and o.norm = :norm )";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -289,7 +289,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0020QueryTwoOrganizationsNormAnd() throws Exception {
+    public void test010QueryTwoOrganizationsNormAnd() throws Exception {
         Session session = open();
         try {
             /*
@@ -310,7 +310,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  ( o.norm = :norm and o2.norm = :norm2 )";
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -318,7 +318,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0021QueryTwoOrganizationsStrictOr() throws Exception {
+    public void test011QueryTwoOrganizationsStrictOr() throws Exception {
         Session session = open();
         try {
             /*
@@ -343,7 +343,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             // NOTE: this could be implemented more efficiently by using only one join... or the query itself can be formulated
             // via In filter (when available) or Exists filter (also, when available)
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -351,7 +351,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0025QueryOrganizationOrigPolymorphic() throws Exception {
+    public void test012QueryOrganizationOrigPolymorphic() throws Exception {
         Session session = open();
         try {
             /*
@@ -368,7 +368,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  o2.orig = :orig";
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -376,7 +376,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0030QueryTaskDependent() throws Exception {
+    public void test013QueryTaskDependent() throws Exception {
         Session session = open();
 
         try {
@@ -395,7 +395,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  d = :d";
 
-            String real = getInterpretedQuery2(session, TaskType.class, query);
+            String real = getInterpretedQuery(session, TaskType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -403,7 +403,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test(expectedExceptions = QueryException.class)
-    public void test0040QueryClob() throws Exception {
+    public void test014QueryClob() throws Exception {
         Session session = open();
 
         try {
@@ -412,14 +412,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             //should throw exception, because description is lob and can't be queried
-            getInterpretedQuery2(session, UserType.class, query);
+            getInterpretedQuery(session, UserType.class, query);
         } finally {
             close(session);
         }
     }
 
     @Test
-    public void test0050QueryEnum() throws Exception {
+    public void test015QueryEnum() throws Exception {
         Session session = open();
         try {
             /*
@@ -428,7 +428,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(TaskType.class)
                     .item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.WAITING)
                     .build();
-            String real = getInterpretedQuery2(session, TaskType.class, query);
+            String real = getInterpretedQuery(session, TaskType.class, query);
 
             String expected = "select\n" +
                     "  t.oid, t.fullObject\n" +
@@ -444,7 +444,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0060QueryEnabled() throws Exception {
+    public void test016QueryEnabled() throws Exception {
         Session session = open();
         try {
             /*
@@ -452,7 +452,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              *  ==> from RUser u where u.activation.administrativeStatus = com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus.ENABLED
              */
 
-            String real = getInterpretedQuery2(session, UserType.class,
+            String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-enabled.xml"));
 
             String expected = "select\n" +
@@ -469,7 +469,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0070QueryGenericLong() throws Exception {
+    public void test017QueryGenericLong() throws Exception {
         Session session = open();
         try {
             /*
@@ -482,7 +482,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              *         l.value = 123
              */
 
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class,
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, GenericObjectType.class,
                     getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false, null);
             String real = realQuery.getQuery().getQueryString();
 
@@ -503,7 +503,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0071QueryGenericLongTwice() throws Exception {
+    public void test018QueryGenericLongTwice() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
@@ -513,7 +513,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(F_EXTENSION, new QName("longType")).eq(335)
                     .build();
 
-            RQuery realQuery = getInterpretedQuery2Whole(session, GenericObjectType.class, query, false, null);
+            RQuery realQuery = getInterpretedQueryWhole(session, GenericObjectType.class, query, false, null);
             RootHibernateQuery source = ((RQueryImpl) realQuery).getQuerySource();
             String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
@@ -542,10 +542,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0072QueryAccountByNonExistingAttribute() throws Exception {
+    public void test019QueryAccountByNonExistingAttribute() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, ShadowType.class,
+            String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-non-existing-attribute.xml"));
             String expected = "select\n" +
                     "  s.oid, s.fullObject\n" +
@@ -561,10 +561,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0073QueryAccountByAttribute() throws Exception {
+    public void test030QueryAccountByAttribute() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, ShadowType.class,
+            String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attribute.xml"));
             String expected = "select\n" +
                     "  s.oid, s.fullObject\n" +
@@ -580,10 +580,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0074QueryAccountByAttributeAndExtensionValue() throws Exception {
+    public void test031QueryAccountByAttributeAndExtensionValue() throws Exception {
         Session session = open();
         try {
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, ShadowType.class,
                     getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false,
                     null);
             String expected = "select\n" +
@@ -607,7 +607,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0076QueryOrComposite() throws Exception {
+    public void test033QueryOrComposite() throws Exception {
         Session session = open();
         try {
             /*
@@ -626,7 +626,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
              *
              *   [If we used AND instead of OR, this SHOULD BE left join r.strings s1, left join r.strings s2]
              */
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ShadowType.class,
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, ShadowType.class,
                     getQuery(new File(TEST_DIR, "query-or-composite.xml"), ShadowType.class), false, null);
 
             String expected = "select\n" +
@@ -669,7 +669,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0080QueryExistsAssignment() throws Exception {
+    public void test040QueryExistsAssignment() throws Exception {
         Session session = open();
 
         try {
@@ -683,7 +683,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -699,7 +699,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0081QueryExistsAssignmentWithRedundantBlock() throws Exception {
+    public void test041QueryExistsAssignmentWithRedundantBlock() throws Exception {
         Session session = open();
 
         try {
@@ -712,7 +712,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -728,7 +728,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0082QueryExistsAssignmentWithRedundantBlock2() throws Exception {
+    public void test042QueryExistsAssignmentWithRedundantBlock2() throws Exception {
         Session session = open();
 
         try {
@@ -743,7 +743,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -759,7 +759,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0084QueryExistsWithAnd() throws Exception {
+    public void test044QueryExistsWithAnd() throws Exception {
         Session session = open();
 
         try {
@@ -769,7 +769,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .exists(ShadowType.F_PENDING_OPERATION)
                     .build();
 
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -790,7 +790,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test(expectedExceptions = UnsupportedOperationException.class)
-    public void test0089QueryExistsAssignmentAll() throws Exception {
+    public void test049QueryExistsAssignmentAll() throws Exception {
         Session session = open();
 
         try {
@@ -801,7 +801,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             // this doesn't work as expected ... maybe inner join would be better! Until implemented, we should throw UOO
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -816,7 +816,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0090QuerySingleAssignmentWithTargetAndTenant() throws Exception {
+    public void test050QuerySingleAssignmentWithTargetAndTenant() throws Exception {
         Session session = open();
 
         try {
@@ -826,7 +826,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -850,7 +850,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0092QueryAssignmentsWithTargetAndTenant() throws Exception {
+    public void test052QueryAssignmentsWithTargetAndTenant() throws Exception {
         Session session = open();
 
         try {
@@ -859,7 +859,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref("tenant-oid-456")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -884,7 +884,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0100QueryObjectByName() throws Exception {
+    public void test060QueryObjectByName() throws Exception {
         Session session = open();
 
         try {
@@ -900,7 +900,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -918,11 +918,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0110QueryUserByFullName() throws Exception {
+    public void test061QueryUserByFullName() throws Exception {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery2(session, UserType.class,
+            String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-fullName.xml"));
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -937,11 +937,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0112QueryUserSubstringFullName() throws Exception {
+    public void test062QueryUserSubstringFullName() throws Exception {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery2(session, UserType.class,
+            String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-substring-fullName.xml"));
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -956,11 +956,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0114QueryUserByName() throws Exception {
+    public void test064QueryUserByName() throws Exception {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery2(session, UserType.class,
+            String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-name.xml"));
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -975,14 +975,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0116QuerySubstringMultivalued() throws Exception {
+    public void test066QuerySubstringMultivalued() throws Exception {
         Session session = open();
 
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_EMPLOYEE_TYPE).contains("abc")
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -997,11 +997,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0120QueryConnectorByType() throws Exception {
+    public void test070QueryConnectorByType() throws Exception {
         Session session = open();
 
         try {
-            String real = getInterpretedQuery2(session, ConnectorType.class,
+            String real = getInterpretedQuery(session, ConnectorType.class,
                     new File(TEST_DIR, "query-connector-by-type.xml"));
             String expected = "select\n" +
                     "  c.oid, c.fullObject\n" +
@@ -1016,10 +1016,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0130QueryAccountByAttributesAndResourceRef() throws Exception {
+    public void test071QueryAccountByAttributesAndResourceRef() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, ShadowType.class,
+            String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
             String expected = "select\n" +
                     "  s.oid, s.fullObject\n" +
@@ -1041,7 +1041,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0140QueryUserAccountRef() throws Exception {
+    public void test073QueryUserAccountRef() throws Exception {
         Session session = open();
         try {
             /*
@@ -1054,7 +1054,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).ref("123")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1073,13 +1073,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0142QueryUserAccountRefNull() throws Exception {
+    public void test074QueryUserAccountRefNull() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_LINK_REF).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -1094,13 +1094,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0144QueryUserAccountRefNotNull() throws Exception {
+    public void test075QueryUserAccountRefNotNull() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .not().item(UserType.F_LINK_REF).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -1115,13 +1115,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0146QueryUserAccountRefByType() throws Exception {
+    public void test076QueryUserAccountRefByType() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_LINK_REF).refType(ShadowType.COMPLEX_TYPE)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -1140,13 +1140,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0147QueryUserAccountRefByRelation() throws Exception {
+    public void test077QueryUserAccountRefByRelation() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_LINK_REF).refRelation(prismContext.getDefaultRelation())
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -1162,7 +1162,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0148QueryUserAccountRefComplex() throws Exception {
+    public void test078QueryUserAccountRefComplex() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue value1 = prismContext.itemFactory().createReferenceValue(null, ShadowType.COMPLEX_TYPE);
@@ -1170,7 +1170,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_LINK_REF).ref(value1, value2)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -1196,7 +1196,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0150QueryUserAssignmentTargetRef() throws Exception {
+    public void test080QueryUserAssignmentTargetRef() throws Exception {
         Session session = open();
         try {
             /*
@@ -1214,7 +1214,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1245,7 +1245,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0152QueryUserAssignmentTargetRefManagerStandardQualified() throws Exception {
+    public void test082QueryUserAssignmentTargetRefManagerStandardQualified() throws Exception {
         Session session = open();
         try {
             ObjectReferenceType ort = new ObjectReferenceType()
@@ -1255,7 +1255,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1284,7 +1284,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0153QueryUserAssignmentTargetRefManagerCustomQualified() throws Exception {
+    public void test083QueryUserAssignmentTargetRefManagerCustomQualified() throws Exception {
         Session session = open();
         try {
             QName auditorRelation = new QName("http://x/", "auditor");
@@ -1295,7 +1295,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1318,7 +1318,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0154QueryUserAssignmentTargetRefManagerUnqualified() throws Exception {
+    public void test084QueryUserAssignmentTargetRefManagerUnqualified() throws Exception {
         Session session = open();
         try {
             ObjectReferenceType ort = new ObjectReferenceType()
@@ -1328,7 +1328,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(ort.asReferenceValue())
                     .build();
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1356,7 +1356,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0160QueryTrigger() throws Exception {
+    public void test086QueryTrigger() throws Exception {
         final Date NOW = new Date();
 
         Session session = open();
@@ -1365,7 +1365,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .item(ObjectType.F_TRIGGER, F_TIMESTAMP).le(thisScanTimestamp)
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
 
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
@@ -1382,7 +1382,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0162QueryTriggerBeforeAfter() throws Exception {
+    public void test088QueryTriggerBeforeAfter() throws Exception {
         final Date NOW = new Date();
 
         Session session = open();
@@ -1397,7 +1397,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(F_TIMESTAMP).le(thisScanTimestamp)
                     .endBlock()
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
 
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
@@ -1414,13 +1414,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0170QueryAssignmentActivationAdministrativeStatus() throws Exception {
+    public void test089QueryAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1437,7 +1437,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0180QueryInducementActivationAdministrativeStatus() throws Exception {
+    public void test090QueryInducementActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
             /*
@@ -1451,7 +1451,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
                     .build();
 
-            String real = getInterpretedQuery2(session, RoleType.class, query);
+            String real = getInterpretedQuery(session, RoleType.class, query);
 
             String expected = "select\n" +
                     "  r.oid, r.fullObject\n" +
@@ -1469,7 +1469,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0182QueryInducementAndAssignmentActivationAdministrativeStatus() throws Exception {
+    public void test092QueryInducementAndAssignmentActivationAdministrativeStatus() throws Exception {
         Session session = open();
         try {
             /*
@@ -1480,7 +1480,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
                     .or().item(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
                     .build();
-            String real = getInterpretedQuery2(session, RoleType.class, query);
+            String real = getInterpretedQuery(session, RoleType.class, query);
 
             String expected = "select\n" +
                     "  r.oid, r.fullObject\n" +
@@ -1501,7 +1501,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0190QueryUserByActivationDouble() throws Exception {
+    public void test094QueryUserByActivationDouble() throws Exception {
         Date NOW = new Date();
 
         Session session = open();
@@ -1517,7 +1517,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).eq(ActivationStatusType.ENABLED)
                     .and().item(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM).eq(XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()))
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1536,7 +1536,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0200QueryTriggerTimestampDoubleWrong() throws Exception {
+    public void test096QueryTriggerTimestampDoubleWrong() throws Exception {
         final Date NOW = new Date();
 
         Session session = open();
@@ -1548,7 +1548,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(ObjectType.F_TRIGGER, F_TIMESTAMP).lt(thisScanTimestamp)
                     .build();
             logger.info(query.debugDump());
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
 
             // correct translation but the filter is wrong: we need to point to THE SAME timestamp -> i.e. ForValue should be used here
             String expected = "select\n" +
@@ -1570,7 +1570,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0300CountObjectOrderByName() throws Exception {
+    public void test100CountObjectOrderByName() throws Exception {
         Session session = open();
 
         try {
@@ -1578,7 +1578,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("cpt. Jack Sparrow", "cpt jack sparrow")
                     .asc(F_NAME).build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query, true);
+            String real = getInterpretedQuery(session, UserType.class, query, true);
             String expected = "select\n" +
                     "  count(u.oid)\n" +
                     "from\n" +
@@ -1595,14 +1595,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0310CountObjectOrderByNameWithoutFilter() throws Exception {
+    public void test102CountObjectOrderByNameWithoutFilter() throws Exception {
         Session session = open();
 
         try {
             ObjectPaging paging = prismContext.queryFactory().createPaging(null, null, F_NAME, ASCENDING);
             ObjectQuery query = prismContext.queryFactory().createQuery(null, paging);
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query, true);
+            String real = getInterpretedQuery(session, ObjectType.class, query, true);
             String expected = "select\n" +
                     "  count(o.oid)\n" +
                     "from\n" +
@@ -1617,7 +1617,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
      * Q{AND: (EQUALS: parent, PPV(null)),PAGING: O: 0,M: 5,BY: name, D:ASCENDING,
      */
     @Test
-    public void test0320CountTaskOrderByName() throws Exception {
+    public void test104CountTaskOrderByName() throws Exception {
         Session session = open();
 
         try {
@@ -1625,7 +1625,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(TaskType.F_PARENT).isNull()
                     .asc(F_NAME)
                     .build();
-            String real = getInterpretedQuery2(session, TaskType.class, query, true);
+            String real = getInterpretedQuery(session, TaskType.class, query, true);
             String expected = "select\n" +
                     "  count(t.oid)\n" +
                     "from\n" +
@@ -1639,13 +1639,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0330InOidTest() throws Exception {
+    public void test106InOidTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .id("1", "2").build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query, false);
+            String real = getInterpretedQuery(session, ObjectType.class, query, false);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -1659,7 +1659,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0331InOidEmptyTest() {
+    public void test108InOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .id(new String[0]).build();
         query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
@@ -1667,7 +1667,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0332OwnerInOidEmptyTest() {
+    public void test110OwnerInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .ownerId(new String[0]).build();
         query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
@@ -1675,7 +1675,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0333LongInOidEmptyTest() {
+    public void test112LongInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .id(new long[0]).build();
         query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
@@ -1683,7 +1683,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0334LongOwnerInOidEmptyTest() {
+    public void test114LongOwnerInOidEmptyTest() {
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
                 .ownerId(new long[0]).build();
         query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));
@@ -1691,13 +1691,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0335OwnerInOidTest() throws Exception {
+    public void test116OwnerInOidTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .ownerId("1", "2").build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -1711,7 +1711,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0340QueryOrgTreeFindOrgs() throws Exception {
+    public void test118QueryOrgTreeFindOrgs() throws Exception {
         Session session = open();
 
         try {
@@ -1720,7 +1720,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, OrgType.class, query);
+            String real = getInterpretedQuery(session, OrgType.class, query);
 
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
@@ -1741,7 +1741,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0341QueryOrgTreeFindUsersRelationDefault() throws Exception {
+    public void test120QueryOrgTreeFindUsersRelationDefault() throws Exception {
         Session session = open();
 
         try {
@@ -1749,7 +1749,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .isDirectChildOf(itemFactory().createReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
                     .build();
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
                     + "  u.oid,\n"
@@ -1773,7 +1773,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0342QueryOrgTreeFindUsersRelationManager() throws Exception {
+    public void test122QueryOrgTreeFindUsersRelationManager() throws Exception {
         Session session = open();
 
         try {
@@ -1781,7 +1781,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .isDirectChildOf(itemFactory().createReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
                     .build();
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
                     + "  u.oid,\n"
@@ -1807,7 +1807,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0345QueryOrgAllLevels() throws Exception {
+    public void test124QueryOrgAllLevels() throws Exception {
         Session session = open();
 
         try {
@@ -1816,7 +1816,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, OrgType.class, query);
+            String real = getInterpretedQuery(session, OrgType.class, query);
 
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
@@ -1837,7 +1837,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0346QueryOrgTreeFindUsersRelationDefault() throws Exception {
+    public void test126QueryOrgTreeFindUsersRelationDefault() throws Exception {
         Session session = open();
 
         try {
@@ -1845,7 +1845,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .isChildOf(itemFactory().createReferenceValue("some oid").relation(SchemaConstants.ORG_DEFAULT))
                     .build();
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
                     + "  u.oid,\n"
@@ -1869,7 +1869,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0347QueryOrgTreeFindUsersRelationManager() throws Exception {
+    public void test128QueryOrgTreeFindUsersRelationManager() throws Exception {
         Session session = open();
 
         try {
@@ -1877,7 +1877,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .isChildOf(itemFactory().createReferenceValue("some oid").relation(SchemaConstants.ORG_MANAGER))
                     .build();
 
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
                     + "  u.oid,\n"
@@ -1905,7 +1905,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     // MID-4337
     @Test
-    public void test0350QuerySubtreeDistinctCount() throws Exception {
+    public void test130QuerySubtreeDistinctCount() throws Exception {
         Session session = open();
 
         try {
@@ -1913,7 +1913,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .isChildOf(itemFactory().createReferenceValue("123"))
                     .build();
 
-            String real = getInterpretedQuery2(session, OrgType.class, query, true, distinct());
+            String real = getInterpretedQuery(session, OrgType.class, query, true, distinct());
             // we probably do not need 'distinct' here
             String expected = "select\n"
                     + "  count(o.oid)\n"
@@ -1929,7 +1929,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0355QueryRoots() throws Exception {
+    public void test135QueryRoots() throws Exception {
         Session session = open();
 
         try {
@@ -1938,7 +1938,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
 
-            String real = getInterpretedQuery2(session, OrgType.class, query);
+            String real = getInterpretedQuery(session, OrgType.class, query);
 
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
@@ -1958,7 +1958,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0400ActivationQueryWrong() throws Exception {
+    public void test140ActivationQueryWrong() throws Exception {
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
         ObjectQuery query = prismContext.queryFor(FocusType.class)
@@ -1970,7 +1970,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, UserType.class, query, false);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -1996,7 +1996,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     // this one uses Exists to refer to the same value of assignment
     @Test
-    public void test0405ActivationQueryCorrect() throws Exception {
+    public void test141ActivationQueryCorrect() throws Exception {
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
         ObjectQuery query = prismContext.queryFor(FocusType.class)
@@ -2011,7 +2011,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, UserType.class, query, false);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -2035,7 +2035,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0410ActivationQueryWrong() throws Exception {
+    public void test142ActivationQueryWrong() throws Exception {
         XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
@@ -2060,7 +2060,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, UserType.class, query, false);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -2098,7 +2098,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     // this one uses Exists to refer to the same value of assignment
     @Test
-    public void test0415ActivationQueryCorrect() throws Exception {
+    public void test143ActivationQueryCorrect() throws Exception {
         XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
         XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
 
@@ -2124,7 +2124,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, UserType.class, query, false);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -2160,9 +2160,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0500OrgQuery() throws Exception {
+    public void test150OrgQuery() throws Exception {
         File objects = new File("src/test/resources/orgstruct/org-monkey-island.xml");
-        OperationResult opResult = new OperationResult("test500OrgQuery");
+        OperationResult opResult = createOperationResult();
         List<PrismObject<? extends Objectable>> orgStruct = prismContext.parserFor(objects).parseObjects();
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
@@ -2225,7 +2225,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0510QueryNameAndOrg() throws Exception {
+    public void test151QueryNameAndOrg() throws Exception {
         Session session = open();
 
         try {
@@ -2234,7 +2234,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().isChildOf("12341234-1234-1234-1234-123412341234")
                     .asc(F_NAME)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -2258,36 +2258,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-//    @Test
-//    public void test0520QueryEmployeeTypeAndOrgType() throws Exception {
-//        Session session = open();
-//
-//        try {
-//            EqualFilter nameFilter = EqualFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
-//                    null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
-//
-//            EqualFilter numberFilter = EqualFilter.createEqual(UserType.F_EMPLOYEE_NUMBER, UserType.class, prismContext,
-//                    null, "123");
-//
-//            EqualsFilter orgTypeFilter = EqualsFilter.createEqual(OrgType.F_ORG_TYPE, OrgType.class, prismContext,
-//                    null, "orgtypevalue");
-//
-//            ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(
-//                    AndFilter.createAnd(nameFilter, numberFilter)//,
-////                    orgTypeFilter
-//            ));
-//            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-//
-//            String real = getInterpretedQuery2(session, ObjectType.class, query);
-//
-//            LOGGER.info("real query>\n{}", new Object[]{real});
-//        } finally {
-//            close(session);
-//        }
-//    }
-
     @Test
-    public void test0530queryObjectSubstringName() throws Exception {
+    public void test153QueryObjectSubstringName() throws Exception {
         Session session = open();
 
         try {
@@ -2295,7 +2267,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).startsWith("a").matchingOrig()
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, objectQuery);
+            String real = getInterpretedQuery(session, ObjectType.class, objectQuery);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2304,7 +2276,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "  o.name.orig like :orig\n";
             assertEqualsIgnoreWhitespace(expected, real);
 
-            OperationResult result = new OperationResult("test0540queryObjectClassTypeUser");
+            OperationResult result = createOperationResult();
             int count = repositoryService.countObjects(ObjectType.class, objectQuery, null, result);
             assertEquals(3, count);
 
@@ -2320,14 +2292,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0540queryObjectClassTypeUser() throws Exception {
+    public void test154queryObjectClassTypeUser() throws Exception {
         Session session = open();
 
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .type(UserType.class)
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2342,14 +2314,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0550queryObjectClassTypeAbstractRole() throws Exception {
+    public void test155queryObjectClassTypeAbstractRole() throws Exception {
         Session session = open();
 
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .type(AbstractRoleType.class)
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2364,7 +2336,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0560queryMetadataTimestamp() throws Exception {
+    public void test158queryMetadataTimestamp() throws Exception {
         Session session = open();
 
         try {
@@ -2372,7 +2344,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(ReportOutputType.class)
                     .item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
                     .build();
-            String real = getInterpretedQuery2(session, ReportOutputType.class, query);
+            String real = getInterpretedQuery(session, ReportOutputType.class, query);
             String expected = "select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
@@ -2387,7 +2359,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0570QueryObjectTypeByTypeUserAndLocality() throws Exception {
+    public void test160QueryObjectTypeByTypeUserAndLocality() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2395,11 +2367,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LOCALITY).eqPoly("Caribbean", "caribbean")
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
-                    "  RObject o\n" +                       // TODO - why not RUser here? we unnecessarily join all of RObject subtypes...
+                    "  RObject o\n" + // TODO - why not RUser here? we unnecessarily join all of RObject subtypes...
                     "where\n" +
                     "  (\n" +
                     "    o.objectTypeClass = :objectTypeClass and\n" +
@@ -2443,7 +2415,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0575QueryObjectypeByTypeOrgAndLocality() throws Exception {
+    public void test162QueryObjectypeByTypeOrgAndLocality() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2451,7 +2423,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(OrgType.F_LOCALITY).eqPoly("Caribbean", "caribbean")
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2472,7 +2444,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0580QueryObjectypeByTypeAndExtensionAttribute() throws Exception {
+    public void test164QueryObjectypeByTypeAndExtensionAttribute() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2480,7 +2452,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_EXTENSION, new QName("http://example.com/p", "weapon")).eq("some weapon name")
                     .build();
 
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ObjectType.class, query, false, null);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, ObjectType.class, query, false, null);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2500,7 +2472,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0590QueryObjectypeByTypeAndReference() throws Exception {
+    public void test166QueryObjectypeByTypeAndReference() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2508,7 +2480,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).ref("123")
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2530,7 +2502,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0600QueryObjectypeByTypeComplex() throws Exception {
+    public void test170QueryObjectypeByTypeComplex() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -2545,7 +2517,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .or().type(ReportType.class)
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -2579,14 +2551,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0601QueryObjectypeByTwoAbstractTypes() throws Exception {
+    public void test171QueryObjectypeByTwoAbstractTypes() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .type(FocusType.class).block().endBlock()
                     .or().type(AbstractRoleType.class).block().endBlock()
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n"
                     + "  o.oid, o.fullObject\n"
                     + "from\n"
@@ -2603,7 +2575,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0605QueryObjectTypeByTypeAndReference() throws Exception {
+    public void test173QueryObjectTypeByTypeAndReference() throws Exception {
         Session session = open();
         try {
             PrismObjectDefinition<RoleType> roleDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
@@ -2612,7 +2584,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .or().type(RoleType.class)
                     .item(roleDef, RoleType.F_ROLE_MEMBERSHIP_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
@@ -2638,7 +2610,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0606QueryObjectTypeByTypeAndOwnerRefOverloaded() throws Exception {
+    public void test175QueryObjectTypeByTypeAndOwnerRefOverloaded() throws Exception {
         Session session = open();
         try {
             PrismObjectDefinition<AccessCertificationCampaignType> campaignDef =
@@ -2654,7 +2626,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .or().type(AccessCertificationDefinitionType.class).item(definitionDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("definition-owner-oid")
                     .or().type(TaskType.class).item(taskDef, AccessCertificationDefinitionType.F_OWNER_REF).ref("task-owner-oid")
                     .build();
-            String real = getInterpretedQuery2(session, ObjectType.class, query);
+            String real = getInterpretedQuery(session, ObjectType.class, query);
             String expected = "select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
@@ -2693,13 +2665,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test(expectedExceptions = QueryException.class)
-    public void test0610QueryGenericClob() throws Exception {
+    public void test178QueryGenericClob() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                     .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "locations")).isNull()
                     .build();
-            getInterpretedQuery2(session, GenericObjectType.class, query);
+            getInterpretedQuery(session, GenericObjectType.class, query);
         } catch (QueryException ex) {
             logger.info("Exception", ex);
             throw ex;
@@ -2709,13 +2681,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0620QueryGenericString() throws Exception {
+    public void test180QueryGenericString() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                     .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "stringType")).eq("asdf")
                     .build();
-            String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+            String real = getInterpretedQuery(session, GenericObjectType.class, query);
             String expected = "select\n" +
                     "  g.oid, g.fullObject\n" +
                     "from\n" +
@@ -2729,58 +2701,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-//    @Test(enabled = false)
-//    public void atest100() throws Exception {
-//        Session session = open();
-//
-//        try {
-//            String expected = null;//HibernateToSqlTranslator.toSql(main);
-//
-//            List<EqualFilter> secondaryEquals = new ArrayList<>();
-//            EqualFilter eq = EqualFilter.createEqual(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_UID),
-//                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_UID, DOMUtil.XSD_STRING, prismContext),
-//                    "8daaeeae-f0c7-41c9-b258-2a3351aa8876");
-//            secondaryEquals.add(eq);
-//            eq = EqualFilter.createEqual(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstantsGenerated.ICF_S_NAME),
-//                    new PrismPropertyDefinitionImpl(SchemaConstantsGenerated.ICF_S_NAME, DOMUtil.XSD_STRING, prismContext),
-//                    "some-name");
-//            secondaryEquals.add(eq);
-//
-//            OrFilter secondaryIdentifierFilter = OrFilter.createOr((List) secondaryEquals);
-//            RefFilter ref = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
-//                    prismContext, "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2");
-//
-//            AndFilter filter = AndFilter.createAnd(ref, secondaryIdentifierFilter);
-//            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//            LOGGER.debug("Query\n{}", query);
-//
-//            QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
-//            RQuery rQuery = engine.interpret(query, ShadowType.class, null, false, session);
-//            RQueryCriteriaImpl rci = (RQueryCriteriaImpl) rQuery;
-//            System.out.println(rci);
-//            System.out.println(rci.getCriteria());
-//            //just test if DB will handle it or throws some exception
-//            List l = rQuery.list();
-//            LOGGER.info(">>>>>>>>asdfasdfasdfasdf{}",l.size());
-//
-//            String real = getInterpretedQuery2(session, ShadowType.class, query);
-//
-//            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
-//            AssertJUnit.assertEquals(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//    }
-
     @Test
-    public void test0630QueryGenericBoolean() throws Exception {
+    public void test182QueryGenericBoolean() throws Exception {
         Session session = open();
         try {
             ObjectQuery objectQuery = prismContext.queryFor(GenericObjectType.class)
                     .item(ObjectType.F_EXTENSION, SKIP_AUTOGENERATION_QNAME).eq(true)
                     .build();
 
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class, objectQuery, false,
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, GenericObjectType.class, objectQuery, false,
                     null);
             String expected = "select\n" +
                     "  g.oid, g.fullObject\n" +
@@ -2816,7 +2745,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0640queryAssignmentExtensionBoolean() throws Exception {
+    public void test184QueryAssignmentExtensionBoolean() throws Exception {
         Session session = open();
         try {
             PrismPropertyDefinition<?> propDef = prismContext.definitionFactory().createPropertyDefinition(
@@ -2826,7 +2755,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .itemWithDef(propDef, F_ASSIGNMENT, AssignmentType.F_EXTENSION, SKIP_AUTOGENERATION_QNAME).eq(true)
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, objectQuery);
+            String real = getInterpretedQuery(session, UserType.class, objectQuery);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -2838,22 +2767,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "  b.value = :value";
             assertEqualsIgnoreWhitespace(expected, real);
 
-            // include dependency on for this code org.hibernate.javax.persistence:hibernate-jpa-2.1-api:jar:1.0.0.Final:compile
-//            CriteriaQuery<RAssignment> aQ = session.getCriteriaBuilder().createQuery(RAssignment.class);
-//            aQ.select(aQ.from(RAssignment.class));
-//            List<RAssignment> aList = session.createQuery(aQ).getResultList();
-//            System.out.println("RAssignment: " + aList);
-//
-//            CriteriaQuery<RAssignmentExtension> aeQ = session.getCriteriaBuilder().createQuery(RAssignmentExtension.class);
-//            aeQ.select(aeQ.from(RAssignmentExtension.class));
-//            List<RAssignmentExtension> aeList = session.createQuery(aeQ).getResultList();
-//            System.out.println("RAssignmentExtension: " + aeList);
-//
-//            CriteriaQuery<RAExtBoolean> aebQ = session.getCriteriaBuilder().createQuery(RAExtBoolean.class);
-//            aebQ.select(aebQ.from(RAExtBoolean.class));
-//            List<RAExtBoolean> aebList = session.createQuery(aebQ).getResultList();
-//            System.out.println("RAExtBoolean: " + aebList);
-//
             OperationResult result = new OperationResult("search");
             List<PrismObject<UserType>> objects = repositoryService.searchObjects(UserType.class,
                     objectQuery, null, result);
@@ -2877,13 +2790,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0650QueryExtensionEnum() throws Exception {
+    public void test185QueryExtensionEnum() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_EXTENSION, new QName("overrideActivation")).eq(ActivationStatusType.ENABLED)
                     .build();
-            RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
+            RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = realQuery.getQuery().getQueryString();
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
@@ -2903,13 +2816,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0660QueryExtensionRef() throws Exception {
+    public void test186QueryExtensionRef() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
                     .item(F_EXTENSION, new QName("referenceType")).ref("123")
                     .build();
-            String real = getInterpretedQuery2(session, GenericObjectType.class, query);
+            String real = getInterpretedQuery(session, GenericObjectType.class, query);
             String expected = "select\n"
                     + "  g.oid,\n"
                     + "  g.fullObject\n"
@@ -2931,10 +2844,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0700QueryCertCaseAll() throws Exception {
+    public void test200QueryCertCaseAll() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -2946,10 +2859,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0705QueryCertWorkItemAll() throws Exception {
+    public void test202QueryCertWorkItemAll() throws Exception {
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, (ObjectQuery) null, false);
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, (ObjectQuery) null, false);
             String expected = "select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
@@ -2963,13 +2876,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0707QueryCertWorkItemAllOrderByCampaignName() throws Exception {
+    public void test204QueryCertWorkItemAllOrderByCampaignName() throws Exception {
         Session session = open();
         try {
             ObjectQuery q = prismContext.queryFor(AccessCertificationWorkItemType.class)
                     .asc(PrismConstants.T_PARENT, PrismConstants.T_PARENT, F_NAME)
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, q, false);
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, q, false);
             String expected = "select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
@@ -2986,13 +2899,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0710QueryCertCaseOwner() throws Exception {
+    public void test206QueryCertCaseOwner() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .ownerId("123456")
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3006,68 +2919,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0715QueryWorkItemsForCase() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
-                    .exists(PrismConstants.T_PARENT)
-                    .block()
-                    .id(1)
-                    .and().ownerId("123456")
-                    .endBlock()
-                    .build();
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
-            String expected = "select\n"
-                    + "  a.ownerOwnerOid,\n"
-                    + "  a.ownerId,\n"
-                    + "  a.id\n"
-                    + "from\n"
-                    + "  RAccessCertificationWorkItem a\n"
-                    + "    left join a.owner o\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    o.id in :id and\n"
-                    + "    o.ownerOid in :ownerOid\n"
-                    + "  )\n";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test0717QueryWorkItemsForCampaign() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
-                    .exists(PrismConstants.T_PARENT)
-                    .ownerId("campaignOid1")
-                    .build();
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
-            String expected = "select\n"
-                    + "  a.ownerOwnerOid,\n"
-                    + "  a.ownerId,\n"
-                    + "  a.id\n"
-                    + "from\n"
-                    + "  RAccessCertificationWorkItem a\n"
-                    + "    left join a.owner o\n"
-                    + "where\n"
-                    + "    o.ownerOid in :ownerOid\n";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test0720QueryCertCaseOwnerAndTarget() throws Exception {
+    public void test208QueryCertCaseOwnerAndTarget() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .ownerId("123456")
                     .and().item(AccessCertificationCaseType.F_TARGET_REF).ref("1234567890")
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3087,13 +2946,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0730QueryCertCaseReviewer() throws Exception {
+    public void test210QueryCertCaseReviewer() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .item(F_WORK_ITEM, F_ASSIGNEE_REF).ref("1234567890")
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
@@ -3112,14 +2971,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0735QueryCertWorkItemReviewers() throws Exception {
+    public void test212QueryCertWorkItemReviewers() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
                     .item(F_ASSIGNEE_REF).ref("oid1")
                     .or().item(F_ASSIGNEE_REF).ref("oid2")
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
             String expected = "select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
@@ -3146,33 +3005,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0737QueryCertWorkItemReviewersMulti() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
-                    .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
-                    .build();
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
-            String expected = "select\n"
-                    + "  a.ownerOwnerOid,\n"
-                    + "  a.ownerId,\n"
-                    + "  a.id\n"
-                    + "from\n"
-                    + "  RAccessCertificationWorkItem a\n"
-                    + "    left join a.assigneeRef a2\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    a2.targetOid in (:targetOid) and\n"
-                    + "    a2.relation in (:relation)\n"
-                    + "  )";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test0740QueryCertCasesByCampaignOwner() throws Exception {
+    public void test216QueryCertCasesByCampaignOwner() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue ownerRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
@@ -3184,7 +3017,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3206,7 +3039,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0735QueryCertCaseReviewerAndEnabled() throws Exception {
+    public void test218QueryCertCaseReviewerAndEnabled() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
@@ -3215,7 +3048,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(AccessCertificationCaseType.F_STAGE_NUMBER).eq().item(T_PARENT, AccessCertificationCampaignType.F_STAGE_NUMBER)
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected =
                     "select\n" +
                             "  a.ownerOid, a.id, a.fullObject\n" +
@@ -3246,7 +3079,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0745QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
+    public void test220QueryCertWorkItemReviewersMulti() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
+                    .item(F_ASSIGNEE_REF).ref("oid1", "oid2")
+                    .build();
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
+            String expected = "select\n"
+                    + "  a.ownerOwnerOid,\n"
+                    + "  a.ownerId,\n"
+                    + "  a.id\n"
+                    + "from\n"
+                    + "  RAccessCertificationWorkItem a\n"
+                    + "    left join a.assigneeRef a2\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a2.targetOid in (:targetOid) and\n"
+                    + "    a2.relation in (:relation)\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test230QueryCertCaseReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
@@ -3257,7 +3116,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_CURRENT_STAGE_DEADLINE).asc(T_ID)
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected =
                     "select\n" +
                             "  a.ownerOid, a.id, a.fullObject\n" +
@@ -3289,7 +3148,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0746QueryCertWorkItemReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
+    public void test232QueryCertWorkItemReviewerAndEnabledByDeadlineAndOidAsc() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
@@ -3298,7 +3157,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(PrismConstants.T_PARENT, F_CURRENT_STAGE_DEADLINE).asc(T_ID)
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationWorkItemType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
             String expected =
                     "select\n"
                             + "  a.ownerOwnerOid,\n"
@@ -3324,7 +3183,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0747QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
+    public void test234QueryCertCaseReviewerAndEnabledByRequestedDesc() throws Exception {
         Session session = open();
         try {
             PrismReferenceValue assigneeRef = ObjectTypeUtil.createObjectRef("1234567890", ObjectTypes.USER).asReferenceValue();
@@ -3334,7 +3193,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(T_PARENT, F_STATE).eq(IN_REVIEW_STAGE)
                     .desc(F_CURRENT_STAGE_CREATE_TIMESTAMP)
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
@@ -3367,7 +3226,61 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0750DereferenceLink() throws Exception {
+    public void test300QueryWorkItemsForCase() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
+                    .exists(PrismConstants.T_PARENT)
+                    .block()
+                    .id(1)
+                    .and().ownerId("123456")
+                    .endBlock()
+                    .build();
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
+            String expected = "select\n"
+                    + "  a.ownerOwnerOid,\n"
+                    + "  a.ownerId,\n"
+                    + "  a.id\n"
+                    + "from\n"
+                    + "  RAccessCertificationWorkItem a\n"
+                    + "    left join a.owner o\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    o.id in :id and\n"
+                    + "    o.ownerOid in :ownerOid\n"
+                    + "  )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test302QueryWorkItemsForCampaign() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
+                    .exists(PrismConstants.T_PARENT)
+                    .ownerId("campaignOid1")
+                    .build();
+            String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
+            String expected = "select\n"
+                    + "  a.ownerOwnerOid,\n"
+                    + "  a.ownerId,\n"
+                    + "  a.id\n"
+                    + "from\n"
+                    + "  RAccessCertificationWorkItem a\n"
+                    + "    left join a.owner o\n"
+                    + "where\n"
+                    + "    o.ownerOid in :ownerOid\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test400DereferenceLink() throws Exception {
         Session session = open();
 
         try {
@@ -3379,7 +3292,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF, PrismConstants.T_OBJECT_REFERENCE, F_NAME).containsPoly("test.com")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3398,7 +3311,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0752DereferenceLinkedResourceName() throws Exception {
+    public void test402DereferenceLinkedResourceName() throws Exception {
         Session session = open();
 
         try {
@@ -3412,7 +3325,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             F_NAME).containsPoly("CSV").matchingNorm()
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3430,7 +3343,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test(expectedExceptions = IllegalArgumentException.class)             // at this time
-    public void test0760DereferenceAssignedRoleType() throws Exception {
+    public void test404DereferenceAssignedRoleType() throws Exception {
         Session session = open();
 
         try {
@@ -3445,7 +3358,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(F_ASSIGNMENT, AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, RoleType.F_ROLE_TYPE).eq("type1")
                     .build();
-            getInterpretedQuery2(session, UserType.class, query);
+            getInterpretedQuery(session, UserType.class, query);
 
         } finally {
             close(session);
@@ -3453,7 +3366,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0770CaseParentFilter() throws Exception {
+    public void test420CaseParentFilter() throws Exception {
         Session session = open();
 
         try {
@@ -3464,7 +3377,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .item(T_PARENT, F_NAME).eq("Campaign 1")
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3482,7 +3395,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0800OrderBySingleton() throws Exception {
+    public void test500OrderBySingleton() throws Exception {
         Session session = open();
 
         try {
@@ -3496,7 +3409,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
                             ASCENDING));
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3509,7 +3422,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0810OrderByParentCampaignName() throws Exception {
+    public void test510OrderByParentCampaignName() throws Exception {
         Session session = open();
 
         try {
@@ -3520,7 +3433,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFactory().createQuery(
                     prismContext.queryFactory().createPaging(ItemPath.create(T_PARENT, F_NAME), DESCENDING));
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3535,7 +3448,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0820OrderByTargetName() throws Exception {
+    public void test520OrderByTargetName() throws Exception {
         Session session = open();
 
         try {
@@ -3548,7 +3461,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             AccessCertificationCaseType.F_TARGET_REF,
                             PrismConstants.T_OBJECT_REFERENCE, F_NAME), ASCENDING));
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -3564,7 +3477,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     @Test(expectedExceptions = IllegalArgumentException.class)
     // should fail, as Equals supports single-value right side only
     // TODO this should be perhaps checked in EqualFilter
-    public void test0900EqualsMultivalue() throws Exception {
+    public void test550EqualsMultivalue() throws Exception {
         Session session = open();
 
         try {
@@ -3582,7 +3495,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_PREFERRED_LANGUAGE).eq(multivalProperty)
                     .build();
 
-            getInterpretedQuery2(session, UserType.class, query);
+            getInterpretedQuery(session, UserType.class, query);
 //            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -3590,7 +3503,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0910PreferredLanguageEqualsCostCenter() throws Exception {
+    public void test555PreferredLanguageEqualsCostCenter() throws Exception {
         Session session = open();
 
         try {
@@ -3600,7 +3513,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_PREFERRED_LANGUAGE).eq().item(UserType.F_COST_CENTER)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3621,7 +3534,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test(enabled = false)
     // different types of properties that are to be compared (polystring vs string in this case) are not supported yet
-    public void test0915OrganizationEqualsCostCenter() throws Exception {
+    public void test557OrganizationEqualsCostCenter() throws Exception {
         Session session = open();
 
         try {
@@ -3631,7 +3544,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_ORGANIZATION).eq(UserType.F_COST_CENTER)
                     .build();
-            getInterpretedQuery2(session, UserType.class, query);
+            getInterpretedQuery(session, UserType.class, query);
 //            assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -3639,7 +3552,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0920DecisionsNotAnswered() throws Exception {
+    public void test560DecisionsNotAnswered() throws Exception {
         Session session = open();
 
         try {
@@ -3655,7 +3568,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
             String expected = "select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
@@ -3684,7 +3597,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0925DecisionsNotAnsweredOrderBy() throws Exception {
+    public void test562DecisionsNotAnsweredOrderBy() throws Exception {
         Session session = open();
 
         try {
@@ -3700,7 +3613,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(T_PARENT, T_ID)
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
             String expected = "select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
@@ -3731,7 +3644,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0930ResourceRef() throws Exception {
+    public void test563ResourceRef() throws Exception {
         Session session = open();
 
         try {
@@ -3739,7 +3652,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_ASSIGNMENT, F_CONSTRUCTION, F_RESOURCE_REF).ref("1234567")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3757,7 +3670,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0932CreatorRef() throws Exception {
+    public void test565CreatorRef() throws Exception {
         Session session = open();
 
         try {
@@ -3765,7 +3678,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_METADATA, F_CREATOR_REF).ref("1234567")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3782,7 +3695,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0934CreateApproverRef() throws Exception {
+    public void test568CreateApproverRef() throws Exception {
         Session session = open();
 
         try {
@@ -3790,7 +3703,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_METADATA, F_CREATE_APPROVER_REF).ref("1234567")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
@@ -3808,7 +3721,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0940FullTextSimple() throws Exception {
+    public void test570FullTextSimple() throws Exception {
         Session session = open();
 
         try {
@@ -3816,7 +3729,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .fullText("Peter")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -3832,7 +3745,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     // adapt the test after query interpreter is optimized (when searching for empty text)
     @Test
-    public void test0941FullTextEmpty() throws Exception {
+    public void test571FullTextEmpty() throws Exception {
         Session session = open();
 
         try {
@@ -3840,7 +3753,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .fullText("\t\t\t")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -3855,7 +3768,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0945FullTextMulti() throws Exception {
+    public void test575FullTextMulti() throws Exception {
         Session session = open();
 
         try {
@@ -3863,7 +3776,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .fullText("\t\nPeter\t\tMravec\t")
                     .build();
 
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -3883,7 +3796,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0950RedundantBlock() throws Exception {
+    public void test580RedundantBlock() throws Exception {
         Session session = open();
 
         try {
@@ -3893,7 +3806,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .build();
 
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -3911,7 +3824,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0952TwoRedundantBlocks() throws Exception {
+    public void test582TwoRedundantBlocks() throws Exception {
         Session session = open();
 
         try {
@@ -3923,7 +3836,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .build();
 
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -3941,7 +3854,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test0954RedundantBlocksAndExists() throws Exception {
+    public void test584RedundantBlocksAndExists() throws Exception {
         Session session = open();
 
         try {
@@ -3953,7 +3866,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .endBlock()
                     .build();
 
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -3973,45 +3886,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-//    @Test
-//    public void test1100ProcessStartTimestamp() throws Exception {
-//        Session session = open();
-//
-//        try {
-//            ObjectQuery query = prismContext.queryFor(TaskType.class)
-//                    .item(F_WORKFLOW_CONTEXT, F_REQUESTOR_REF).ref("123456")
-//                    .and().not().item(F_WORKFLOW_CONTEXT, F_CASE_OID).isNull()
-//                    .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
-//                    .build();
-//            String real = getInterpretedQuery2(session, TaskType.class, query);
-//            String expected = "select\n"
-//                    + "  t.oid, t.fullObject\n"
-//                    + "from\n"
-//                    + "  RTask t\n"
-//                    + "where\n"
-//                    + "  (\n"
-//                    + "    (\n"
-//                    + "      t.wfRequesterRef.targetOid = :targetOid and\n"
-//                    + "      t.wfRequesterRef.relation in (:relation)\n"
-//                    + "    ) and\n"
-//                    + "    not t.wfProcessInstanceId is null\n"
-//                    + "  )\n"
-//                    + "order by t.wfStartTimestamp desc";
-//            assertEqualsIgnoreWhitespace(expected, real);
-//        } finally {
-//            close(session);
-//        }
-//
-//    }
-
     @Test
-    public void test1110AvailabilityStatus() throws Exception {
+    public void test600AvailabilityStatus() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ResourceType.class)
                     .item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
                     .build();
-            String real = getInterpretedQuery2(session, ResourceType.class, query);
+            String real = getInterpretedQuery(session, ResourceType.class, query);
             String expected = "select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
@@ -4026,13 +3908,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1120NullRefSingle() throws Exception {
+    public void test602NullRefSingle() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ResourceType.class)
                     .item(ResourceType.F_CONNECTOR_REF).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, ResourceType.class, query);
+            String real = getInterpretedQuery(session, ResourceType.class, query);
             String expected = "select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
@@ -4045,14 +3927,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test   // the same as test0142QueryUserAccountRefNull, but keeping because of test structure
-    public void test1130NullRefMulti() throws Exception {
+    // the same as test074QueryUserAccountRefNull, but keeping because of test structure
+    @Test
+    public void test604NullRefMulti() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_LINK_REF).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -4068,13 +3951,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1140NullEqSingle() throws Exception {
+    public void test606NullEqSingle() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_EMPLOYEE_NUMBER).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
@@ -4088,13 +3971,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1150NullEqMulti() throws Exception {
+    public void test610NullEqMulti() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_EMPLOYEE_TYPE).isNull()
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query);
+            String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
@@ -4110,7 +3993,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1160AbstractRoleParameters() throws Exception {
+    public void test612AbstractRoleParameters() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(RoleType.class)
@@ -4118,7 +4001,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(RoleType.F_IDENTIFIER).eq("001")
                     .and().item(RoleType.F_DISPLAY_NAME).eqPoly("aaa", "aaa").matchingNorm()
                     .build();
-            String real = getInterpretedQuery2(session, RoleType.class, query);
+            String real = getInterpretedQuery(session, RoleType.class, query);
             String expected = "select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
@@ -4136,13 +4019,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1170ExistsShadowPendingOperation() throws Exception {
+    public void test614ExistsShadowPendingOperation() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
                     .exists(ShadowType.F_PENDING_OPERATION)
                     .build();
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -4157,14 +4040,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1180OperationFatalError() throws Exception {
+    public void test616OperationFatalError() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .item(F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS)
                     .eq(OperationResultStatusType.FATAL_ERROR)
                     .build();
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -4180,7 +4063,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1182OperationFatalErrorTimestampSort() throws Exception {
+    public void test618OperationFatalErrorTimestampSort() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -4188,7 +4071,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .eq(OperationResultStatusType.FATAL_ERROR)
                     .desc(F_OPERATION_EXECUTION, OperationExecutionType.F_TIMESTAMP)
                     .build();
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -4205,7 +4088,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1190OperationSuccessForGivenTask() throws Exception {
+    public void test619OperationSuccessForGivenTask() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -4215,7 +4098,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
                     .endBlock()
                     .build();
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -4237,7 +4120,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1200OperationLastFailures() throws Exception {
+    public void test620OperationLastFailures() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -4247,7 +4130,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(OperationExecutionType.F_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                     .endBlock()
                     .build();
-            String real = getInterpretedQuery2(session, ShadowType.class, query);
+            String real = getInterpretedQuery(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
@@ -4266,13 +4149,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1210PersonaRef() throws Exception {
+    public void test621PersonaRef() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(FocusType.class)
                     .item(FocusType.F_PERSONA_REF).ref("123456")
                     .build();
-            String real = getInterpretedQuery2(session, FocusType.class, query);
+            String real = getInterpretedQuery(session, FocusType.class, query);
             String expected = "select\n"
                     + "  f.oid,\n"
                     + "  f.fullObject\n"
@@ -4291,13 +4174,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1220IgnorableDistinctAndOrderBy() throws Exception {
+    public void test622IgnorableDistinctAndOrderBy() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .asc(UserType.F_NAME)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String real = getInterpretedQuery(session, UserType.class, query, false, distinct());
             String expected;
             expected = "select u.oid,\n"
                     + "  u.fullObject\n"
@@ -4311,7 +4194,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1230ApplicableDistinctAndOrderBy() throws Exception {
+    public void test623ApplicableDistinctAndOrderBy() throws Exception {
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_EMPLOYEE_TYPE).startsWith("e")
                 .asc(UserType.F_NAME)
@@ -4319,7 +4202,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String real = getInterpretedQuery(session, UserType.class, query, false, distinct());
             String expected;
             SqlRepositoryConfiguration config = getConfiguration();
             if (config.isUsingOracle() || config.isUsingSQLServer()) {
@@ -4356,14 +4239,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1240DistinctUserWithAssignment() throws Exception {
+    public void test624DistinctUserWithAssignment() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("123456")
                     .asc(UserType.F_NAME)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
+            String real = getInterpretedQuery(session, UserType.class, query, false, distinct());
             String expected;
             SqlRepositoryConfiguration config = getConfiguration();
             if (config.isUsingOracle() || config.isUsingSQLServer()) {
@@ -4407,7 +4290,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1250CampaignEndTimestamp() throws Exception {
+    public void test625CampaignEndTimestamp() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
@@ -4417,7 +4300,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .maxSize(10)
                     .build();
             query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));           // necessary to remove "not oid()" clause
-            String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCampaignType.class, query);
             String expected = "select\n"
                     + "  a.oid,\n"
                     + "  a.fullObject\n"
@@ -4435,7 +4318,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1260CampaignEndTimestamp2() throws Exception {
+    public void test626CampaignEndTimestamp2() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCampaignType.class)
@@ -4445,7 +4328,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .offset(100)
                     .maxSize(20)
                     .build();
-            String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
+            String real = getInterpretedQuery(session, AccessCertificationCampaignType.class, query);
             String expected = "select\n"
                     + "  a.oid,\n"
                     + "  a.fullObject\n"
@@ -4464,12 +4347,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1270IgnorableDistinctWithCount() throws Exception {
+    public void test627IgnorableDistinctWithCount() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
+            String real = getInterpretedQuery(session, UserType.class, query, true, distinct());
             String expected = "select count(u.oid) from RUser u";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4478,13 +4361,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1280ApplicableDistinctWithCount() throws Exception {
+    public void test628ApplicableDistinctWithCount() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(UserType.F_EMPLOYEE_TYPE).startsWith("a")
                     .build();
-            String real = getInterpretedQuery2(session, UserType.class, query, true, distinct());
+            String real = getInterpretedQuery(session, UserType.class, query, true, distinct());
             String expected = "select count(distinct u.oid) from RUser u left join u.employeeType e where e like :e";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
@@ -4493,14 +4376,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1300OidEqTest() throws Exception {
+    public void test630OidEqTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
                     .item(PrismConstants.T_ID).eq("1")
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query, false);
+            String real = getInterpretedQuery(session, ObjectType.class, query, false);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
@@ -4514,14 +4397,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1310OwnerOidEqTest() throws Exception {
+    public void test631OwnerOidEqTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
                     .item(PrismConstants.T_PARENT, PrismConstants.T_ID).eq("1")
                     .build();
 
-            String real = getInterpretedQuery2(session, AccessCertificationCaseType.class, query, false);
+            String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
             String expected = "select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
@@ -4535,7 +4418,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test1320OidGeLtTest() throws Exception {
+    public void test632OidGeLtTest() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -4543,13 +4426,270 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(PrismConstants.T_ID).lt("2")
                     .build();
 
-            String real = getInterpretedQuery2(session, ObjectType.class, query, false);
+            String real = getInterpretedQuery(session, ObjectType.class, query, false);
             String expected = "select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
                     "  ( o.oid >= :oid and o.oid < :oid2 )\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test700QueryOrderByNameOrigLimit20() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class).asc(UserType.F_NAME).maxSize(20).build();
+
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "order by\n" +
+                    "u.nameCopy.orig asc";
+
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test702QueryOrderByNameOrigLimit20() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(RoleType.class).asc(RoleType.F_NAME).maxSize(20).build();
+
+            String expected = "select\n" +
+                    "  r.oid, r.fullObject\n" +
+                    "from\n" +
+                    "  RRole r\n" +
+                    "order by\n" +
+                    "r.nameCopy.orig asc";
+
+            String real = getInterpretedQuery(session, RoleType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test704QueryTasksForArchetypeRef() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(TaskType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref("oid1")
+                    .build();
+
+            String expected = "select\n"
+                    + "  t.oid,\n"
+                    + "  t.fullObject\n"
+                    + "from\n"
+                    + "  RTask t\n"
+                    + "    left join t.archetypeRef a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetOid = :targetOid and\n"
+                    + "    a.relation in (:relation)\n"
+                    + "  )";
+
+            String real = getInterpretedQuery(session, TaskType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test706QuerySearchForFocusType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+                    + "  f.oid,\n"
+                    + "  f.fullObject\n"
+                    + "from\n"
+                    + "  RFocus f";
+
+            String real = getInterpretedQuery(session, FocusType.class, (ObjectQuery) null);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test708QuerySearchForAssignmentHolderType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+                    + "  o.oid,\n"
+                    + "  o.fullObject\n"
+                    + "from\n"
+                    + "  RObject o\n"
+                    + "where\n"
+                    + "  o.objectTypeClass in (:objectTypeClass)";
+
+            RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, AssignmentHolderType.class, null, false, null);
+            String real = rQuery.getQuery().getQueryString();
+            System.out.println("Query parameters:\n" + rQuery.getQuerySource().getParameters());
+
+            assertEqualsIgnoreWhitespace(expected, real);
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test720QuerySearchForObjectType() throws Exception {
+        Session session = open();
+
+        try {
+            String expected = "select\n"
+                    + "  o.oid,\n"
+                    + "  o.fullObject\n"
+                    + "from\n"
+                    + "  RObject o";
+
+            String real = getInterpretedQuery(session, ObjectType.class, (ObjectQuery) null);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test725QueryNameNormAsString() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).eq("asdf").matchingNorm().build();
+
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "where\n" +
+                    "  u.nameCopy.norm = :norm";
+
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test730QueryWorkItemsByAssignee() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
+                    .item(CaseWorkItemType.F_ASSIGNEE_REF).ref("123")
+                    .build();
+            String real = getInterpretedQuery(session, CaseWorkItemType.class, q, false);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.assigneeRef a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetOid = :targetOid and\n"
+                    + "    a.relation in (:relation)\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test732QueryWorkItemsByCandidate() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
+                    .item(CaseWorkItemType.F_CANDIDATE_REF).ref("123")
+                    .build();
+            String real = getInterpretedQuery(session, CaseWorkItemType.class, q, false);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.candidateRef c2\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    c2.targetOid = :targetOid and\n"
+                    + "    c2.relation in (:relation)\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // MID-5515
+    @Test
+    public void test733QueryNameNull() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).isNull()
+                    .build();
+            String real = getInterpretedQuery(session, UserType.class, q, false);
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  1=0\n";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    //@Test
+    @UnusedTestElement
+    public void test734QueryWithMultiValueItemPathForOrdering() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(ObjectType.class)
+                    .exists(F_OPERATION_EXECUTION)
+                    .block()
+                    .item(OperationExecutionType.F_TASK_REF).ref("00000000-0000-0000-0000-000000000006")
+                    .and()
+                    .block().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.FATAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.PARTIAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.WARNING)
+                    .endBlock()
+                    .endBlock()
+                    .build();
+            List<ObjectOrdering> orderings = Collections.singletonList(
+                    prismContext.queryFactory().createOrdering(
+                            ItemPath.create("operationExecution", "timestamp"), OrderDirection.ASCENDING));
+            ObjectPaging paging = prismContext.queryFactory().createPaging(1, 20, orderings);
+            q.setPaging(paging);
+
+            String real = getInterpretedQuery(session, ObjectType.class, q, false);
+            String expected = "";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -4567,16 +4707,16 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     // TODO negative tests - order by entity, reference, any, collection
     // TODO implement checks for "order by" for non-singletons
 
-    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file) throws
-            Exception {
-        return getInterpretedQuery2(session, type, file, false);
+    private <T extends Containerable> String getInterpretedQuery(
+            Session session, Class<T> type, File file) throws Exception {
+        return getInterpretedQuery(session, type, file, false);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, File file,
-            boolean interpretCount) throws Exception {
+    private <T extends Containerable> String getInterpretedQuery(
+            Session session, Class<T> type, File file, boolean interpretCount) throws Exception {
         ObjectQuery query = getQuery(file, type);
-        return getInterpretedQuery2(session, type, query, interpretCount);
+        return getInterpretedQuery(session, type, query, interpretCount);
     }
 
     @Nullable
@@ -4598,23 +4738,23 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         return prismContext.getQueryConverter();
     }
 
-    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query) throws Exception {
-        return getInterpretedQuery2(session, type, query, false);
+    private <T extends Containerable> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query) throws Exception {
+        return getInterpretedQuery(session, type, query, false);
     }
 
-    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+    private <T extends Containerable> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
             boolean interpretCount) throws Exception {
-        return getInterpretedQuery2(session, type, query, interpretCount, null);
+        return getInterpretedQuery(session, type, query, interpretCount, null);
     }
 
-    private <T extends Containerable> String getInterpretedQuery2(Session session, Class<T> type, ObjectQuery query,
+    private <T extends Containerable> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
             boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
-        RQuery rQuery = getInterpretedQuery2Whole(session, type, query, interpretCount, options);
+        RQuery rQuery = getInterpretedQueryWhole(session, type, query, interpretCount, options);
         return ((RQueryImpl) rQuery).getQuery().getQueryString();
     }
 
     @NotNull
-    private <T extends Containerable> RQuery getInterpretedQuery2Whole(Session session, Class<T> type, ObjectQuery query,
+    private <T extends Containerable> RQuery getInterpretedQueryWhole(Session session, Class<T> type, ObjectQuery query,
             boolean interpretCount, Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException {
         if (query != null) {
@@ -4641,263 +4781,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "Expected: " + expNorm + "\nActual:   " + realNorm + "\n";
             logger.error("{}", m);
             throw new AssertionError(m);
-        }
-    }
-
-    @Test
-    public void test1400QueryOrderByNameOrigLimit20() throws Exception {
-        Session session = open();
-
-        try {
-            ObjectQuery query = prismContext.queryFor(UserType.class).asc(UserType.F_NAME).maxSize(20).build();
-
-            String expected = "select\n" +
-                    "  u.oid, u.fullObject\n" +
-                    "from\n" +
-                    "  RUser u\n" +
-                    "order by\n" +
-                    "u.nameCopy.orig asc";
-
-            String real = getInterpretedQuery2(session, UserType.class, query);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1410QueryOrderByNameOrigLimit20() throws Exception {
-        Session session = open();
-
-        try {
-            ObjectQuery query = prismContext.queryFor(RoleType.class).asc(RoleType.F_NAME).maxSize(20).build();
-
-            String expected = "select\n" +
-                    "  r.oid, r.fullObject\n" +
-                    "from\n" +
-                    "  RRole r\n" +
-                    "order by\n" +
-                    "r.nameCopy.orig asc";
-
-            String real = getInterpretedQuery2(session, RoleType.class, query);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1420QueryTasksForArchetypeRef() throws Exception {
-        Session session = open();
-
-        try {
-            ObjectQuery query = prismContext.queryFor(TaskType.class)
-                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref("oid1")
-                    .build();
-
-            String expected = "select\n"
-                    + "  t.oid,\n"
-                    + "  t.fullObject\n"
-                    + "from\n"
-                    + "  RTask t\n"
-                    + "    left join t.archetypeRef a\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    a.targetOid = :targetOid and\n"
-                    + "    a.relation in (:relation)\n"
-                    + "  )";
-
-            String real = getInterpretedQuery2(session, TaskType.class, query);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1430QuerySearchForFocusType() throws Exception {
-        Session session = open();
-
-        try {
-            String expected = "select\n"
-                    + "  f.oid,\n"
-                    + "  f.fullObject\n"
-                    + "from\n"
-                    + "  RFocus f";
-
-            String real = getInterpretedQuery2(session, FocusType.class, (ObjectQuery) null);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1432QuerySearchForAssignmentHolderType() throws Exception {
-        Session session = open();
-
-        try {
-            String expected = "select\n"
-                    + "  o.oid,\n"
-                    + "  o.fullObject\n"
-                    + "from\n"
-                    + "  RObject o\n"
-                    + "where\n"
-                    + "  o.objectTypeClass in (:objectTypeClass)";
-
-            RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, AssignmentHolderType.class, null, false, null);
-            String real = rQuery.getQuery().getQueryString();
-            System.out.println("Query parameters:\n" + rQuery.getQuerySource().getParameters());
-
-            assertEqualsIgnoreWhitespace(expected, real);
-
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1434QuerySearchForObjectType() throws Exception {
-        Session session = open();
-
-        try {
-            String expected = "select\n"
-                    + "  o.oid,\n"
-                    + "  o.fullObject\n"
-                    + "from\n"
-                    + "  RObject o";
-
-            String real = getInterpretedQuery2(session, ObjectType.class, (ObjectQuery) null);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1435QueryNameNormAsString() throws Exception {
-        Session session = open();
-
-        try {
-            ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(F_NAME).eq("asdf").matchingNorm().build();
-
-            String expected = "select\n" +
-                    "  u.oid, u.fullObject\n" +
-                    "from\n" +
-                    "  RUser u\n" +
-                    "where\n" +
-                    "  u.nameCopy.norm = :norm";
-
-            String real = getInterpretedQuery2(session, UserType.class, query);
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1440QueryWorkItemsByAssignee() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
-                    .item(CaseWorkItemType.F_ASSIGNEE_REF).ref("123")
-                    .build();
-            String real = getInterpretedQuery2(session, CaseWorkItemType.class, q, false);
-            String expected = "select\n"
-                    + "  c.ownerOid,\n"
-                    + "  c.id\n"
-                    + "from\n"
-                    + "  RCaseWorkItem c\n"
-                    + "    left join c.assigneeRef a\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    a.targetOid = :targetOid and\n"
-                    + "    a.relation in (:relation)\n"
-                    + "  )";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    @Test
-    public void test1442QueryWorkItemsByCandidate() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
-                    .item(CaseWorkItemType.F_CANDIDATE_REF).ref("123")
-                    .build();
-            String real = getInterpretedQuery2(session, CaseWorkItemType.class, q, false);
-            String expected = "select\n"
-                    + "  c.ownerOid,\n"
-                    + "  c.id\n"
-                    + "from\n"
-                    + "  RCaseWorkItem c\n"
-                    + "    left join c.candidateRef c2\n"
-                    + "where\n"
-                    + "  (\n"
-                    + "    c2.targetOid = :targetOid and\n"
-                    + "    c2.relation in (:relation)\n"
-                    + "  )";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    // MID-5515
-    @Test
-    public void test1443QueryNameNull() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery q = prismContext.queryFor(UserType.class)
-                    .item(F_NAME).isNull()
-                    .build();
-            String real = getInterpretedQuery2(session, UserType.class, q, false);
-            String expected = "select\n"
-                    + "  u.oid,\n"
-                    + "  u.fullObject\n"
-                    + "from\n"
-                    + "  RUser u\n"
-                    + "where\n"
-                    + "  1=0\n";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
-    //@Test
-    @UnusedTestElement
-    public void test1443QueryWithMultiValueItemPathForOrdering() throws Exception {
-        Session session = open();
-        try {
-            ObjectQuery q = prismContext.queryFor(ObjectType.class)
-                    .exists(F_OPERATION_EXECUTION)
-                    .block()
-                    .item(OperationExecutionType.F_TASK_REF).ref("00000000-0000-0000-0000-000000000006")
-                    .and()
-                    .block().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.FATAL_ERROR)
-                    .or().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.PARTIAL_ERROR)
-                    .or().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.WARNING)
-                    .endBlock()
-                    .endBlock()
-                    .build();
-            List<ObjectOrdering> orderings = Collections.singletonList(
-                    prismContext.queryFactory().createOrdering(
-                            ItemPath.create("operationExecution", "timestamp"), OrderDirection.ASCENDING));
-            ObjectPaging paging = prismContext.queryFactory().createPaging(1, 20, orderings);
-            q.setPaging(paging);
-
-            String real = getInterpretedQuery2(session, ObjectType.class, q, false);
-            String expected = "";
-            assertEqualsIgnoreWhitespace(expected, real);
-        } finally {
-            close(session);
         }
     }
 }
