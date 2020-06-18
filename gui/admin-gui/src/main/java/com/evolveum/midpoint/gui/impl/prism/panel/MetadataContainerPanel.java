@@ -103,7 +103,7 @@ public class MetadataContainerPanel<C extends Containerable> extends ItemPanel<P
         };
         valuePanel.add(nonContainers);
 
-        ListView<PrismContainerWrapper<?>> containers = new ListView<>(ID_CONTAINERS, new PropertyModel<>(item.getModel(), "containers")) {
+        ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>(ID_CONTAINERS, new PropertyModel<>(item.getModel(), "containers")) {
 
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper<?>> listItem) {

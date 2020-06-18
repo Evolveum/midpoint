@@ -109,7 +109,7 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
                 public WebMarkupContainer createPanel(String panelId) {
                     ItemPanelSettings settings = getSettings().copy();
                     settings.setHeaderVisible(false);
-                    return new MetadataContainerPanel<>(panelId, Model.of(w), settings);
+                    return new MetadataContainerPanel(panelId, Model.of(w), settings);
                 }
             });
         }
@@ -125,7 +125,7 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
                         }
                         return ItemVisibility.AUTO;
                     });
-                    return new PrismContainerValuePanel<>(panelId, getModel(), s) {
+                    return new PrismContainerValuePanel(panelId, getModel(), s) {
 
                     };
                 }
