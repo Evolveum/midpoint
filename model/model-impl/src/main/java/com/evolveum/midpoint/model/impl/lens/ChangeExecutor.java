@@ -1496,7 +1496,7 @@ public class ChangeExecutor {
             if (TaskType.class.isAssignableFrom(objectTypeClass)) {
                 taskManager.modifyTask(delta.getOid(), delta.getModifications(), result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
-                throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
+                cacheRepositoryService.modifyObject(NodeType.class, delta.getOid(), delta.getModifications(), result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
                         (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) delta);

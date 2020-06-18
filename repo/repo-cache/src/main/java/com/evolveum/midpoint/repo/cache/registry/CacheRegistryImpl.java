@@ -11,6 +11,8 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Note that this class resides in repo-cache module almost by accident and perhaps should
  * be moved to a more appropriate place.
  */
-@Component
-public class CacheRegistry implements CacheListener {
+@Component("cacheRegistry")
+public class CacheRegistryImpl implements CacheListener, CacheRegistry {
 
     private final List<Cacheable> cacheableServices = new ArrayList<>();
 
@@ -46,12 +48,14 @@ public class CacheRegistry implements CacheListener {
         dispatcher.unregisterCacheListener(this);
     }
 
+    @Override
     public synchronized void registerCacheableService(Cacheable cacheableService) {
         if (!cacheableServices.contains(cacheableService)) {
             cacheableServices.add(cacheableService);
         }
     }
 
+    @Override
     public synchronized void unregisterCacheableService(Cacheable cacheableService) {
         cacheableServices.remove(cacheableService);
     }
@@ -66,12 +70,14 @@ public class CacheRegistry implements CacheListener {
         }
     }
 
+    @Override
     public CachesStateInformationType getStateInformation() {
         CachesStateInformationType rv = new CachesStateInformationType(prismContext);
         cacheableServices.forEach(cacheable -> rv.getEntry().addAll(cacheable.getStateInformation()));
         return rv;
     }
 
+    @Override
     public void dumpContent() {
         cacheableServices.forEach(Cacheable::dumpContent);
     }
