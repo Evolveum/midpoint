@@ -43,16 +43,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * @author semancik
