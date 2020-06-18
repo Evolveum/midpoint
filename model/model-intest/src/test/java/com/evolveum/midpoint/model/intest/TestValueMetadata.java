@@ -11,14 +11,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.Optional;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,26 +31,69 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
- * Tests the value metadata handling. Currently the only "handling" is creation of metadata mock-up.
+ * Tests the value metadata handling.
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestValueMetadata extends AbstractInitializedModelIntegrationTest {
+public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/metadata");
 
+    private static final String NS_EXT_METADATA = "http://midpoint.evolveum.com/xml/ns/samples/metadata";
+    private static final ItemName LOA_NAME = new ItemName(NS_EXT_METADATA, "loa");
+    private static final ItemPath LOA_PATH = ItemPath.create(ObjectType.F_EXTENSION, LOA_NAME);
+
+    private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_REGULAR_USER = new TestResource<>(TEST_DIR, "template-regular-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
     private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
+    private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
     }
 
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
+
     @Test
-    public void test100CheckValueMetadata() throws Exception {
+    public void test010KeepingLiveMetadata() throws SchemaException {
+        given();
+        UserType mark = new UserType(prismContext)
+                .name("mark");
+        PrismPropertyValue<PolyString> nameValue = mark.asPrismObject()
+                .findProperty(UserType.F_NAME)
+                .getValue(PolyString.class);
+        nameValue.createLiveMetadata();
+
+        when();
+        Optional<ValueMetadata> metadata = nameValue.valueMetadata();
+        assertThat(metadata).isPresent();
+
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        ValueMetadataType realMetadataValue = (ValueMetadataType) metadata.get().asContainerable();
+        realMetadataValue.setProvisioning(new ProvisioningMetadataType(prismContext));
+        realMetadataValue.getProvisioning().setLastProvisioningTimestamp(now);
+
+        then();
+        Optional<ValueMetadata> metadataAfter = nameValue.valueMetadata();
+        assertThat(metadataAfter).isPresent();
+
+        ValueMetadataType realMetadataValueAfter = (ValueMetadataType) metadataAfter.get().asContainerable();
+        assertThat(realMetadataValueAfter.getProvisioning().getLastProvisioningTimestamp()).isEqualTo(now);
+    }
+
+    @Test
+    public void test020GettingMockUpMetadata() throws Exception {
         given();
 
         when();
@@ -109,6 +157,61 @@ public class TestValueMetadata extends AbstractInitializedModelIntegrationTest {
 
         assertThat(assignmentAdminStatusMetadata).as("assignment[111] admin status metadata").isPresent();
         displayDumpable("assignment[111] admin status metadata", assignmentAdminStatusMetadata.get());
+    }
+
+    /**
+     * Metadata is currently not stored into repository, so it cannot be asserted later.
+     */
+    @Test(enabled = false)
+    public void test100SimpleMetadataMapping() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_BOB, task, result);
+
+        then();
+        assertUserAfter(USER_BOB.oid)
+                .display()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .display()
+                    .assertPropertyValuesEqual(LOA_PATH, "low")
+                    .end()
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .display()
+                    .assertPropertyValuesEqual(LOA_PATH, "high")
+                    .end()
+                .assertFullName("Bob Green")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    //.assertPropertyValuesEqual(LOA_PATH, "low")
+                    .end();
+    }
+
+    @Test
+    public void test110SimpleMetadataMappingPreview() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_BOB, task, result);
+        ModelContext<UserType> modelContext =
+                previewChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_BOB.oid),
+                        ModelExecuteOptions.create(prismContext)
+                                .reconcile(),
+                        task, result);
+
+        then();
+        PrismObject<UserType> bobAfter = modelContext.getFocusContext().getObjectNew();
+        assertUser(bobAfter, "after")
+                .display()
+                .assertFullName("Bob Green")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertPropertyValuesEqual(LOA_PATH, "low")
+                    .end();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

@@ -38,7 +38,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         boolean oneLine = generic == GenericTraceVisualizationType.ONE_LINE;
         MappingEvaluationTraceType trace = node.getTrace(MappingEvaluationTraceType.class);
         MappingKindType kind = trace != null ? trace.getMappingKind() : null;
-        MappingType mapping = trace != null ? trace.getMapping() : null;
+        AbstractMappingType mapping = trace != null ? trace.getMapping() : null;
         String name = mapping != null ? mapping.getName() : null;
 
         String nullPrefix = indent(sb, node, indent);
@@ -145,7 +145,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         return formatSingleLine(output, generic);
     }
 
-    private boolean isAuthoritative(MappingType mapping) {
+    private boolean isAuthoritative(AbstractMappingType mapping) {
         if (mapping != null) {
             return defaultIfNull(mapping.isAuthoritative(), true);
         } else {
@@ -153,7 +153,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         }
     }
 
-    private boolean isExclusive(MappingType mapping) {
+    private boolean isExclusive(AbstractMappingType mapping) {
         if (mapping != null) {
             return defaultIfNull(mapping.isExclusive(), false);
         } else {
@@ -161,7 +161,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         }
     }
 
-    private MappingStrengthType getStrength(MappingType mapping) {
+    private MappingStrengthType getStrength(AbstractMappingType mapping) {
         if (mapping != null) {
             return defaultIfNull(mapping.getStrength(), MappingStrengthType.NORMAL);
         } else {
@@ -169,7 +169,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         }
     }
 
-    private String getTarget(MappingType mapping, MappingEvaluationTraceType trace) {
+    private String getTarget(AbstractMappingType mapping, MappingEvaluationTraceType trace) {
         if (mapping != null && mapping.getTarget() != null) {
             return String.valueOf(mapping.getTarget().getPath());
         } else if (trace.getImplicitTargetPath() != null) {
@@ -179,7 +179,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         }
     }
 
-    private List<String> getSources(MappingType mapping, MappingEvaluationTraceType trace) {
+    private List<String> getSources(AbstractMappingType mapping, MappingEvaluationTraceType trace) {
         if (mapping == null || mapping.getSource().isEmpty()) {
             if (trace.getImplicitSourcePath() != null) {
                 return singletonList(String.valueOf(trace.getImplicitSourcePath()));
@@ -193,7 +193,7 @@ public class MappingEvaluationVisualizer extends BaseVisualizer {
         }
     }
 
-    private String shortExpressionDebugDump(MappingType mapping, GenericTraceVisualizationType level) {
+    private String shortExpressionDebugDump(AbstractMappingType mapping, GenericTraceVisualizationType level) {
         List<JAXBElement<?>> evaluators;
         if (mapping != null && mapping.getExpression() != null) {
             evaluators = mapping.getExpression().getExpressionEvaluator();

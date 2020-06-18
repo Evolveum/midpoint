@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -42,6 +43,16 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * @author semancik
@@ -384,4 +395,10 @@ public interface PrismContext extends ProtectorCreator {
      */
     @Experimental
     ValueMetadataMockUpFactory getValueMetadataMockUpFactory();
+
+    @Experimental
+    void setValueMetadataFactory(ValueMetadataFactory factory);
+
+    @Experimental
+    ValueMetadataFactory getValueMetadataFactory();
 }

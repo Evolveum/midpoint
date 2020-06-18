@@ -10,9 +10,11 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,9 +35,13 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     private OriginType originType;
     private Objectable originObject;
     private Itemable parent;
+
+    private ValueMetadata valueMetadata;
+
+    @SuppressWarnings("FieldMayBeFinal") // Cannot be final because it is transient
     private transient Map<String,Object> userData = new HashMap<>();
 
-    // FIXME: allways null
+    // FIXME: always null
     protected EquivalenceStrategy defaultEquivalenceStrategy;
 
     transient protected PrismContext prismContext;
@@ -244,6 +250,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         if (clone.prismContext == null) {
             clone.prismContext = this.prismContext;
         }
+        clone.valueMetadata = valueMetadata != null ? valueMetadata.clone() : null;
     }
 
     protected EquivalenceStrategy getEqualsHashCodeStrategy() {
@@ -380,6 +387,44 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     @Override
     public Optional<ValueMetadata> valueMetadata() throws SchemaException {
+        if (valueMetadata != null) {
+            return Optional.of(valueMetadata);
+        } else {
+            return createMockUpValueMetadata();
+        }
+    }
+
+    @Override
+    @NotNull
+    public ValueMetadata getValueMetadata() throws SchemaException {
+        if (valueMetadata != null) {
+            return valueMetadata;
+        } else {
+            Optional<ValueMetadata> mockup = createMockUpValueMetadata();
+            if (mockup.isPresent()) {
+                return mockup.get();
+            } else if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
+                return prismContext.getValueMetadataFactory().createEmpty();
+            } else {
+                return ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
+            }
+        }
+    }
+
+    @Override
+    public void setValueMetadata(ValueMetadata valueMetadata) {
+        this.valueMetadata = valueMetadata;
+    }
+
+    @Override
+    @Experimental
+    public void createLiveMetadata() {
+        valueMetadata = Objects.requireNonNull(prismContext, "no prism context")
+                .getValueMetadataFactory()
+                .createEmpty();
+    }
+
+    private Optional<ValueMetadata> createMockUpValueMetadata() throws SchemaException {
         PrismContext prismContext = getPrismContext();
         if (prismContext != null) {
             ValueMetadataMockUpFactory factory = prismContext.getValueMetadataMockUpFactory();
@@ -388,5 +433,25 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             }
         }
         return Optional.empty();
+    }
+
+    // TEMPORARY
+    @Override
+    public void fixMockUpValueMetadata() {
+        if (valueMetadata == null) {
+            try {
+                createMockUpValueMetadata().ifPresent(metadata -> valueMetadata = metadata.clone());
+            } catch (SchemaException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
+    @Override
+    protected void performFreeze() {
+        if (valueMetadata != null) {
+            valueMetadata.freeze();
+        }
+        super.performFreeze();
     }
 }

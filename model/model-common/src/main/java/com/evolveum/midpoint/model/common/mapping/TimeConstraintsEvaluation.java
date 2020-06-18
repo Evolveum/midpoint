@@ -32,7 +32,7 @@ class TimeConstraintsEvaluation {
     /**
      * "Parent" mapping evaluation.
      */
-    private final MappingImpl<?, ?> m;
+    private final AbstractMappingImpl<?, ?, ?> m;
 
     /**
      * Is the mapping valid regarding specified time constraint (timeFrom, timeTo)?
@@ -46,7 +46,7 @@ class TimeConstraintsEvaluation {
      */
     private XMLGregorianCalendar nextRecomputeTime;
 
-    TimeConstraintsEvaluation(MappingImpl<?, ?> m) {
+    TimeConstraintsEvaluation(AbstractMappingImpl<?, ?, ?> m) {
         this.m = m;
     }
 

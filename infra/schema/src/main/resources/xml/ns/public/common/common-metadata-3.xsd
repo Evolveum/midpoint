@@ -15,11 +15,16 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-            elementFormDefault="qualified">
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
-            Standard value metadata that is part of the static common-3 schema.
+            Standard value metadata that is part of the static common-3 schema
+            and data structures that support metadata handling.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -38,6 +43,8 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -81,6 +88,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="valueMetadata" type="tns:ValueMetadataType" />
 
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>
@@ -580,4 +588,213 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="MetadataHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value metadata.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="mapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Directly specified metadata mapping(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeMapping" type="tns:MappingSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata mapping(s) to include.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="excludeMapping" type="tns:MappingSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata mapping(s) to exclude.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType"/>
+
+    <xsd:complexType name="MetadataMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specialization of abstract mapping for metadata mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+                <a:displayName>MappingType.details</a:displayName> <!-- TODO -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="applicability" type="tns:MappingApplicabilitySpecificationType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Where to apply this mapping.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="metadataMapping" type="tns:MappingType"/>
+
+    <xsd:complexType name="MappingApplicabilitySpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                In what situations should be this mapping applied?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="include" type="tns:MappingItemApplicabilitySpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping will be applied to specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exclude" type="tns:MappingItemApplicabilitySpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping will not be applied to specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="mappingApplicabilitySpecification" type="tns:MappingApplicabilitySpecificationType"/>
+
+    <xsd:complexType name="MappingItemApplicabilitySpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selection of items to include/exclude when applying given mapping.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO subpath flag, object type specification, object selector (?), etc -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="mappingItemApplicabilitySpecification" type="tns:MappingItemApplicabilitySpecificationType"/>
+
+    <xsd:complexType name="MappingSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects mapping or mappings from a given set of collected ones.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="selection" type="tns:MappingSelectionModeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we select all mappings or a single (the most specific) one?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="target" type="tns:MappingTargetSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selection of mapping by its target item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selection of mapping by its name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="mappingSelector" type="tns:MappingSelectorType"/>
+
+    <xsd:complexType name="MappingTargetSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selection of mapping by its target item.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Target path.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- todo path selection mode (exact, subpath) -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="mappingTargetSelectorType" type="tns:MappingTargetSelectorType"/>
+
+    <xsd:simpleType name="MappingSelectionModeType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="single">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

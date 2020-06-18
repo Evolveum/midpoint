@@ -66,8 +66,8 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
     protected static final TestResource TASK_GROUP_SCAVENGER = new TestResource(TEST_DIR, "task-group-scavenger.xml", "1d7bef40-953e-443e-8e9a-ec6e313668c4");
 
     protected static final String NS_EXT = "http://grouper-demo.tier.internet2.edu";
-    protected static final QName EXT_GROUPER_NAME = new QName(NS_EXT, "grouperName");
-    protected static final QName EXT_LDAP_DN = new QName(NS_EXT, "ldapDn");
+    protected static final ItemName EXT_GROUPER_NAME = new ItemName(NS_EXT, "grouperName");
+    protected static final ItemName EXT_LDAP_DN = new ItemName(NS_EXT, "ldapDn");
 
     protected static final String BANDERSON_USERNAME = "banderson";
     protected static final String JLEWIS685_USERNAME = "jlewis685";

@@ -347,6 +347,28 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
+    public ValueMetadataAsserter<O, ? extends PrismObjectAsserter<O, RA>, RA> valueMetadata(ItemPath path) throws SchemaException {
+        PrismContainerValue<ValueMetadataType> valueMetadata = getValueMetadata(path);
+        ValueMetadataAsserter<O, ? extends PrismObjectAsserter<O, RA>, RA> asserter =
+                new ValueMetadataAsserter<>(this, valueMetadata, String.valueOf(path)); // TODO details
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private PrismContainerValue<ValueMetadataType> getValueMetadata(ItemPath path) throws SchemaException {
+        Item<?, ?> item = getObject().findItem(path);
+        if (item == null) {
+            throw new AssertionError("Item '" + path + "' not found in " + getObject());
+        }
+        if (item.size() == 1) {
+            //noinspection unchecked
+            return (PrismContainerValue<ValueMetadataType>) (PrismContainerValue<?>) item.getValue().getValueMetadata();
+        } else {
+            throw new AssertionError("Item '" + path + "' has not a single value in " + getObject() +
+                    ": " + item.size() + " values: " + item);
+        }
+    }
+
     public TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> triggers() {
         TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new TriggersAsserter<>(this, getDetails());
         copySetupTo(asserter);

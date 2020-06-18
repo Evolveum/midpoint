@@ -109,6 +109,11 @@ public class ExpressionEvaluationContext {
      */
     private ExpressionEvaluatorProfile expressionEvaluatorProfile;
 
+    /**
+     * Computes value metadata in given situation.
+     */
+    private ValueMetadataComputer valueMetadataComputer;
+
     public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
             ExpressionVariables variables, String contextDescription, Task task) {
         super();
@@ -219,6 +224,14 @@ public class ExpressionEvaluationContext {
         this.variableProducer = variableProducer;
     }
 
+    public ValueMetadataComputer getValueMetadataComputer() {
+        return valueMetadataComputer;
+    }
+
+    public void setValueMetadataComputer(ValueMetadataComputer valueMetadataComputer) {
+        this.valueMetadataComputer = valueMetadataComputer;
+    }
+
     public boolean hasDeltas() {
         return hasDeltas(sources) || variables != null && variables.haveDeltas();
     }
@@ -243,6 +256,7 @@ public class ExpressionEvaluationContext {
         clone.mappingQName = this.mappingQName;
         clone.additionalConvertor = this.additionalConvertor;
         clone.variableProducer = this.variableProducer;
+        clone.valueMetadataComputer = this.valueMetadataComputer;
         return clone;
     }
 }
