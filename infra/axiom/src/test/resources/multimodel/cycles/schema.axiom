@@ -1,0 +1,14 @@
+model test-schema {
+    namespace "https://example.org/schema"; 
+
+    import "https://example.org/data" {
+        prefix data;
+    }
+
+    type TypeDefinition {
+        item default {
+            type data:Value;
+        }
+    }
+
+}

@@ -2788,6 +2788,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return registry.findWrapperFactory(def);
     }
 
+    public <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def) {
+        return registry.findContainerWrapperFactory(def);
+    }
+
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
 
         ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);

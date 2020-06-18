@@ -366,7 +366,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 if (object == null) {
                     return new WebMarkupContainer(componentId);
                 }
-                List<PrismValueWrapper<PendingOperationType, PrismValue>> values = object.getValues();
+                List<PrismValueWrapper<PendingOperationType>> values = object.getValues();
                 List<PendingOperationType> pendingOperations = new ArrayList<PendingOperationType>();
                 values.forEach(value -> {
                     pendingOperations.add(value.getRealValue());

@@ -9,9 +9,12 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -154,7 +157,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     }
 
     protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
-        if (def.isOperational()) {
+        if (def.isOperational() && !context.isCreateOperational()) {
             LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getItemName());
             return false;
         }
@@ -173,6 +176,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
                 VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+//                setupMetadata(valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
             return pvWrappers;
@@ -181,12 +185,28 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         for (PV pcv : values) {
             if(canCreateValueWrapper(pcv)){
                 VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
+                setupMetadata(valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
         }
 
         return pvWrappers;
 
+    }
+
+    protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
+        PrismValue oldValue = valueWrapper.getNewValue();
+        Optional<ValueMetadata> metadata = oldValue.valueMetadata();
+        if (!metadata.isPresent()) {
+            LOGGER.trace("Skipping creating metadata");
+            return;
+        }
+
+        ValueMetadata valueMetadata = metadata.get();
+
+        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
+        PrismContainerValueWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createValueWrapper(null, valueMetadata, ValueStatus.NOT_CHANGED, ctx);
+        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
     }
 
     protected List<PV> getValues(I item) {
@@ -261,7 +281,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     /**
      * @return the registry
      */
-    public GuiComponentRegistryImpl getRegistry() {
+    public GuiComponentRegistry getRegistry() {
         return registry;
     }
 

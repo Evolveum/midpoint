@@ -16,17 +16,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -365,6 +361,13 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
         ExtensionAsserter<UserType, ? extends UserAsserter<RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    @Override
+    public ValueMetadataAsserter<UserType, ? extends UserAsserter<RA>, RA> valueMetadata(
+            ItemPath path) throws SchemaException {
+        //noinspection unchecked
+        return (ValueMetadataAsserter<UserType, ? extends UserAsserter<RA>, RA>) super.valueMetadata(path);
     }
 
     @Override

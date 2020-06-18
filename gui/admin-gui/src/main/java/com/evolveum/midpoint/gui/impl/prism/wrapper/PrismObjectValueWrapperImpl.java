@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectValueWrapper;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -56,5 +58,10 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
     @Override
     public String getDisplayName() {
         return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
+    }
+
+    @Override
+    public PrismContainerValue<O> getNewValue() {
+        return super.getNewValue();
     }
 }

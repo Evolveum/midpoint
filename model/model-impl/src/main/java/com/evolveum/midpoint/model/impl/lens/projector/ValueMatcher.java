@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -76,6 +77,25 @@ public class ValueMatcher<T> {
             }
         }
         return false;
+    }
+
+    @Experimental // FIXME
+    public PrismPropertyValue<T> findValue(PrismProperty<T> property, PrismPropertyValue<T> pValue) {
+        for (PrismPropertyValue<T> existingValue: property.getValues()) {
+            try {
+                if (matchingRule.match(existingValue.getRealValue(), pValue.getValue())) {
+                    return existingValue;
+                }
+            } catch (SchemaException e) {
+                // At least one of the values is invalid. But we do not want to throw exception from
+                // a comparison operation. That will make the system very fragile. Let's fall back to
+                // ordinary equality mechanism instead.
+                if (existingValue.getRealValue().equals(pValue.getValue())) {
+                    return existingValue;
+                }
+            }
+        }
+        return null;
     }
 
     public boolean isRealValueToAdd(PropertyDelta<T> delta, PrismPropertyValue<T> pValue) {

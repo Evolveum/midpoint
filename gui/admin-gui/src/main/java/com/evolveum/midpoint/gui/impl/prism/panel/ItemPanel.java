@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author katka
  *
  */
-public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismValue>, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
+public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends ItemWrapper> extends BasePanel<IW> implements RefreshableTabPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -68,7 +68,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
             getModelObject().revive(getPrismContext());
         }
 
-        Panel headerPanel = createHeaderPanel();
+        Component headerPanel = createHeaderPanel();
         headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
         add(headerPanel);
 
@@ -84,7 +84,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?, ? extends PrismV
         return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
     }
 
-    protected abstract Panel createHeaderPanel();
+    protected abstract Component createHeaderPanel();
 
     protected ListView<VW> createValuesPanel() {
 

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.repo.common.expression.ValueSetDefinition;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
@@ -32,9 +34,9 @@ import java.util.Collection;
 /**
  * TODO better name, clean up the code; maybe move operation result management code here
  */
-class MappingParser<D extends ItemDefinition> {
+class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
 
-    private final MappingImpl<?, D> m;
+    private final AbstractMappingImpl<?, D, MBT> m;
 
     /**
      * Definition of the output item (i.e. target).
@@ -46,7 +48,7 @@ class MappingParser<D extends ItemDefinition> {
      */
     private ItemPath outputPath;
 
-    MappingParser(MappingImpl<?, D> mapping) {
+    MappingParser(AbstractMappingImpl<?, D, MBT> mapping) {
         this.m = mapping;
     }
 
@@ -55,6 +57,15 @@ class MappingParser<D extends ItemDefinition> {
         parseSources(result);
         parseTarget();
         assertOutputDefinition();
+
+        fixMockUpSourceValueMetadata();
+    }
+
+    /**
+     * Temporary. "Fixes" mock-up source value metadata i.e. transforms them into materialized form.
+     */
+    private void fixMockUpSourceValueMetadata() {
+        m.sources.forEach(ItemDeltaItem::fixMockUpValueMetadata);
     }
 
     private void assertOutputDefinition() {
@@ -98,13 +109,16 @@ class MappingParser<D extends ItemDefinition> {
             m.sources.add(m.defaultSource);
             m.defaultSource.recompute();
         }
-        for (VariableBindingDefinitionType sourceDefinition : m.mappingBean.getSource()) {
-            Source<?, ?> source = parseSource(sourceDefinition, result);
-            source.recompute();
+        // FIXME remove this ugly hack
+        if (m.mappingBean instanceof MappingType) {
+            for (VariableBindingDefinitionType sourceDefinition : m.mappingBean.getSource()) {
+                Source<?, ?> source = parseSource(sourceDefinition, result);
+                source.recompute();
 
-            // Override existing sources (e.g. default source)
-            m.sources.removeIf(next -> next.getName().equals(source.getName()));
-            m.sources.add(source);
+                // Override existing sources (e.g. default source)
+                m.sources.removeIf(next -> next.getName().equals(source.getName()));
+                m.sources.add(source);
+            }
         }
     }
 

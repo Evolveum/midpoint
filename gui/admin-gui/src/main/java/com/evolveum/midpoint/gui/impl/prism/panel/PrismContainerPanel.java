@@ -14,7 +14,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -54,7 +53,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
     }
 
     @Override
-    protected Panel createHeaderPanel() {
+    protected Component createHeaderPanel() {
         return new PrismContainerHeaderPanel(ID_HEADER, getModel()) {
             @Override
             protected void onExpandClick(AjaxRequestTarget target) {
