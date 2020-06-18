@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
 import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -184,7 +186,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         SecurityContextHolder.getContext().setAuthentication(new MidpointAuthentication(sequence));
         mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
         mpAuthentication.setAuthModules(authModules);
-        mpAuthentication.setSessionId(httpRequest.getSession().getId());
+        mpAuthentication.setSessionId(httpRequest.getSession(false) != null ? httpRequest.getSession(false).getId() : RandomStringUtils.random(30, true, true).toUpperCase());
         mpAuthentication.addAuthentications(authModules.get(0).getBaseModuleAuthentication());
         return mpAuthentication.resolveParallelModules(httpRequest, 0);
     }

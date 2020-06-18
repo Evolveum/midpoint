@@ -5,6 +5,8 @@ import static org.springframework.http.ResponseEntity.status;
 import java.net.URI;
 import javax.servlet.http.HttpServletRequest;
 
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -184,6 +186,9 @@ class AbstractRestController {
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
+        if (authentication instanceof MidpointAuthentication) {
+            record.setSessionIdentifier(((MidpointAuthentication) authentication).getSessionId());
+        }
 
         auditService.audit(record, task);
     }
