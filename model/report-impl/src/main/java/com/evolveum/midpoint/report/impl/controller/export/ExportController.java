@@ -89,9 +89,9 @@ public abstract class ExportController {
 
     public abstract String getType();
 
-    protected String getMessage(Enum e) {
-        return getMessage(e.getDeclaringClass().getSimpleName() + '.' + e.name());
-    }
+//    protected String getMessage(Enum e) {
+//        return getMessage(e.getDeclaringClass().getSimpleName() + '.' + e.name());
+//    }
 
     protected String getMessage(String key) {
         return getMessage(key, null);
@@ -170,10 +170,8 @@ public abstract class ExportController {
                 Object realObject = value.getRealValue();
                 if (realObject == null) {
                     realObject = "";
-                } else if (realObject instanceof Enum) {
-                    realObject = getMessage((Enum) realObject);
                 }
-                sb.append(realObject);
+                sb.append(ReportUtils.prettyPrintForReport(realObject));
             } else if (value instanceof PrismReferenceValue) {
                 sb.append(getObjectNameFromRef(((PrismReferenceValue) value).getRealValue()));
             }
@@ -237,33 +235,8 @@ public abstract class ExportController {
         return values.iterator().next();
     }
 
-//    private String getStyleForColumn(String column) {
-//        switch (column) {
-//            case TIME_COLUMN:
-//                return "width: 10%;";
-//            case INITIATOR_COLUMN:
-//                return "width: 8%;";
-//            case EVENT_STAGE_COLUMN:
-//                return "width: 5%;";
-//            case EVENT_TYPE_COLUMN:
-//                return "width: 10%;";
-//            case TARGET_COLUMN:
-//                return "width: 8%;";
-//            case OUTCOME_COLUMN:
-//                return "width: 7%;";
-//            case DELTA_COLUMN:
-//                return "width: 35%;";
-//        }
-//        return "";
-//    }
 
     protected String getColumnLabel(String name, PrismObjectDefinition<ObjectType> objectDefinition, ItemPath path) {
-//        if(specialKeyLocalization.containsKey(name)) {
-//            return getMessage(specialKeyLocalization.get(name));
-//        }
-//        if(isCustomPerformedColumn(path)) { //TODO
-//            return getLabelNameForCustom(name);
-//        }
         if (path != null) {
             ItemDefinition def = objectDefinition.findItemDefinition(path);
             if (def == null) {
@@ -309,22 +282,21 @@ public abstract class ExportController {
     private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {
         switch (path.toString()) {
             case AuditConstants.TIME_COLUMN:
-                SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, d. MMM yyyy HH:mm:ss", Locale.US);
-                return dateFormat.format(record.getTimestamp());
+                return ReportUtils.prettyPrintForReport(new Date(record.getTimestamp()));
             case AuditConstants.INITIATOR_COLUMN:
                 return record.getInitiator() == null ? "" : record.getInitiator().getName().getOrig();
             case AuditConstants.EVENT_STAGE_COLUMN:
-                return record.getEventStage() == null ? "" : getMessage(record.getEventStage());
+                return record.getEventStage() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventStage());
             case AuditConstants.EVENT_TYPE_COLUMN:
-                return record.getEventType() == null ? "" : getMessage(record.getEventType());
+                return record.getEventType() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventType());
             case AuditConstants.TARGET_COLUMN:
                 return record.getTarget() == null ? "" : getObjectNameFromRef(record.getTarget().getRealValue());
             case AuditConstants.TARGET_OWNER_COLUMN:
                 return record.getTargetOwner() == null ? "" : record.getTargetOwner().getName().getOrig();
             case AuditConstants.CHANNEL_COLUMN:
-                return record.getChannel() == null ? "" : QNameUtil.uriToQName(record.getChannel()).getLocalPart();
+                return record.getChannel() == null ? "" : ReportUtils.prettyPrintForReport(QNameUtil.uriToQName(record.getChannel()));
             case AuditConstants.OUTCOME_COLUMN:
-                return record.getOutcome() == null ? "" : getMessage(record.getOutcome());
+                return record.getOutcome() == null ? "" : ReportUtils.prettyPrintForReport(record.getOutcome());
             case AuditConstants.MESSAGE_COLUMN:
                 return record.getMessage() == null ? "" : record.getMessage();
             case AuditConstants.DELTA_COLUMN:
