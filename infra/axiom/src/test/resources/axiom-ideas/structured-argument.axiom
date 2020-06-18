@@ -1,0 +1,14 @@
+model structured-argument {
+  namespace "https://schema.evolveum.com/ns/axiom/structured-argument";
+
+  import "https://schema.evolveum.com/ns/axiom/model" {
+
+  }
+
+  augmentation StructuredArgumentExtension {
+    target axiom:ArgumentDefinition;
+    item structure {
+    
+    }
+  }
+}

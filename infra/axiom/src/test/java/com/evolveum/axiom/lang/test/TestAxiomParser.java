@@ -29,8 +29,6 @@ public class TestAxiomParser extends AbstractReactorTest {
     private static final String COMMON_CORE = "common-core.axiom";
     private static final String SCRIPTING = "scripting.axiom";
 
-
-
     @Test
     public void axiomSelfDescribingTest() throws IOException, AxiomSyntaxException {
         ModelReactorContext bootstrapContext = ModelReactorContext.boostrapReactor();

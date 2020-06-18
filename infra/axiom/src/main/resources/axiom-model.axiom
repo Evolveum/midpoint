@@ -98,6 +98,11 @@ model axiom-model {
             type QName;
         }
 
+        item namespaceSensitive {
+            type Boolean;
+            // default false;
+        }
+
         item item {
             type ItemDefinition;
             identifier name;
@@ -184,7 +189,7 @@ model axiom-model {
           //  item data:AxiomItem;
           //}
         }
-        
+
         item allowsSubstitution {
           type Boolean;
         }
@@ -345,9 +350,9 @@ model axiom-model {
     type MetadataDefinition {
       supertype AugmentationDefinition;
       // TODO: Add limits for specific types
-      //item target {
-      //  default data:ValueMetadata;
-      //}
+      item target {
+        default data:ValueMetadata;
+      }
     }
 
 }

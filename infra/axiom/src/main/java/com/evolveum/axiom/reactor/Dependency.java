@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.evolveum.axiom.api.AxiomItem;
+
 
 public interface Dependency<T> {
 
@@ -125,7 +127,7 @@ public interface Dependency<T> {
     }
 
     static <T> Search<T> retriableDelegate(Supplier<Dependency<T>> lookup) {
-        return new RetriableDependency(lookup);
+        return new RetriableDependency<>(lookup);
     }
 
     static <T> Dependency<T> from(Optional<T> maybe) {
@@ -158,6 +160,9 @@ public interface Dependency<T> {
     }
     static <T> Dependency<T> of(T from) {
         return Dependency.immediate(from);
+    }
+    static <T> Dependency<T> fromNullable(T value) {
+        return from(Optional.ofNullable(value));
     }
 
 }

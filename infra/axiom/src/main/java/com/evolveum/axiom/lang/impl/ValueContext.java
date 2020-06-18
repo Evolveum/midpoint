@@ -219,18 +219,21 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     public <T> Dependency.Search<AxiomItem<T>> requireChild(AxiomName item) {
-        return Dependency.retriableDelegate(() -> {
-            if(result instanceof ValueContext.Result) {
-                return ((ValueContext.Result) result).getItem(item);
-            }
-            return Dependency.from(result.get().asComplex().get().item(item));
-
-        });
+        return Dependency.retriableDelegate(() -> createItemDependency(item));
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    <T> Dependency<AxiomItem<T>> createItemDependency(AxiomName item) {
+        if(result instanceof ValueContext.Result) {
+            return ((ValueContext.Result) result).getItem(item);
+        }
+        return Dependency.fromNullable((AxiomItem<T>) result.get().asComplex().get().item(item).orElse(null));
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public <V> AxiomValueReference<V> asReference() {
-        return (AxiomValueReference<V>) reference;
+        return (AxiomValueReference) reference;
     }
 
     @Override
@@ -283,9 +286,10 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
             return requireChild(Inheritance.adapt(parent().name(), definition));
         }
 
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         @Override
         public <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition definition, Class<T> valueType) {
-            return Dependency.retriableDelegate(() -> {
+            return (Dependency) Dependency.retriableDelegate(() -> {
                 Dependency<AxiomItem<?>> item;
                 if(result instanceof ValueContext.Result) {
                     item = ((ValueContext.Result) result).getItem(definition.name());

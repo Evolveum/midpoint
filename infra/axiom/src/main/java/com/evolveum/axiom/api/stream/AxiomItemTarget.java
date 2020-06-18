@@ -277,11 +277,13 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public Item<?> startItem(AxiomName name, SourceLocation loc) {
+            @SuppressWarnings({ "unchecked", "rawtypes" })
             Object itemImpl = builder.get(name, (id) -> {
                 AxiomItemDefinition childDef = childItemDef(name).get();
                 if(childDef.substitutionOf().isPresent()) {
                     Lazy<Item<?>> targetItem = Lazy.from(() -> startItem(childDef.substitutionOf().get(), loc));
-                    return new SubstitutionItem<>(childDef, targetItem);
+                    // Because of JAVA 8 can not infer types correctly
+                    return new SubstitutionItem(childDef, targetItem);
                 }
                 return new Item<>(childItemDef(name).get());
             });
