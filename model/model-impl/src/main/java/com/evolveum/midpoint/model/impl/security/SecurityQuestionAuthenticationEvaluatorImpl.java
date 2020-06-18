@@ -64,7 +64,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         List<SecurityQuestionAnswerType> securityQuestionsAnswers = credential.getQuestionAnswer();
 
         if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
-            recordAuthenticationFailure(principal, connEnv, "no stored security questions");
+            recordAuthenticationBehavior(principal, connEnv, "no stored security questions", false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

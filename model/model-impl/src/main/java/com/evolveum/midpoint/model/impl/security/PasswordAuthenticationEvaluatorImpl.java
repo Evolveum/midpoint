@@ -50,7 +50,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
         ProtectedStringType protectedString = credential.getValue();
 
         if (protectedString == null) {
-            recordAuthenticationFailure(principal, connEnv, "no stored password value");
+            recordAuthenticationBehavior(principal, connEnv, "no stored password value", false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

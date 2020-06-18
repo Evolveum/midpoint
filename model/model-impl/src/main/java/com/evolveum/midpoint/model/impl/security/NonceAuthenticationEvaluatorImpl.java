@@ -50,7 +50,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
     protected void validateCredentialNotNull(ConnectionEnvironment connEnv,
             @NotNull MidPointPrincipal principal, NonceType credential) {
         if (credential.getValue() == null) {
-            recordAuthenticationFailure(principal, connEnv, "no stored password value");
+            recordAuthenticationBehavior(principal, connEnv,"no stored password value", false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
     }

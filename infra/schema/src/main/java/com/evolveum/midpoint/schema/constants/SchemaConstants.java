@@ -211,6 +211,8 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_ASSIGNMENT_DESCRIPTION = ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
     public static final ItemPath PATH_ASSOCIATION = ItemPath.create(C_ASSOCIATION);
     public static final ItemPath PATH_TRIGGER = ItemPath.create(ObjectType.F_TRIGGER);
+    public static final ItemPath PATH_AUTHENTICATION_BEHAVIOR_FAILED_LOGINS = ItemPath.create(FocusType.F_BEHAVIOR,
+            BehaviorType.F_AUTHENTICATION, AuthenticationBehavioralDataType.F_FAILED_LOGINS);
     public static final ItemPath PATH_CREDENTIALS_PASSWORD_FAILED_LOGINS = ItemPath.create(
             UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
     public static final ItemPath PATH_CREDENTIALS_NONCE_FAILED_LOGINS = ItemPath.create(
