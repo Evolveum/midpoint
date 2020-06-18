@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedDefinitionUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -58,6 +59,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 /**
@@ -268,11 +270,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
         ResourceObjectMultiplicityType multiplicity = rOcd.getMultiplicity();
-        if (multiplicity == null) {
-            return;
-        }
-        String maxOccurs = multiplicity.getMaxOccurs();
-        if (maxOccurs == null || maxOccurs.equals("1")) {
+        if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return;
         }
         String tag = synchronizationExpressionsEvaluator.generateTag(multiplicity, applicableShadow,
@@ -324,10 +322,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "objectSynchronizationDiscriminator"));
             PrismPropertyValue<ObjectSynchronizationDiscriminatorType> evaluateDiscriminator = ExpressionUtil.evaluateExpression(variables, discriminatorDef,
                     classificationExpression, syncCtx.getExpressionProfile(), expressionFactory, desc, task, result);
-            if (evaluateDiscriminator == null) {
-                return null;
-            }
-            return evaluateDiscriminator.getValue();
+            return getRealValue(evaluateDiscriminator);
         } finally {
             ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         }
@@ -753,18 +748,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             return;
         }
 
-        Boolean doReconciliation = syncCtx.isDoReconciliation();
-        if (doReconciliation == null) {
-            // We have to do reconciliation if we have got a full shadow and no delta.
-            // There is no other good way how to reflect the changes from the shadow.
-            if (change.getObjectDelta() == null) {
-                doReconciliation = true;
-            }
-        }
-
-        ModelExecuteOptions options = new ModelExecuteOptions();
-        options.setReconcile(doReconciliation);
-        options.setLimitPropagation(syncCtx.isLimitPropagation());
+        ModelExecuteOptions options = createOptions(syncCtx, change);
 
         final boolean willSynchronize = isSynchronize(reaction);
         LensContext<F> lensContext;
@@ -837,6 +821,35 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             LOGGER.trace("Skipping clockwork run on {} for situation {}, synchronize is set to false.",
                     syncCtx.getResource(), syncCtx.getSituation());
         }
+    }
+
+    @NotNull
+    private <F extends FocusType> ModelExecuteOptions createOptions(SynchronizationContext<F> syncCtx,
+            ResourceObjectShadowChangeDescription change) {
+
+        ModelExecuteOptionsType explicitOptions = syncCtx.getExecuteOptions();
+        ModelExecuteOptions options = explicitOptions != null ?
+                ModelExecuteOptions.fromModelExecutionOptionsType(explicitOptions) :
+                ModelExecuteOptions.create(prismContext);
+
+        if (options.getReconcile() == null) {
+            Boolean doReconciliation = syncCtx.isDoReconciliation();
+            if (doReconciliation != null) {
+                options.reconcile(doReconciliation);
+            } else {
+                // We have to do reconciliation if we have got a full shadow and no delta.
+                // There is no other good way how to reflect the changes from the shadow.
+                if (change.getObjectDelta() == null) {
+                    options.reconcile();
+                }
+            }
+        }
+
+        if (options.getLimitPropagation() == null) {
+            options.limitPropagation(syncCtx.isLimitPropagation());
+        }
+
+        return options;
     }
 
     @NotNull

@@ -57,6 +57,7 @@ public class Search implements Serializable, DebugDumpable {
 
     private boolean showAdvanced = false;
     private boolean isFullTextSearchEnabled = false;
+    private boolean canConfigure = true; //TODO should be changed to false
 
     private String advancedQuery;
     private String advancedError;
@@ -135,14 +136,16 @@ public class Search implements Serializable, DebugDumpable {
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
             if (supportedTargets.size() == 1) {
                 ref.setType(supportedTargets.iterator().next());
+            } else {
+                ref.setType(ObjectType.COMPLEX_TYPE);
             }
             if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
                 ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
             }
 
-            item.getValues().add(new SearchValue<>(ref));
+            item.setValue(new SearchValue<>(ref));
         } else {
-            item.getValues().add(new SearchValue<>());
+            item.setValue(new SearchValue<>());
         }
 
         items.add(item);
@@ -200,20 +203,15 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     private ObjectFilter createFilterForSearchItem(SearchItem item, PrismContext ctx) {
-        if (item.getValues().isEmpty()) {
+        if (item.getValue() == null || item.getValue().getValue() == null) {
             return null;
         }
 
+        DisplayableValue value = item.getValue();
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (DisplayableValue value : (List<DisplayableValue>) item.getValues()) {
-            if (value.getValue() == null) {
-                continue;
-            }
-
-            ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
-            if (filter != null) {
-                conditions.add(filter);
-            }
+        ObjectFilter filter = createFilterForSearchValue(item, value, ctx);
+        if (filter != null) {
+            conditions.add(filter);
         }
 
         switch (conditions.size()) {
@@ -379,6 +377,14 @@ public class Search implements Serializable, DebugDumpable {
 
     public void setFullTextSearchEnabled(boolean fullTextSearchEnabled) {
         isFullTextSearchEnabled = fullTextSearchEnabled;
+    }
+
+    public boolean isCanConfigure() {
+        return canConfigure;
+    }
+
+    public void setCanConfigure(boolean canConfigure) {
+        this.canConfigure = canConfigure;
     }
 
     private String createErrorMessage(Exception ex) {

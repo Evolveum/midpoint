@@ -30,7 +30,7 @@ import java.util.Objects;
 @Table(indexes = {
         @Index(name = "iArchetypeNameOrig", columnList = "name_orig"),
         @Index(name = "iArchetypeNameNorm", columnList = "name_norm")})
-public class RArchetype extends RAbstractRole<ArchetypeType> {
+public class RArchetype extends RAbstractRole {
 
     private RPolyString nameCopy;
 

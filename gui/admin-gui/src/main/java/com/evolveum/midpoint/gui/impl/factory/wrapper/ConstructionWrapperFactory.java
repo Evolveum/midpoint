@@ -59,7 +59,7 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
 
     private void setupResource(ConstructionValueWrapper constructionValueWrapper, ConstructionType constructionType, WrapperContext context) {
         ObjectReferenceType resourceRef = constructionType.getResourceRef();
-        if (resourceRef == null) {
+        if (resourceRef == null || resourceRef.getOid() == null) {
             return;
         }
 

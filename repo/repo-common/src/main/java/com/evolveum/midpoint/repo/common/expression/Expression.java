@@ -67,7 +67,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
     final private PrismContext prismContext;
     final private ObjectResolver objectResolver;
     final private SecurityContextManager securityContextManager;
-    private List<ExpressionEvaluator<V,D>> evaluators = new ArrayList<>(1);
+    private final List<ExpressionEvaluator<V>> evaluators = new ArrayList<>(1);
 
     private static final Trace LOGGER = TraceManager.getTrace(Expression.class);
 
@@ -102,21 +102,21 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
         }
     }
 
-    private ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
+    private ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements, ExpressionFactory factory,
                                                      String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         if (evaluatorElements.isEmpty()) {
             throw new SchemaException("Empty evaluator list in "+contextDescription);
         }
-        JAXBElement<?> fistEvaluatorElement = evaluatorElements.iterator().next();
-        ExpressionEvaluatorFactory evaluatorFactory = factory.getEvaluatorFactory(fistEvaluatorElement.getName());
+        JAXBElement<?> firstEvaluatorElement = evaluatorElements.iterator().next();
+        ExpressionEvaluatorFactory evaluatorFactory = factory.getEvaluatorFactory(firstEvaluatorElement.getName());
         if (evaluatorFactory == null) {
-            throw new SchemaException("Unknown expression evaluator element "+fistEvaluatorElement.getName()+" in "+contextDescription);
+            throw new SchemaException("Unknown expression evaluator element "+firstEvaluatorElement.getName()+" in "+contextDescription);
         }
         return evaluatorFactory.createEvaluator(evaluatorElements, outputDefinition, expressionProfile, factory, contextDescription, task, result);
     }
 
-    private ExpressionEvaluator<V,D> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
+    private ExpressionEvaluator<V> createDefaultEvaluator(ExpressionFactory factory, String contextDescription,
                                                             Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         ExpressionEvaluatorFactory evaluatorFactory = factory.getDefaultEvaluatorFactory();
         if (evaluatorFactory == null) {
@@ -215,9 +215,10 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
             OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        for (ExpressionEvaluator<?,?> evaluator: evaluators) {
+        for (ExpressionEvaluator<?> evaluator: evaluators) {
             processEvaluatorProfile(contextWithProcessedVariables, evaluator);
 
+            //noinspection unchecked
             PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
 
             if (outputTriple != null) {
@@ -241,7 +242,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 
     }
 
-    private void processEvaluatorProfile(ExpressionEvaluationContext context, ExpressionEvaluator<?, ?> evaluator) throws SecurityViolationException {
+    private void processEvaluatorProfile(ExpressionEvaluationContext context, ExpressionEvaluator<?> evaluator) throws SecurityViolationException {
         ExpressionProfile expressionProfile = context.getExpressionProfile();
         if (expressionProfile == null) {
             context.setExpressionEvaluatorProfile(null);
@@ -407,9 +408,6 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
     }
 
     public String shortDebugDump() {
-        if (evaluators == null) {
-            return "null evaluators";
-        }
         if (evaluators.isEmpty()) {
             return "[]";
         }
@@ -417,7 +415,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
             return evaluators.iterator().next().shortDebugDump();
         }
         StringBuilder sb = new StringBuilder("[");
-        for (ExpressionEvaluator<V,D> evaluator: evaluators) {
+        for (ExpressionEvaluator<V> evaluator: evaluators) {
             sb.append(evaluator.shortDebugDump());
             sb.append(",");
         }

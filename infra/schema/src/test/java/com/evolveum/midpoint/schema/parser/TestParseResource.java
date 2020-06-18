@@ -149,10 +149,13 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
         PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
 
-//        // Compare schema container
-//
-//        PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
-//        PrismContainer<?> reparsedSchemaContainer = reparsedResource.findContainer(ResourceType.F_SCHEMA);
+        parseResourceSchema(reparsedResource);
+    }
+
+    private void parseResourceSchema(PrismObject<ResourceType> resource) throws SchemaException {
+        Element schemaElement = resource.asObjectable().getSchema().getDefinition().getSchema();
+        ResourceSchemaImpl.parse(schemaElement, getTestNameShort(), getPrismContext());
+        System.out.println("Schema parsed OK");
     }
 
     /**

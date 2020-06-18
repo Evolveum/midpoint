@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.common.LinkManager;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -584,5 +586,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
             consumer.accept(secondaryDelta);
         }
+    }
+
+    // preliminary implementation
+    public LinkTypeDefinitionType getSourceLinkTypeDefinition(@NotNull String linkTypeName, LinkManager linkManager,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        PrismObject<O> objectAny = getObjectAny();
+        return objectAny != null ? linkManager.getSourceLinkTypeDefinition(linkTypeName, objectAny, result) : null;
+    }
+
+    // preliminary implementation
+    public LinkTypeDefinitionType getTargetLinkTypeDefinition(@NotNull String linkTypeName, LinkManager linkManager,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        PrismObject<O> objectAny = getObjectAny();
+        return objectAny != null ? linkManager.getTargetLinkTypeDefinition(linkTypeName, objectAny, result) : null;
     }
 }

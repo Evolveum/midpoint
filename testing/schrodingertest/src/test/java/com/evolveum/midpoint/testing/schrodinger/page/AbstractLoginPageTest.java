@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
@@ -61,6 +63,7 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         basicPage.infrastructure();
         SystemPage systemPage = new SystemPage();
         PrismForm<InfrastructureTab> infrastructureForm = systemPage.infrastructureTab().form();
+        infrastructureForm.expandContainerPropertiesPanel("Infrastructure");
         infrastructureForm.showEmptyAttributes("Infrastructure");
         infrastructureForm.addAttributeValue("publicHttpUrlPattern", getConfiguration().getBaseUrl());
         File notificationFile = NOTIFICATION_FILE;

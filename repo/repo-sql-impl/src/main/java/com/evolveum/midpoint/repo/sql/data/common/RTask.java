@@ -1,11 +1,21 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import java.util.Arrays;
+import java.util.Set;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Persister;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -19,27 +29,15 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Arrays;
-import java.util.Set;
-
-/**
- * @author lazyman
- */
 @Entity
 @Table(name = "m_task", indexes = {
         @javax.persistence.Index(name = "iTaskObjectOid", columnList = "objectRef_targetOid"),
-        @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig")},
-        uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
+        @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig") },
+        uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = { "taskIdentifier" }))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RTask extends RObject<TaskType> implements OperationResultFull {
+public class RTask extends RObject implements OperationResultFull {
 
     private RPolyString nameCopy;
     private String taskIdentifier;
@@ -70,7 +68,7 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
     @CollectionTable(name = "m_task_dependent", joinColumns = {
             @JoinColumn(name = "task_oid", referencedColumnName = "oid")
     })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<String> getDependent() {
         return dependent;
     }
@@ -261,37 +259,40 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
     @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         RTask rTask = (RTask) o;
 
-        if (nameCopy != null ? !nameCopy.equals(rTask.nameCopy) : rTask.nameCopy != null) return false;
-        if (binding != rTask.binding) return false;
-        if (executionStatus != rTask.executionStatus) return false;
-        if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
-        if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null)
+        if (nameCopy != null ? !nameCopy.equals(rTask.nameCopy) : rTask.nameCopy != null) { return false; }
+        if (binding != rTask.binding) { return false; }
+        if (executionStatus != rTask.executionStatus) { return false; }
+        if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) { return false; }
+        if (lastRunFinishTimestamp != null ? !lastRunFinishTimestamp.equals(rTask.lastRunFinishTimestamp) : rTask.lastRunFinishTimestamp != null) {
             return false;
-        if (completionTimestamp != null ? !completionTimestamp.equals(rTask.completionTimestamp) : rTask.completionTimestamp != null)
+        }
+        if (completionTimestamp != null ? !completionTimestamp.equals(rTask.completionTimestamp) : rTask.completionTimestamp != null) {
             return false;
-        if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null)
+        }
+        if (lastRunStartTimestamp != null ? !lastRunStartTimestamp.equals(rTask.lastRunStartTimestamp) : rTask.lastRunStartTimestamp != null) {
             return false;
-        if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
-        if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
-        if (ownerRefTask != null ? !ownerRefTask.equals(rTask.ownerRefTask) : rTask.ownerRefTask != null) return false;
-        if (recurrence != rTask.recurrence) return false;
-        if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
+        }
+        if (node != null ? !node.equals(rTask.node) : rTask.node != null) { return false; }
+        if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) { return false; }
+        if (ownerRefTask != null ? !ownerRefTask.equals(rTask.ownerRefTask) : rTask.ownerRefTask != null) { return false; }
+        if (recurrence != rTask.recurrence) { return false; }
+        if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null) {
             return false;
+        }
         if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
-                rTask.threadStopAction != null) return false;
-        if (category != null ? !category.equals(rTask.category) : rTask.category != null) return false;
-        if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) return false;
-        if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) return false;
-        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
-            return false;
-        if (status != rTask.status) return false;
-        if (fullResult != null ? !Arrays.equals(fullResult, rTask.fullResult) : rTask.fullResult != null) return false;
+                rTask.threadStopAction != null) { return false; }
+        if (category != null ? !category.equals(rTask.category) : rTask.category != null) { return false; }
+        if (parent != null ? !parent.equals(rTask.parent) : rTask.parent != null) { return false; }
+        if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) { return false; }
+        if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null) { return false; }
+        if (status != rTask.status) { return false; }
+        if (fullResult != null ? !Arrays.equals(fullResult, rTask.fullResult) : rTask.fullResult != null) { return false; }
 
         return true;
     }
@@ -342,15 +343,6 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
-
-//        WfContextType wfc = jaxb.getApprovalContext();
-//        if (wfc != null) {
-//            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
-//            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRefOrClone(), repositoryContext.relationRegistry));
-//            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));
-//            repo.setWfStartTimestamp(wfc.getStartTimestamp());
-//            repo.setWfEndTimestamp(wfc.getEndTimestamp());
-//        }
 
         RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }

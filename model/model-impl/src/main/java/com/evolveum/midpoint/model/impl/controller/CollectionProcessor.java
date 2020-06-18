@@ -8,12 +8,17 @@ package com.evolveum.midpoint.model.impl.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +32,15 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
-import com.evolveum.midpoint.model.impl.lens.EvaluationOrderImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluationOrderImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,21 +58,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionStatsPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -88,10 +77,12 @@ public class CollectionProcessor {
     @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private SchemaHelper schemaHelper;
 
     public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (collectionView == null) {
-            collectionView = compileObjectCollectionView(collection, targetTypeClass, task, result);
+            collectionView = new CompiledObjectCollectionView();
+            compileObjectCollectionView(collectionView, null, collection.asObjectable(), targetTypeClass, task, result);
         }
         Collection<EvaluatedPolicyRule> evaluatedPolicyRules = new ArrayList<>();
         for (AssignmentType assignmentType : collection.asObjectable().getAssignment()) {
@@ -113,13 +104,22 @@ public class CollectionProcessor {
     @NotNull
     private EvaluatedPolicyRule evaluatePolicyRule(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, @NotNull AssignmentType assignmentType, @NotNull PolicyRuleType policyRuleType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         AssignmentPathImpl assignmentPath = new AssignmentPathImpl(prismContext);
-        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl(
-                collection.asObjectable(), "object collection "+collection, assignmentType, true, relationRegistry, prismContext);
-        assignmentPathSegment.setEvaluationOrder(EvaluationOrderImpl.zero(relationRegistry));
-        assignmentPathSegment.setEvaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry));
+        AssignmentPathSegmentImpl assignmentPathSegment = new AssignmentPathSegmentImpl.Builder()
+                .source(collection.asObjectable())
+                .sourceDescription("object collection "+collection)
+                .assignment(assignmentType)
+                .isAssignment(true)
+                .relationRegistry(relationRegistry)
+                .prismContext(prismContext)
+                .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
+                .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
+                .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
+                .pathToSourceValid(true)
+                .sourceRelativityMode(PlusMinusZero.ZERO)
+                .build();
         assignmentPath.add(assignmentPathSegment);
 
-        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, prismContext);
+        EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, null, prismContext);
 
         PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
         if (policyConstraints == null) {
@@ -207,25 +207,25 @@ public class CollectionProcessor {
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass();
-        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), task, result));
-        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), task, result));
+        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), collectionView.getOptions(), task, result));
+        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), collectionView.getDomainOptions(), task, result));
         return stats;
     }
 
 
-    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    private <O extends ObjectType> Integer countObjects(Class<O> targetTypeClass, ObjectFilter filter, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         if (filter == null) {
             return null;
         }
-        return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), null, task, result);
+        return modelService.countObjects(targetTypeClass, prismContext.queryFactory().createQuery(filter), options, task, result);
     }
 
-    public CompiledObjectCollectionView compileObjectCollectionView(PrismObject<ObjectCollectionType> collection,
+    public CompiledObjectCollectionView compileObjectCollectionView(CollectionRefSpecificationType collectionRef,
             Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
         CompiledObjectCollectionView view = new CompiledObjectCollectionView();
-        compileObjectCollectionView(view, collection.asObjectable(), targetTypeClass, task, result);
+        compileObjectCollectionView(view, collectionRef, targetTypeClass, task, result);
         return view;
     }
 
@@ -235,64 +235,82 @@ public class CollectionProcessor {
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
-        if (collectionRef == null) {
+        if (collectionRef != null) {
+            QName collectionRefType = collectionRef.getType();
+
+            // TODO: support more cases
+            if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
+                RefFilter archetypeFilter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
+                        .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
+                        .buildFilter();
+                archetypeFilter.setTargetTypeNullAsAny(true);
+                archetypeFilter.setRelationNullAsAny(true);
+
+                if (collectionSpec.getBaseCollectionRef() != null) {
+                    compileBaseCollectionSpec(archetypeFilter, existingView, null, collectionSpec.getBaseCollectionRef(), targetTypeClass, task, result);
+                } else {
+                    existingView.setFilter(archetypeFilter);
+                }
+
+                try {
+                    PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRef.getOid(), result);
+                    ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
+                    if (archetypePolicy != null) {
+                        DisplayType archetypeDisplay = archetypePolicy.getDisplay();
+                        if (archetypeDisplay != null) {
+                            DisplayType viewDisplay = existingView.getDisplay();
+                            if (viewDisplay == null) {
+                                viewDisplay = new DisplayType();
+                                existingView.setDisplay(viewDisplay);
+                            }
+                            MiscSchemaUtil.mergeDisplay(viewDisplay, archetypeDisplay);
+                        }
+                    }
+                } catch (ObjectNotFoundException e) {
+                    // We do not want to throw exception here. This code takes place at login time.
+                    // We do not want to stop all logins because of missing archetype.
+                    LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
+                }
+
+                return;
+            }
+
+            if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
+                ObjectCollectionType objectCollectionType;
+                try {
+                    // TODO: caching?
+                    objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view " + existingView.getViewIdentifier(), task, result);
+                } catch (ObjectNotFoundException e) {
+                    throw new ConfigurationException(e.getMessage(), e);
+                }
+                compileObjectCollectionView(existingView, collectionSpec.getBaseCollectionRef(), objectCollectionType,
+                        targetTypeClass, task, result);
+                return;
+            }
+
+            // TODO
+            throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
+
+        } else if (collectionSpec.getFilter() != null) {
+            SearchFilterType filter = collectionSpec.getFilter();
+            ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
+
+            CollectionRefSpecificationType baseCollectionSpec = collectionSpec.getBaseCollectionRef();
+            if (baseCollectionSpec == null) {
+                existingView.setFilter(objectFilter);
+            } else {
+                compileBaseCollectionSpec(objectFilter, existingView, null, baseCollectionSpec, targetTypeClass, task, result);
+            }
+        } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
             return;
         }
-        QName collectionRefType = collectionRef.getType();
-
-        // TODO: support more cases
-        if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-            RefFilter filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
-                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
-                    .buildFilter();
-            filter.setTargetTypeNullAsAny(true);
-            filter.setRelationNullAsAny(true);
-            existingView.setFilter(filter);
-
-            try {
-                PrismObject<ArchetypeType> archetype = archetypeManager.getArchetype(collectionRef.getOid(), result);
-                ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-                if (archetypePolicy != null) {
-                    DisplayType archetypeDisplay = archetypePolicy.getDisplay();
-                    if (archetypeDisplay != null) {
-                        DisplayType viewDisplay = existingView.getDisplay();
-                        if (viewDisplay == null) {
-                            viewDisplay = new DisplayType();
-                            existingView.setDisplay(viewDisplay);
-                        }
-                        MiscSchemaUtil.mergeDisplay(viewDisplay, archetypeDisplay);
-                    }
-                }
-            } catch (ObjectNotFoundException e) {
-                // We do not want to throw exception here. This code takes place at login time.
-                // We do not want to stop all logins because of missing archetype.
-                LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
-            }
-
-            return;
-        }
-
-        if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
-            ObjectCollectionType objectCollectionType;
-            try {
-                // TODO: caching?
-                objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewIdentifier(), task, result);
-            } catch (ObjectNotFoundException e) {
-                throw new ConfigurationException(e.getMessage(), e);
-            }
-            compileObjectCollectionView(existingView, objectCollectionType, targetTypeClass, task, result);
-            return;
-        }
-
-        // TODO
-        throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
     }
 
-    private void compileObjectCollectionView(CompiledObjectCollectionView existingView, ObjectCollectionType objectCollectionType,
-            Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
-            ObjectNotFoundException {
+    private void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType baseCollectionSpec,
+            ObjectCollectionType objectCollectionType, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
 
         if (targetTypeClass == null) {
             if (existingView.getObjectType() == null) {
@@ -322,6 +340,7 @@ public class CollectionProcessor {
                 } else {
                     existingView.setDomainFilter(domainView.getFilter());
                 }
+                existingView.setDomainOptions(domainView.getOptions());
             }
         }
 
@@ -333,25 +352,174 @@ public class CollectionProcessor {
         } else {
             collectionFilter = null;
         }
-        CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
-        if (baseCollectionSpec == null) {
+        List<SelectorOptions<GetOperationOptions>> collectionOptions = MiscSchemaUtil.optionsTypeToOptions(objectCollectionType.getGetOptions(), prismContext);
+        CollectionRefSpecificationType baseCollectionSpecFromCollection = objectCollectionType.getBaseCollection();
+        if (baseCollectionSpecFromCollection == null && baseCollectionSpec == null) {
             existingView.setFilter(collectionFilter);
+            existingView.setOptions(collectionOptions);
         } else {
-            compileObjectCollectionView(existingView, baseCollectionSpec, targetTypeClass, task, result);
-            ObjectFilter baseFilter = existingView.getFilter();
-            ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
-            existingView.setFilter(combinedFilter);
+            if (baseCollectionSpecFromCollection == null || baseCollectionSpec == null) {
+                compileBaseCollectionSpec(collectionFilter, existingView, collectionOptions,
+                        baseCollectionSpec == null ? baseCollectionSpecFromCollection : baseCollectionSpec, targetTypeClass, task, result);
+            } else {
+                compileObjectCollectionView(existingView, baseCollectionSpecFromCollection, targetTypeClass, task, result);
+                ObjectFilter baseFilterFromCollection = existingView.getFilter();
+                Collection<SelectorOptions<GetOperationOptions>> baseOptionFromCollection = existingView.getOptions();
+                compileObjectCollectionView(existingView, baseCollectionSpec, targetTypeClass, task, result);
+                ObjectFilter baseFilter = existingView.getFilter();
+                ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilterFromCollection, baseFilter, prismContext);
+                combinedFilter = ObjectQueryUtil.filterAnd(combinedFilter, collectionFilter, prismContext);
+                existingView.setFilter(combinedFilter);
+                GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder().setFrom(baseOptionFromCollection);
+                optionsBuilder.mergeFrom(existingView.getOptions());
+                optionsBuilder.mergeFrom(collectionOptions);
+                existingView.setOptions(optionsBuilder.build());
+            }
         }
+
+        compileView(existingView, objectCollectionType.getDefaultView(), false);
 
     }
 
+    private void compileBaseCollectionSpec(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
+            CollectionRefSpecificationType baseCollectionRef, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
+        ObjectFilter baseFilter = existingView.getFilter();
+        ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, objectFilter, prismContext);
+        existingView.setFilter(combinedFilter);
+        GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder().setFrom(existingView.getOptions());
+        optionsBuilder.mergeFrom(options);
+        existingView.setOptions(optionsBuilder.build());
+    }
+
+    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        compileView(existingView, objectListViewType, true);
+    }
+
+    private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        if (objectListViewType != null) {
+            compileObjectType(existingView, objectListViewType);
+            compileActions(existingView, objectListViewType);
+            compileAdditionalPanels(existingView, objectListViewType, replaceIfExist);
+            compileColumns(existingView, objectListViewType);
+            compileDisplay(existingView, objectListViewType, replaceIfExist);
+            compileDistinct(existingView, objectListViewType, replaceIfExist);
+            compileSorting(existingView, objectListViewType, replaceIfExist);
+            compileCounting(existingView, objectListViewType, replaceIfExist);
+            compileDisplayOrder(existingView, objectListViewType, replaceIfExist);
+            compileSearchBox(existingView, objectListViewType, replaceIfExist);
+            compileRefreshInterval(existingView, objectListViewType, replaceIfExist);
+        }
+    }
+
     @Nullable
-    private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+    public ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();      // do we want to put any variables here?
         return ExpressionUtil.evaluateFilterExpressions(filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
                 expressionFactory, prismContext, "collection filter", task, result);
+    }
+
+    private void compileObjectType(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        if (existingView.getObjectType() == null) {
+            existingView.setObjectType(objectListViewType.getType());
+        }
+    }
+
+    private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        List<GuiActionType> newActions = objectListViewType.getAction();
+        for (GuiActionType newAction: newActions) {
+            // TODO: check for action duplication/override
+            existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
+        }
+
+    }
+
+    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
+        if (newAdditionalPanels == null) {
+            return;
+        }
+        // TODO: later: merge additional panel definitions
+        if (existingView.getAdditionalPanels() == null || replaceIfExist) {
+            existingView.setAdditionalPanels(newAdditionalPanels);
+        }
+    }
+
+    private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        List<GuiObjectColumnType> newColumns = objectListViewType.getColumn();
+        if (newColumns == null || newColumns.isEmpty()) {
+            return;
+        }
+        // Not very efficient algorithm. But must do for now.
+        List<GuiObjectColumnType> existingColumns = existingView.getColumns();
+        existingColumns.addAll(newColumns);
+        List<GuiObjectColumnType> orderedList = MiscSchemaUtil.orderCustomColumns(existingColumns);
+        existingColumns.clear();
+        existingColumns.addAll(orderedList);
+    }
+
+    private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        DisplayType newDisplay = objectListViewType.getDisplay();
+        if (newDisplay == null) {
+            return;
+        }
+        if (existingView.getDisplay() == null) {
+            existingView.setDisplay(newDisplay);
+        } else if (replaceIfExist) {
+            MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
+        }
+    }
+
+    private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        DistinctSearchOptionType newDistinct = objectListViewType.getDistinct();
+        if (newDistinct == null) {
+            return;
+        }
+        if (existingView.getDistinct() == null || replaceIfExist) {
+            existingView.setDistinct(newDistinct);
+        }
+    }
+
+    private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Boolean newDisableSorting = objectListViewType.isDisableSorting();
+        if (newDisableSorting != null && (existingView.getDisableSorting() == null || replaceIfExist)) {
+            existingView.setDisableSorting(newDisableSorting);
+        }
+    }
+
+    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Integer refreshInterval = objectListViewType.getRefreshInterval();
+        if (refreshInterval != null && (existingView.getRefreshInterval() == null || replaceIfExist)) {
+            existingView.setRefreshInterval(refreshInterval);
+        }
+    }
+
+    private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        Boolean newDisableCounting = objectListViewType.isDisableCounting();
+        if (newDisableCounting != null && (existingView.isDisableCounting() == null || replaceIfExist)) {
+            existingView.setDisableCounting(newDisableCounting);
+        }
+    }
+
+    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist){
+        Integer newDisplayOrder = objectListViewType.getDisplayOrder();
+        if (newDisplayOrder != null && (existingView.getDisplayOrder() == null || replaceIfExist)){
+            existingView.setDisplayOrder(newDisplayOrder);
+        }
+    }
+
+    private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, boolean replaceIfExist) {
+        SearchBoxConfigurationType newSearchBoxConfig = objectListViewType.getSearchBoxConfiguration();
+        if (newSearchBoxConfig == null) {
+            return;
+        }
+        // TODO: merge
+        if (existingView.getSearchBoxConfiguration() == null || replaceIfExist) {
+            existingView.setSearchBoxConfiguration(newSearchBoxConfig);
+        }
     }
 
 }

@@ -105,7 +105,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
         }
     }
 
-    List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {
+    List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<? extends EvaluatedPolicyRule> rules) {
         return rules.stream()
                     .filter(r -> r.isTriggered() && r.containsEnabledAction(ApprovalPolicyActionType.class))
                     .collect(Collectors.toList());

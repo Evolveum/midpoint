@@ -14,14 +14,20 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -183,7 +189,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 if (searchByName != null) {
                     for (SearchItem item : search.getItems()) {
                         if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                            item.setValue(new SearchValue(searchByName));
                         }
                     }
                 }
@@ -223,7 +229,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 //    }
 
     protected Search createSearch() {
-        return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
+        return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
+                null, getPageBase(), true);
     }
 
     private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -336,27 +343,31 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         }
         IColumn<SelectableBean<O>, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
-            if (customColumn.getPath() == null) {
+            if (customColumn.getPath() == null && customColumn.getExpression() == null) {
                 continue;
             }
-            ItemPath columnPath = customColumn.getPath().getItemPath();
+            ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
-            ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
-                    .findItemDefinition(columnPath);
-            if (itemDefinition == null) {
-                LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
-                continue;
+            ExpressionType expression = customColumn.getExpression();
+            if (columnPath != null) {
+                ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
+                        .findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
+                        .findItemDefinition(columnPath);
+                if (itemDefinition == null && expression == null) {
+                    LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
+                    continue;
+                }
             }
 
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel =
                         customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
                                 Model.of(customColumn.getDisplay().getLabel().getOrig()) :
-                                createStringResource(getItemDisplayName(customColumn));
+                                (customColumn.getPath() != null ? createStringResource(getItemDisplayName(customColumn)) :
+                                        Model.of(customColumn.getName()));
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn.getPath().toString());
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
                 } else {
                     column = new AbstractExportableColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
                         private static final long serialVersionUID = 1L;
@@ -373,7 +384,31 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                             if (value == null) {
                                 return Model.of("");
                             }
-                            Item<?, ?> item = value.asPrismContainerValue().findItem(columnPath);
+                            Item<?, ?> item = null;
+                            if (columnPath != null) {
+                                item = value.asPrismContainerValue().findItem(columnPath);
+                            }
+                            Item object = value.asPrismObject();
+                            if (item != null) {
+                                object = item;
+                            }
+                            if (expression != null) {
+                                Task task = getPageBase().createSimpleTask("evaluate column expression");
+                                try {
+                                    ExpressionVariables expressionVariables = new ExpressionVariables();
+                                    expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
+                                    String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
+                                            MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
+                                            task, task.getResult()).iterator().next();
+                                    return Model.of(stringValue);
+                                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                                        | ConfigurationException | SecurityViolationException e) {
+                                    LOGGER.error("Couldn't execute expression for name column");
+                                    OperationResult result = task.getResult();
+                                    OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+                                    return getPageBase().createStringResource(props.getStatusLabelKey());
+                                }
+                            }
                             if (item != null) {
                                 if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
                                         item.getDefinition().getValueEnumerationRef().getOid() != null){
@@ -439,7 +474,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(getPageBase());
         columns.add(iconColumn);
 
-        IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
+        IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null, null);
         columns.add(nameColumn);
 
         List<IColumn<SelectableBean<O>, String>> others = createColumns();
@@ -501,6 +536,20 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 return isCountingEnabled();
             }
         };
+        provider.setOptions(createOptions(options));
+        setDefaultSorting(provider);
+        provider.setQuery(getQuery());
+
+        return provider;
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> createOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
+                && !getObjectCollectionView().getOptions().isEmpty()) {
+            return getObjectCollectionView().getOptions();
+        }
+
         if (options == null){
             if (ResourceType.class.equals(type.getClassDefinition())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -510,19 +559,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 GetOperationOptions root = SelectorOptions.findRootOptions(options);
                 root.setNoFetch(Boolean.TRUE);
             }
-            provider.setOptions(options);
         }
-        setDefaultSorting(provider);
-        provider.setQuery(getQuery());
-
-        return provider;
+        return options;
     }
 
     protected String getTableIdKeyValue(){
         if (tableId == null) {
             return null;
         }
-        if (!isCollectionViewPanel()) {
+        if (!isCollectionViewPanelForCompiledView()) {
             return tableId.name();
         }
         return tableId.name() + "." + getCollectionNameParameterValue().toString();
@@ -614,7 +659,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected String getStorageKey(){
 
-        if (isCollectionViewPanel()) {
+        if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = getCollectionNameParameterValue();
             String collectionNameValue = collectionName != null ? collectionName.toString() : "";
             return WebComponentUtil.getObjectListPageStorageKey(collectionNameValue);
@@ -678,7 +723,42 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
     }
 
+    private CompiledObjectCollectionView dashboardWidgetView;
+
     protected CompiledObjectCollectionView getObjectCollectionView() {
+        if (dashboardWidgetView != null) {
+            return dashboardWidgetView;
+        }
+        PageParameters parameters = getPageBase().getPageParameters();
+        String dashboardOid = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID).toString();
+        String dashboardWidgetName = parameters == null ? null : parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME).toString();
+
+        if (!StringUtils.isEmpty(dashboardOid) && !StringUtils.isEmpty(dashboardWidgetName)) {
+            Task task = getPageBase().createSimpleTask("Create view from dashboard");
+            @NotNull DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
+            if (dashboard != null) {
+                for (DashboardWidgetType widget :dashboard.getWidget()) {
+                    if (widget.getIdentifier().equals(dashboardWidgetName)
+                            && widget.getData() != null && widget.getData().getCollection() != null) {
+                        CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
+                        try {
+                            @NotNull CompiledObjectCollectionView compiledView = getPageBase().getModelInteractionService()
+                                    .compileObjectCollectionView(collectionSpec, null, task, task.getResult());
+                            if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
+                                getPageBase().getModelInteractionService().applyView(compiledView, widget.getPresentation().getView());
+                            }
+                            compiledView.setCollection(widget.getData().getCollection());
+                            dashboardWidgetView = compiledView;
+                            return dashboardWidgetView;
+                        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException
+                                | ObjectNotFoundException e) {
+                            LOGGER.error("Couldn't compile collection " + collectionSpec, e);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         String collectionName = getCollectionNameParameterValue().toString();
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
@@ -688,8 +768,22 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
-    protected boolean isCollectionViewPanel() {
+    protected boolean isCollectionViewPanelForWidget() {
+        PageParameters parameters = getPageBase().getPageParameters();
+        if (parameters != null) {
+            StringValue widget = parameters.get(PageBase.PARAMETER_DASHBOARD_WIDGET_NAME);
+            StringValue dashboardOid = parameters.get(PageBase.PARAMETER_DASHBOARD_TYPE_OID);
+            return widget != null && widget.toString() != null && dashboardOid != null && dashboardOid.toString() != null;
+        }
+        return false;
+    }
+
+    protected boolean isCollectionViewPanelForCompiledView() {
         return getCollectionNameParameterValue() != null && getCollectionNameParameterValue().toString() != null;
+    }
+
+    protected boolean isCollectionViewPanel() {
+        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
     }
 
 
@@ -854,7 +948,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return (IColumn) ColumnUtils.createIconColumn(getPageBase());
     }
 
-    protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
+    protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
+            ExpressionType expression);
 
     protected abstract List<IColumn<SelectableBean<O>, String>> createColumns();
 
@@ -906,5 +1001,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     public void setManualRefreshEnabled(Boolean manualRefreshEnabled) {
         this.manualRefreshEnabled = manualRefreshEnabled;
+    }
+
+    protected LoadableModel<Search> getSearchModel() {
+        return searchModel;
     }
 }

@@ -21,34 +21,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
- * @author Radovan Semancik
+ * Always returns zero set with literal value (values) specified in the evaluator. Plus and minus sets are empty.
  *
+ * @author Radovan Semancik
  */
-public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> implements ExpressionEvaluator<V,D> {
+public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> implements ExpressionEvaluator<V> {
 
     private final QName elementName;
     private final PrismValueDeltaSetTriple<V> outputTriple;
 
-    /**
-     * @param deltaSetTriple
-     */
-    public LiteralExpressionEvaluator(QName elementName, PrismValueDeltaSetTriple<V> outputTriple) {
+    LiteralExpressionEvaluator(QName elementName, PrismValueDeltaSetTriple<V> outputTriple) {
         this.elementName = elementName;
         this.outputTriple = outputTriple;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
         ExpressionUtil.checkEvaluatorProfileSimple(this, context);
-
-        if (outputTriple == null) {
-            return null;
-        }
-        return outputTriple.clone();
+        return outputTriple != null ? outputTriple.clone() : null;
     }
 
     @Override
@@ -56,13 +47,8 @@ public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefin
         return elementName;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "literal: "+outputTriple;
     }
-
-
 }

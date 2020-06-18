@@ -22,7 +22,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -2036,7 +2036,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         //WHEN
         when();
-        recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
+        recomputeUser(USER_DONALD_OID, executeOptions().reconcile(), task, parentResult);
 
         //THEN
         then();
@@ -2103,7 +2103,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //THEN
         openDJController.assumeRunning();
 
-        recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
+        recomputeUser(USER_DONALD_OID, executeOptions().reconcile(), task, parentResult);
 
         assertModelShadow(shadowOid)
                 .attributes()
@@ -2509,7 +2509,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //        modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
         ObjectDelta<UserType> emptyAliceDelta = prismContext.deltaFactory().object()
                 .createEmptyDelta(UserType.class, USER_ALICE_OID, ChangeType.MODIFY);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyAliceDelta), ModelExecuteOptions.createReconcile(), task, parentResult);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyAliceDelta), executeOptions().reconcile(), task, parentResult);
         accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 
         //and then try to get account -> result is that the modifications will be applied to the account

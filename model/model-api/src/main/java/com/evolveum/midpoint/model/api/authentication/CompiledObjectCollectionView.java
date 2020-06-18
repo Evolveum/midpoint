@@ -8,9 +8,14 @@ package com.evolveum.midpoint.model.api.authentication;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,14 +25,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
 
 /**
  * @author semancik
@@ -38,7 +35,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private static final long serialVersionUID = 1L;
 
     private QName objectType;
-    private final String viewIdentifier;
+    private String viewIdentifier;
 
     private List<GuiActionType> actions = new ArrayList<>();
     private CollectionRefSpecificationType collection;
@@ -53,6 +50,8 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private ObjectFilter domainFilter;
     private Integer displayOrder;
     private Integer refreshInterval;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
+    private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
 
     // Only used to construct "default" view definition. May be not needed later on.
     public CompiledObjectCollectionView() {
@@ -214,6 +213,22 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return refreshInterval;
     }
 
+    public void setOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        this.options = options;
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
+        return options;
+    }
+
+    public void setDomainOptions(Collection<SelectorOptions<GetOperationOptions>> domainOptions) {
+        this.domainOptions = domainOptions;
+    }
+
+    public Collection<SelectorOptions<GetOperationOptions>> getDomainOptions() {
+        return domainOptions;
+    }
+
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(CompiledObjectCollectionView.class, indent);
@@ -230,7 +245,29 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "displayOrder", displayOrder, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "refreshInterval", refreshInterval, indent + 1);
         return sb.toString();
+    }
+
+    public GuiObjectListViewType toGuiObjectListViewType() {
+        GuiObjectListViewType viewType = new GuiObjectListViewType();
+        viewType.setIdentifier(getViewIdentifier());
+        viewType.setType(getObjectType());
+        viewType.setAdditionalPanels(getAdditionalPanels());
+        viewType.setDisplay(getDisplay());
+        for (GuiObjectColumnType column : getColumns()) {
+            viewType.column(column.clone());
+        }
+        for (GuiActionType action : getActions()) {
+            viewType.action(action.clone());
+        }
+        viewType.setDistinct(getDistinct());
+        viewType.setDisableSorting(isDisableSorting());
+        viewType.setDisableCounting(isDisableCounting());
+        viewType.setSearchBoxConfiguration(getSearchBoxConfiguration());
+        viewType.setDisplayOrder(getDisplayOrder());
+        viewType.setRefreshInterval(getRefreshInterval());
+        return viewType;
     }
 
 }

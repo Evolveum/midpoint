@@ -29,6 +29,7 @@ import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -132,15 +133,20 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     @Override
     public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        task.getUpdatedTaskObject().asObjectable().getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
+        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+
         if (!reportService.isAuthorizedToRunReport(object, task, parentResult)) {
             LOGGER.error("User is not authorized to run report {}", object);
             throw new SecurityViolationException("Not authorized");
         }
 
-        if(isDashboarReport(object)) {
-            task.setHandlerUri(ReportHTMLCreateTaskHandler.REPORT_HTML_CREATE_TASK_URI);
-        } else {
+        if(isJasperReport(object)) {
             task.setHandlerUri(ReportJasperCreateTaskHandler.REPORT_CREATE_TASK_URI);
+        } else {
+            task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
         }
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
@@ -160,9 +166,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
 
 
-    private boolean isDashboarReport(PrismObject<ReportType> object) {
-        if(object.getRealValue() != null && object.getRealValue().getReportEngine() != null
-                && object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+    private boolean isJasperReport(PrismObject<ReportType> object) {
+        if(object.getRealValue() != null && object.getRealValue().getJasper() != null) {
             return true;
         }
         return false;
@@ -175,7 +180,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      *
      * @param context
      * @param task
-     * @param result
+     * @param parentResult
      * @return
      * @throws UnsupportedEncodingException
      */
@@ -228,11 +233,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              JasperDesign jasperDesign = null;
 
             byte[] reportTemplateBase64;
-             if (jasperConfig == null) {
-                 reportTemplateBase64 = reportType.getTemplate();
-             } else {
-                 reportTemplateBase64 = jasperConfig.getTemplate();
-             }
+            reportTemplateBase64 = jasperConfig.getTemplate();
 
              if (reportTemplateBase64 == null){
                  String message = "Report template must not be null";

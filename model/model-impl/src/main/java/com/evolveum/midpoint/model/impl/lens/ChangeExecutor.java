@@ -23,6 +23,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -1743,21 +1744,11 @@ public class ChangeExecutor {
     }
 
     private boolean evaluateScriptCondition(OperationProvisioningScriptType script,
-            ExpressionVariables variables, ExpressionProfile expressionProfile, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionType condition = script.getCondition();
-        if (condition == null) {
-            return true;
-        }
-
-        PrismPropertyValue<Boolean> conditionOutput = ExpressionUtil.evaluateCondition(variables, condition, expressionProfile, expressionFactory, " condition for provisioning script ", task, result);
-        if (conditionOutput == null) {
-            return true;
-        }
-
-        Boolean conditionOutputValue = conditionOutput.getValue();
-
-        return BooleanUtils.isNotFalse(conditionOutputValue);
-
+            ExpressionVariables variables, ExpressionProfile expressionProfile, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return ExpressionUtil.evaluateConditionDefaultTrue(variables, script.getCondition(), expressionProfile,
+                expressionFactory, " condition for provisioning script ", task, result);
     }
 
     private void evaluateScriptArgument(ProvisioningScriptArgumentType argument,

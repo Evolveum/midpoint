@@ -13,6 +13,8 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportTypeType;
+
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 
@@ -80,9 +82,9 @@ public class ReportTypeUtil {
         PrismContainer xmlSchema;
         PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
         if (jasper != null) {
-            xmlSchema = jasper.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+            xmlSchema = jasper.findContainer(JasperReportEngineConfigurationType.F_CONFIGURATION_SCHEMA);
         } else {
-            xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+            xmlSchema = report.findContainer(JasperReportEngineConfigurationType.F_CONFIGURATION_SCHEMA);
         }
         Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
         if (xmlSchemaElement == null) {
@@ -98,7 +100,7 @@ public class ReportTypeUtil {
             return null;
         }
 
-        QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
+        QName configContainerQName = new QName(schema.getNamespace(), JasperReportEngineConfigurationType.F_CONFIGURATION.getLocalPart());
         return schema.findContainerDefinitionByElementName(configContainerQName);
     }
 
@@ -108,16 +110,16 @@ public class ReportTypeUtil {
         PrismContainer<ReportConfigurationType> configuration;
         PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
         if (jasper != null) {
-            configuration = jasper.findContainer(ReportType.F_CONFIGURATION);
+            configuration = jasper.findContainer(JasperReportEngineConfigurationType.F_CONFIGURATION);
         } else {
-            configuration = report.findContainer(ReportType.F_CONFIGURATION);
+            configuration = report.findContainer(JasperReportEngineConfigurationType.F_CONFIGURATION);
         }
         if (configuration == null) {
             //nothing to apply definitions on
             return;
         }
 
-        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+        PrismContainer xmlSchema = report.findContainer(JasperReportEngineConfigurationType.F_CONFIGURATION_SCHEMA);
         Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
         if (xmlSchemaElement == null) {
             //no schema definition available

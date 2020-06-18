@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -1195,7 +1195,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+                executeOptions().raw(), task, result, ActivationStatusType.DISABLED);
 
         // WHEN
         when();
@@ -1220,7 +1220,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.ENABLED);
+                executeOptions().raw(), task, result, ActivationStatusType.ENABLED);
 
         // WHEN
         when();

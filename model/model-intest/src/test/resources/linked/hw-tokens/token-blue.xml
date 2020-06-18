@@ -1,0 +1,13 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="0e5b7304-ea5c-438e-84d1-2b0ce40517ce">
+    <assignment>
+        <targetRef oid="21575364-d869-4b96-ac3f-b7b26e0e8540" type="ArchetypeType"/> <!-- hw-token -->
+    </assignment>
+</service>

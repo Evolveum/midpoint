@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.quartz.JobKey;
@@ -1475,6 +1476,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     }
 
     @Override
+    @NotNull
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 
@@ -1551,6 +1553,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 //        return repositoryService.countObjects(NodeType.class, query, result);
 //    }
 
+    @NotNull
     private SearchResultList<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, NodeType.class, true, result);
@@ -1616,7 +1619,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
     }
 
-    private SearchResultList<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private @NotNull SearchResultList<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
         ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
 

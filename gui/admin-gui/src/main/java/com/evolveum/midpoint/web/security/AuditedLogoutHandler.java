@@ -89,9 +89,13 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        String sessionId = request.getRequestedSessionId();
         if (authentication instanceof MidpointAuthentication
                 && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
             channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
+            if (((MidpointAuthentication) authentication).getSessionId() != null) {
+                sessionId = ((MidpointAuthentication) authentication).getSessionId();
+            }
         }
 
         Task task = taskManager.createTaskInstance();
@@ -110,7 +114,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         record.setHostIdentifier(request.getLocalName());
         record.setRemoteHostAddress(request.getLocalAddr());
         record.setNodeIdentifier(taskManager.getNodeId());
-        record.setSessionIdentifier(request.getRequestedSessionId());
+        record.setSessionIdentifier(sessionId);
 
         auditService.audit(record, task);
     }

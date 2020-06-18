@@ -306,8 +306,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -325,11 +325,6 @@
             <artifactId>slf4j-api</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
@@ -339,6 +334,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency> <!-- not sure why this must be in compile scope -->
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
         </dependency>
     </dependencies>
 

@@ -152,6 +152,15 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ARCHETYPE_QNAME = new QName(NS_AUTHORIZATION_UI, "archetype");
     public static final String AUTZ_UI_ARCHETYPE_URL = NS_AUTHORIZATION_UI + "#archetype";
 
+    public static final QName AUTZ_UI_OBJECT_COLLECTIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollectionsAll");
+    public static final String AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL = NS_AUTHORIZATION_UI + "#objectCollectionsAll";
+
+    public static final QName AUTZ_UI_OBJECT_COLLECTIONS_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollections");
+    public static final String AUTZ_UI_OBJECT_COLLECTIONS_URL = NS_AUTHORIZATION_UI + "#objectCollections";
+
+    public static final QName AUTZ_UI_OBJECT_COLLECTION_QNAME = new QName(NS_AUTHORIZATION_UI, "objectCollection");
+    public static final String AUTZ_UI_OBJECT_COLLECTION_URL = NS_AUTHORIZATION_UI + "#objectCollection";
+
     public static final QName AUTZ_UI_VALUE_POLICIES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePoliciesAll");
     public static final String AUTZ_UI_VALUE_POLICIES_ALL_URL = NS_AUTHORIZATION_UI + "#valuePoliciesAll";
 
@@ -491,9 +500,16 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_TASKS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "tasksView");
     public static final String AUTZ_UI_TASKS_VIEW_URL = NS_AUTHORIZATION_UI + "#tasksView";
 
+    public static final QName AUTZ_UI_REPORTS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "reportsView");
+    public static final String AUTZ_UI_REPORTS_VIEW_URL = NS_AUTHORIZATION_UI + "#reportsView";
+
     //ui authorization for CSV export button (will be applied everywhere over mp)
     public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
     public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
+
+    //ui authorization for create report button under object list table (will be applied everywhere over mp)
+    public static final QName AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCreateReportButton");
+    public static final String AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CREATE_REPORT_BUTTON_QNAME);
 
     //authorization for spring boot actuator endpoints
     public static final QName AUTZ_ACTUATOR_ALL_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "all");

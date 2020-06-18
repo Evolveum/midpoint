@@ -781,8 +781,8 @@ public class ValuePolicyProcessor {
         }
         variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, objectDef);
 
-        PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionProfile, expressionFactory, shortDesc, task, result);
-        return ExpressionUtil.getBooleanConditionOutput(output);
+        return ExpressionUtil.evaluateConditionDefaultFalse(variables, checkExpression,
+                expressionProfile, expressionFactory, shortDesc, task, result);
     }
 
     /**

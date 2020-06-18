@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperExportType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -53,7 +55,7 @@ public class UserReportConfigPanel extends BasePanel<UserReportDto>{
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
-        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(ExportType.class);
+        IModel choices = WebComponentUtil.createReadonlyModelFromEnum(JasperExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
                 PropertyModel<ExportType>(getModel(), UserReportDto.F_EXPORT_TYPE), choices, renderer,

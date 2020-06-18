@@ -117,7 +117,6 @@
               xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                     xmlns:xsd="http://www.w3.org/2001/XMLSchema">
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 

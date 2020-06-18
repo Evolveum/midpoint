@@ -8,15 +8,20 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
+
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 
 /**
  * @author mederly
@@ -97,5 +102,11 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
             }
         }
         return rv;
+    }
+
+    @Override
+    public Collection<? extends PrismObject<?>> getTargetObjects() {
+        // conflicting target should be non-empty ... but who knows for sure?
+        return conflictingTarget != null ? singleton(conflictingTarget.asPrismObject()) : emptySet();
     }
 }

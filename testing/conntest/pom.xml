@@ -130,8 +130,8 @@
         </dependency>
 
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -165,6 +165,23 @@
             <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-powershell</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- connector-powershell transitively uses CXF deps where we want some exclude -->
+        <dependency>
+            <groupId>io.cloudsoft.windows</groupId>
+            <artifactId>winrm4j-client</artifactId>
+            <version>0.4.0.e5</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-transports-http-hc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.polygon</groupId>

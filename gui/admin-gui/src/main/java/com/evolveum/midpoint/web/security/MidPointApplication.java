@@ -7,44 +7,15 @@
 
 package com.evolveum.midpoint.web.security;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.*;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
-
+import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ConverterLocator;
-import org.apache.wicket.IConverterLocator;
-import org.apache.wicket.ISessionListener;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.Session;
+import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -72,7 +43,7 @@ import org.apache.wicket.serialize.java.JavaSerializer;
 import org.apache.wicket.settings.ApplicationSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
-import org.apache.wicket.util.lang.Bytes;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,11 +66,7 @@ import com.evolveum.midpoint.gui.impl.converter.CleanupPoliciesTypeConverter;
 import com.evolveum.midpoint.gui.impl.converter.DurationConverter;
 import com.evolveum.midpoint.gui.impl.converter.PolyStringConverter;
 import com.evolveum.midpoint.gui.impl.converter.QueryTypeConverter;
-import com.evolveum.midpoint.model.api.ModelAuditService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.TaskService;
-import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -109,6 +76,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -127,15 +95,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.error.PageError401;
-import com.evolveum.midpoint.web.page.error.PageError403;
-import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.page.error.PageError410;
+import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
@@ -149,11 +114,6 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  * @author lazyman
  */
 public class MidPointApplication extends AuthenticatedWebApplication implements ApplicationContextAware {
-
-    /**
-     * Max. photo size for user/jpegPhoto
-     */
-    public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
     public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
 
@@ -173,7 +133,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
         File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
 
-        Resource[] localeDescriptorResources = new Resource[]{
+        Resource[] localeDescriptorResources = new Resource[] {
                 new FileSystemResource(file),
                 new ClassPathResource(LOCALIZATION_DESCRIPTOR)
         };
@@ -185,7 +145,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
             }
 
             try {
-                LOGGER.debug("Found localization descriptor {}.", new Object[]{resource.getURL()});
+                LOGGER.debug("Found localization descriptor {}.", new Object[] { resource.getURL() });
                 locales = loadLocaleDescriptors(resource);
 
                 break;
@@ -276,7 +236,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
         getJavaScriptLibrarySettings().setJQueryReference(
                 new PackageResourceReference(MidPointApplication.class,
-                        "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
+                        "../../../../../webjars/AdminLTE/2.4.18/bower_components/jquery/dist/jquery.min.js")); //todo no jquery.js is found
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this, applicationContext, true));
 
@@ -346,8 +306,6 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 attributes.getExtraParameters().put(parameterName, value);
 
             }
-
-
 
         });
 
@@ -473,7 +431,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     }
 
     private void initializeDevelopmentSerializers() {
-        JavaSerializer javaSerializer = new JavaSerializer( getApplicationKey() ) {
+        JavaSerializer javaSerializer = new JavaSerializer(getApplicationKey()) {
             @Override
             protected ObjectOutputStream newObjectOutputStream(OutputStream out) throws IOException {
                 IObjectChecker checker1 = new MidPointObjectChecker();
@@ -482,7 +440,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
                 return new CheckingObjectOutputStream(out, checker1, checker3);
             }
         };
-        getFrameworkSettings().setSerializer( javaSerializer );
+        getFrameworkSettings().setSerializer(javaSerializer);
 
     }
 
@@ -526,7 +484,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return taskManager;
     }
 
-    public LocalizationService getLocalizationService(){
+    public LocalizationService getLocalizationService() {
         return localizationService;
     }
 
@@ -651,78 +609,9 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         return securityContextManager;
     }
 
-    private static class Utf8BundleStringResourceLoader implements IStringResourceLoader {
-
-        private final String bundleName;
-
-        public Utf8BundleStringResourceLoader(String bundleName) {
-            this.bundleName = bundleName;
-        }
-
-        @Override
-        public String loadStringResource(Class<?> clazz, String key, Locale locale, String style, String variation) {
-            return loadStringResource((Component) null, key, locale, style, variation);
-        }
-
-        @Override
-        public String loadStringResource(Component component, String key, Locale locale, String style, String variation) {
-            if (locale == null) {
-                locale = Session.exists() ? Session.get().getLocale() : Locale.getDefault();
-            }
-
-            ResourceBundle.Control control = new UTF8Control();
-            try {
-                return ResourceBundle.getBundle(bundleName, locale, control).getString(key);
-            } catch (MissingResourceException ex) {
-                try {
-                    return ResourceBundle.getBundle(bundleName, locale,
-                            Thread.currentThread().getContextClassLoader(), control).getString(key);
-                } catch (MissingResourceException ex2) {
-                    return null;
-                }
-            }
-        }
-
-        private static class UTF8Control extends ResourceBundle.Control {
-
-            @Override
-            public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
-                                            boolean reload) throws IllegalAccessException, InstantiationException,
-                    IOException {
-
-                // The below is a copy of the default implementation.
-                String bundleName = toBundleName(baseName, locale);
-                String resourceName = toResourceName(bundleName, "properties");
-                ResourceBundle bundle = null;
-                InputStream stream = null;
-                if (reload) {
-                    URL url = loader.getResource(resourceName);
-                    if (url != null) {
-                        URLConnection connection = url.openConnection();
-                        if (connection != null) {
-                            connection.setUseCaches(false);
-                            stream = connection.getInputStream();
-                        }
-                    }
-                } else {
-                    stream = loader.getResourceAsStream(resourceName);
-                }
-                if (stream != null) {
-                    try {
-                        // Only this line is changed to make it to read properties files as UTF-8.
-                        bundle = new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
-                    } finally {
-                        IOUtils.closeQuietly(stream);
-                    }
-                }
-                return bundle;
-            }
-        }
-    }
-
     private static class DeploymentInformationChangeListener implements SystemConfigurationChangeListener {
 
-        private MidPointApplication application;
+        private final MidPointApplication application;
 
         public DeploymentInformationChangeListener(MidPointApplication application) {
             this.application = application;
@@ -740,7 +629,7 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
      * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
      */
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 }

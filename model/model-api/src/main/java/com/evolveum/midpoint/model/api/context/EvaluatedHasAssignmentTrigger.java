@@ -8,18 +8,21 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author mederly
- */
+import java.util.Collection;
+
 public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
 
+    @NotNull private final Collection<PrismObject<?>> matchingTargets;
+
     public EvaluatedHasAssignmentTrigger(@NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
-            LocalizableMessage message, LocalizableMessage shortMessage) {
+            @NotNull Collection<PrismObject<?>> matchingTargets, LocalizableMessage message, LocalizableMessage shortMessage) {
         super(kind, constraint, message, shortMessage, false);
+        this.matchingTargets = matchingTargets;
     }
 
     @Override
@@ -28,5 +31,10 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
         EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
         fillCommonContent(rv);
         return rv;
+    }
+
+    @Override
+    public Collection<? extends PrismObject<?>> getTargetObjects() {
+        return matchingTargets;
     }
 }

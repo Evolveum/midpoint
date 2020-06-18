@@ -411,11 +411,4 @@ public class PageUser extends PageAdminFocus<UserType> {
         handleAssignmentDeltas(delta, userAssignmentsDtos, def, true);
         return deltas;
     }
-
-    public boolean isLoggedInUserPage(){
-        return getObjectWrapper() != null && getObjectWrapper().getObject() != null &&
-                StringUtils.isNotEmpty(getObjectWrapper().getObject().asObjectable().getOid()) &&
-                getObjectWrapper().getObject().asObjectable().getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
-    }
-
 }

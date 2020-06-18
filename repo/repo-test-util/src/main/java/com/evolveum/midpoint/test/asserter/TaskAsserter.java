@@ -128,6 +128,11 @@ public class TaskAsserter<RA> extends PrismObjectAsserter<TaskType, RA> {
     }
 
     @Override
+    public TaskAsserter<RA> assertArchetypeRef(String expectedArchetypeOid) {
+        return (TaskAsserter<RA>) super.assertArchetypeRef(expectedArchetypeOid);
+    }
+
+    @Override
     public TaskAsserter<RA> assertNoItem(ItemPath itemPath) {
         super.assertNoItem(itemPath);
         return this;

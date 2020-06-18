@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
@@ -166,10 +165,6 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
         if (component.getPage() instanceof PageBase) {
             return (PageBase) component.getPage();
-        }
-
-        if (component.getPage() instanceof PageDialog) {
-            return ((PageDialog) component.getPage()).getPageBase();
         }
 
         throw new IllegalStateException("Component is not instance of '" + PageBase.class.getName()

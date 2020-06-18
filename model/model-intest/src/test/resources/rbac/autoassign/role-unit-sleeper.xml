@@ -27,6 +27,9 @@
     <autoassign>
         <enabled>true</enabled>
         <focus>
+            <selector>
+                <type>UserType</type>
+            </selector>
             <mapping>
                 <name>autoassign-sleeper</name>
                 <trace>true</trace>

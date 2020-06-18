@@ -60,7 +60,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
      */
     @NotNull
-    Collection<EvaluatedPolicyRule> getPolicyRules();
+    Collection<? extends EvaluatedPolicyRule> getPolicyRules();
 
     boolean isOfType(Class<?> aClass);
 

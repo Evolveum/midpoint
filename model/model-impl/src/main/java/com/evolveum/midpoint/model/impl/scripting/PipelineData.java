@@ -165,10 +165,12 @@ public class PipelineData implements DebugDumpable {
     static @NotNull PipelineData parseFrom(ValueListType input, VariablesMap frozenInitialVariables, PrismContext prismContext) {
         PipelineData rv = new PipelineData();
         if (input != null) {
-            for (Object o : input.getValue()) {
-                if (o instanceof RawType) {
+            for (Object object : input.getValue()) {
+                if (object instanceof PrismValue) {
+                    rv.addValue((PrismValue) object, frozenInitialVariables);
+                } else if (object instanceof RawType) {
                     // a bit of hack: this should have been solved by the parser (we'll fix this later)
-                    RawType raw = (RawType) o;
+                    RawType raw = (RawType) object;
                     PrismValue prismValue = raw.getAlreadyParsedValue();
                     if (prismValue != null) {
                         rv.addValue(prismValue, frozenInitialVariables);
@@ -177,12 +179,12 @@ public class PipelineData implements DebugDumpable {
                         // TODO attempt to parse it somehow (e.g. by passing to the pipeline and then parsing based on expected type)
                     }
                 } else {
-                    if (o instanceof Containerable) {
-                        rv.addValue(((Containerable) o).asPrismContainerValue(), frozenInitialVariables);
-                    } else if (o instanceof Referencable) {
-                        rv.addValue(((Referencable) o).asReferenceValue(), frozenInitialVariables);
+                    if (object instanceof Containerable) {
+                        rv.addValue(((Containerable) object).asPrismContainerValue(), frozenInitialVariables);
+                    } else if (object instanceof Referencable) {
+                        rv.addValue(((Referencable) object).asReferenceValue(), frozenInitialVariables);
                     } else {
-                        rv.addValue(prismContext.itemFactory().createPropertyValue(o), frozenInitialVariables);
+                        rv.addValue(prismContext.itemFactory().createPropertyValue(object), frozenInitialVariables);
                     }
                 }
             }

@@ -565,19 +565,12 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) throws SchemaException {
-        PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
-        if (item == null || item.isEmpty()) {
+    public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
+        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
+        if (options == null) {
             return null;
-        } else if (item.getValues().size() > 1) {
-            throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
         } else {
-            ModelExecuteOptionsType modelExecuteOptionsType = item.getValues().iterator().next().getValue();
-            if (modelExecuteOptionsType != null) {
-                return ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-            } else {
-                return null;
-            }
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options);
         }
     }
 
@@ -595,11 +588,10 @@ public class ModelImplUtils {
             variables.registerAlias(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION);
             variables.registerAlias(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
             variables.put(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), projCtx.getResource().asPrismObject().getDefinition());
+            variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
+            variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
+            variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
         }
-
-        variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
-        variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
-        variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
 
         variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
         return variables;

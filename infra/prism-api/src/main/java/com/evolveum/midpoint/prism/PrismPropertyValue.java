@@ -12,7 +12,8 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
@@ -69,4 +70,15 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
     @Override
     T getRealValue();
 
+    static <T> T getRealValue(PrismPropertyValue<T> propertyValue) {
+        return propertyValue != null ? propertyValue.getRealValue() : null;
+    }
+
+    static boolean isNotFalse(PrismPropertyValue<Boolean> booleanPropertyValue) {
+        return booleanPropertyValue == null || BooleanUtils.isNotFalse(booleanPropertyValue.getRealValue());
+    }
+
+    static boolean isTrue(PrismPropertyValue<Boolean> booleanPropertyValue) {
+        return booleanPropertyValue != null && BooleanUtils.isTrue(booleanPropertyValue.getRealValue());
+    }
 }

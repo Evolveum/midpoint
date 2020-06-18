@@ -519,24 +519,21 @@ public class ObjectRetriever {
         boolean raw = GetOperationOptions.isRaw(rootOptions);
 
         byte[] fullObject = result.getFullObject();
-        String xml = RUtil.getXmlFromByteArray(fullObject, getConfiguration().isUseZip());
+        String serializedForm = RUtil.getSerializedFormFromBytes(fullObject);
         PrismObject<T> prismObject;
         try {
             // "Postel mode": be tolerant what you read. We need this to tolerate (custom) schema changes
             ParsingContext parsingContext = prismContext.createParsingContextForCompatibilityMode();
-            prismObject = prismContext.parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).context(parsingContext).parse();
+            prismObject = prismContext.parserFor(serializedForm)
+                    .context(parsingContext).parse();
             if (parsingContext.hasWarnings()) {
                 LOGGER.warn("Object {} parsed with {} warnings", ObjectTypeUtil.toShortString(prismObject), parsingContext.getWarnings().size());
-                // TODO enable if needed
-//                for (String warning : parsingContext.getWarnings()) {
-//                    operationResult.createSubresult("parseObject").recordWarning(warning);
-//                }
             }
         } catch (SchemaException | RuntimeException | Error e) {
             // This is a serious thing. We have corrupted XML in the repo. This may happen even
             // during system init. We want really loud and detailed error here.
             LOGGER.error("Couldn't parse object {} {}: {}: {}\n{}",
-                    type.getSimpleName(), oid, e.getClass().getName(), e.getMessage(), xml, e);
+                    type.getSimpleName(), oid, e.getClass().getName(), e.getMessage(), serializedForm, e);
             throw e;
         }
         attachDiagDataIfRequested(prismObject, fullObject, options);
@@ -578,10 +575,12 @@ public class ObjectRetriever {
                 query.setParameter("oid", prismObject.getOid());
                 byte[] opResult = (byte[]) query.uniqueResult();
                 if (opResult != null) {
-                    String xmlResult = RUtil.getXmlFromByteArray(opResult, true);
-                    OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                    String serializedResult = RUtil.getSerializedFormFromBytes(opResult);
+                    OperationResultType resultType = prismContext.parserFor(serializedResult)
+                            .parseRealValue(OperationResultType.class);
 
-                    PrismProperty<OperationResultType> resultProperty = prismObject.findOrCreateProperty(TaskType.F_RESULT);
+                    PrismProperty<OperationResultType> resultProperty =
+                            prismObject.findOrCreateProperty(TaskType.F_RESULT);
                     resultProperty.setRealValue(resultType);
                     resultProperty.setIncomplete(false);
 
@@ -621,7 +620,7 @@ public class ObjectRetriever {
             return;
         }
 
-        RObject<?> rObject = null;
+        RObject rObject = null;
         for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
             if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getItemName()),
                     retrieveOptions, false)) {
@@ -733,7 +732,7 @@ public class ObjectRetriever {
         if (prismObject.getDefinition() != null) {
             PrismContainerDefinition<?> extensionDefinition = prismObject.getDefinition().getExtensionDefinition();
             if (extensionDefinition != null) {
-                for (ItemDefinition definition : extensionDefinition.getDefinitions()) {
+                for (ItemDefinition<?> definition : extensionDefinition.getDefinitions()) {
                     if (definition.isIndexOnly()) {
                         rv.add(definition);
                     }
@@ -743,10 +742,11 @@ public class ObjectRetriever {
         return rv;
     }
 
-    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
-            PrismObject object, Session session) throws SchemaException {
+    private void applyShadowAttributeDefinitions(
+            Class<? extends RAnyValue> anyValueType, PrismObject object, Session session)
+            throws SchemaException {
 
-        PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<?> attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
         Query query = session.getNamedQuery("getDefinition." + anyValueType.getSimpleName());
         query.setParameter("oid", object.getOid());
@@ -912,7 +912,7 @@ public class ObjectRetriever {
             main:
             while (remaining > 0) {
                 paging.setOffset(offset);
-                paging.setMaxSize(remaining < batchSize ? remaining : batchSize);
+                paging.setMaxSize(Math.min(remaining, batchSize));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);
 

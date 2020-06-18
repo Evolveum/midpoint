@@ -310,7 +310,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_JPEG_PHOTO).replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
                 .asObjectDelta(userMancomb.getOid());
-        executeChanges(delta, ModelExecuteOptions.createReconcile(), task, result);
+        executeChanges(delta, executeOptions().reconcile(), task, result);
 
         // THEN
         then();

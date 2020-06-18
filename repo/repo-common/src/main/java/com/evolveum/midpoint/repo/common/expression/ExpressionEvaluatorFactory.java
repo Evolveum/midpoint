@@ -22,19 +22,29 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 
 /**
- * @author semancik
+ * Creates expression evaluators from their definitions (evaluator elements).
  *
+ * @author semancik
  */
 public interface ExpressionEvaluatorFactory {
 
+    /**
+     * Qualified element name (i.e. type) of evaluator elements this factory is able to process.
+     */
     QName getElementName();
 
-    <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+    /**
+     * Creates an evaluator.
+     * @param evaluatorElements Definition of the evaluator. All elements must be of the same type.
+     * @param outputDefinition Definition of output values.
+     * @param expressionProfile Expression profile to be used during evaluation.
+     * @param expressionFactory TODO - why?
+     */
+    <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
-            ExpressionFactory factory,
+            ExpressionFactory expressionFactory,
             String contextDescription, Task task, OperationResult result)
                     throws SchemaException, ObjectNotFoundException, SecurityViolationException;
-
 }

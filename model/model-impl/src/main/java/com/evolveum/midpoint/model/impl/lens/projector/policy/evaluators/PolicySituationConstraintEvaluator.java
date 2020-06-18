@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedSituationTrigger;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -118,7 +118,7 @@ public class PolicySituationConstraintEvaluator implements PolicyConstraintEvalu
 
     private <AH extends AssignmentHolderType> Collection<EvaluatedPolicyRule> selectTriggeredRules(
             PolicyRuleEvaluationContext<AH> rctx, List<String> situations) {
-        Collection<EvaluatedPolicyRule> rules;
+        Collection<? extends EvaluatedPolicyRule> rules;
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = ((AssignmentPolicyRuleEvaluationContext<AH>) rctx).evaluatedAssignment;
             // We consider all rules here, i.e. also those that are triggered on targets induced by this one.

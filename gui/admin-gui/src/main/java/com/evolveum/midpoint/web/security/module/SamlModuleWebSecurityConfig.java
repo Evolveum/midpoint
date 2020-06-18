@@ -162,7 +162,7 @@ public class SamlModuleWebSecurityConfig<C extends SamlModuleWebSecurityConfigur
             }
             authenticationFilter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(
                     new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix())));
-            authenticationFilter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
+            authenticationFilter.setAuthenticationFailureHandler(new MidpointAuthenticationFailureHandler());
             return authenticationFilter;
         }
 

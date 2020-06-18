@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.data.common.other;
+
+import java.util.Date;
+import java.util.Objects;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hibernate.annotations.GenericGenerator;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
@@ -19,25 +26,11 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
-
-/**
- * @author Viliam Repan (lazyman)
- */
 @Ignore
 @Entity
-@Table(indexes = {
-//todo create indexes after lookup api is created (when we know how we will search through lookup table [lazyman]
-//        @Index(name = "iRowKey", columnList = "key"),
-//        @Index(name = "iRowLabelOrig", columnList = "label.orig"),
-//        @Index(name = "iRowLabelNorm", columnList = "label.norm")
-},
-uniqueConstraints = {
-        @UniqueConstraint(name = "uc_row_key", columnNames = {"owner_oid", "row_key"})
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "uc_row_key", columnNames = { "owner_oid", "row_key" })
 })
 @IdClass(RContainerId.class)
 public class RLookupTableRow implements Container<RLookupTable> {
@@ -75,6 +68,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
     }
 
     public static final String ID_COLUMN_NAME = "id";
+
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
     @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
@@ -145,31 +139,6 @@ public class RLookupTableRow implements Container<RLookupTable> {
         this.trans = trans;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RLookupTableRow that = (RLookupTableRow) o;
-
-        if (key != null ? !key.equals(that.key) : that.key != null) return false;
-        if (label != null ? !label.equals(that.label) : that.label != null) return false;
-        if (lastChangeTimestamp != null ? !lastChangeTimestamp.equals(that.lastChangeTimestamp) : that.lastChangeTimestamp != null)
-            return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (label != null ? label.hashCode() : 0);
-        result = 31 * result + (lastChangeTimestamp != null ? lastChangeTimestamp.hashCode() : 0);
-        return result;
-    }
-
     public LookupTableRowType toJAXB(PrismContext prismContext) {
         LookupTableRowType row = new LookupTableRowType();
         row.setId(Long.valueOf(id));
@@ -210,6 +179,25 @@ public class RLookupTableRow implements Container<RLookupTable> {
         rRow.setValue(row.getValue());
 
         return rRow;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RLookupTableRow)) {
+            return false;
+        }
+
+        RLookupTableRow that = (RLookupTableRow) o;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerOid, id);
     }
 
     @Override

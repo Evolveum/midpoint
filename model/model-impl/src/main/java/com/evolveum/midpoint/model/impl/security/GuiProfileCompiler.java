@@ -105,7 +105,7 @@ public class GuiProfileCompiler {
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
             }
             for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-                if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+                if (target.isValid() && target.getTarget().asObjectable() instanceof UserType
                         && DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
                     List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
                     principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
@@ -311,38 +311,21 @@ public class GuiProfileCompiler {
         return collectionRef.getOid();
     }
 
-    private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
+    public void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-        compileActions(existingView, objectListViewType);
-        compileAdditionalPanels(existingView, objectListViewType);
-        compileColumns(existingView, objectListViewType);
-        compileDisplay(existingView, objectListViewType);
-        compileDistinct(existingView, objectListViewType);
-        compileSorting(existingView, objectListViewType);
-        compileCounting(existingView, objectListViewType);
-        compileDisplayOrder(existingView, objectListViewType);
-        compileSearchBox(existingView, objectListViewType);
+//        compileActions(existingView, objectListViewType);
+//        compileAdditionalPanels(existingView, objectListViewType);
+//        compileColumns(existingView, objectListViewType);
+//        compileDisplay(existingView, objectListViewType);
+//        compileDistinct(existingView, objectListViewType);
+//        compileSorting(existingView, objectListViewType);
+//        compileCounting(existingView, objectListViewType);
+//        compileDisplayOrder(existingView, objectListViewType);
+//        compileSearchBox(existingView, objectListViewType);
+//        compileRefreshInterval(existingView, objectListViewType);
+        collectionProcessor.compileView(existingView, objectListViewType);
         compileCollection(existingView, objectListViewType, task, result);
-        compileRefreshInterval(existingView, objectListViewType);
-    }
-
-    private void compileActions(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        List<GuiActionType> newActions = objectListViewType.getAction();
-        for (GuiActionType newAction: newActions) {
-            // TODO: check for action duplication/override
-            existingView.getActions().add(newAction); // No need to clone, CompiledObjectCollectionView is not prism
-        }
-
-    }
-
-    private void compileAdditionalPanels(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        GuiObjectListViewAdditionalPanelsType newAdditionalPanels = objectListViewType.getAdditionalPanels();
-        if (newAdditionalPanels == null) {
-            return;
-        }
-        // TODO: later: merge additional panel definitions
-        existingView.setAdditionalPanels(newAdditionalPanels);
     }
 
     private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
@@ -376,75 +359,6 @@ public class GuiProfileCompiler {
             targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
         }
         collectionProcessor.compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
-    }
-
-    private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        List<GuiObjectColumnType> newColumns = objectListViewType.getColumn();
-        if (newColumns == null || newColumns.isEmpty()) {
-            return;
-        }
-        // Not very efficient algorithm. But must do for now.
-        List<GuiObjectColumnType> existingColumns = existingView.getColumns();
-        existingColumns.addAll(newColumns);
-        List<GuiObjectColumnType> orderedList = MiscSchemaUtil.orderCustomColumns(existingColumns);
-        existingColumns.clear();
-        existingColumns.addAll(orderedList);
-    }
-
-    private void compileDisplay(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        DisplayType newDisplay = objectListViewType.getDisplay();
-        if (newDisplay == null) {
-            return;
-        }
-        if (existingView.getDisplay() == null) {
-            existingView.setDisplay(newDisplay);
-        }
-        MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
-    }
-
-    private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        DistinctSearchOptionType newDistinct = objectListViewType.getDistinct();
-        if (newDistinct == null) {
-            return;
-        }
-        existingView.setDistinct(newDistinct);
-    }
-
-    private void compileSorting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        Boolean newDisableSorting = objectListViewType.isDisableSorting();
-        if (newDisableSorting != null) {
-            existingView.setDisableSorting(newDisableSorting);
-        }
-    }
-
-    private void compileRefreshInterval(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        Integer refreshInterval = objectListViewType.getRefreshInterval();
-        if (refreshInterval != null) {
-            existingView.setRefreshInterval(refreshInterval);
-        }
-    }
-
-    private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        Boolean newDisableCounting = objectListViewType.isDisableCounting();
-        if (newDisableCounting != null) {
-            existingView.setDisableCounting(newDisableCounting);
-        }
-    }
-
-    private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType){
-        Integer newDisplayOrder = objectListViewType.getDisplayOrder();
-        if (newDisplayOrder != null){
-            existingView.setDisplayOrder(newDisplayOrder);
-        }
-    }
-
-    private void compileSearchBox(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        SearchBoxConfigurationType newSearchBoxConfig = objectListViewType.getSearchBoxConfiguration();
-        if (newSearchBoxConfig == null) {
-            return;
-        }
-        // TODO: merge
-        existingView.setSearchBoxConfiguration(newSearchBoxConfig);
     }
 
     private void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {

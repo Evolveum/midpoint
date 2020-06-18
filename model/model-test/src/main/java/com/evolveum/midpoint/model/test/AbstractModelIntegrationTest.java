@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -173,6 +175,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Qualifier("sqlRepositoryServiceImpl")
     protected RepositoryService plainRepositoryService;
 
+    @Autowired protected ReferenceResolver referenceResolver;
     @Autowired protected SystemObjectCache systemObjectCache;
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected ProvisioningService provisioningService;
@@ -257,7 +260,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid, null, task, result);
+        resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
+                resource.controllerInitLambda, task, result);
         return resource.controller;
     }
 
@@ -363,7 +367,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void importObjectsFromFileNotRaw(File file, Task task, OperationResult result) throws FileNotFoundException {
         ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
+        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType(prismContext);
         modelOptions.setRaw(false);
         options.setModelExecutionOptions(modelOptions);
         importObjectFromFile(file, options, task, result);
@@ -962,7 +966,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
                 .createModifyDelta(userOid, modifications, UserType.class);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-        modelService.executeChanges(deltas, useRawPlusRecompute ? ModelExecuteOptions.createRaw() : null, task, result);
+        modelService.executeChanges(deltas, useRawPlusRecompute ? executeOptions().raw() : null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1849,7 +1853,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> void assertObjectByName(
+    protected <O extends ObjectType> SearchResultList<PrismObject<O>> assertObjectByName(
             Class<O> type, String name, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -1859,6 +1863,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         if (objects.isEmpty()) {
             fail("Expected that " + type + " " + name + " did exist but it did not");
         }
+        return objects;
+    }
+
+    @SuppressWarnings("unused")
+    protected <O extends ObjectType> PrismObject<O> assertSingleObjectByName(
+            Class<O> type, String name, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
+        SearchResultList<PrismObject<O>> objects = assertObjectByName(type, name, task, result);
+        assertThat(objects.size()).as("# of objects found").isEqualTo(1);
+        return objects.get(0);
     }
 
     protected <O extends ObjectType> void assertNoObjectByName(
@@ -3609,9 +3624,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void restartTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".restartTask");
+        try {
+            restartTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
+    protected void restartTask(String taskOid, OperationResult result) throws CommonException {
         // Wait at least 1ms here. We have the timestamp in the tasks with a millisecond granularity. If the tasks is started,
-        // executed and then resstarted and excecuted within the same millisecond then the second execution will not be
+        // executed and then restarted and executed within the same millisecond then the second execution will not be
         // detected and the wait for task finish will time-out. So waiting one millisecond here will make sure that the
         // timestamps are different. And 1ms is not that long to significantly affect test run times.
         try {
@@ -3620,33 +3646,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             logger.warn("Sleep interrupted: {}", e.getMessage(), e);
         }
 
-        OperationResult result = createSubresult("restartTask");
-        try {
-            Task task = taskManager.getTaskWithResult(taskOid, result);
-            logger.info("Restarting task {}", taskOid);
-            if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
-                logger.debug("Task {} is suspended, resuming it", task);
-                taskManager.resumeTask(task, result);
-            } else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-                logger.debug("Task {} is closed, scheduling it to run now", task);
-                taskManager.scheduleTasksNow(singleton(taskOid), result);
-            } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-                if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
-                    // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
-                    logger.debug("Task {} is running, waiting while it finishes before restarting", task);
-                    waitForTaskFinish(taskOid, false);
-                }
-                logger.debug("Task {} is finished, scheduling it to run now", task);
-                taskManager.scheduleTasksNow(singleton(taskOid), result);
-            } else {
-                throw new IllegalStateException(
-                        "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
+        Task task = taskManager.getTaskWithResult(taskOid, result);
+        logger.info("Restarting task {}", taskOid);
+        if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+            logger.debug("Task {} is suspended, resuming it", task);
+            taskManager.resumeTask(task, result);
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+            logger.debug("Task {} is closed, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+                // Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+                logger.debug("Task {} is running, waiting while it finishes before restarting", task);
+                waitForTaskFinish(taskOid, false);
             }
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
+            logger.debug("Task {} is finished, scheduling it to run now", task);
+            taskManager.scheduleTasksNow(singleton(taskOid), result);
+        } else {
+            throw new IllegalStateException(
+                    "Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
         }
     }
 
@@ -3664,10 +3682,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Restarts task and waits for finish.
      */
-    protected void rerunTask(String taskOid) throws CommonException {
+    protected Task rerunTask(String taskOid) throws CommonException {
+        OperationResult result = createSubresult(getClass().getName() + ".rerunTask");
+        try {
+            return rerunTask(taskOid, result);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    protected Task rerunTask(String taskOid, OperationResult result) throws CommonException {
         long startTime = System.currentTimeMillis();
-        restartTask(taskOid);
-        waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
+        restartTask(taskOid, result);
+        return waitForTaskFinish(taskOid, true, startTime, DEFAULT_TASK_WAIT_TIMEOUT, false);
     }
 
     protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatus expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
@@ -3964,7 +3994,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
-        executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
+        executeChanges(delta, executeOptions().raw(), task, result);
     }
 
     protected <O extends ObjectType> void deleteObject(Class<O> type, String oid)
@@ -4002,7 +4032,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
             PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
-        ModelExecuteOptions options = ModelExecuteOptions.createForce();
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).force();
         executeChanges(delta, options, task, result);
     }
 
@@ -4538,7 +4568,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected Authentication createMpAuthentication(Authentication authentication) {
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
-        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(NameOfModuleType.LOGIN_FORM);
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(AuthenticationModuleNameConstants.LOGIN_FORM);
         moduleAuthentication.setAuthentication(authentication);
         moduleAuthentication.setNameOfModule(SecurityPolicyUtil.DEFAULT_MODULE_NAME);
         moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
@@ -4820,7 +4850,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationAddContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
         ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.setReconcileAffected(reconcileAffected);
+        options.reconcileAffected(reconcileAffected);
         executeChanges(roleDelta, options, getTestTask(), result);
         result.computeStatus();
         if (reconcileAffected) {
@@ -4982,7 +5012,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .createModificationDeleteContainer(RoleType.class, roleOid,
                         RoleType.F_INDUCEMENT, inducement);
         ModelExecuteOptions options = nullToEmpty(defaultOptions);
-        options.setReconcileAffected(reconcileAffected);
+        options.reconcileAffected(reconcileAffected);
         executeChanges(roleDelta, options, task, result);
         result.computeStatus();
         if (reconcileAffected) {
@@ -4994,7 +5024,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @NotNull
     protected ModelExecuteOptions nullToEmpty(ModelExecuteOptions options) {
-        return options != null ? options : new ModelExecuteOptions();
+        return options != null ? options : executeOptions();
     }
 
     protected void modifyUserAddAccount(String userOid, File accountFile, Task task, OperationResult result) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -5275,12 +5305,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void reconcileUser(String oid, ModelExecuteOptions options, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(options), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.create(options, prismContext).reconcile(), task, result);
     }
 
     protected void reconcileOrg(String oid, Task task, OperationResult result) throws CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<OrgType> emptyDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(OrgType.class, oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), ModelExecuteOptions.createReconcile(), task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(emptyDelta), executeOptions().reconcile(), task, result);
     }
 
     protected void assertRefEquals(String message, ObjectReferenceType expected, ObjectReferenceType actual) {
@@ -6224,7 +6254,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(file, ModelExecuteOptions.createRaw());
+        assertAddDeny(file, executeOptions().raw());
     }
 
     protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
@@ -6570,5 +6600,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         resource.object = modelService.getObject(resource.object.getCompileTimeClass(), resource.oid, null, task, result);
+    }
+
+    protected ModelExecuteOptions executeOptions() {
+        return ModelExecuteOptions.create(prismContext);
     }
 }

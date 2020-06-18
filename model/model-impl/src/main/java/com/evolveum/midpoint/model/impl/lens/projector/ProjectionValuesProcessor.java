@@ -242,10 +242,10 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
                             result.computeStatus();
                             // if the result is fatal error, it may mean that the
-                            // already exists expection occures before..but in this
+                            // already exists exception occurs before..but in this
                             // scenario it means, the exception was handled and we
                             // can mute the result to give better understanding of
-                            // the situation which happend
+                            // the situation which happened
                             if (result.isError()){
                                 result.muteError();
                             }
@@ -271,10 +271,10 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                                     }
 //                                    result.computeStatus();
 //                                    // if the result is fatal error, it may mean that the
-//                                    // already exists expection occures before..but in this
+//                                    // already exists exception occurs before..but in this
 //                                    // scenario it means, the exception was handled and we
 //                                    // can mute the result to give better understanding of
-//                                    // the situation which happend
+//                                    // the situation which happened
 //                                    if (result.isError()){
 //                                        result.muteError();
 //                                    }

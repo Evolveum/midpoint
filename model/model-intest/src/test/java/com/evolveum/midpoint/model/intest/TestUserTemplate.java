@@ -2222,7 +2222,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID,
                 UserType.F_LOCALITY, PrismTestUtil.createPolyString("Six feet under"));
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions options = executeOptions().reconcile();
 
         // WHEN
         modelService.executeChanges(deltas, options, task, result);

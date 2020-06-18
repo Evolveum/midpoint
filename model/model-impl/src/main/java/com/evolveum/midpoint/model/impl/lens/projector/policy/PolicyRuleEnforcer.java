@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
@@ -105,7 +104,7 @@ public class PolicyRuleEnforcer {
         evaluatedAssignmentTriple.simpleAccept(assignment -> enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules()));
     }
 
-    private void enforceTriggeredRules(EvaluationContext evalCtx, Collection<EvaluatedPolicyRule> policyRules) {
+    private void enforceTriggeredRules(EvaluationContext evalCtx, Collection<? extends EvaluatedPolicyRule> policyRules) {
         for (EvaluatedPolicyRule policyRule: policyRules) {
 
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();

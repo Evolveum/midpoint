@@ -6,23 +6,15 @@
  */
 package com.evolveum.midpoint.testing.longtest;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,6 +28,7 @@ import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -50,26 +43,15 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Mix of various tests for issues that are difficult to replicate using dummy resources.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdap extends AbstractLongTest {
 
@@ -192,8 +174,8 @@ public class TestLdap extends AbstractLongTest {
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_JPEG_PHOTO, task, result, photoIn);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-               .item(UserType.F_JPEG_PHOTO).retrieve()
-               .build();
+                .item(UserType.F_JPEG_PHOTO).retrieve()
+                .build();
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, options, task, result);
         display("User before", userBefore);
         byte[] userJpegPhotoBefore = userBefore.asObjectable().getJpegPhoto();
@@ -245,8 +227,7 @@ public class TestLdap extends AbstractLongTest {
                 "dn: cn=Pirates,ou=groups,dc=example,dc=com\n" +
                 "changetype: modify\n" +
                 "add: uniqueMember\n" +
-                "uniqueMember: uid=GuyBrush,ou=pEOPle,dc=EXAMPLE,dc=cOm"
-            );
+                "uniqueMember: uid=GuyBrush,ou=pEOPle,dc=EXAMPLE,dc=cOm");
 
         // WHEN
         when();
@@ -262,7 +243,6 @@ public class TestLdap extends AbstractLongTest {
 
         assertUsers(NUM_INITIAL_USERS);
     }
-
 
     @Test
     public void test400RenameLeChuckConflicting() throws Exception {
@@ -317,7 +297,7 @@ public class TestLdap extends AbstractLongTest {
             @Override
             public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
                 count.increment();
-                display("Found",shadow);
+                display("Found", shadow);
                 return true;
             }
         };
@@ -334,7 +314,7 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.getValue());
+        assertEquals("Unexpected number of search results", NUM_LDAP_ENTRIES + 8, count.intValue());
 
         assertUsers(NUM_INITIAL_USERS + 1);
     }
@@ -361,14 +341,14 @@ public class TestLdap extends AbstractLongTest {
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
 
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         displayValue("Users", userCount);
-        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+        assertEquals("Unexpected number of users", 2 * NUM_LDAP_ENTRIES + 8, userCount);
     }
 
     @Test
@@ -377,12 +357,6 @@ public class TestLdap extends AbstractLongTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
-//        System.out.println("openDJController.isRunning = " + openDJController.isRunning());
-//        OperationResult testResult = modelService.testResource(RESOURCE_OPENDJ_OID, task);
-//        System.out.println("Test resource result = " + testResult.debugDump());
-
-        //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 2);
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
 
@@ -393,17 +367,14 @@ public class TestLdap extends AbstractLongTest {
 
         // THEN
         then();
-//        OperationResult subresult = result.getLastSubresult();
-//        TestUtil.assertInProgress("reconciliation launch result", subresult);
-
-        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
 
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         displayValue("Users", userCount);
-        assertEquals("Unexpected number of users", 2*NUM_LDAP_ENTRIES + 8, userCount);
+        assertEquals("Unexpected number of users", 2 * NUM_LDAP_ENTRIES + 8, userCount);
     }
 
     @Test
@@ -422,14 +393,12 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES*2000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_SHADOWS_OID, true, 20000 + NUM_LDAP_ENTRIES * 2000);
 
         // THEN
         then();
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-
-
 
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
@@ -441,15 +410,15 @@ public class TestLdap extends AbstractLongTest {
         assertEquals(1, opExecResults.size());
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES+8, opExecResult.getCount());
-        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        assertEquals("Wrong exec operation count", 2 * NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
+        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
 
         assertOpenDjAccountShadows(0, true, task, result);
-        assertUsers(2*NUM_LDAP_ENTRIES + 8);
+        assertUsers(2 * NUM_LDAP_ENTRIES + 8);
 
         // Check that the actual accounts were NOT deleted
         // (This also re-creates shadows)
-        assertOpenDjAccountShadows(2*NUM_LDAP_ENTRIES+8, false, task, result);
+        assertOpenDjAccountShadows(2 * NUM_LDAP_ENTRIES + 8, false, task, result);
     }
 
     @Test
@@ -467,13 +436,12 @@ public class TestLdap extends AbstractLongTest {
         // THEN
         then();
 
-        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES*3000);
+        waitForTaskFinish(TASK_DELETE_OPENDJ_ACCOUNTS_OID, true, 20000 + NUM_LDAP_ENTRIES * 3000);
 
         // THEN
         then();
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, (2*NUM_LDAP_ENTRIES)/100+2);
-
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, (2 * NUM_LDAP_ENTRIES) / 100 + 2);
 
         PrismObject<TaskType> deleteTask = getTask(TASK_DELETE_OPENDJ_SHADOWS_OID);
         OperationResultType deleteTaskResultType = deleteTask.asObjectable().getResult();
@@ -485,11 +453,11 @@ public class TestLdap extends AbstractLongTest {
         assertEquals(1, opExecResults.size());
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 2*NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
-        assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
+        assertEquals("Wrong exec operation count", 2 * NUM_LDAP_ENTRIES + 8, opExecResult.getCount());
+        assertTrue("Too many subresults: " + deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
 
         assertOpenDjAccountShadows(1, true, task, result);
-        assertUsers(2*NUM_LDAP_ENTRIES + 8);
+        assertUsers(2 * NUM_LDAP_ENTRIES + 8);
         assertOpenDjAccountShadows(1, false, task, result);
     }
 
@@ -502,7 +470,7 @@ public class TestLdap extends AbstractLongTest {
             @Override
             public boolean handle(PrismObject<ShadowType> shadow, OperationResult parentResult) {
                 count.increment();
-                display("Found",shadow);
+                display("Found", shadow);
                 return true;
             }
         };
@@ -511,10 +479,10 @@ public class TestLdap extends AbstractLongTest {
             options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         }
         modelService.searchObjectsIterative(ShadowType.class, query, handler, options, task, result);
-        assertEquals("Unexpected number of search results (raw="+raw+")", expected, count.getValue());
+        assertEquals("Unexpected number of search results (raw=" + raw + ")", expected, count.intValue());
     }
 
     private String toDn(String username) {
-        return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
+        return "uid=" + username + "," + OPENDJ_PEOPLE_SUFFIX;
     }
 }

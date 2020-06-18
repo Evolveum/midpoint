@@ -340,7 +340,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
                 getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaAdd);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         executeChanges(resourceDelta, options, task, result);
@@ -370,7 +370,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         resourceDelta.addModification(connectorRefDeltaAdd);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         modelService.executeChanges(deltas, options, task, result);
@@ -399,7 +399,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         resourceDelta.addModification(connectorRefDeltaReplace);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         modelService.executeChanges(deltas, options, task, result);
@@ -427,7 +427,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
                 getResourceDefinition(), connectorDummyFakeOid);
         resourceDelta.addModification(connectorRefDeltaReplace);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createRaw();
+        ModelExecuteOptions options = executeOptions().raw();
 
         // WHEN
         executeChanges(resourceDelta, options, task, result);

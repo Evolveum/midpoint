@@ -159,7 +159,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
             AssertJUnit.assertTrue(matchedUsers);
         } catch (Exception ex) {
-            logger.error("exception occured: {}", ex.getMessage(), ex);
+            logger.error("exception occurred: {}", ex.getMessage(), ex);
             throw ex;
         }
     }
@@ -183,7 +183,7 @@ public class TestCorrelationConfirmationEvaluator extends AbstractInternalModelI
 
             AssertJUnit.assertTrue(matchedUsers);
         } catch (Exception ex) {
-            logger.error("exception occured: {}", ex.getMessage(), ex);
+            logger.error("exception occurred: {}", ex.getMessage(), ex);
             throw ex;
         }
     }

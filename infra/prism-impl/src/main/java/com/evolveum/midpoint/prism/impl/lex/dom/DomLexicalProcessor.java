@@ -6,23 +6,21 @@
  */
 package com.evolveum.midpoint.prism.impl.lex.dom;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.ParserElementSource;
-import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.impl.xnode.*;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xnode.*;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -31,18 +29,22 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.ParserElementSource;
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
+import com.evolveum.midpoint.prism.impl.xnode.*;
+import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class DomLexicalProcessor implements LexicalProcessor<String> {
 
@@ -98,8 +100,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     // code taken from Validator class
     @Override
-    public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
-            RootXNodeHandler handler) throws SchemaException, IOException {
+    public void readObjectsIteratively(@NotNull ParserSource source,
+            @NotNull ParsingContext parsingContext, RootXNodeHandler handler)
+            throws SchemaException, IOException {
+
         InputStream is = source.getInputStream();
         XMLStreamReader stream = null;
         try {
@@ -131,7 +135,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
             String lineInfo = stream != null
                     ? " on line " + stream.getLocation().getLineNumber()
                     : "";
-            throw new SchemaException("Exception while parsing XML" + lineInfo + ": " + ex.getMessage(), ex);
+            throw new SchemaException(
+                    "Exception while parsing XML" + lineInfo + ": " + ex.getMessage(), ex);
         } finally {
             if (source.closeStreamAfterParsing()) {
                 IOUtils.closeQuietly(is);
@@ -139,8 +144,10 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         }
     }
 
-    private boolean readSingleObjectIteratively(XMLStreamReader stream, Map<String, String> rootNamespaceDeclarations,
-            DOMConverter domConverter, RootXNodeHandler handler) throws XMLStreamException, SchemaException {
+    private boolean readSingleObjectIteratively(
+            XMLStreamReader stream, Map<String, String> rootNamespaceDeclarations,
+            DOMConverter domConverter, RootXNodeHandler handler)
+            throws XMLStreamException, SchemaException {
         Document objectDoc = domConverter.buildDocument(stream);
         Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
         DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
@@ -148,7 +155,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         return handler.handleData(rootNode);
     }
 
-    private List<RootXNodeImpl> readObjects(Document document) throws SchemaException{
+    private List<RootXNodeImpl> readObjects(Document document) throws SchemaException {
         Element root = DOMUtil.getFirstChildElement(document);
         QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
         if (objectsMarker != null && !QNameUtil.match(DOMUtil.getQName(root), objectsMarker)) {
@@ -180,7 +187,9 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         return xroot;
     }
 
-    private void extractCommonMetadata(Element element, QName xsiType, XNodeImpl xnode) throws SchemaException {
+    private void extractCommonMetadata(Element element, QName xsiType, XNodeImpl xnode)
+            throws SchemaException {
+
         if (xsiType != null) {
             xnode.setTypeQName(xsiType);
             xnode.setExplicitTypeDeclaration(true);
@@ -254,7 +263,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         MapXNodeImpl xmap = new MapXNodeImpl();
 
         // Attributes
-        for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
+        for (Attr attr : DOMUtil.listApplicationAttributes(element)) {
             QName attrQName = DOMUtil.getQName(attr);
             XNodeImpl subnode = parseAttributeValue(attr);
             xmap.put(attrQName, subnode);
@@ -263,7 +272,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         // Sub-elements
         QName lastElementName = null;
         List<Element> lastElements = null;
-        for (Element childElement: DOMUtil.listChildElements(element)) {
+        for (Element childElement : DOMUtil.listChildElements(element)) {
             QName childName = DOMUtil.getQName(childElement);
             if (!match(childName, lastElementName)) {
                 parseSubElementsGroupAsMapEntry(xmap, lastElementName, lastElements);
@@ -315,7 +324,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
     private QName getHierarchyRoot(QName name) {
-        ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(name);
+        ItemDefinition<?> def = schemaRegistry.findItemDefinitionByElementName(name);
         if (def == null || !def.isHeterogeneousListItem()) {
             return name;
         } else {
@@ -355,7 +364,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     /**
      * Parses elements that should form the list.
-     *
+     * <p>
      * Either they have the same element name, or they are stored as a sub-elements of "list" parent element.
      */
     @NotNull
@@ -365,7 +374,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
             throw new IllegalArgumentException("When !storeElementNames the element name must be specified");
         }
         ListXNodeImpl xlist = new ListXNodeImpl();
-        for (Element element: elements) {
+        for (Element element : elements) {
             xlist.add(parseElementContent(element, elementName, storeElementNames));
         }
         return xlist;
@@ -408,15 +417,12 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         return file.getName().endsWith(".xml");
     }
 
+    private static final Pattern XML_DETECTION_PATTERN = Pattern.compile("\\A\\s*<\\w+");
+
     @Override
     public boolean canRead(@NotNull String dataString) {
-        if (dataString.startsWith("<?xml")) {
-            return true;
-        } else {
-            Pattern p = Pattern.compile("\\A\\s*?<\\w+");
-            Matcher m = p.matcher(dataString);
-            return m.find();
-        }
+        return dataString.charAt(0) == '<'
+                || XML_DETECTION_PATTERN.matcher(dataString).find();
     }
 
     @NotNull
@@ -474,18 +480,18 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         } else if (xnode instanceof PrimitiveXNodeImpl<?>) {
             return serializeXPrimitiveToElement((PrimitiveXNodeImpl<?>) xnode, elementName);
         } else if (xnode instanceof RootXNodeImpl) {
-            return writeXRootToElement((RootXNodeImpl)xnode);
+            return writeXRootToElement((RootXNodeImpl) xnode);
         } else if (xnode instanceof ListXNodeImpl) {
             ListXNodeImpl xlist = (ListXNodeImpl) xnode;
             if (xlist.size() == 0) {
                 return null;
             } else if (xlist.size() > 1) {
-                throw new IllegalArgumentException("Cannot serialize list xnode with more than one item: "+xlist);
+                throw new IllegalArgumentException("Cannot serialize list xnode with more than one item: " + xlist);
             } else {
                 return serializeToElement(xlist.get(0), elementName);
             }
         } else {
-            throw new IllegalArgumentException("Cannot serialize "+xnode+" to element");
+            throw new IllegalArgumentException("Cannot serialize " + xnode + " to element");
         }
     }
 
@@ -498,6 +504,4 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         Element parent = serializeToElement(xmap, subEntry.getKey());
         return DOMUtil.getFirstChildElement(parent);
     }
-
-
 }

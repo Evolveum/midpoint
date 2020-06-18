@@ -143,6 +143,12 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return getValue().getRealValue();
     }
 
+    @Override
+    public void setRealValue(C value) throws SchemaException {
+        //noinspection unchecked
+        setValue(value != null ? value.asPrismContainerValue() : null);
+    }
+
     @NotNull
     public PrismContainerValue<C> getValue() {
         if (getValues().size() == 1) {

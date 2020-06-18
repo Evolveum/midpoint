@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -51,19 +52,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 /**
- * @author Radovan Semancik
+ * Creates an association (or associations) based on projections of given role.
  *
+ * I.e. a role has projection (e.g. group) and it also induces a construction of a user account. Using this expression
+ * evaluator the account can obtain groups that are projections of that particular role.
+ *
+ * To be used in induced constructions only i.e. not in mappings!
+ *
+ * @author Radovan Semancik
  */
 public class AssociationFromLinkExpressionEvaluator
-    extends AbstractExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>, AssociationFromLinkExpressionEvaluatorType> {
+    extends AbstractExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
+                                        PrismContainerDefinition<ShadowAssociationType>,
+                                        AssociationFromLinkExpressionEvaluatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
-    private ObjectResolver objectResolver;
+    private final ObjectResolver objectResolver;
 
     AssociationFromLinkExpressionEvaluator(QName elementName, AssociationFromLinkExpressionEvaluatorType evaluatorType,
             PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver) {
@@ -71,71 +81,28 @@ public class AssociationFromLinkExpressionEvaluator
         this.objectResolver = objectResolver;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context,
             OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+
         checkEvaluatorProfile(context);
 
         String desc = context.getContextDescription();
 
-        AbstractRoleType thisRole;
+        AbstractRoleType thisRole = getRelevantRole(context);
+        LOGGER.trace("Evaluating association from link {} on: {}", expressionEvaluatorBean.getDescription(), thisRole);
 
-        Integer assignmentPathIndex = getExpressionEvaluatorType().getAssignmentPathIndex();
-        if (assignmentPathIndex == null) {
-            // Legacy ... or default in simple cases
-            @SuppressWarnings("unchecked")
-            TypedValue<AbstractRoleType> orderOneObjectTypedValue = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
-            if (orderOneObjectTypedValue == null || orderOneObjectTypedValue.getValue() == null) {
-                throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-            }
-            Object orderOneObject = orderOneObjectTypedValue.getValue();
-            if (!(orderOneObject instanceof AbstractRoleType)) {
-                throw new ExpressionEvaluationException("Order one object variable in "+desc+" is not a role, it is "+orderOneObject.getClass().getName()
-                        +"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-            }
-
-            thisRole = (AbstractRoleType)orderOneObject;
-
-        } else {
-
-            @SuppressWarnings("unchecked")
-            TypedValue<AssignmentPath> assignmentPathTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSIGNMENT_PATH);
-            if (assignmentPathTypedValue == null || assignmentPathTypedValue.getValue() == null) {
-                throw new ExpressionEvaluationException("No assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-            }
-
-            AssignmentPath assignmentPath = (AssignmentPath) assignmentPathTypedValue.getValue();
-            if (assignmentPath.isEmpty()) {
-                throw new ExpressionEvaluationException("Empty assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
-            }
-
-            LOGGER.trace("assignmentPath {}:\n{}", getExpressionEvaluatorType().getDescription(), assignmentPath.debugDumpLazily(1));
-
-            AssignmentPathSegment segment;
-            try {
-                segment = assignmentPath.getSegment(assignmentPathIndex);
-            } catch (IndexOutOfBoundsException e) {
-                throw new ExpressionEvaluationException("Wrong assignment path index in "+desc+"; Index "+assignmentPathIndex+" cannot be applied to a path of length "+assignmentPath.size(), e);
-            }
-
-            thisRole = (AbstractRoleType) segment.getSource();
-        }
-
-        LOGGER.trace("thisRole {}: {}", getExpressionEvaluatorType().getDescription(), thisRole);
-
-        LOGGER.trace("Evaluating association from link on: {}", thisRole);
-
-        TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+        //noinspection unchecked
+        TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = context.getVariables()
+                .get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
         if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
             throw new ExpressionEvaluationException("No association target object class definition variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to create an association.");
         }
         RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) rAssocTargetDefTypedValue.getValue();
 
-        ShadowDiscriminatorType projectionDiscriminator = getExpressionEvaluatorType().getProjectionDiscriminator();
+        ShadowDiscriminatorType projectionDiscriminator = expressionEvaluatorBean.getProjectionDiscriminator();
         if (projectionDiscriminator == null) {
             throw new ExpressionEvaluationException("No projectionDiscriminator in "+desc);
         }
@@ -149,17 +116,74 @@ public class AssociationFromLinkExpressionEvaluator
 
         QName assocName = context.getMappingQName();
         String resourceOid = rAssocTargetDef.getResourceOid();
-        Collection<SelectorOptions<GetOperationOptions>> options = null;
         List<String> candidateShadowOidList = new ArrayList<>();
         // Always process the first role (myself) regardless of recursion setting
         gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
         if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
-            gatherCandidateShadowsFromAbstractRoleRecurse((OrgType)thisRole, candidateShadowOidList, options, desc, context, result);
+            gatherCandidateShadowsFromAbstractRoleRecurse((OrgType)thisRole, candidateShadowOidList, null, desc, context, result);
         }
         LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
         selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context, result);
         return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+    }
+
+    private AbstractRoleType getRelevantRole(ExpressionEvaluationContext context) throws ExpressionEvaluationException {
+        AbstractRoleType thisRole;
+        Integer assignmentPathIndex = expressionEvaluatorBean.getAssignmentPathIndex();
+        if (assignmentPathIndex == null) {
+            // Legacy ... or default in simple cases
+            thisRole = getOrderOneObject(context);
+        } else {
+            AssignmentPathSegment segment = getSpecifiedAssignmentPathSegment(context, assignmentPathIndex);
+            thisRole = (AbstractRoleType) segment.getSource();
+        }
+        return thisRole;
+    }
+
+    @NotNull
+    private AbstractRoleType getOrderOneObject(ExpressionEvaluationContext context)
+            throws ExpressionEvaluationException {
+        @SuppressWarnings("unchecked")
+        TypedValue<AbstractRoleType> orderOneObjectTypedValue = context.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+        if (orderOneObjectTypedValue == null || orderOneObjectTypedValue.getValue() == null) {
+            throw new ExpressionEvaluationException("No order one object variable in " + context.getContextDescription() +
+                    "; the expression may be used in a wrong place. It is only supposed to work in a role.");
+        }
+        Object orderOneObject = orderOneObjectTypedValue.getValue();
+        if (orderOneObject instanceof AbstractRoleType) {
+            return (AbstractRoleType) orderOneObject;
+        } else {
+            throw new ExpressionEvaluationException("Order one object variable in " + context.getContextDescription() +
+                    " is not a role, it is "+orderOneObject.getClass().getName() +
+                    "; the expression may be used in a wrong place. It is only supposed to work in a role.");
+        }
+    }
+
+    private AssignmentPathSegment getSpecifiedAssignmentPathSegment(ExpressionEvaluationContext context, Integer assignmentPathIndex)
+            throws ExpressionEvaluationException {
+
+        @SuppressWarnings("unchecked")
+        TypedValue<AssignmentPath> assignmentPathTypedValue = context.getVariables().get(ExpressionConstants.VAR_ASSIGNMENT_PATH);
+        if (assignmentPathTypedValue == null || assignmentPathTypedValue.getValue() == null) {
+            throw new ExpressionEvaluationException("No assignment path variable in " + context.getContextDescription() +
+                    "; the expression may be used in a wrong place. It is only supposed to work in a role.");
+        }
+
+        AssignmentPath assignmentPath = (AssignmentPath) assignmentPathTypedValue.getValue();
+        if (assignmentPath.isEmpty()) {
+            throw new ExpressionEvaluationException("Empty assignment path variable in " + context.getContextDescription() +
+                    "; the expression may be used in a wrong place. It is only supposed to work in a role.");
+        }
+
+        LOGGER.trace("assignmentPath {}:\n{}", expressionEvaluatorBean.getDescription(), assignmentPath.debugDumpLazily(1));
+
+        try {
+            return assignmentPath.getSegment(assignmentPathIndex);
+        } catch (IndexOutOfBoundsException e) {
+            throw new ExpressionEvaluationException("Wrong assignment path index in " + context.getContextDescription() +
+                    "; Index "+assignmentPathIndex+" cannot be applied to a path of length "+assignmentPath.size(), e);
+        }
     }
 
     private void selectMatchingShadows(List<String> candidateShadowsOidList,
@@ -199,7 +223,8 @@ public class AssociationFromLinkExpressionEvaluator
             ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition(), prismContext);
             shadowAssociationType.asPrismContainerValue().add(identifiersContainer);
-            Collection<ResourceAttribute<?>> shadowIdentifiers = ShadowUtil.getAllIdentifiers(shadow);
+            Collection<ResourceAttribute<?>> shadowIdentifiers =
+                    Objects.requireNonNull(ShadowUtil.getAllIdentifiers(shadow), "no shadow identifiers");
             for (ResourceAttribute<?> shadowIdentifier : shadowIdentifiers) {
                 identifiersContainer.add(shadowIdentifier.clone());
             }
@@ -208,7 +233,6 @@ public class AssociationFromLinkExpressionEvaluator
             // Should not happen
             throw new SystemException(e.getMessage(), e);
         }
-
     }
 
     private void gatherCandidateShadowsFromAbstractRole(AbstractRoleType thisRole, List<String> candidateShadowsOidList) {
@@ -232,7 +256,7 @@ public class AssociationFromLinkExpressionEvaluator
     }
 
     private boolean matchesForRecursion(OrgType thisOrg) {
-        for (String recurseUpOrgType: getExpressionEvaluatorType().getRecurseUpOrgType()) {
+        for (String recurseUpOrgType: expressionEvaluatorBean.getRecurseUpOrgType()) {
             if (FocusTypeUtil.determineSubTypes(thisOrg).contains(recurseUpOrgType)) {
                 return true;
             }
@@ -240,12 +264,8 @@ public class AssociationFromLinkExpressionEvaluator
         return false;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-     */
     @Override
     public String shortDebugDump() {
         return "associationFromLink";
     }
-
 }

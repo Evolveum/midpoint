@@ -86,7 +86,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_ACTIVATION,
             UserType.F_TRIGGER,
             UserType.F_CREDENTIALS,
-            UserType.F_ADMIN_GUI_CONFIGURATION);
+            UserType.F_ADMIN_GUI_CONFIGURATION,
+            UserType.F_BEHAVIOR);
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
             ShadowType.F_METADATA,
@@ -109,7 +110,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_DATA_PROTECTION,
             OrgType.F_TRIGGER,
             OrgType.F_AUTOASSIGN,
-            ShadowType.F_CREDENTIALS);
+            OrgType.F_CREDENTIALS,
+            OrgType.F_BEHAVIOR);
     private String userWallyOid;
     private String accountWallyOid;
 
@@ -122,7 +124,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
 
-        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
+        addObject(systemConfig, executeOptions().overwrite(), initTask, initResult);
 
     }
 

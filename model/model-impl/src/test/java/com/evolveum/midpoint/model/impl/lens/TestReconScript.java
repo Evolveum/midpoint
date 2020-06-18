@@ -52,19 +52,19 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         deltas.add(delta);
 
         task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
 
         delta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
         deltas = new ArrayList<>();
         deltas.add(delta);
 
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
 
         delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
         deltas = new ArrayList<>();
         deltas.add(delta);
 
-        modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
+        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
 
         for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
             String userName = (String) script.getParams().get("midpoint_usercn");
@@ -131,7 +131,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         afterRecon.asObjectable();
 
         PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-        AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some probelm in recon occured.", user);
+        AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some problem in recon occurred.", user);
 
         for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
 
@@ -174,7 +174,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         AssertJUnit.assertNotNull(shadow);
 
         PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-        AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some probelm in dry run occured.", user);
+        AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some problem in dry run occurred.", user);
     }
 
     @Test

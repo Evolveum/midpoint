@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.*;

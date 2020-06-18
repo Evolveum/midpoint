@@ -304,12 +304,12 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         OperationResult result = new OperationResult("testHeapUsage");
 
         int size = 2_000_000;
-        int count = 300;
+        int count = 400;
 
         // 50 is the default "step" in paged iterative search, so we can expect we always have 50 objects in memory
-        // And "times 2" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
+        // And "times 3" is the safety margin. It might or might not be sufficient, as System.gc() is not guaranteed to
         // really execute the garbage collection (only suggests JVM to do it).
-        long tolerance = (50 * size) * 2;
+        long tolerance = (50 * size) * 3;
 
         showMemory("Initial");
         dumpHeap("initial");
@@ -337,9 +337,12 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
         dumpHeap("final");
 
         long difference = usedInLastIteration.get() - usedBefore;
-        display(String.format("Difference: %,d KB (tolerating %,d KB)", difference / 1024, tolerance / 1024));
-        if (difference > tolerance) {
-            fail("Used too much memory during iterative search: " + difference / 1024 + " KB");
+
+        long differenceKb = difference / 1024;
+        long toleranceKb = tolerance / 1024;
+        System.out.printf("Difference: %,d KB (tolerating %,d KB)", differenceKb, toleranceKb);
+        if (differenceKb > toleranceKb) {
+            fail("Used too much memory during iterative search: " + differenceKb + " KB (accepting up to " + toleranceKb + " KB)");
         }
     }
 

@@ -617,7 +617,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         this.stripe = stripe;
     }
 
-    protected I getOldItem() {
+    public I getOldItem() {
         return oldItem;
     }
 

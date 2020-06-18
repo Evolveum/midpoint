@@ -393,6 +393,16 @@ public class ColumnUtils {
         return columns;
     }
 
+    public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultObjectColumns() {
+        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
+                new ColumnTypeDto<String>("ObjectType.description",
+                        null,
+                        SelectableBeanImpl.F_VALUE + ".description", false)
+        );
+        List<IColumn<SelectableBean<O>, String>> columns = createColumns(columnsDefs);
+        return columns;
+    }
+
 
     public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
 

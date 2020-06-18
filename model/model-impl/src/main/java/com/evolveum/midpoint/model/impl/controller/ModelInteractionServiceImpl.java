@@ -28,8 +28,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.util.ReferenceResolverImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
@@ -78,7 +81,7 @@ import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -158,7 +161,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     private static final Trace LOGGER = TraceManager.getTrace(ModelInteractionServiceImpl.class);
 
     @Autowired private ContextFactory contextFactory;
-    @Autowired private Projector projector;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private SchemaTransformer schemaTransformer;
@@ -168,6 +170,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+    @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
     @Autowired private RelationRegistry relationRegistry;
@@ -192,6 +195,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private CollectionProcessor collectionProcessor;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
+    @Autowired private ContextLoader contextLoader;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -1445,7 +1449,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @Nullable AbstractWorkItemType workItem, QName privilegeLimitationItemName, Task task, OperationResult result) {
         AssignmentEvaluator.Builder<UserType> builder =
                 new AssignmentEvaluator.Builder<UserType>()
-                        .repository(cacheRepositoryService)
+                        .referenceResolver(referenceResolver)
                         .focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
                         .channel(null)
                         .objectResolver(objectResolver)
@@ -1454,6 +1458,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .prismContext(prismContext)
                         .mappingFactory(mappingFactory)
                         .mappingEvaluator(mappingEvaluator)
+                        .contextLoader(contextLoader)
                         .activationComputer(activationComputer)
                         .now(clock.currentTimeXMLGregorianCalendar())
                         .loginMode(true)
@@ -1641,7 +1646,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         try {
             Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
-                    MiscUtil.createCollection(userDelta), ModelExecuteOptions.createRaw(), task, parentResult);
+                    MiscUtil.createCollection(userDelta), ModelExecuteOptions.create(prismContext).raw(), task, parentResult);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
                 | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
@@ -1874,10 +1879,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @Experimental
     @NotNull
-    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+    public CompiledObjectCollectionView compileObjectCollectionView(@NotNull CollectionRefSpecificationType collectionRef, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
-        return collectionProcessor.compileObjectCollectionView(collection, targetTypeClass, task, result);
+        return collectionProcessor.compileObjectCollectionView(collectionRef, targetTypeClass, task, result);
     }
 
     @Override
@@ -1944,6 +1949,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             return virtualContainers;
         }
 
+    }
+
+    @Override
+    public void applyView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+        collectionProcessor.compileView(existingView, objectListViewType);
     }
 
 }

@@ -85,9 +85,9 @@ import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.PageDialog;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -216,6 +216,7 @@ public final class WebComponentUtil {
         objectDetailsPageMap.put(CaseType.class, PageCase.class);
         objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
         objectDetailsPageMap.put(ShadowType.class, PageAccount.class);
+        objectDetailsPageMap.put(ObjectCollectionType.class, PageObjectCollection.class);
     }
 
     static{
@@ -644,7 +645,7 @@ public final class WebComponentUtil {
         }
 
         if (options != null) {
-            prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
+            prismTask.findOrCreateContainer(SchemaConstants.PATH_MODEL_EXTENSION_EXECUTE_OPTIONS)
                     .setRealValue(options.toModelExecutionOptionsType());
         }
         return task;
@@ -1784,6 +1785,10 @@ public final class WebComponentUtil {
             return createResourceIcon((PrismObject<ResourceType>) object);
         } else if (type == ShadowType.class) {
             return createShadowIcon((PrismObject<ShadowType>) object);
+        } else if (type == ObjectCollectionType.class) {
+            return createObjectColletionIcon();
+        } else if (type == ReportType.class) {
+            return createReportIcon();
         }
 
         return "";
@@ -2097,6 +2102,14 @@ public final class WebComponentUtil {
         return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
     }
 
+    public static String createObjectColletionIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+    }
+
+    public static String createReportIcon() {
+        return getObjectNormalIconStyle(GuiStyleConstants.CLASS_REPORT_ICON);
+    }
+
     public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
         PrismContext prismContext = pageBase.getPrismContext();
         PrismObjectDefinition<AHT> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
@@ -2228,8 +2241,6 @@ public final class WebComponentUtil {
         Page page = component.getPage();
         if (page instanceof PageBase) {
             return (PageBase) page;
-        } else if (page instanceof PageDialog) {
-            return ((PageDialog) page).getPageBase();
         } else {
             throw new IllegalStateException("Couldn't determine page base for " + page);
         }
@@ -3104,6 +3115,21 @@ public final class WebComponentUtil {
             pageBase.showResult(result);
         }
         return filter;
+    }
+
+    public static Behavior getSubmitOnEnterKeyDownBehavior(String submitButtonAboutAttribute){
+        return new Behavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void bind(Component component) {
+                super.bind( component );
+
+                component.add( AttributeModifier.replace( "onkeydown",
+                        Model.of("if(event.keyCode == 13) {$('[about=\"" + submitButtonAboutAttribute +"\"]').click();}") ) );
+            }
+        };
     }
 
     public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,

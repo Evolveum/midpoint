@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
-import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.WicketLoginUrlAuthenticationEntryPoint;
 import com.evolveum.midpoint.web.security.filter.SecurityQuestionsAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
@@ -42,7 +42,7 @@ public class SecurityQuestionsFormModuleWebSecurityConfig<C extends LoginFormMod
         getOrApply(http, new MidpointFormLoginConfigurer(new SecurityQuestionsAuthenticationFilter()))
                 .loginPage("/securityquestions")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
-                .failureHandler(new MidpointAuthenticationFauileHandler())
+                .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
         getOrApply(http, new MidpointExceptionHandlingConfigurer())

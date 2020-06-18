@@ -19,7 +19,7 @@ import javax.xml.namespace.QName;
  * assignable roles. We may also want to divide the filters according to other criteria. Those "gizmos" can be used to
  * do that.
  *
- * The gizmo could also be used to annotate the resulting filter. E.g. we might be able to put name of the authoriztion into
+ * The gizmo could also be used to annotate the resulting filter. E.g. we might be able to put name of the authorization into
  * each filter for diagnostic purposes.
  *
  * @param <F> SearchFilter or other filter-like things (e.g. RoleSelectionSpecification)

@@ -64,7 +64,7 @@ public class TestMappingTime extends AbstractUnitTest
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
-        MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
+        MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
         builder.now(TIME_PAST);
@@ -93,7 +93,7 @@ public class TestMappingTime extends AbstractUnitTest
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
-        MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
+        MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
         builder.now(TIME_BETWEEN);
@@ -121,7 +121,7 @@ public class TestMappingTime extends AbstractUnitTest
                 .createModificationReplaceProperty(UserType.class, MappingTestEvaluator.USER_OLD_OID,
                         UserType.F_EMPLOYEE_TYPE, "CAPTAIN");
 
-        MappingImpl.Builder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
+        MappingBuilder<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_FROM_TO_FILENAME, getTestNameShort(), "title", delta);
         builder.now(TIME_FUTURE);
@@ -143,7 +143,7 @@ public class TestMappingTime extends AbstractUnitTest
     @Test
     public void testExistenceBefore() throws Exception {
         // GIVEN
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null);
 
@@ -171,7 +171,7 @@ public class TestMappingTime extends AbstractUnitTest
     @Test
     public void testExistenceAfter() throws Exception {
         // GIVEN
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null);
 
@@ -204,7 +204,7 @@ public class TestMappingTime extends AbstractUnitTest
         PrismObject<UserType> userOld = evaluator.getUserOld();
         userOld.asObjectable().getActivation().setDisableTimestamp(null);
 
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", null, userOld);
 
@@ -241,7 +241,7 @@ public class TestMappingTime extends AbstractUnitTest
                         ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                         disableTimestamp);
 
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", delta, userOld);
 
@@ -278,7 +278,7 @@ public class TestMappingTime extends AbstractUnitTest
                         ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP),
                         disableTimestamp);
 
-        MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 evaluator.createMappingBuilder(
                         MAPPING_TIME_ACTIVATION, getTestNameShort(), "title", delta, userOld);
 

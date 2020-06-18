@@ -1,10 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.data.common.container;
+
+import java.util.Objects;
+import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.Validate;
+import org.hibernate.annotations.GenericGenerator;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -18,16 +25,11 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.GenericGenerator;
-
-import javax.persistence.*;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 @JaxbType(type = TriggerType.class)
 @Entity
 @IdClass(RContainerId.class)
-@Table(indexes = {@Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP)})
+@Table(indexes = { @Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP) })
 public class RTrigger implements Container {
 
     public static final String F_OWNER = "owner";
@@ -120,28 +122,24 @@ public class RTrigger implements Container {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof RTrigger)) {
+            return false;
+        }
 
         RTrigger that = (RTrigger) o;
-
-        if (handlerUri != null ? !handlerUri.equals(that.handlerUri) :
-                that.handlerUri != null) return false;
-        if (timestamp != null ? !timestamp.equals(that.timestamp) :
-                that.timestamp != null) return false;
-
-        return true;
+        return Objects.equals(ownerOid, that.ownerOid)
+                && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        int result = handlerUri != null ? handlerUri.hashCode() : 0;
-        result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
-        return result;
+        return Objects.hash(ownerOid, id);
     }
 
-    public static void copyToJAXB(RTrigger repo, TriggerType jaxb) throws
-            DtoTranslationException {
+    public static void copyToJAXB(RTrigger repo, TriggerType jaxb) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -158,14 +156,13 @@ public class RTrigger implements Container {
     }
 
     public static void fromJaxb(TriggerType jaxb, RTrigger repo, ObjectType parent,
-            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
-            throws DtoTranslationException {
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) {
         repo.setOwnerOid(parent.getOid());
         fromJaxb(jaxb, repo, repositoryContext, generatorResult);
     }
 
     private static void fromJaxb(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) throws DtoTranslationException {
+            IdGeneratorResult generatorResult) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -179,7 +176,7 @@ public class RTrigger implements Container {
         repo.setTimestamp(jaxb.getTimestamp());
     }
 
-    public TriggerType toJAXB() throws DtoTranslationException {
+    public TriggerType toJAXB() {
         TriggerType object = new TriggerType();
         RTrigger.copyToJAXB(this, object);
         return object;

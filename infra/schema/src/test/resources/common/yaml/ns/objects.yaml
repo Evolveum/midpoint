@@ -7,3 +7,12 @@ objects:
     name: "u2"
 - role:
     name: "r1"
+- objectCollection:
+    name: "oc"
+    type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
+    filter:
+      '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+      equal:
+        path: "declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-3';\
+          \ c:costCenter"
+        value: "100"

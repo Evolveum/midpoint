@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -37,7 +37,7 @@ import java.util.Set;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RObjectTemplate extends RObject<ObjectTemplateType> {
+public class RObjectTemplate extends RObject {
 
     private RPolyString nameCopy;
     private Set<RObjectReference<RObjectTemplate>> includeRef;
@@ -101,7 +101,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
-        repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
-                jaxb.getIncludeRef(), repo, RReferenceOwner.INCLUDE, repositoryContext.relationRegistry));
+        repo.getIncludeRef().addAll(RUtil.toRObjectReferenceSet(
+                jaxb.getIncludeRef(), repo, RReferenceType.INCLUDE, repositoryContext.relationRegistry));
     }
 }

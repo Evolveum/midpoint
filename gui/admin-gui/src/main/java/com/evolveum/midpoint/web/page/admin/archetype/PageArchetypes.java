@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -27,6 +29,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
         url = "/admin/archetypes", action = {
+                @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                        label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
+                        description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
                         label = "PageArchetypes.auth.archetypesAll.label",
                         description = "PageArchetypes.auth.archetypesAll.description"),
@@ -73,4 +78,8 @@ public class PageArchetypes extends PageAdminObjectList<ArchetypeType> {
         return UserProfileStorage.TableId.TABLE_ARCHETYPES;
     }
 
+    @Override
+    protected boolean isCreateCheckColumnEnabled() {
+        return false;
+    }
 }

@@ -56,11 +56,11 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 
     private void print(String header, SAXParseException e) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Error occured during schema parsing: ");
+        builder.append("Error occurred during schema parsing: ");
         builder.append(header);
         builder.append(" ");
         builder.append(MessageFormat.format("on line {0} at {1}, {2}",
-                new Object[] { Integer.toString(e.getLineNumber()), e.getSystemId(), e.getPublicId() }));
+                Integer.toString(e.getLineNumber()), e.getSystemId(), e.getPublicId()));
         builder.append(" ");
         builder.append(e.getMessage());
 

@@ -40,7 +40,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     private ItemPath path;
     private ItemDefinition definition;
-    private List<DisplayableValue<T>> values;
+    private DisplayableValue<T> value;
 
     //TODO: think about dividing searchItem to searchProperty, searchReference?
     private List<QName> allowedRelations;
@@ -110,15 +110,12 @@ public class SearchItem<T extends Serializable> implements Serializable {
         return Type.TEXT;
     }
 
-    public List<DisplayableValue<T>> getValues() {
-        if (values == null) {
-            values = new ArrayList<>();
-        }
-        return values;
+    public DisplayableValue<T> getValue() {
+        return value;
     }
 
-    public void setValues(List<DisplayableValue<T>> values) {
-        this.values = values;
+    public void setValue(DisplayableValue<T> value) {
+        this.value = value;
     }
 
     public Search getSearch() {
@@ -163,7 +160,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
                 .append("definition", definition)
                 .append("search", search)
                 .append("path", path)
-                .append("values", values)
+                .append("value", value)
                 .toString();
     }
 }

@@ -823,7 +823,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertAddDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        assertAddDeny(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
+        assertAddDeny(USER_DRAKE_FILE, executeOptions().raw());
     }
 
     protected void assertAddAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
@@ -832,7 +832,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertAddAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-        assertAddAllow(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
+        assertAddAllow(USER_DRAKE_FILE, executeOptions().raw());
     }
 
     protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
@@ -845,7 +845,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+        assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PrismTestUtil.createPolyString("CSc"));
     }
 
     protected void assertModifyAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -857,17 +857,17 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected void assertModifyAllowRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
+        assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PrismTestUtil.createPolyString("CSc"));
     }
 
     protected void assertDeleteDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         assertDeleteDeny(UserType.class, USER_LARGO_OID);
-        assertDeleteDeny(UserType.class, USER_LECHUCK_OID, ModelExecuteOptions.createRaw());
+        assertDeleteDeny(UserType.class, USER_LECHUCK_OID, executeOptions().raw());
     }
 
     protected void assertDeleteAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         assertDeleteAllow(UserType.class, USER_LARGO_OID);
-        assertDeleteAllow(UserType.class, USER_LECHUCK_OID, ModelExecuteOptions.createRaw());
+        assertDeleteAllow(UserType.class, USER_LECHUCK_OID, executeOptions().raw());
     }
 
     protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -917,13 +917,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
     protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
-        assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createRaw(), newRealValue);
+        assertModifyDenyOptions(type, oid, propertyName, executeOptions().raw(), newRealValue);
     }
 
     protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
         partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
-        assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
+        assertModifyDenyOptions(type, oid, propertyName, executeOptions().partialProcessing(partialProcessing), newRealValue);
     }
 
     protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
@@ -955,7 +955,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected <O extends ObjectType> void assertModifyAllowPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
         partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
-        assertModifyAllowOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
+        assertModifyAllowOptions(type, oid, propertyName, executeOptions().partialProcessing(partialProcessing), newRealValue);
     }
 
     protected <O extends ObjectType> void assertModifyAllowOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

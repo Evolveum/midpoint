@@ -1,0 +1,11 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="aaeff30f-00ba-4b76-aed1-3d29081e0104">
+    <name>alice</name>
+</user>

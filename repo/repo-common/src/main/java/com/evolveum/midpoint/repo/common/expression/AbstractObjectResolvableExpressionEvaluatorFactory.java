@@ -17,7 +17,7 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
  *
  * @author semancik
  */
-public abstract class AbstractObjectResolvableExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public abstract class AbstractObjectResolvableExpressionEvaluatorFactory extends BaseExpressionEvaluatorFactory {
 
     private final ExpressionFactory expressionFactory;
     protected final CacheConfigurationManager cacheConfigurationManager;

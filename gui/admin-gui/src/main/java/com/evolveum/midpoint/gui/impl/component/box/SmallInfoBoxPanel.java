@@ -21,10 +21,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 /**
  * @author skublik
  */
-public class SmallInfoBoxPanel extends InfoBoxPanel{
+public abstract class SmallInfoBoxPanel extends InfoBoxPanel{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SmallInfoBoxPanel.class);
@@ -53,6 +55,7 @@ public class SmallInfoBoxPanel extends InfoBoxPanel{
 
                 @Override
                 protected void onEvent(AjaxRequestTarget target) {
+                    PageParameters parameters = new PageParameters();
                     WebPage page = getLinkRef();
                     getPageBase().navigateToNext(page);
                 }
@@ -67,33 +70,8 @@ public class SmallInfoBoxPanel extends InfoBoxPanel{
 
     }
 
-//    @Override
-//    protected void customInitLayout(WebMarkupContainer parentInfoBox, IModel<InfoBoxType> model,
-//            Class<? extends IRequestablePage> linkPage) {
-//
-//        WebMarkupContainer moreInfoBox = new WebMarkupContainer(ID_MORE_INFO_BOX);
-//        parentInfoBox.add(moreInfoBox);
-//        WebMarkupContainer moreInfoBoxIcon = new WebMarkupContainer(ID_MORE_INFO_BOX_ICON);
-//        moreInfoBox.add(moreInfoBoxIcon);
-//        Label moreInfoBoxLabel = new Label(ID_MORE_INFO_BOX_LABEL, this.pageBase.createStringResource("PageDashboard.infobox.moreInfo"));
-//        moreInfoBox.add(moreInfoBoxLabel);
-//
-//        if (linkPage != null) {
-//            moreInfoBox.add(new AjaxEventBehavior("click") {
-//                private static final long serialVersionUID = 1L;
-//
-//                @Override
-//                protected void onEvent(AjaxRequestTarget target) {
-//                    setResponsePage(linkPage);
-//                }
-//            });
-//            moreInfoBox.add(AttributeModifier.append("class", "cursor-pointer"));
-//        } else {
-//            setInvisible(moreInfoBoxIcon);
-//            setInvisible(moreInfoBoxLabel);
-//            moreInfoBox.add(AttributeModifier.append("style", "height: 26px;"));
-//        }
-//    }
+    @Override
+    public abstract String getDashboardOid();
 
     private void setInvisible(Component component) {
         component.add(new VisibleEnableBehaviour(){

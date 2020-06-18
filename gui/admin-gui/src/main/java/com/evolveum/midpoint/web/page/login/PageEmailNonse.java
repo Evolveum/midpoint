@@ -77,10 +77,9 @@ public class PageEmailNonse extends PageAuthenticationBase {
     private boolean submited;
 
     public PageEmailNonse() {
-        initLayout();
     }
 
-    private void initLayout() {
+    protected void initCustomLayer() {
         Form form = new Form(ID_MAIN_FORM);
         form.add(new VisibleEnableBehaviour() {
 

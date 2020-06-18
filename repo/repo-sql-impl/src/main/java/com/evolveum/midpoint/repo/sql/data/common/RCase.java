@@ -44,7 +44,7 @@ import java.util.Set;
 }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RCase extends RObject<CaseType> {
+public class RCase extends RObject {
 
     private RPolyString nameCopy;
 

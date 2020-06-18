@@ -156,7 +156,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
         tailer.assertMarkerLogged(LogfileTestTailer.LEVEL_TRACE, ProfilingDataManager.Subsystem.PROVISIONING.name());
 
         ObjectDelta<SystemConfigurationType> delta = DeltaFactory.Object.createAddDelta(systemConfiguration);
-        ModelExecuteOptions options = ModelExecuteOptions.createOverwrite();
+        ModelExecuteOptions options = executeOptions().overwrite();
 
         // WHEN
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
@@ -400,9 +400,9 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         applyTestLoggingConfig(logging);
 
-        AuditingConfigurationType auditingConfigurationType = logging.getAuditing();
+        LoggingAuditingConfigurationType auditingConfigurationType = logging.getAuditing();
         if (auditingConfigurationType == null) {
-            auditingConfigurationType = new AuditingConfigurationType();
+            auditingConfigurationType = new LoggingAuditingConfigurationType();
             logging.setAuditing(auditingConfigurationType);
         }
         auditingConfigurationType.setEnabled(true);

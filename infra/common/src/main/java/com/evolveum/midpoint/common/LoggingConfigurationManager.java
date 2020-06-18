@@ -427,7 +427,7 @@ public class LoggingConfigurationManager {
         sb.append("\t</appender>\n");
     }
 
-    private static void generateAuditingLogConfig(AuditingConfigurationType auditing, StringBuilder sb) {
+    private static void generateAuditingLogConfig(LoggingAuditingConfigurationType auditing, StringBuilder sb) {
         sb.append("\t<logger name=\"");
         sb.append(AUDIT_LOGGER_NAME);
         sb.append("\" level=\"");

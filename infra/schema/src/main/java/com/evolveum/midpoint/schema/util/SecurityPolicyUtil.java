@@ -6,12 +6,18 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.Objects;
 import java.util.*;
 
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.Validate;
 
 public class SecurityPolicyUtil {
 
@@ -19,19 +25,22 @@ public class SecurityPolicyUtil {
     public static final String DEFAULT_MODULE_NAME = "loginForm";
     public static final String HTTP_BASIC_MODULE_NAME = "httpBasic";
     public static final String DEFAULT_SEQUENCE_NAME = "admin-gui-default";
+    public static final String DEFAULT_SEQUENCE_DISPLAY_NAME = "Default gui sequence";
     public static final String REST_SEQUENCE_NAME = "rest-default";
     public static final String ACTUATOR_SEQUENCE_NAME = "actuator-default";
     public static final String PASSWORD_RESET_SEQUENCE_NAME = "password-reset-default";
     private static final List<String> IGNORED_LOCAL_PATH;
+
     static {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("/actuator");
         list.add("/actuator/health");
         IGNORED_LOCAL_PATH = Collections.unmodifiableList(list);
     }
 
-    public static AbstractAuthenticationPolicyType getAuthenticationPolicy(String authPolicyName,
-            SecurityPolicyType securityPolicy) throws SchemaException {
+    public static AbstractAuthenticationPolicyType getAuthenticationPolicy(
+            String authPolicyName, SecurityPolicyType securityPolicy) throws SchemaException {
+
         MailAuthenticationPolicyType mailAuthPolicy = getMailAuthenticationPolicy(
                 authPolicyName, securityPolicy);
         SmsAuthenticationPolicyType smsAuthPolicy = getSmsAuthenticationPolicy(
@@ -40,10 +49,9 @@ public class SecurityPolicyUtil {
 
     }
 
+    public static NonceCredentialsPolicyType getCredentialPolicy(
+            String policyName, SecurityPolicyType securityPolicy) throws SchemaException {
 
-
-    public static NonceCredentialsPolicyType getCredentialPolicy(String policyName,
-            SecurityPolicyType securityPolicy) throws SchemaException {
         CredentialsPolicyType credentialsPolicy = securityPolicy.getCredentials();
         if (credentialsPolicy == null) {
             return null;
@@ -53,19 +61,7 @@ public class SecurityPolicyUtil {
 
         List<NonceCredentialsPolicyType> availableNoncePolicies = new ArrayList<>();
         for (NonceCredentialsPolicyType noncePolicy : noncePolicies) {
-            if (noncePolicy.getName() == null && policyName == null) {
-                availableNoncePolicies.add(noncePolicy);
-            }
-
-            if (noncePolicy.getName() == null && policyName != null) {
-                continue;
-            }
-
-            if (noncePolicy.getName() != null && policyName == null) {
-                continue;
-            }
-
-            if (noncePolicy.getName().equals(policyName)) {
+            if (Objects.equals(noncePolicy.getName(), policyName)) {
                 availableNoncePolicies.add(noncePolicy);
             }
         }
@@ -82,8 +78,9 @@ public class SecurityPolicyUtil {
         return availableNoncePolicies.iterator().next();
     }
 
-    private static MailAuthenticationPolicyType getMailAuthenticationPolicy(String authName,
-            SecurityPolicyType securityPolicy) throws SchemaException {
+    private static MailAuthenticationPolicyType getMailAuthenticationPolicy(
+            String authName, SecurityPolicyType securityPolicy) throws SchemaException {
+
         AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
         if (authPolicies == null) {
             return null;
@@ -91,8 +88,9 @@ public class SecurityPolicyUtil {
         return getAuthenticationPolicy(authName, authPolicies.getMailAuthentication());
     }
 
-    private static SmsAuthenticationPolicyType getSmsAuthenticationPolicy(String authName,
-            SecurityPolicyType securityPolicy) throws SchemaException {
+    private static SmsAuthenticationPolicyType getSmsAuthenticationPolicy(
+            String authName, SecurityPolicyType securityPolicy) throws SchemaException {
+
         AuthenticationsPolicyType authPolicies = securityPolicy.getAuthentication();
         if (authPolicies == null) {
             return null;
@@ -102,7 +100,8 @@ public class SecurityPolicyUtil {
 
     private static AbstractAuthenticationPolicyType checkAndGetAuthPolicyConsistence(
             MailAuthenticationPolicyType mailPolicy, SmsAuthenticationPolicyType smsPolicy)
-                    throws SchemaException {
+            throws SchemaException {
+
         if (mailPolicy != null && smsPolicy != null) {
             throw new SchemaException(
                     "Found both, mail and sms authentication method for registration. Only one of them can be present at the moment");
@@ -116,28 +115,14 @@ public class SecurityPolicyUtil {
 
     }
 
-    private static <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(String authName,
-            List<T> authPolicies) throws SchemaException {
+    private static <T extends AbstractAuthenticationPolicyType> T getAuthenticationPolicy(
+            String authName, List<T> authPolicies) throws SchemaException {
 
         List<T> smsPolicies = new ArrayList<>();
-
         for (T smsAuthPolicy : authPolicies) {
-            if (smsAuthPolicy.getName() == null && authName != null) {
-                continue;
-            }
-
-            if (smsAuthPolicy.getName() != null && authName == null) {
-                continue;
-            }
-
-            if (smsAuthPolicy.getName() == null && authName == null) {
+            if (Objects.equals(smsAuthPolicy.getName(), authName)) {
                 smsPolicies.add(smsAuthPolicy);
             }
-
-            if (smsAuthPolicy.getName().equals(authName)) {
-                smsPolicies.add(smsAuthPolicy);
-            }
-
         }
 
         if (smsPolicies.size() > 1) {
@@ -153,15 +138,13 @@ public class SecurityPolicyUtil {
 
     }
 
-    public static List<AuthenticationSequenceModuleType> getSortedModules(AuthenticationSequenceType sequence){
+    public static List<AuthenticationSequenceModuleType> getSortedModules(AuthenticationSequenceType sequence) {
         Validate.notNull(sequence);
-        ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<AuthenticationSequenceModuleType>();
-        modules.addAll(sequence.getModule());
+        ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<>(sequence.getModule());
         Validate.notNull(modules);
         Validate.notEmpty(modules);
         Comparator<AuthenticationSequenceModuleType> comparator =
-                (f1,f2) -> {
-
+                (f1, f2) -> {
                     Integer f1Order = f1.getOrder();
                     Integer f2Order = f2.getOrder();
 
@@ -173,9 +156,8 @@ public class SecurityPolicyUtil {
                     }
 
                     if (f2Order == null) {
-                        if (f1Order != null) {
-                            return -1;
-                        }
+                        // f1Order != null already
+                        return -1;
                     }
                     return Integer.compare(f1Order, f2Order);
                 };
@@ -183,29 +165,36 @@ public class SecurityPolicyUtil {
         return Collections.unmodifiableList(modules);
     }
 
-    public static AuthenticationsPolicyType createDefaultAuthenticationPolicy() {
+    public static AuthenticationsPolicyType createDefaultAuthenticationPolicy(
+            SchemaRegistry schemaRegistry) throws SchemaException {
+
+        PrismObjectDefinition<SecurityPolicyType> secPolicyDef =
+                schemaRegistry.findObjectDefinitionByCompileTimeClass(SecurityPolicyType.class);
+        @NotNull PrismObject<SecurityPolicyType> secPolicy = secPolicyDef.instantiate();
         AuthenticationsPolicyType authenticationPolicy = new AuthenticationsPolicyType();
         AuthenticationModulesType modules = new AuthenticationModulesType();
-        AuthenticationModuleLoginFormType loginForm = new AuthenticationModuleLoginFormType();
+        LoginFormAuthenticationModuleType loginForm = new LoginFormAuthenticationModuleType();
         loginForm.name(DEFAULT_MODULE_NAME);
         modules.loginForm(loginForm);
-        AuthenticationModuleHttpBasicType httpBasic = new AuthenticationModuleHttpBasicType();
+        HttpBasicAuthenticationModuleType httpBasic = new HttpBasicAuthenticationModuleType();
         httpBasic.name(HTTP_BASIC_MODULE_NAME);
         modules.httpBasic(httpBasic);
         authenticationPolicy.setModules(modules);
         authenticationPolicy.sequence(createDefaultSequence());
         authenticationPolicy.sequence(createRestSequence());
         authenticationPolicy.sequence(createActuatorSequence());
-        authenticationPolicy.sequence(createPaswordResetSequence());
+        authenticationPolicy.sequence(createPasswordResetSequence());
         for (String ignoredPath : IGNORED_LOCAL_PATH) {
             authenticationPolicy.ignoredLocalPath(ignoredPath);
         }
-        return authenticationPolicy;
+        secPolicy.asObjectable().setAuthentication(authenticationPolicy);
+        return secPolicy.asObjectable().getAuthentication();
     }
 
     public static AuthenticationSequenceType createDefaultSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(DEFAULT_SEQUENCE_NAME);
+        sequence.setDisplayName(DEFAULT_SEQUENCE_DISPLAY_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
         channel.channelId(DEFAULT_CHANNEL);
@@ -219,7 +208,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createRestSequence() {
+    private static AuthenticationSequenceType createRestSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(REST_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
@@ -235,7 +224,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createActuatorSequence() {
+    private static AuthenticationSequenceType createActuatorSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(ACTUATOR_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
@@ -251,7 +240,7 @@ public class SecurityPolicyUtil {
         return sequence;
     }
 
-    public static AuthenticationSequenceType createPaswordResetSequence() {
+    public static AuthenticationSequenceType createPasswordResetSequence() {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
@@ -266,5 +255,4 @@ public class SecurityPolicyUtil {
         sequence.module(module);
         return sequence;
     }
-
 }

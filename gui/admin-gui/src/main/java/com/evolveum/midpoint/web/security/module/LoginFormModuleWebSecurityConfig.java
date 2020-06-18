@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.security.module;
 
-import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationFailureHandler;
 import com.evolveum.midpoint.web.security.filter.MidpointUsernamePasswordAuthenticationFilter;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointExceptionHandlingConfigurer;
 import com.evolveum.midpoint.web.security.filter.configurers.MidpointFormLoginConfigurer;
@@ -69,7 +69,7 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
         getOrApply(http, getMidpointFormLoginConfiguration())
                 .loginPage("/login")
                 .loginProcessingUrl(stripEndingSlases(getPrefix()) + "/spring_security_login")
-                .failureHandler(new MidpointAuthenticationFauileHandler())
+                .failureHandler(new MidpointAuthenticationFailureHandler())
                 .successHandler(getObjectPostProcessor().postProcess(
                         new MidPointAuthenticationSuccessHandler().setPrefix(configuration.getPrefix()))).permitAll();
         getOrApply(http, new MidpointExceptionHandlingConfigurer())

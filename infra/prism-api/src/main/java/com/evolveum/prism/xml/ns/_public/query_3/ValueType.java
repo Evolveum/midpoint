@@ -8,19 +8,9 @@ package com.evolveum.prism.xml.ns._public.query_3;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jvnet.jaxb2_commons.lang.Equals;
@@ -31,6 +21,9 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
 /**
  * <p>Java class for ValueType complex type.
@@ -51,10 +44,9 @@ import org.w3c.dom.Element;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ValueType", propOrder = {
-    "content"
+        "content"
 })
-public class ValueType implements Serializable, Cloneable, Equals, HashCode
-{
+public class ValueType implements Serializable, Cloneable, Equals, HashCode {
 
     private final static long serialVersionUID = 201105211233L;
     @XmlMixed
@@ -64,7 +56,6 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
 
     /**
      * Creates a new {@code ValueType} instance.
-     *
      */
     public ValueType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -74,11 +65,8 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
     /**
      * Creates a new {@code ValueType} instance by deeply copying a given {@code ValueType} instance.
      *
-     *
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
+     * @param o The instance to copy.
+     * @throws NullPointerException if {@code o} is {@code null}.
      */
     public ValueType(final ValueType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -87,7 +75,7 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
             throw new NullPointerException("Cannot create a copy of 'ValueType' from 'null'.");
         }
         // 'Content' collection.
-        if (o.content!= null) {
+        if (o.content != null) {
             copyContent(o.getContent(), this.getContent());
         }
     }
@@ -112,8 +100,6 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
      * Objects of the following type(s) are allowed in the list
      * {@link String }
      * {@link Element }
-     *
-     *
      */
     public List<Object> getContent() {
         if (content == null) {
@@ -125,7 +111,6 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     *
      */
     @Override
     public String toString() {
@@ -134,11 +119,9 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
-        {
-            List<Object> theContent;
-            theContent = (((this.content!= null)&&(!this.content.isEmpty()))?this.getContent():null);
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "content", theContent), currentHashCode, theContent);
-        }
+        List<Object> theContent;
+        theContent = this.content != null && !this.content.isEmpty() ? this.getContent() : null;
+        currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "content", theContent), currentHashCode, theContent);
         return currentHashCode;
     }
 
@@ -154,19 +137,15 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
         if (this == object) {
             return true;
         }
-        final ValueType that = ((ValueType) object);
-        {
-            List<Object> lhsContent;
-            lhsContent = (((this.content!= null)&&(!this.content.isEmpty()))?this.getContent():null);
-            List<Object> rhsContent;
-            rhsContent = (((that.content!= null)&&(!that.content.isEmpty()))?that.getContent():null);
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "content", lhsContent), LocatorUtils.property(thatLocator, "content", rhsContent), lhsContent, rhsContent)) {
-                return false;
-            }
-        }
-        return true;
+        final ValueType that = (ValueType) object;
+        List<Object> lhsContent;
+        lhsContent = this.content != null && !this.content.isEmpty() ? this.getContent() : null;
+        List<Object> rhsContent;
+        rhsContent = that.content != null && !that.content.isEmpty() ? that.getContent() : null;
+        return strategy.equals(LocatorUtils.property(thisLocator, "content", lhsContent), LocatorUtils.property(thatLocator, "content", rhsContent), lhsContent, rhsContent);
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);
@@ -175,31 +154,26 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
     /**
      * Copies all values of property {@code Content} deeply.
      *
-     * @param source
-     *     The source to copy from.
-     * @param target
-     *     The target to copy {@code source} to.
-     * @throws NullPointerException
-     *     if {@code target} is {@code null}.
+     * @param source The source to copy from.
+     * @param target The target to copy {@code source} to.
+     * @throws NullPointerException if {@code target} is {@code null}.
      */
-    @SuppressWarnings("unchecked")
     private static void copyContent(final List<Object> source, final List<Object> target) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if ((source!= null)&&(!source.isEmpty())) {
-            for (final Iterator<?> it = source.iterator(); it.hasNext(); ) {
-                final Object next = it.next();
+        if (source != null && !source.isEmpty()) {
+            for (final Object next : source) {
                 if (next instanceof Element) {
                     // CWildcardTypeInfo: org.w3c.dom.Element
-                    target.add(((Element)((Element) next).cloneNode(true)));
+                    target.add(((Element) next).cloneNode(true));
                     continue;
                 }
                 if (next instanceof String) {
                     // CBuiltinLeafInfo: java.lang.String
-                    target.add(((String) next));
+                    target.add(next);
                     continue;
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Content' of class 'com.evolveum.prism.xml.ns._public.query_3.ValueType'."));
+                throw new AssertionError("Unexpected instance '" + next + "' for property 'Content' of class 'com.evolveum.prism.xml.ns._public.query_3.ValueType'.");
             }
         }
     }
@@ -207,23 +181,19 @@ public class ValueType implements Serializable, Cloneable, Equals, HashCode
     /**
      * Creates and returns a deep copy of this object.
      *
-     *
-     * @return
-     *     A deep copy of this object.
+     * @return A deep copy of this object.
      */
     @Override
     public ValueType clone() {
         try {
-            {
-                // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-                final ValueType clone = ((ValueType) super.clone());
-                // 'Content' collection.
-                if (this.content!= null) {
-                    clone.content = null;
-                    copyContent(this.getContent(), clone.getContent());
-                }
-                return clone;
+            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+            final ValueType clone = (ValueType) super.clone();
+            // 'Content' collection.
+            if (this.content != null) {
+                clone.content = null;
+                copyContent(this.getContent(), clone.getContent());
             }
+            return clone;
         } catch (CloneNotSupportedException e) {
             // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
             throw new AssertionError(e);

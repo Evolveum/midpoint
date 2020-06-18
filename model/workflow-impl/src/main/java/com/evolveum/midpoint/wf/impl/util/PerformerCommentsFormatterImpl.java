@@ -26,9 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author mederly
- */
 public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatter {
 
     private static final Trace LOGGER = TraceManager.getTrace(PerformerCommentsFormatterImpl.class);

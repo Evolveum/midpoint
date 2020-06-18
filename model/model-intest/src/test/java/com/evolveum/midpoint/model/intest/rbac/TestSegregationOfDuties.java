@@ -1528,7 +1528,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = rolesTriple.getZeroSet();
         assertEquals("Wrong number of evaluated role", 1, evaluatedRoles.size());
         assertEvaluatedRole(evaluatedRoles, ROLE_MINISTER_OID);
-        Collection<EvaluatedPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
+        Collection<? extends EvaluatedPolicyRule> allTargetsPolicyRules = evaluatedAssignment.getAllTargetsPolicyRules();
         display("Evaluated policy rules", allTargetsPolicyRules);
         assertEquals("Wrong number of evaluated policy rules", 2, allTargetsPolicyRules.size());
         EvaluatedPolicyRule evaluatedSodPolicyRule = getEvaluatedPolicyRule(allTargetsPolicyRules, GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME);
@@ -1563,7 +1563,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
     }
 
-    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
+    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<? extends EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
         return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 
@@ -1606,7 +1606,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         try {
             // This should die
-            ModelExecuteOptions options = new ModelExecuteOptions();
+            ModelExecuteOptions options = executeOptions();
 //            options.setEvaluateAllAssignmentRelationsOnRecompute(true);
             assignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_OID, SchemaConstants.ORG_OWNER, options, task, result);
 

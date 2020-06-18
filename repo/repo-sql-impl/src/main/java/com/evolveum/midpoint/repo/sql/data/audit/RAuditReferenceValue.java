@@ -7,6 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COLUMN_RECORD_ID;
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TABLE_NAME;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Objects;
+import javax.persistence.*;
+
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -17,22 +25,10 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-import javax.persistence.*;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COLUMN_RECORD_ID;
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TABLE_NAME;
-
 @Ignore
 @Entity
 @Table(name = TABLE_NAME, indexes = {
-        @Index(name = "iAuditRefValRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditRefValRecordId", columnList = COLUMN_RECORD_ID) })
 public class RAuditReferenceValue implements EntityState {
 
     public static final String TABLE_NAME = "m_audit_ref_value";
@@ -156,7 +152,7 @@ public class RAuditReferenceValue implements EntityState {
         if (value != null) {
             queryBuilder.addParameter(OID_COLUMN_NAME, value.getOid());
             queryBuilder.addParameter(TYPE_COLUMN_NAME, RUtil.qnameToString(value.getType()));
-            if(value.getTargetName() != null) {
+            if (value.getTargetName() != null) {
                 queryBuilder.addParameter(TARGET_NAME_ORIG_COLUMN_NAME, value.getTargetName().getOrig());
                 queryBuilder.addParameter(TARGET_NAME_NORM_COLUMN_NAME, value.getTargetName().getNorm());
             } else {
@@ -178,7 +174,7 @@ public class RAuditReferenceValue implements EntityState {
 
     public static AuditReferenceValue fromRepo(ResultSet resultSet) throws SQLException {
         PolyString targetName = null;
-        if(resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME)!= null
+        if (resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME) != null
                 || resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME) != null) {
             targetName = new PolyString(resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME),
                     resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME));
@@ -187,13 +183,10 @@ public class RAuditReferenceValue implements EntityState {
                 RUtil.stringToQName(resultSet.getString(TYPE_COLUMN_NAME)), targetName);
     }
 
-
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAuditReferenceValue))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RAuditReferenceValue)) { return false; }
         RAuditReferenceValue that = (RAuditReferenceValue) o;
         return id == that.id &&
                 Objects.equals(recordId, that.recordId) &&

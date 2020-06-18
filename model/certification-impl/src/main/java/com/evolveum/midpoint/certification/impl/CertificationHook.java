@@ -93,7 +93,7 @@ public class CertificationHook implements ChangeHook {
         }
     }
 
-    private Collection<CertificationPolicyActionType> getCertificationActions(Collection<EvaluatedPolicyRule> policyRules) {
+    private Collection<CertificationPolicyActionType> getCertificationActions(Collection<? extends EvaluatedPolicyRule> policyRules) {
         return policyRules.stream()
                 .filter(r -> r.isTriggered() && r.containsEnabledAction(CertificationPolicyActionType.class))
                 .map(r -> r.getEnabledAction(CertificationPolicyActionType.class))

@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.audit.impl;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
@@ -24,26 +24,21 @@ import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
 public class LoggerAuditServiceImpl implements AuditService {
 
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    private static final Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+    private static final DateTimeFormatter TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
-    private static final Trace LOGGER = TraceManager.getTrace(LoggerAuditServiceImpl.class);
-
-    @Autowired
-    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    private static final Logger AUDIT_LOGGER =
+            LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.common.audit.AuditService#audit(com.evolveum.midpoint.common.audit.AuditEventRecord)
@@ -61,10 +56,10 @@ public class LoggerAuditServiceImpl implements AuditService {
     private void recordRecord(AuditEventRecord record) {
         // FIXME: hardcoded auditing to a system log
         if (AUDIT_LOGGER.isInfoEnabled()) {
-            AUDIT_LOGGER.info("{}",toSummary(record));
+            AUDIT_LOGGER.info("{}", toSummary(record));
         }
         if (AUDIT_LOGGER.isDebugEnabled()) {
-            AUDIT_LOGGER.debug("{}",toDetails(record));
+            AUDIT_LOGGER.debug("{}", toDetails(record));
         }
     }
 
@@ -90,13 +85,12 @@ public class LoggerAuditServiceImpl implements AuditService {
                 ", m=" + record.getMessage();
     }
 
-
     private String toDetails(AuditEventRecord record) {
         StringBuilder sb = new StringBuilder("Details of event ");
         sb.append(record.getEventIdentifier()).append(" stage ").append(record.getEventStage()).append("\n");
 
         sb.append("Deltas:");
-        for (ObjectDeltaOperation<?> delta: record.getDeltas()) {
+        for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
             sb.append("\n");
             if (delta == null) {
                 sb.append("null");
@@ -109,19 +103,19 @@ public class LoggerAuditServiceImpl implements AuditService {
         return sb.toString();
     }
 
-
     private static String formatTimestamp(Long timestamp) {
         if (timestamp == null) {
             return "null";
         }
-        return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
+        return TIMESTAMP_FORMAT.format(
+                Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()));
     }
 
     private static String formatObject(PrismObject<? extends ObjectType> object) {
         if (object == null) {
             return "null";
         }
-        return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getElementName()+")";
+        return object.asObjectable().toDebugType() + ":" + object.getOid() + "(" + object.getElementName() + ")";
     }
 
     private String formatReference(PrismReferenceValue refVal) {
@@ -129,6 +123,7 @@ public class LoggerAuditServiceImpl implements AuditService {
             return "null";
         }
         if (refVal.getObject() != null) {
+            //noinspection unchecked
             return formatObject(refVal.getObject());
         }
         return refVal.toString();
@@ -158,7 +153,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public long countObjects(String query, Map<String, Object> params){
+    public long countObjects(String query, Map<String, Object> params) {
         throw new UnsupportedOperationException("Object retrieval not supported");
     }
 

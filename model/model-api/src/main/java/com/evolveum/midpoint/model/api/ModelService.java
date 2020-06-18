@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -126,12 +125,12 @@ public interface ModelService {
      *             requested object does not exist
      * @throws SchemaException
      *                 the object is not schema compliant
-     * @throw SecurityViolationException
+     * @throws SecurityViolationException
      *                 Security violation during operation execution. May be caused either by midPoint internal
      *                 security mechanism but also by external mechanism (e.g. on the resource)
      * @throws CommunicationException
      *                 Communication (network) error during retrieval. E.g. error communicating with the resource
-     * @throw ConfigurationException
+     * @throws ConfigurationException
      *                 Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
      * @throws IllegalArgumentException
      *             missing required parameter, wrong OID format, etc.
@@ -142,6 +141,7 @@ public interface ModelService {
      *             unknown error from underlying layers or other unexpected
      *             state
      */
+    @NotNull
     <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException;
@@ -238,11 +238,8 @@ public interface ModelService {
      * @param type type (class) of an object to recompute
      * @param oid OID of the object to recompute
      * @param options execute options
-     * @param parentResult
-     *            parent OperationResult (in/out)
-     * @param task
-     *               Task instance. It gives context to the execution (e.g. security context)
      * @param parentResult parent OperationResult (in/out)
+     * @param task Task instance. It gives context to the execution (e.g. security context)
      */
     <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
              throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
@@ -320,7 +317,7 @@ public interface ModelService {
      *             object required for a search was not found (e.g. resource definition)
      * @throws CommunicationException
      *                 Communication (network) error during retrieval. E.g. error communicating with the resource
-     * @throw SecurityViolationException
+     * @throws SecurityViolationException
      *                 Security violation during operation execution. May be caused either by midPoint internal
      *                 security mechanism but also by external mechanism (e.g. on the resource)
      * @throws ConfigurationException
@@ -384,7 +381,7 @@ public interface ModelService {
      *             object required for a search was not found (e.g. resource definition)
      * @throws CommunicationException
      *                 Communication (network) error during retrieval. E.g. error communicating with the resource
-     * @throw SecurityViolationException
+     * @throws SecurityViolationException
      *                 Security violation during operation execution. May be caused either by midPoint internal
      *                 security mechanism but also by external mechanism (e.g. on the resource)
      * @throws ConfigurationException
@@ -425,7 +422,7 @@ public interface ModelService {
      *             object required for a search was not found (e.g. resource definition)
      * @throws CommunicationException
      *                 Communication (network) error during retrieval. E.g. error communicating with the resource
-     * @throw SecurityViolationException
+     * @throws SecurityViolationException
      *                 Security violation during operation execution. May be caused either by midPoint internal
      *                 security mechanism but also by external mechanism (e.g. on the resource)
      * @throws ConfigurationException

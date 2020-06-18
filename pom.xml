@@ -57,14 +57,14 @@
     Running unit+IT tests of a selected module (-pl) with output to stdout:
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
-    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be istalled too):
+    Running GUI tests from Schrodinger module only with custom location of ChromeDriver (Chrome must be installed too):
     mvn clean install -P -dist -DskipTests -DskipSchrodingerTests=false -DwebdriverLocation=/c/work/tools/bin/chromedriver.exe
     -->
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.1.13.RELEASE</version>
+        <version>2.3.0.RELEASE</version>
     </parent>
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -180,8 +180,7 @@
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>8.6.0</wicket.version>
-        <groovy.version>2.5.8</groovy.version>
-        <commons-email.version>1.3</commons-email.version>
+        <groovy.version>2.5.12</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
         <connid.version>1.5.0.10</connid.version>
         <jasper.version>6.5.0</jasper.version>
@@ -204,6 +203,15 @@
         <checkstyle.version>3.1.0</checkstyle.version>
         <xalan.version>2.7.2</xalan.version>
         <xerces.version>2.12.0</xerces.version>
+        <commons.csv.version>1.8</commons.csv.version>
+        <j2html.version>1.4.0</j2html.version>
+        <bouncycastle.version>1.64</bouncycastle.version>
+
+        <!--
+        Coming in different versions from org.glassfish.jaxb:xsom and from
+        org.glassfish.jaxb:jaxb-xjc/com.sun.xml.bind.external:rngom. Review on upgrades.
+        -->
+        <relaxng-datatype.version>2.3.3</relaxng-datatype.version>
     </properties>
 
     <dependencyManagement>
@@ -211,49 +219,14 @@
 
             <!-- Upgrade to Java 11 -->
             <dependency>
-                <groupId>javax.xml.soap</groupId>
-                <artifactId>javax.xml.soap-api</artifactId>
-                <version>${javax.xml.soap.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
                 <version>${geronimo-ws-metadata_2.0_spec.version}</version>
             </dependency>
-            <!-- TODO: remove after update to Spring Boot 2.2, which will have this in parent-->
             <dependency>
-                <groupId>jakarta.activation</groupId>
-                <artifactId>jakarta.activation-api</artifactId>
-                <version>1.2.2</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.activation</groupId>
-                <artifactId>javax.activation</artifactId>
-                <version>${javax-activation.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jaxb</groupId>
-                <artifactId>jaxb-runtime</artifactId>
-                <version>${glassfish-jaxb.version}</version>
-                <exclusions>
-                    <!-- in favor of Jakarta version -->
-                    <exclusion>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>javax.activation-api</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${javax-jaxb.version}</version>
-                <exclusions>
-                    <!-- in favor of Jakarta version -->
-                    <exclusion>
-                        <groupId>javax.activation</groupId>
-                        <artifactId>javax.activation-api</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>com.sun.xml.bind.external</groupId>
+                <artifactId>relaxng-datatype</artifactId>
+                <version>${relaxng-datatype.version}</version>
             </dependency>
 
             <dependency>
@@ -334,17 +307,6 @@
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <version>${asm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-email</artifactId>
-                <version>${commons-email.version}</version>
-                <exclusions>
-                    <exclusion> <!-- Conflicting version with itself! -->
-                        <groupId>javax.activation</groupId>
-                        <artifactId>activation</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
@@ -432,10 +394,13 @@
                 <artifactId>janino</artifactId>
                 <version>3.0.10</version>
             </dependency>
+            <!-- Needed for OpenDJ in tests -->
             <dependency>
                 <groupId>com.sleepycat</groupId>
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
+                <!-- upgrade to 18.x is not possible with currently used OpenDJ -->
+                <!--<version>18.3.12</version>-->
             </dependency>
             <!--
             TODO: we should get rid of xalan/xerces if possible.
@@ -467,11 +432,6 @@
                 <groupId>net.sourceforge.ccxjc</groupId>
                 <artifactId>cc-xjc-plugin</artifactId>
                 <version>2.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xsom</groupId>
-                <artifactId>xsom</artifactId>
-                <version>20140925</version>
             </dependency>
             <dependency>
                 <groupId>commons-validator</groupId>
@@ -514,7 +474,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-configuration2</artifactId>
-                <version>2.6</version>
+                <version>2.7</version>
                 <exclusions>
                     <!-- replaced by org.slf4j:jcl-over-slf4j -->
                     <exclusion>
@@ -653,12 +613,16 @@
                         <groupId>org.glassfish.jaxb</groupId>
                         <artifactId>jaxb-xjc</artifactId>
                     </exclusion>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-simple</artifactId>
-                <version>${cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -688,18 +652,15 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-jaxws</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-databinding-aegis</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-local</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -720,12 +681,28 @@
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpcore</artifactId>
                     </exclusion>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-transports-http-jetty</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -735,11 +712,6 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-management</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-bindings-soap</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
             <dependency>
@@ -762,6 +734,15 @@
                         <groupId>jakarta.ws.rs</groupId>
                         <artifactId>jakarta.ws.rs-api</artifactId>
                     </exclusion>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -777,12 +758,32 @@
                         <groupId>javax.xml.soap</groupId>
                         <artifactId>javax.xml.soap-api</artifactId>
                     </exclusion>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-extension-providers</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sun.activation</groupId>
+                        <artifactId>javax.activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.xjc-utils</groupId>
@@ -837,11 +838,6 @@
                 <version>3.1.4</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.osgi.core</artifactId>
-                <version>1.4.0</version>
-            </dependency>
-            <dependency>
                 <groupId>org.forgerock.opendj</groupId>
                 <artifactId>opendj</artifactId>
                 <version>${opendj.version}</version>
@@ -885,16 +881,7 @@
                 <version>1.0</version>
             </dependency>
             <!-- End connectors -->
-            <dependency>
-                <groupId>com.evolveum.icf</groupId>
-                <artifactId>dummy</artifactId>
-                <version>1.1.0.0-e1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scannotation</groupId>
-                <artifactId>scannotation</artifactId>
-                <version>1.0.3</version>
-            </dependency>
+
             <dependency>
                 <!-- this replaces commons-logging and spring-jcl (or other JARs with org.apache.commons.logging.Log) -->
                 <groupId>org.slf4j</groupId>
@@ -991,11 +978,6 @@
                 <groupId>org.cache2k</groupId>
                 <artifactId>cache2k-core</artifactId>
                 <version>${cache2k.version}</version>
-            </dependency>
-            <dependency> <!-- Needed for MethodInvocation object in security-impl, used by Spring Security -->
-                <groupId>aopalliance</groupId>
-                <artifactId>aopalliance</artifactId>
-                <version>1.0</version>
             </dependency>
 
             <dependency>
@@ -1178,12 +1160,20 @@
                 <groupId>com.fasterxml.jackson.module</groupId>
                 <artifactId>jackson-module-jaxb-annotations</artifactId>
                 <version>${jackson.version}</version>
+                <exclusions>
+                    <!-- will be declared as needed to avoid collisions with superset non-API JAR -->
+                    <exclusion>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
                 <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            <!-- Used by cxf-core, can go away with CXF -->
             <dependency>
                 <groupId>org.apache.ws.xmlschema</groupId>
                 <artifactId>xmlschema-core</artifactId>
@@ -1193,6 +1183,16 @@
                 <groupId>org.jvnet.jaxb2_commons</groupId>
                 <artifactId>jaxb2-basics-runtime</artifactId>
                 <version>0.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${commons.csv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.j2html</groupId>
+                <artifactId>j2html</artifactId>
+                <version>${j2html.version}</version>
             </dependency>
 
             <!-- Maven plugins -->
@@ -1256,6 +1256,7 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- Used by maven-plugin-api in schema-dist-maven-plugin -->
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
@@ -1333,20 +1334,27 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- TODO this should go away with WSDLs -->
+            <dependency>
+                <groupId>javax.xml.ws</groupId>
+                <artifactId>jaxws-api</artifactId>
+                <version>${javax-jaxws.version}</version>
+                <exclusions>
+                    <!-- in favor of Jakarta version -->
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>javax.mail</groupId>
                 <artifactId>mail</artifactId>
                 <version>1.4.5</version>
-            </dependency>
-            <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>javax.mail-api</artifactId>
-                <version>1.5.4</version>
-            </dependency>
-            <dependency>
-                <groupId>org.ocpsoft.prettytime</groupId>
-                <artifactId>prettytime</artifactId>
-                <version>4.0.0.Final</version>
             </dependency>
             <dependency>
                 <groupId>com.github.openjson</groupId>
@@ -1364,12 +1372,22 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+           <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+               <version>${bouncycastle.version}</version>
+            </dependency>
 
             <!-- webjars -->
             <dependency>
-                <groupId>org.webjars.bower</groupId>
-                <artifactId>adminlte</artifactId>
-                <version>2.3.11</version>
+                <groupId>com.evolveum.webjars</groupId>
+                <artifactId>AdminLTE</artifactId>
+                <version>2.4.18</version>
             </dependency>
             <dependency>
                 <groupId>org.webjars</groupId>
@@ -1449,12 +1467,6 @@
                 <version>${qpid-broker.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.jasig.cas.client</groupId>
-                <artifactId>cas-client-core</artifactId>
-                <version>3.5.1</version>
-            </dependency>
-
             <!-- Schrodinger -->
             <dependency>
                 <groupId>com.codeborne</groupId>
@@ -1506,11 +1518,12 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency>
-                <groupId>org.jsoup</groupId>
-                <artifactId>jsoup</artifactId>
-                <version>1.10.2</version>
-            </dependency>
+            <!-- TODO: Without this we'll get newer jsoup 1.11.3, isn't it better? If so, remove this. -->
+            <!--<dependency>-->
+            <!--    <groupId>org.jsoup</groupId>-->
+            <!--    <artifactId>jsoup</artifactId>-->
+            <!--    <version>1.10.2</version>-->
+            <!--</dependency>-->
             <dependency>
                 <groupId>dnsjava</groupId>
                 <artifactId>dnsjava</artifactId>
@@ -1553,6 +1566,17 @@
             <id>spring-milestone</id>
             <name>Spring Milestone Repository</name>
             <url>https://repo.spring.io/milestone</url>
+        </repository>
+
+        <!--
+        We need this for Sleepycat JE, version 5.0.73 is released OK, but newer versions
+        (like 5.0.103) is in Maven central plugin repository, which is obviously wrong.
+        So we need Oracle's repo too.
+        -->
+        <repository>
+            <id>oracle</id>
+            <name>Oracle</name>
+            <url>https://download.oracle.com/maven/</url>
         </repository>
     </repositories>
     <pluginRepositories>
@@ -1689,8 +1713,15 @@
                                         jaxb-xjc replaced by Glassfish jaxb-xjc + xsom + codemodel
                                         -->
                                         <exclude>com.sun.xml.bind:*</exclude>
+                                        <!-- in favor of jakarta.xml.bind:jakarta.xml.bind-api -->
+                                        <exclude>javax.xml.bind:jaxb-api</exclude>
                                         <!-- in favor of jakarta.activation:jakarta.activation-api -->
                                         <exclude>javax.activation:javax.activation-api</exclude>
+                                        <!-- in favor of com.sun.activation:jakarta.activation -->
+                                        <exclude>com.sun.activation:javax.activation</exclude>
+                                        <exclude>javax.activation:activation</exclude>
+                                        <!-- in favor of jakarta.annotation:jakarta.annotation-api -->
+                                        <exclude>javax.annotation:javax.annotation-api</exclude>
                                         <!-- package with multiple XML APIs, conflicts assured
                                         (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
                                         <!--<exclude>xml-apis:xml-apis</exclude>-->
@@ -1739,14 +1770,15 @@
 
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
-                                <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
                                 <!-- TODO can go away with JDK 8 support, JDK 9+ covers it, ideally whole Xerces/Xalan should go -->
                                 <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
 
-                                <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
+                                <!-- the latter is superset of API and this totally confuses dep analyzer-->
                                 <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>com.sun.activation:jakarta.activation</ignoredUsedUndeclaredDependency>
+
+                                <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
                                 <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
@@ -1760,10 +1792,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -2070,11 +2098,9 @@
 
         <profile>
             <id>jdk-11</id>
-            <properties>
-                <project.source.version>11</project.source.version>
-            </properties>
+            <!-- Don't change source level here, we still need the to support globally set level. -->
             <activation>
-                <jdk>11</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <dependencyManagement>
                 <!--
@@ -2113,12 +2139,19 @@
 
         <profile>
             <id>jdk-8</id>
-            <properties>
-                <project.source.version>1.8</project.source.version>
-            </properties>
             <activation>
                 <jdk>1.8</jdk>
             </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <!-- this is newer version used in xercesImpl, without this dependency convergence check fails -->
+                    <dependency>
+                        <groupId>xml-apis</groupId>
+                        <artifactId>xml-apis</artifactId>
+                        <version>1.4.01</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
     </profiles>
 </project>

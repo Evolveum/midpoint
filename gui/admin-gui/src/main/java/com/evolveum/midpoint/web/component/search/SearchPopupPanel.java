@@ -29,7 +29,11 @@ abstract class SearchPopupPanel<T extends Serializable> extends BasePanel<Displa
 
     public SearchPopupPanel(String id, IModel<DisplayableValue<T>> model) {
         super(id, model);
+    }
 
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initButtons();
     }
 
@@ -60,21 +64,21 @@ abstract class SearchPopupPanel<T extends Serializable> extends BasePanel<Displa
     private void addOrRemovePerformed(AjaxRequestTarget target, boolean add) {
         SearchItemPanel<T> panel = findParent(SearchItemPanel.class);
 
-        SearchItemPopoverDto<T> dto = panel.getPopoverModel().getObject();
-        List<DisplayableValue<T>> values = dto.getValues();
-
-        if (add) {
-            values.add(createNewValue(panel.isReferenceDefinition()));
-        } else {
-            DisplayableValue<T> val = getModelObject();
-            values.remove(val);
-
-            if (values.isEmpty()) {
-                values.add(createNewValue(panel.isReferenceDefinition()));
-            }
-        }
-
-        panel.updatePopupBody(target);
+//        SearchItemPopoverDto<T> dto = panel.getPopoverModel().getObject();
+//        List<DisplayableValue<T>> values = dto.getValues();
+//
+//        if (add) {
+//            values.add(createNewValue(panel.isReferenceDefinition()));
+//        } else {
+//            DisplayableValue<T> val = getModelObject();
+//            values.remove(val);
+//
+//            if (values.isEmpty()) {
+//                values.add(createNewValue(panel.isReferenceDefinition()));
+//            }
+//        }
+//
+//        panel.updatePopupBody(target);
     }
 
     private SearchValue<T> createNewValue(boolean isReference) {

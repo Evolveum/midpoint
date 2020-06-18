@@ -10,15 +10,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:context="http://www.springframework.org/schema/context"
-        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
         xsi:schemaLocation="http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
             http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-3.0.xsd
-            http://cxf.apache.org/jaxrs
-            http://cxf.apache.org/schemas/jaxrs.xsd"
-        default-lazy-init="false"
-        default-autowire="byName">
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+        default-lazy-init="false">
 
     <!-- enabling annotation driven configuration -->
     <context:annotation-config/>
@@ -127,7 +123,7 @@
     </bean>
 
     <bean id="pathExpressionEvaluatorFactory"
-            class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory">
+            class="com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
@@ -173,7 +169,6 @@
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="modelController"/>
         <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
@@ -227,7 +222,6 @@
                     <value type="java.lang.Class">com.evolveum.midpoint.model.impl.sync.action.InactivateFocusAction</value>
                 </entry>
 
-
                 <!-- DEPRECATED. for compatibility only. -->
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.impl.sync.action.LinkAction</value>
@@ -256,16 +250,6 @@
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.impl.sync.action.InactivateFocusAction</value>
                 </entry>
-
-                <!-- TODO -->
-                <!--
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-3#enableUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.sync.action.EnableUserAction</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.sync.action.AddAccountAction</value>
-                </entry>
-                 -->
             </map>
         </property>
         <property name="modelObjectResolver" ref="modelObjectResolver"/>
@@ -276,39 +260,4 @@
         <property name="provisioningService" ref="provisioningService"/>
         <property name="contextFactory" ref="contextFactory"/>
     </bean>
-
-    <bean id="loggingFeature" class="com.evolveum.midpoint.model.impl.util.LoggingFeature"/>
-
-    <jaxrs:server id="restService" address="/rest/">
-        <jaxrs:serviceBeans>
-            <ref bean="modelRestService"/>
-            <ref bean="extensionSchemaRestService"/>
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <ref bean="jaxbProvider"/>
-            <ref bean="jsonProvider"/>
-            <ref bean="yamlProvider"/>
-            <ref bean="restAuthenticationHandler"/>
-        </jaxrs:providers>
-        <jaxrs:features>
-            <ref bean="loggingFeature"/>
-        </jaxrs:features>
-    </jaxrs:server>
-
-    <jaxrs:server id="clusterRestServer" address="/cluster/">
-        <jaxrs:serviceBeans>
-            <ref bean="clusterRestService"/>
-        </jaxrs:serviceBeans>
-        <jaxrs:providers>
-            <ref bean="jaxbProvider"/>
-            <ref bean="jsonProvider"/>
-            <ref bean="yamlProvider"/>
-            <ref bean="restAuthenticationHandler"/>
-        </jaxrs:providers>
-        <jaxrs:features>
-            <ref bean="loggingFeature"/>
-        </jaxrs:features>
-    </jaxrs:server>
-
-    <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
 </beans>

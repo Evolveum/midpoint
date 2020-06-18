@@ -1,0 +1,13 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     oid="51726874-de60-42f1-aab4-a4afb0702833">
+    <name>it-staff</name>
+    <!-- not a department -->
+    <costCenter>999999</costCenter>
+</org>

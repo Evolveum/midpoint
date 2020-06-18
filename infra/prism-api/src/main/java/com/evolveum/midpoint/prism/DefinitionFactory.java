@@ -9,6 +9,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
@@ -23,6 +25,7 @@ public interface DefinitionFactory {
 
     MutablePrismReferenceDefinition createReferenceDefinition(QName name, QName typeName);
 
+    @NotNull
     MutablePrismContainerDefinition<?> createContainerDefinition(QName name, ComplexTypeDefinition ctd);
 
     <T> PrismPropertyDefinition<T> createPropertyDefinition(QName name, QName typeName, Collection<? extends DisplayableValue<T>> allowedValues, T defaultValue);

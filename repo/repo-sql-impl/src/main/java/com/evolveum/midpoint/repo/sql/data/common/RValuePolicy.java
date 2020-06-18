@@ -31,7 +31,7 @@ import javax.persistence.*;
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RValuePolicy extends RObject<ValuePolicyType> {
+public class RValuePolicy extends RObject {
 
     private RPolyString nameCopy;
 

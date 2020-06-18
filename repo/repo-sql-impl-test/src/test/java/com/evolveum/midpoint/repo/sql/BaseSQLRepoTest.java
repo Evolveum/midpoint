@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -219,7 +219,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     ObjectReference createRepoRef(QName type, String oid) {
         return RObjectReference.copyFromJAXB(
                 createRef(type, oid, SchemaConstants.ORG_DEFAULT),
-                new RObjectReference(),
+                new RObjectReference<>(),
                 relationRegistry);
     }
 
@@ -243,7 +243,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
             for (ObjectReference exp : expected) {
                 if (Objects.equals(exp.getRelation(), ref.getRelation())
                         && Objects.equals(exp.getTargetOid(), ref.getTargetOid())
-                        && Objects.equals(exp.getType(), ref.getType())) {
+                        && Objects.equals(exp.getTargetType(), ref.getTargetType())) {
                     found = true;
                     break;
                 }
@@ -271,7 +271,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         return extItemDictionary.createOrFindItemDefinition(propertyDefinition, false);
     }
 
-    void assertExtension(RObject<?> object, RExtItem item, String... expectedValues) {
+    void assertExtension(RObject object, RExtItem item, String... expectedValues) {
         Set<String> realValues = object.getStrings().stream()
                 .filter(extString -> Objects.equals(extString.getItemId(), item.getId()))
                 .map(ROExtString::getValue)

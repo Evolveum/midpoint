@@ -150,16 +150,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="loginForm" type="tns:AuthenticationModuleLoginFormType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="httpBasic" type="tns:AuthenticationModuleHttpBasicType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="httpHeader" type="tns:AuthenticationModuleHttpHeaderType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="saml2" type="tns:AuthenticationModuleSaml2Type" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="oidc" type="tns:AuthenticationModuleOidcType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="mailNonce" type="tns:AuthenticationModuleMailNonceType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="smsNonce" type="tns:AuthenticationModuleSmsNonceType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="securityQuestionsForm" type="tns:AuthenticationModuleSecurityQuestionsFormType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="httpSecQ" type="tns:AuthenticationModuleHttpSecQType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="ldap" type="tns:AuthenticationModuleLdapType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="loginForm" type="tns:LoginFormAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpBasic" type="tns:HttpBasicAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpHeader" type="tns:HttpHeaderAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="saml2" type="tns:Saml2AuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="oidc" type="tns:OidcAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="mailNonce" type="tns:MailNonceAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="smsNonce" type="tns:SmsNonceAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="securityQuestionsForm" type="tns:SecurityQuestionsFormAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="httpSecQ" type="tns:HttpSecQAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ldap" type="tns:LdapAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -235,7 +236,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- TODO: Security questions validation policy: how many questions to present, how many need to be answered successfuly, randomize order, etc. -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -268,7 +268,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleLoginFormType">
+    <xsd:complexType name="LoginFormAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of "login form" module. The module is used for interactive log-in of a user by using
@@ -288,7 +288,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleHttpBasicType">
+    <xsd:complexType name="HttpBasicAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of HTTP BASIC authentication module (RFC 7617).
@@ -301,13 +301,22 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
                 <xsd:sequence>
-                    <!-- Nothing to add now. Maybe later. -->
+                    <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Realm which Midpoint use for WWW-Authentication header
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleHttpHeaderType">
+    <xsd:complexType name="HttpHeaderAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Pseudo-authentication for pre-authenticated users. Based on HTTP header values.
@@ -340,7 +349,45 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleLdapType">
+    <xsd:complexType name="OtherAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="factoryClass" type="xsd:string"/>
+                    <xsd:element name="parameter" type="tns:OtherAuthenticationModuleParameterType" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OtherAuthenticationModuleParameterType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="LdapAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 LDAP authentication module supports authentication via LDAP server.
@@ -381,13 +428,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="search" type="tns:AuthenticationModuleLdapSearchType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="search" type="tns:LdapSearchAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleLdapSearchType">
+    <xsd:complexType name="LdapSearchAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Search configuration which uses an Ldap filter to locate the user
@@ -425,7 +472,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2Type">
+    <xsd:complexType name="Saml2AuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 authentication module support authentication via Identity provider with SAML2.
@@ -438,14 +485,14 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractAuthenticationModuleType">
                 <xsd:sequence>
-                    <xsd:element name="network" type="tns:AuthenticationModuleSaml2NetworkType" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="serviceProvider" type="tns:AuthenticationModuleSaml2ServiceProviderType" minOccurs="1" maxOccurs="1"/>
+                    <xsd:element name="network" type="tns:Saml2NetworkAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="serviceProvider" type="tns:Saml2ServiceProviderAuthenticationModuleType" minOccurs="1" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2NetworkType">
+    <xsd:complexType name="Saml2NetworkAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 authentication module, network configuration.
@@ -461,7 +508,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2ServiceProviderType">
+    <xsd:complexType name="Saml2ServiceProviderAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 authentication module, service provider configuration.
@@ -493,14 +540,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultSigningAlgorithm" type="tns:AuthenticationModuleSaml2SigningAlgorithmType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="defaultSigningAlgorithm" type="tns:Saml2SigningAlgorithmAuthenticationModuleType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Default signing algorithm. Default is RSA_SHA256.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultDigest" type="tns:AuthenticationModuleSaml2DigestType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="defaultDigest" type="tns:Saml2DigestAuthenticationModuleType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Default digest method. Default is SHA256;
@@ -528,7 +575,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="nameId" type="tns:AuthenticationModuleSaml2NameIdType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="nameId" type="tns:Saml2NameIdAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Name identifiers to be included in the metadata. Supported values are:
@@ -538,21 +585,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="keys" type="tns:AuthenticationModuleSaml2KeyType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="keys" type="tns:Saml2KeyAuthenticationModuleType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Key used by service provider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="provider" type="tns:AuthenticationModuleSaml2ProviderType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="provider" type="tns:Saml2ProviderAuthenticationModuleType" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Possible identity providers for this service provider.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metadata" type="tns:AuthenticationModuleSaml2ProviderMetadataType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Service provider can use prepared metadata.
@@ -562,7 +609,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="AuthenticationModuleSaml2NameIdType">
+    <xsd:simpleType name="Saml2NameIdAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Possible NameId.
@@ -610,7 +657,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="AuthenticationModuleSaml2DigestType">
+    <xsd:simpleType name="Saml2DigestAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Possible digest method.
@@ -651,7 +698,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="AuthenticationModuleSaml2SigningAlgorithmType">
+    <xsd:simpleType name="Saml2SigningAlgorithmAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Possible signing algorithm.
@@ -692,7 +739,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2KeyType">
+    <xsd:complexType name="Saml2KeyAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 key.
@@ -831,7 +878,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2ProviderType">
+    <xsd:complexType name="Saml2ProviderAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 provider.
@@ -856,7 +903,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="metadata" type="tns:AuthenticationModuleSaml2ProviderMetadataType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="metadata" type="tns:Saml2ProviderMetadataAuthenticationModuleType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Metadata of Identity provider.
@@ -896,7 +943,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSaml2ProviderMetadataType">
+    <xsd:complexType name="Saml2ProviderMetadataAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SAML2 provider metadata.
@@ -933,7 +980,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleOidcType">
+    <xsd:complexType name="OidcAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 OpenId Connect authentication module.
@@ -953,7 +1000,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleMailNonceType">
+    <xsd:complexType name="MailNonceAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Mail nonce authentication module.
@@ -973,7 +1020,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSmsNonceType">
+    <xsd:complexType name="SmsNonceAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 SMS (mobile text message) nonce authentication module.
@@ -1019,7 +1066,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleSecurityQuestionsFormType">
+    <xsd:complexType name="SecurityQuestionsFormAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of "security questions form" module. The module is used for interactive log-in of a user by
@@ -1039,7 +1086,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AuthenticationModuleHttpSecQType">
+    <xsd:complexType name="HttpSecQAuthenticationModuleType">
         <xsd:annotation>
             <xsd:documentation>
                 Definition of HTTP SecQ module. The module is used for quasi-interative log-in of a user by
@@ -1054,7 +1101,16 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractSecurityQuestionsAuthenticationModuleType">
                 <xsd:sequence>
-                    <!-- Nothing to add now. Maybe later. -->
+                    <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Realm which Midpoint use for WWW-Authentication header
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1080,6 +1136,13 @@
                         It is supposed to give some idea about purpose of the sequence to system administrator.
                         But it is not supposed to be used as a user-friendly label.
                         Sequence name must be unique.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="displayName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Display name of sequence. This is shown for identifying of authentication sequence in GUI.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

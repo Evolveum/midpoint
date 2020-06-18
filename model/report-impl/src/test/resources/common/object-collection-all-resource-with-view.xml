@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectCollection oid="11000000-0000-0000-0001-000000000006">
+    <name>All resources with view</name>
+    <type>ResourceType</type>
+    <filter>
+        <all/>
+    </filter>
+    <defaultView>
+        <column>
+            <name>nameColumnCollection</name>
+            <path>name</path>
+            <display>
+                <label>Name (Collection)</label>
+            </display>
+            <previousColumn>nameColumnReport</previousColumn>
+        </column>
+    </defaultView>
+</objectCollection>

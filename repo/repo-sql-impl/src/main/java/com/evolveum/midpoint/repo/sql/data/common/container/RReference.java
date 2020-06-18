@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
@@ -14,21 +16,15 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-/**
- * @author lazyman
- * @author mederly
- *
- * TODO
- *
- */
 public abstract class RReference implements ObjectReference {
 
     //other primary key fields
     private String targetOid;
     private String relation;
-    private RObjectType type;
+    private RObjectType targetType;
 
-    public RObject getTarget() {        // for HQL use only
+    // for HQL use only
+    public RObject getTarget() {
         return null;
     }
 
@@ -43,45 +39,44 @@ public abstract class RReference implements ObjectReference {
     }
 
     @Override
-    public RObjectType getType() {
-        return type;
+    public RObjectType getTargetType() {
+        return targetType;
     }
 
     public void setRelation(String relation) {
         this.relation = relation;
     }
 
-    public void setTarget(RObject target) {     // shouldn't be called
+    // only for ORM/JPA, shouldn't be called
+    public void setTarget(@SuppressWarnings("unused") RObject target) {
     }
 
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
 
-    public void setType(RObjectType type) {
-        this.type = type;
+    public void setTargetType(RObjectType type) {
+        this.targetType = type;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         RReference ref = (RReference) o;
-
-        if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
-        if (type != ref.type) return false;
-
-        return true;
+        return Objects.equals(targetOid, ref.targetOid)
+                && Objects.equals(targetType, ref.targetType);
     }
 
     @Override
     public int hashCode() {
-        int result = targetOid != null ? targetOid.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-
-        return result;
+        // TODO: before june 2020 relation field was used here as well, but why not in equals?
+        return Objects.hash(targetOid, targetType);
     }
 
     public static void fromJaxb(ObjectReferenceType jaxb, RReference repo, RelationRegistry relationRegistry) {

@@ -7,8 +7,8 @@
 package com.evolveum.midpoint.web.security.module.authentication;
 
 import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.model.api.authentication.ModuleType;
-import com.evolveum.midpoint.model.api.authentication.NameOfModuleType;
 import com.evolveum.midpoint.model.api.authentication.StateOfModule;
 
 /**
@@ -20,7 +20,7 @@ public class LdapModuleAuthentication extends ModuleAuthentication {
     private String namingAttribute;
 
     public LdapModuleAuthentication() {
-        super(NameOfModuleType.LDAP);
+        super(AuthenticationModuleNameConstants.LDAP);
         setType(ModuleType.LOCAL);
         setState(StateOfModule.LOGIN_PROCESSING);
     }

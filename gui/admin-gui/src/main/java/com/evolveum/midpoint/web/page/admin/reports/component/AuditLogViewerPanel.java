@@ -20,18 +20,19 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -654,7 +655,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         List<IColumn<AuditEventRecordType, String>> columns = new ArrayList<>();
         IColumn<AuditEventRecordType, String> linkColumn = new LinkColumn<AuditEventRecordType>(
                 createStringResource("AuditEventRecordType.timestamp"), AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER,
-                AuditEventRecordProvider.TIMESTAMP_VALUE_PARAMETER) {
+                AuditEventRecordType.F_TIMESTAMP.getLocalPart()) {
+
             private static final long serialVersionUID = 1L;
 
             @Override

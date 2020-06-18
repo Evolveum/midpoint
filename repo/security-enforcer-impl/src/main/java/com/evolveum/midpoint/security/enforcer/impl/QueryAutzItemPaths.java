@@ -13,19 +13,19 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.ItemFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Helper class to SecurityEnforcer, used to evaluate query item authorizations.
+ * It checks whether we are authorized to use all items that are present in given search filter(s).
  *
  * @author semancik
  */
 public class QueryAutzItemPaths extends AutzItemPaths {
 
-    private static final Trace LOGGER = TraceManager.getTrace(QueryAutzItemPaths.class);
-
-    private List<ItemPath> requiredItems = new ArrayList<>();
+    /**
+     * Items required by search filter(s).
+     */
+    private final List<ItemPath> requiredItems = new ArrayList<>();
 
     public List<ItemPath> getRequiredItems() {
         return requiredItems;
@@ -35,7 +35,7 @@ public class QueryAutzItemPaths extends AutzItemPaths {
         requiredItems.add(path);
     }
 
-    public void addRequiredItems(ObjectFilter filter) {
+    void addRequiredItems(ObjectFilter filter) {
         filter.accept(visitable -> {
             if (visitable instanceof ItemFilter) {
                 requiredItems.add(((ItemFilter)visitable).getFullPath());
@@ -43,8 +43,10 @@ public class QueryAutzItemPaths extends AutzItemPaths {
         });
     }
 
-
-    public List<ItemPath> evaluateUnsatisfierItems() {
+    /**
+     * @return Items that are required but we have no authorizations for.
+     */
+    List<ItemPath> evaluateUnsatisfiedItems() {
         List<ItemPath> unsatisfiedItems = new ArrayList<>();
         if (isAllItems()) {
             return unsatisfiedItems;

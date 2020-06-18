@@ -275,7 +275,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                     ((List)nonContainers).add(itemWrapper);
                 }
             } catch (SchemaException e) {
-                LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
+                LOGGER.error("Cannot find wrapper with path {}, error occurred {}", virtualItem, e.getMessage(), e);
             }
         }
         return nonContainers;

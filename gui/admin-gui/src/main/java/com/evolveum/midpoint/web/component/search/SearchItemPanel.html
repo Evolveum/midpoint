@@ -9,24 +9,26 @@
 <head/>
 <body>
 <wicket:panel>
-    <a wicket:id="mainButton" class="btn btn-sm btn-default" about="searchItemButton">
-        <span wicket:id="label"/>
-        &nbsp;
-        <span class="caret"></span>
-        <i wicket:id="deleteButton" class="fa fa-times-circle fa-lg text-danger" style="margin-left: 10px;"/>
-    </a>
+    <!-- todo replace style attribute to css class -->
+    <div class="search-item"  wicket:id="searchItemContainer">
+        <div class="col-sm-3" style="margin-top: 5px; width: fit-content" wicket:id="searchItemLabel" />
+        <div class="col-sm-6" wicket:id="searchItemField" />
+        <div class="col-sm-1">
+            <a wicket:id="editButton" class="btn btn-xs btn-default" style="margin-top: 5px; border: none !important;">
+                <i class="fa fa-edit fa-lg" />
+            </a>
+        </div>
+        <div class="col-sm-1">
+            <a wicket:id="removeButton" class="btn btn-xs btn-default" style="margin-top: 5px; border: none !important;">
+                <i class="fa fa-times-circle fa-lg" />
+            </a>
+        </div>
+    </div>
 
     <div wicket:id="popover" class="popover bottom">
-        <div class="arrow"></div>
         <div class="popover-content" wicket:id="popoverBody">
-            <div wicket:id="values" class="input-group input-group-sm">
-                <div wicket:id="value"/>
+            <div wicket:id="value" class="input-group input-group-sm">
             </div>
-
-            <p style="margin: 0px; padding-top: 7px;">
-                <a data-type="update" wicket:id="update" class="btn btn-sm btn-success"/>
-                <a data-type="close" wicket:id="close" class="btn btn-sm btn-default"/>
-            </p>
         </div>
     </div>
 </wicket:panel>

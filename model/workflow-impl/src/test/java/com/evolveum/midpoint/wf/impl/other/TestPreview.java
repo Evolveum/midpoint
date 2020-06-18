@@ -90,7 +90,7 @@ public class TestPreview extends AbstractWfTestPolicy {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        ModelExecuteOptions options = new ModelExecuteOptions();
+        ModelExecuteOptions options = executeOptions();
         options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
 
         when();

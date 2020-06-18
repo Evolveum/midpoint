@@ -7,7 +7,6 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <form wicket:id="form" class="form-inline pull-right search-form" style="padding-bottom:5px;">
-
         <div class="form-group has-feedback" wicket:id="advancedGroup" style="float:left; padding-right: 5px;">
             <label class="control-label" style="vertical-align: top; float:left; padding-right: 5px;">
                 <i class="fa fa-lg" wicket:id="advancedCheck"/>
@@ -24,18 +23,16 @@
         </div>
 
         <wicket:container wicket:id="items">
-            <div wicket:id="item" class="form-group" style="float:left;  padding-right: 5px;"/>
+            <div wicket:id="item" class="form-group" style="float:left;  padding-right: 5px; margin-bottom: 5px;"/>
         </wicket:container>
 
-        <div class="form-group" wicket:id="moreGroup"  style="float:left;  padding-right: 5px;">
-            <a wicket:id="more" class="btn btn-sm btn-default">
-                <wicket:message key="SearchPanel.more"/>
-                &nbsp;
-                <span class="caret"></span>
-            </a>
+        <div class="form-group pull-right" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px;">
+            <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top; padding: 0px;"/>
+            <a class="btn btn-sm btn-link" wicket:id="advanced" style="padding: 0px;"/>
+            <a class="btn btn-sm btn-link" wicket:id="fullText" style="padding: 0px;"/>
         </div>
 
-        <div class="form-group" style="vertical-align: top; float:left;  padding-right: 5px;" wicket:id="searchContainer">
+        <div class="form-group pull-right" style="vertical-align: top; padding-right: 5px;" wicket:id="searchContainer">
             <a wicket:id="searchSimple" class="btn btn-sm btn-primary" about="searchSimple">
                 <i class="fa fa-search fa-lg"/>
             </a>
@@ -58,11 +55,14 @@
             </div>
         </div>
 
-        <div class="form-group" wicket:id="linksContainer" style="vertical-align: top; margin-top: -5px; float:left;">
-            <a class="btn btn-sm btn-link" wicket:id="basic" style="display: table-cell; vertical-align: top; padding: 0px;"/>
-            <a class="btn btn-sm btn-link" wicket:id="advanced" style="padding: 0px;"/>
-            <a class="btn btn-sm btn-link" wicket:id="fullText" style="padding: 0px;"/>
+        <div class="form-group pull-right" wicket:id="moreGroup"  style="padding-right: 5px;">
+            <a wicket:id="more" class="btn btn-sm btn-default">
+                <wicket:message key="SearchPanel.more"/>
+                &nbsp;
+                <span class="caret"></span>
+            </a>
         </div>
+
     </form>
 
     <div wicket:id="popover" class="popover bottom" style="display: none;">

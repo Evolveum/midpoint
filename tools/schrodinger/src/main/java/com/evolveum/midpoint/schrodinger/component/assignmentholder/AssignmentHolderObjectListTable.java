@@ -79,7 +79,8 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
         ElementsCollection toolbarButtonsList = buttonToolbar
                 .findAll(By.tagName("button"));
         for (SelenideElement button : toolbarButtonsList) {
-            if (button.$(Schrodinger.byElementAttributeValue("i", "class", iconCssClass)).exists()) {
+            SelenideElement iconElement = button.$(By.tagName("i")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+            if (iconElement != null && iconElement.exists() && iconElement.getAttribute("class") != null && iconElement.getAttribute("class").contains(iconCssClass)) {
                 buttonElement = button;
             }
         }

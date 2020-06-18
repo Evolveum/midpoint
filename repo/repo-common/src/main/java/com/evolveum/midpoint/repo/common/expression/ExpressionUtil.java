@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,48 +63,6 @@ public class ExpressionUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
-    public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(
-            PrismValueDeltaSetTriple<V> resultTriple, ItemDefinition outputDefinition,
-            Function<Object, Object> additionalConvertor,
-            final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
-
-        PrismValueDeltaSetTriple<V> clonedTriple = resultTriple.clone();
-
-        final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
-        if (resultTripleValueClass == null) {
-            // triple is empty. type does not matter.
-            return clonedTriple;
-        }
-        Class<?> expectedJavaType = XsdTypeMapper.toJavaType(outputDefinition.getTypeName());
-        if (expectedJavaType == null) {
-            expectedJavaType = prismContext.getSchemaRegistry()
-                    .getCompileTimeClass(outputDefinition.getTypeName());
-        }
-        if (resultTripleValueClass == expectedJavaType) {
-            return clonedTriple;
-        }
-        final Class<?> finalExpectedJavaType = expectedJavaType;
-
-        clonedTriple.accept((Visitor) visitable -> {
-            if (visitable instanceof PrismPropertyValue<?>) {
-                PrismPropertyValue<Object> pval = (PrismPropertyValue<Object>) visitable;
-                Object realVal = pval.getValue();
-                if (realVal != null) {
-                    if (Structured.class.isAssignableFrom(resultTripleValueClass)) {
-                        if (residualPath != null && !residualPath.isEmpty()) {
-                            realVal = ((Structured) realVal).resolve(residualPath);
-                        }
-                    }
-                    if (finalExpectedJavaType != null) {
-                        Object convertedVal = convertValue(finalExpectedJavaType, additionalConvertor, realVal, protector, prismContext);
-                        pval.setValue(convertedVal);
-                    }
-                }
-            }
-        });
-        return clonedTriple;
-    }
-
     /**
      * Slightly more powerful version of "convert" as compared to
      * JavaTypeConverter. This version can also encrypt/decrypt and also handles
@@ -119,36 +78,49 @@ public class ExpressionUtil {
             return (O) inputVal;
         }
 
-        Object intermediateVal;
+        Object intermediateInputVal = treatGString(inputVal);
+        intermediateInputVal = treatEncryption(finalExpectedJavaType, intermediateInputVal, protector);
+        intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
+
+        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
+        PrismUtil.recomputeRealValue(convertedVal, prismContext);
+        return convertedVal;
+    }
+
+    private static Object treatGString(Object inputVal) {
+        if (inputVal instanceof GString) {
+            return inputVal.toString();
+        } else {
+            return inputVal;
+        }
+    }
+
+    private static <I, O> Object treatEncryption(Class<O> finalExpectedJavaType, I inputVal, Protector protector) {
         if (finalExpectedJavaType == ProtectedStringType.class) {
-            String valueToEncrypt;
-            if (inputVal instanceof String) {
-                valueToEncrypt = (String) inputVal;
-            } else {
-                valueToEncrypt = JavaTypeConverter.convert(String.class, inputVal);
-            }
             try {
-                intermediateVal = protector.encryptString(valueToEncrypt);
+                // We know that input is not ProtectedStringType
+                return protector.encryptString(JavaTypeConverter.convert(String.class, inputVal));
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else if (inputVal instanceof ProtectedStringType) {
             try {
-                intermediateVal = protector.decryptString((ProtectedStringType) inputVal);
+                // We know that expected java type is not ProtectedStringType
+                return protector.decryptString((ProtectedStringType) inputVal);
             } catch (EncryptionException e) {
                 throw new SystemException(e.getMessage(), e);
             }
         } else {
-            intermediateVal = inputVal;
+            return inputVal;
         }
+    }
 
+    private static <I> Object treatAdditionalConvertor(Function<Object, Object> additionalConvertor, Object inputVal) {
         if (additionalConvertor != null) {
-            intermediateVal = additionalConvertor.apply(intermediateVal);
+            return additionalConvertor.apply(inputVal);
+        } else {
+            return inputVal;
         }
-
-        O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
-        PrismUtil.recomputeRealValue(convertedVal, prismContext);
-        return convertedVal;
     }
 
     // TODO: do we need this?
@@ -440,27 +412,25 @@ public class ExpressionUtil {
         }
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(
-            Object object, ObjectResolver objectResolver, String string, OperationResult result) {
+    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
         if (object == null) {
             return null;
-        }
-
-        if (object instanceof ItemDeltaItem<?, ?>) {
+        } else if (object instanceof ItemDeltaItem<?, ?>) {
+            //noinspection unchecked
             return (ItemDeltaItem<IV, ID>) object;
-        }
-
-        if (object instanceof PrismObject<?>) {
+        } else if (object instanceof PrismObject<?>) {
+            //noinspection unchecked
             return (ItemDeltaItem<IV, ID>) new ObjectDeltaObject((PrismObject<?>) object, null,
                     (PrismObject<?>) object, ((PrismObject) object).getDefinition());
         } else if (object instanceof Item<?, ?>) {
+            //noinspection unchecked
             return new ItemDeltaItem<>((Item<IV, ID>) object, null, (Item<IV, ID>) object, ((Item<IV, ID>) object).getDefinition());
         } else if (object instanceof ItemDelta<?, ?>) {
+            //noinspection unchecked
             return new ItemDeltaItem<>(null, (ItemDelta<IV, ID>) object, null, ((ItemDelta<IV, ID>) object).getDefinition());
         } else {
             throw new IllegalArgumentException("Unexpected object " + object + " " + object.getClass());
         }
-
     }
 
     public static ObjectQuery evaluateQueryExpressions(ObjectQuery origQuery, ExpressionVariables variables, ExpressionProfile expressionProfile,
@@ -741,12 +711,9 @@ public class ExpressionUtil {
                     DOMUtil.XSD_STRING);
         }
 
+        //noinspection unchecked
         return (V) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile, expressionFactory, shortDesc,
                 task, parentResult);
-
-        // String expressionResult =
-        // expressionHandler.evaluateExpression(currentShadow, valueExpression,
-        // shortDesc, result);
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V evaluateExpression(Collection<Source<?, ?>> sources,
@@ -758,6 +725,7 @@ public class ExpressionUtil {
                 shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate old state; we are interested in non-negative output values anyway
         PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -801,6 +769,7 @@ public class ExpressionUtil {
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setSkipEvaluationMinus(true); // no need to evaluate 'old' state
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 
         LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -809,7 +778,7 @@ public class ExpressionUtil {
             return null;
         }
         Collection<PrismPropertyValue<String>> nonNegativeValues = outputTriple.getNonNegativeValues();
-        if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+        if (nonNegativeValues.isEmpty()) {
             return null;
         }
 
@@ -823,8 +792,47 @@ public class ExpressionUtil {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+        //noinspection unchecked
         return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
                 expressionFactory, shortDesc, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultTrue(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                true, task, parentResult);
+    }
+
+    public static boolean evaluateConditionDefaultFalse(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String shortDesc, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateConditionWithDefault(variables, expressionBean, expressionProfile, expressionFactory, shortDesc,
+                false, task, parentResult);
+    }
+
+    private static boolean evaluateConditionWithDefault(ExpressionVariables variables,
+            ExpressionType expressionBean, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc,
+            boolean defaultValue, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (expressionBean == null) {
+            return defaultValue;
+        }
+        PrismPropertyValue<Boolean> booleanPropertyValue = evaluateCondition(variables, expressionBean, expressionProfile,
+                expressionFactory, shortDesc, task, parentResult);
+        if (booleanPropertyValue == null) {
+            return defaultValue;
+        }
+        Boolean realValue = booleanPropertyValue.getRealValue();
+        if (realValue == null) {
+            return defaultValue;
+        } else {
+            return realValue;
+        }
     }
 
     public static boolean getBooleanConditionOutput(PrismPropertyValue<Boolean> conditionOutput) {
@@ -836,22 +844,6 @@ public class ExpressionUtil {
             return false;
         }
         return value;
-    }
-
-    public static VariablesMap compileVariablesAndSources(ExpressionEvaluationContext params) {
-        VariablesMap variablesAndSources = new VariablesMap();
-
-        if (params.getVariables() != null) {
-            variablesAndSources.putAll(params.getVariables());
-        }
-
-        if (params.getSources() != null) {
-            for (Source<?, ?> source : params.getSources()) {
-                variablesAndSources.put(source.getName().getLocalPart(), source, source.getDefinition());
-            }
-        }
-
-        return variablesAndSources;
     }
 
     public static VariablesMap compileSources(Collection<Source<?, ?>> sources) {
@@ -1108,18 +1100,18 @@ public class ExpressionUtil {
             PrismContainerDefinition<? extends Containerable> def = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
             if (def == null) {
                 ComplexTypeDefinition ctd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass((Class<? extends Containerable>) valueClass);
-                def = prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
+                return prismContext.definitionFactory().createContainerDefinition(new QName(SchemaConstants.NS_C, name), ctd);
+            } else {
+                return def;
             }
-            return def;
         }
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
-        return def;
+        return prismContext.definitionFactory().createPropertyDefinition(new QName(SchemaConstants.NS_C, name), typeQName);
     }
 
     /**
      * Works only for simple evaluators that do not have any profile settings.
      */
-    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?, ?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
+    public static void checkEvaluatorProfileSimple(ExpressionEvaluator<?> evaluator, ExpressionEvaluationContext context) throws SecurityViolationException {
         ExpressionEvaluatorProfile profile = context.getExpressionEvaluatorProfile();
         if (profile == null) {
             return; // no restrictions

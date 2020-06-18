@@ -1000,7 +1000,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
             deltas.add(accountAssignmentUserDelta);
 
             // WHEN
-            modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+            modelInteractionService.previewChanges(deltas, executeOptions(), task, result);
 
             // THEN
             result.computeStatus();
@@ -2653,7 +2653,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(objectDelta);
 
         // WHEN
-        modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
+        modelService.executeChanges(deltas, executeOptions().raw(), task, result);
 
         // THEN
         result.computeStatus();
@@ -3012,7 +3012,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
+        modelService.executeChanges(deltas, executeOptions().raw(), task, result);
 
         // THEN
         result.computeStatus();
@@ -3054,7 +3054,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         // WHEN
-        modelService.executeChanges(deltas, ModelExecuteOptions.createRaw(), task, result);
+        modelService.executeChanges(deltas, executeOptions().raw(), task, result);
 
         // THEN
         assertSuccess(result);
@@ -3162,7 +3162,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 "Queen Anne's Revenge");
         deltas.add(accountDelta);
 
-        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ModelExecuteOptions options = executeOptions().reconcile();
 
         // WHEN
         modelService.executeChanges(deltas, options, task, result);

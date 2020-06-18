@@ -23,9 +23,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class UpdateModificationConverter extends AbstractModificationConverter {
 
-    private Set<Attribute> attributesToAdd = new HashSet<>();
-    private Set<Attribute> attributesToUpdate = new HashSet<>();
-    private Set<Attribute> attributesToRemove = new HashSet<>();
+    private final Set<Attribute> attributesToAdd = new HashSet<>();
+    private final Set<Attribute> attributesToUpdate = new HashSet<>();
+    private final Set<Attribute> attributesToRemove = new HashSet<>();
 
     public Set<Attribute> getAttributesToAdd() {
         return attributesToAdd;
@@ -40,7 +40,10 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
     }
 
     @Override
-    protected <T> void collect(String connIdAttrName, PropertyDelta<T> delta, PlusMinusZero isInModifiedAuxilaryClass, CollectorValuesConverter<T> valuesConverter) throws SchemaException {
+    protected <T> void collect(String connIdAttrName, PropertyDelta<T> delta,
+            PlusMinusZero isInModifiedAuxiliaryClass, CollectorValuesConverter<T> valuesConverter)
+            throws SchemaException {
+
         if (delta.isAdd()) {
             List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToAdd(), delta.getElementName());
             if (delta.getDefinition().isMultiValue()) {
@@ -53,7 +56,7 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
             }
         }
         if (delta.isDelete()) {
-            if (delta.getDefinition().isMultiValue() || isInModifiedAuxilaryClass == PlusMinusZero.MINUS) {
+            if (delta.getDefinition().isMultiValue() || isInModifiedAuxiliaryClass == PlusMinusZero.MINUS) {
                 List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToDelete(), delta.getElementName());
                 attributesToRemove.add(AttributeBuilder.build(connIdAttrName, connIdAttributeValues));
             } else {
@@ -62,13 +65,13 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
                 // Update attribute to no values. This will efficiently clean up the attribute.
                 // It should also make no substantial difference in such case.
                 // But it is working around some connector bugs.
-                // update with EMTPY value. The connIdAttributeValues is NOT used in this branch
+                // update with EMPTY value. The connIdAttributeValues is NOT used in this branch
                 attributesToUpdate.add(AttributeBuilder.build(connIdAttrName));
             }
         }
         if (delta.isReplace()) {
             List<Object> connIdAttributeValues = valuesConverter.covertAttributeValuesToConnId(delta.getValuesToReplace(), delta.getElementName());
-            if (isInModifiedAuxilaryClass == PlusMinusZero.PLUS) {
+            if (isInModifiedAuxiliaryClass == PlusMinusZero.PLUS) {
                 attributesToAdd.add(AttributeBuilder.build(connIdAttrName, connIdAttributeValues));
             } else {
                 attributesToUpdate.add(AttributeBuilder.build(connIdAttrName, connIdAttributeValues));
@@ -77,7 +80,7 @@ public class UpdateModificationConverter extends AbstractModificationConverter {
     }
 
     @Override
-    protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) throws SchemaException {
+    protected <T> void collectReplace(String connIdAttrName, T connIdAttrValue) {
         if (connIdAttrValue == null) {
             attributesToUpdate.add(AttributeBuilder.build(connIdAttrName));
         } else {

@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="7d6bf307-58c2-4ea9-8599-19586623b41a">
+    <name>template-user</name>
+    <item>
+        <ref>costCenter</ref>
+        <mapping>
+            <evaluationPhase>afterAssignments</evaluationPhase>
+            <strength>strong</strength>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+                        ARCHETYPE_DEPARTMENT_OID = 'b685545e-995f-45e0-8d32-92cd3781ef54'
+
+                        department = midpoint.findLinkedTarget(OrgType.class, ARCHETYPE_DEPARTMENT_OID)
+                        department?.costCenter
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+    <item>
+        <ref>organization</ref>
+        <mapping>
+            <evaluationPhase>afterAssignments</evaluationPhase>
+            <strength>strong</strength>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+                        ARCHETYPE_CLUB_OID = 'fefa9261-b897-439c-ad79-15f10d547bba'
+
+                        midpoint.findLinkedTargets(OrgType.class, ARCHETYPE_CLUB_OID)
+                            .collect { "${it.name} (${it.displayName})" }
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <set>
+                    <predefined>all</predefined>
+                </set>
+            </target>
+        </mapping>
+    </item>
+</objectTemplate>

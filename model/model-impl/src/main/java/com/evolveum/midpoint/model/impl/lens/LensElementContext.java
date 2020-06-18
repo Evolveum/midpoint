@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
@@ -95,7 +96,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     private transient PrismObjectDefinition<O> objectDefinition = null;
 
-    private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
+    private final Collection<EvaluatedPolicyRuleImpl> policyRules = new ArrayList<>();
     private final Collection<String> policySituations = new ArrayList<>();
 
     public LensElementContext(@NotNull Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
@@ -474,11 +475,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     @NotNull
-    public Collection<EvaluatedPolicyRule> getPolicyRules() {
+    public Collection<EvaluatedPolicyRuleImpl> getPolicyRules() {
         return policyRules;
     }
 
-    public void addPolicyRule(EvaluatedPolicyRule policyRule) {
+    public void addPolicyRule(EvaluatedPolicyRuleImpl policyRule) {
         this.policyRules.add(policyRule);
     }
 
@@ -512,7 +513,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return securityPolicy != null ? securityPolicy.getCredentials() : null;
     }
 
-    public void recompute() throws SchemaException, ConfigurationException {
+    public void recompute() throws SchemaException {
         PrismObject<O> base = getObjectCurrentOrOld();
         ObjectDelta<O> delta = getDelta();
         if (delta == null) {

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,11 +34,11 @@ public class AssignmentReferenceMapper extends ReferenceMapper<RAssignmentRefere
         RAssignment owner = (RAssignment) context.getOwner();
 
         QName name = context.getDelta().getPath().lastName().asSingleName();
-        RCReferenceOwner refType;
+        RCReferenceType refType;
         if (QNameUtil.match(name, MetadataType.F_CREATE_APPROVER_REF)) {
-            refType = RCReferenceOwner.CREATE_APPROVER;
+            refType = RCReferenceType.CREATE_APPROVER;
         } else if (QNameUtil.match(name, MetadataType.F_MODIFY_APPROVER_REF)) {
-            refType = RCReferenceOwner.MODIFY_APPROVER;
+            refType = RCReferenceType.MODIFY_APPROVER;
         } else {
             // TODO a warning here?
             // TODO what about CASE_REVIEWER type?

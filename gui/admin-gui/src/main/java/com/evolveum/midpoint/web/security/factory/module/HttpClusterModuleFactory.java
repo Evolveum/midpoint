@@ -70,7 +70,7 @@ public class HttpClusterModuleFactory extends AbstractModuleFactory {
     }
 
     private ModuleAuthentication createEmptyModuleAuthentication(AbstractAuthenticationModuleType moduleType, ModuleWebSecurityConfiguration configuration) {
-        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(NameOfModuleType.CLUSTER);
+        ModuleAuthentication moduleAuthentication = new ModuleAuthentication(AuthenticationModuleNameConstants.CLUSTER);
         moduleAuthentication.setPrefix(configuration.getPrefix());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
         return moduleAuthentication;

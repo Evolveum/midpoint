@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -108,10 +109,10 @@ public class ObjectMerger {
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
 
         LOGGER.trace("Executing right link delta (raw): {}", deltas.getRightLinkDelta());
-        executeDelta(deltas.getRightLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+        executeDelta(deltas.getRightLinkDelta(), ModelExecuteOptions.create(prismContext).raw(), executedDeltas, task, result);
 
         LOGGER.trace("Executing left link delta (raw): {}", deltas.getLeftLinkDelta());
-        executeDelta(deltas.getLeftLinkDelta(), ModelExecuteOptions.createRaw(), executedDeltas, task, result);
+        executeDelta(deltas.getLeftLinkDelta(), ModelExecuteOptions.create(prismContext).raw(), executedDeltas, task, result);
 
         LOGGER.trace("Executing left object delta: {}", deltas.getLeftObjectDelta());
         executeDelta(deltas.getLeftObjectDelta(), null, executedDeltas, task, result);
@@ -146,11 +147,13 @@ public class ObjectMerger {
         }
     }
 
-    public <O extends ObjectType> MergeDeltas<O> computeMergeDeltas(Class<O> type, String leftOid, String rightOid,
+    <O extends ObjectType> MergeDeltas<O> computeMergeDeltas(Class<O> type, String leftOid, String rightOid,
             final String mergeConfigurationName, final Task task, final OperationResult result)
                     throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 
+        //noinspection unchecked
         final PrismObject<O> objectLeft = (PrismObject<O>) objectResolver.getObjectSimple(type, leftOid, null, task, result).asPrismObject();
+        //noinspection unchecked
         final PrismObject<O> objectRight = (PrismObject<O>) objectResolver.getObjectSimple(type, rightOid, null, task, result).asPrismObject();
 
         PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
@@ -242,7 +245,6 @@ public class ObjectMerger {
                             }
                         }
 
-
                         ItemDelta itemDelta;
                         try {
                             itemDelta = mergeItem(objectLeft, objectRight, mergeConfigurationName, defaultItemMergeConfig, itemPath,
@@ -257,7 +259,9 @@ public class ObjectMerger {
                     }
                 };
 
+                //noinspection unchecked
                 objectLeft.accept(visitor);
+                //noinspection unchecked
                 objectRight.accept(visitor);
 
 
@@ -425,8 +429,6 @@ public class ObjectMerger {
                 LOGGER.trace("Discriminator does NOT match {}", candidateProjection);
             }
         }
-
-
     }
 
     private boolean projectionMatches(ShadowType candidateProjection,
@@ -439,11 +441,10 @@ public class ObjectMerger {
         ProjectionMergeSituationType situationPattern = projectionMergeConfig.getSituation();
         if (situationPattern != null) {
             ProjectionMergeSituationType projectionSituation = determineSituation(candidateProjection, projectionsLeft, projectionsRight);
-            if (situationPattern != projectionSituation) {
-                return false;
-            }
+            return situationPattern == projectionSituation;
+        } else {
+            return true;
         }
-        return true;
     }
 
     private void takeUnmatchedProjections(MergeStrategyType strategy, List<ShadowType> mergedProjections,
@@ -509,12 +510,14 @@ public class ObjectMerger {
     private <O extends ObjectType, I extends Item> ItemDelta mergeItem(PrismObject<O> objectLeft, PrismObject<O> objectRight,
             String mergeConfigurationName, ItemMergeConfigurationType itemMergeConfig, ItemPath itemPath,
             Task task, OperationResult result) throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+        //noinspection unchecked
         I itemLeft = (I) objectLeft.findItem(itemPath);
+        //noinspection unchecked
         I itemRight = (I) objectRight.findItem(itemPath);
         if (itemLeft == null && itemRight == null) {
             return null;
         }
-        ItemDefinition itemDefinition = null;
+        ItemDefinition itemDefinition;
         if (itemLeft != null) {
             itemDefinition = itemLeft.getDefinition();
         } else {
@@ -526,12 +529,14 @@ public class ObjectMerger {
             return null;
         }
 
-        Expression<PrismValue, ItemDefinition> valueExpression = null;
+        Expression<PrismValue, ItemDefinition> valueExpression;
         if (itemMergeConfig.getValueExpression() != null) {
             ExpressionType expressionType = itemMergeConfig.getValueExpression();
             valueExpression = expressionFactory.makeExpression(expressionType, itemDefinition, MiscSchemaUtil.getExpressionProfile(),
                     "value expression for item " + itemPath + " in merge configuration " + mergeConfigurationName,
                     task, result);
+        } else {
+            valueExpression = null;
         }
 
         ItemDelta itemDelta = itemDefinition.createEmptyDelta(itemPath);
@@ -553,6 +558,7 @@ public class ObjectMerger {
                 } else {
                     Collection<PrismValue> valuesToTake = getValuesToTake(objectLeft, objectRight,
                             SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
+                    //noinspection unchecked
                     itemDelta.setValuesToReplace(valuesToTake);
                 }
                 return itemDelta;
@@ -566,9 +572,11 @@ public class ObjectMerger {
                     // EXPRESSION left, IGNORE right
                     Collection<PrismValue> valuesToLeave = getValuesToTake(objectLeft, objectRight,
                             SIDE_LEFT, itemLeft, leftStrategy, valueExpression, task, result);
+                    //noinspection unchecked
                     List<PrismValue> currentLeftValues = itemLeft.getValues();
                     Collection<PrismValue> leftValuesToRemove = diffValues(currentLeftValues, valuesToLeave);
                     if (leftValuesToRemove != null && !leftValuesToRemove.isEmpty()) {
+                        //noinspection unchecked
                         itemDelta.addValuesToDelete(leftValuesToRemove);
                         return itemDelta;
                     } else {
@@ -580,6 +588,7 @@ public class ObjectMerger {
                 if (itemLeft == null) {
                     Collection<PrismValue> valuesToTake = getValuesToTake(objectLeft, objectRight,
                             SIDE_RIGHT, itemRight, rightStrategy, valueExpression, task, result);
+                    //noinspection unchecked
                     itemDelta.addValuesToAdd(valuesToTake);
                     return itemDelta;
 
@@ -593,22 +602,22 @@ public class ObjectMerger {
 
                     for (PrismValue rightValueToTake: rightValuesToTake) {
                         if (!PrismValueCollectionsUtil.collectionContainsEquivalentValue(leftValuesToLeave, rightValueToTake)) {
+                            //noinspection unchecked
                             itemDelta.addValueToAdd(rightValueToTake);
                         }
                     }
 
+                    //noinspection unchecked
                     List<PrismValue> currentLeftValues = itemLeft.getValues();
                     Collection<PrismValue> leftValuesToRemove = diffValues(currentLeftValues, leftValuesToLeave);
 
                     if (leftValuesToRemove != null && !leftValuesToRemove.isEmpty()) {
+                        //noinspection unchecked
                         itemDelta.addValuesToDelete(leftValuesToRemove);
                     }
 
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Merging item {} T/T case:\n  leftValuesToLeave: {}\n  rightValuesToTake: {}\n  leftValuesToRemove: {}\n itemDelta:\n{}",
-                                new Object[]{itemPath, leftValuesToLeave, rightValuesToTake, leftValuesToRemove, itemDelta.debugDump(2)});
-                    }
-
+                    LOGGER.trace("Merging item {} T/T case:\n  leftValuesToLeave: {}\n  rightValuesToTake: {}\n  leftValuesToRemove: {}\n itemDelta:\n{}",
+                            itemPath, leftValuesToLeave, rightValuesToTake, leftValuesToRemove, itemDelta.debugDumpLazily(2));
 
                     return itemDelta;
                 }
@@ -616,6 +625,7 @@ public class ObjectMerger {
         }
     }
 
+    @NotNull
     private Collection<PrismValue> diffValues(List<PrismValue> currentValues, Collection<PrismValue> valuesToLeave) {
         if (valuesToLeave == null || valuesToLeave.isEmpty()) {
             return PrismValueCollectionsUtil.cloneCollection(currentValues);
@@ -636,11 +646,13 @@ public class ObjectMerger {
             return new ArrayList<>(0);
         }
         if (strategy == MergeStrategyType.TAKE) {
+            //noinspection unchecked
             return cleanContainerIds(origItem.getClonedValues());
         } else if (strategy == MergeStrategyType.EXPRESSION) {
             if (valueExpression == null) {
                 throw new ConfigurationException("Expression strategy specified but no expression present");
             }
+            //noinspection unchecked
             List<PrismValue> origValues = origItem.getValues();
             Collection<PrismValue> valuesToTake = new ArrayList<>(origValues.size());
             for (PrismValue origValue: origValues) {
@@ -668,13 +680,15 @@ public class ObjectMerger {
         return pvals;
     }
 
-
-    private <O extends ObjectType> Collection<PrismValue> evaluateValueExpression(PrismObject<O> objectLeft, PrismObject<O> objectRight, String side, PrismValue origValue, Expression<PrismValue, ItemDefinition> valueExpression,
-            Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> Collection<PrismValue> evaluateValueExpression(PrismObject<O> objectLeft,
+            PrismObject<O> objectRight, String side, PrismValue origValue,
+            Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_SIDE, side, String.class);
-        variables.put(ExpressionConstants.VAR_OBJECT_LEFT, side, String.class);
-        variables.put(ExpressionConstants.VAR_OBJECT_RIGHT, side, String.class);
+        variables.put(ExpressionConstants.VAR_OBJECT_LEFT, objectLeft, String.class);
+        variables.put(ExpressionConstants.VAR_OBJECT_RIGHT, objectRight, String.class);
         variables.put(ExpressionConstants.VAR_INPUT, origValue, origValue.getParent().getDefinition());
         variables.put(ExpressionConstants.VAR_VALUE, origValue, origValue.getParent().getDefinition());
         ExpressionEvaluationContext exprContext = new ExpressionEvaluationContext(null, variables, "for value "+origValue, task);
@@ -697,5 +711,4 @@ public class ObjectMerger {
         }
         throw new ConfigurationException("Merge configuration with name '"+mergeConfigurationName+"' was not found");
     }
-
 }

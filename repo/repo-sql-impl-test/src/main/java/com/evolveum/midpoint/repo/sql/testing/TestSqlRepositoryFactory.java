@@ -6,12 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.testing;
 
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +15,13 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This repository factory should be used for testing purposes only. It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory},
@@ -39,7 +40,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
         String configFile = System.getProperty(PROPERTY_CONFIG);
         if (StringUtils.isNotEmpty(configFile)) {
-            LOGGER.info("Overriding loaded configuration with values from '{}'", new Object[]{configFile});
+            LOGGER.info("Overriding loaded configuration with values from '{}'", new Object[] { configFile });
             updateConfigurationFromFile(configuration, configFile);
         }
 
@@ -52,7 +53,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         Properties properties = new Properties();
         try {
             File file = new File(filePath);
-            LOGGER.debug("Config file absolute path '{}'.", new Object[]{file.getAbsolutePath()});
+            LOGGER.debug("Config file absolute path '{}'.", new Object[] { file.getAbsolutePath() });
             if (!file.exists() || !file.isFile() || !file.canRead()) {
                 throw new RepositoryServiceFactoryException("Config file '" + filePath + "' doesn't exist or can't be read.");
             }
@@ -108,6 +109,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD);
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_ZIP);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_FULL_OBJECT_FORMAT);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
 
@@ -131,7 +133,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
 
     private void updateConfigurationIntegerProperty(Configuration configuration, Properties properties, String propertyName) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
-        if (value == null || !value.matches("[1-9]{1}[0-9]*")) {
+        if (value == null || !value.matches("[1-9][0-9]*")) {
             return;
         }
         int val = Integer.parseInt(value);
@@ -153,7 +155,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, properties, propertyName, null);
     }
 
-    private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName, String defaultValue) {
+    private void updateConfigurationStringProperty(
+            Configuration configuration, Properties properties, String propertyName, String defaultValue) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
         if (value == null) {
             value = defaultValue;

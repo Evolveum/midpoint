@@ -225,7 +225,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         if (getPrincipal() instanceof MidPointPrincipal) {
             return ((MidPointPrincipal) getPrincipal()).getUsername();
         }
-        return null;
+        return "";
     }
 
     public List<ModuleAuthentication> getParallelProcessingModules() {
@@ -278,7 +278,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken {
         int resolvedIndex = -1;
         for (ModuleAuthentication parallelProcesingModule : parallelProcesingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcesingModule);
-            if (parallelProcesingModule.getNameOfModuleType().getName().toLowerCase().equals(type.toLowerCase())
+            if (parallelProcesingModule.getNameOfModuleType().toLowerCase().equals(type.toLowerCase())
             && resolvedIndex == -1) {
                 parallelProcesingModule.setState(StateOfModule.LOGIN_PROCESSING);
                 if (usedIndex != -1) {

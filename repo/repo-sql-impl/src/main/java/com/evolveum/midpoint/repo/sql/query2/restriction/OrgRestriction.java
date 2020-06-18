@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
@@ -58,7 +58,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +     // TODO distinct(ref.ownerOid) ? (was in original QueryInterpreter)
                               "from RObjectReference ref " +
                            "where " +
-                              "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
+                              "ref.referenceType = " + RReferenceType.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
                                     " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid = :" + orgOidParamName;
@@ -77,7 +77,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "select ref.ownerOid " +
                             "from RObjectReference ref " +
                         "where " +
-                            "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
+                            "ref.referenceType = " + RReferenceType.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
                                     " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid in (" +

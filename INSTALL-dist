@@ -1,12 +1,12 @@
 INSTALLING MIDPOINT FROM BINARY DISTRIBUTION
 --------------------------------------------
 
-This file contains quick installation guide. Full installation guide 
+This file contains quick installation guide. Full installation guide
 and release notes can be found at:
 
     https://wiki.evolveum.com/display/midPoint/midPoint+Releases
 
-1. Pre-requisities:
+1. Prerequisites:
 
     Java (JRE) 11
 

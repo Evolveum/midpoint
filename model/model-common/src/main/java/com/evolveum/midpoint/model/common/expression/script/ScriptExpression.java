@@ -34,6 +34,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * The expressions should be created by ExpressionFactory. They expect correct setting of
  * expression evaluator and proper conversion form the XML ExpressionType. Factory does this.
@@ -118,6 +120,7 @@ public class ScriptExpression {
         this.prismContext = prismContext;
     }
 
+    @NotNull
     public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -156,7 +159,7 @@ public class ScriptExpression {
         } else {
             context.setTrace(null);
         }
-        context.setResult(result);      // a bit of hack: this is to provide some tracing of script evaluation
+        context.setResult(result); // a bit of hack: this is to provide some tracing of script evaluation
         ScriptExpressionEvaluationContext oldContext = context.setupThreadLocal();
         try {
 
@@ -175,7 +178,7 @@ public class ScriptExpression {
         } finally {
             context.cleanupThreadLocal(oldContext);
             result.computeStatusIfUnknown();
-            context.setResult(parentResult);        // a bit of hack
+            context.setResult(parentResult); // a bit of hack
         }
     }
 

@@ -70,7 +70,7 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingAuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
@@ -283,9 +283,9 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         };
         add(appendersMultivalueContainerListPanel);
 
-        IModel<PrismContainerWrapper<AuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
+        IModel<PrismContainerWrapper<LoggingAuditingConfigurationType>> auditModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_AUDITING);
         try {
-            Panel auditPanel = getPageBase().initItemPanel(ID_AUDITING, AuditingConfigurationType.COMPLEX_TYPE, auditModel, new ItemPanelSettingsBuilder().build());
+            Panel auditPanel = getPageBase().initItemPanel(ID_AUDITING, LoggingAuditingConfigurationType.COMPLEX_TYPE, auditModel, new ItemPanelSettingsBuilder().build());
             add(auditPanel);
         } catch (SchemaException e) {
             LOGGER.error("Cannot create panel for auditing: {}", e.getMessage(), e);

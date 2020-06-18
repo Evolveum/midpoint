@@ -19,6 +19,8 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactor
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -238,6 +240,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final int DEFAULT_BREADCRUMB_STEP = 2;
     public static final String PARAMETER_OBJECT_COLLECTION_TYPE_OID = "collectionOid";
     public static final String PARAMETER_OBJECT_COLLECTION_NAME = "collectionName";
+    public static final String PARAMETER_DASHBOARD_TYPE_OID = "dashboardOid";
+    public static final String PARAMETER_DASHBOARD_WIDGET_NAME = "dashboardWidgetName";
     public static final String PARAMETER_SEARCH_BY_NAME = "name";
 
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
@@ -776,7 +780,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             skinCssString = info.getSkin();
         }
 
-        String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
+        String skinCssPath = String.format("../../../../../../webjars/AdminLTE/2.4.18/dist/css/skins/%s.min.css", skinCssString);
         response.render(CssHeaderItem.forReference(
                 new CssResourceReference(
                         PageBase.class, skinCssPath)
@@ -1685,117 +1689,48 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menus.add(menu);
         List<MainMenuItem> items = menu.getItems();
 
+        menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.top.configuration"));
+        menus.add(menu);
+        createConfigurationMenu(menu);
 
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_LOGGING_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_REPOSITORY_QUERY_URL,
-                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-
-            menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.top.configuration"));
-            menus.add(menu);
-            createConfigurationMenu(menu);
-        }
 
         menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
         menus.add(menu);
         createAdditionalMenu(menu);
 
-
-        // todo fix with visible behaviour [lazyman]
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
-                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createHomeItems());
+        items.add(createHomeItems());
+        items.add(createUsersItems());
+        items.add(createOrganizationsMenu());
+        items.add(createRolesItems());
+        items.add(createServicesItems());
+        items.add(createResourcesItems());
+        if (getWorkflowManager().isEnabled()) {
+            items.add(createWorkItemsItems());
         }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
-                AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createUsersItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
-                AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createOrganizationsMenu());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
-                AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createRolesItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
-                AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createServicesItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
-                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL)) {
-            items.add(createArchetypesItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
-                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
-                AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL)) {
-            items.add(createResourcesItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_URL,
-                AuthorizationConstants.AUTZ_UI_CASE_URL,
-                AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            if (getWorkflowManager().isEnabled()) {
-                items.add(createWorkItemsItems());
-            }
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
-                AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
-                AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
-                AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createCertificationItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
-                AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createServerTasksItems());
-        }
-
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
-                AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
-            items.add(createReportsItems());
-        }
+        items.add(createCertificationItems());
+        items.add(createServerTasksItems());
+        items.add(createReportsItems());
 
         return menus;
     }
 
 
     private void createConfigurationMenu(SideBarMenuItem item) {
+        item.getItems().add(createArchetypesItems());
+        item.getItems().add(createObjectsCollectionItems());
         addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
         addMainMenuItem(item, "fa fa-upload", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
 
-        MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null);
+        MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null,
+                new VisibleEnableBehaviour(){
+                    @Override
+                    public boolean isVisible() {
+                        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUGS_URL,
+                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+                    }
+                });
 
         addMenuItem(debugs, "PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class);
 
@@ -1803,7 +1738,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
 
-        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
+        createSystemConfigurationMenu(item);
+
+        addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
+        addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
+        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
+            addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
+        }
+        addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
+    }
+
+    private void createSystemConfigurationMenu(SideBarMenuItem item) {
+        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null,
+                new VisibleEnableBehaviour(){
+                    @Override
+                    public boolean isVisible() {
+                        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,
+                                AuthorizationConstants.AUTZ_GUI_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+                    }
+                });
 
         addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
@@ -1837,13 +1791,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSystemConfiguration.CONFIGURATION_TAB_INFRASTRUCTURE);
         addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.fullTextSearch",
                 PageSystemConfiguration.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
-
-        addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
-        addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
-        if (WebModelServiceUtils.isEnableExperimentalFeature(this)) {
-            addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.evaluateMapping", PageEvaluateMapping.class);
-        }
-        addMainMenuItem(item, "fa fa-info-circle", "PageAdmin.menu.top.configuration.about", PageAbout.class);
     }
 
     private void addSystemMenuItem(MainMenuItem mainItem, String key, int tabIndex) {
@@ -1865,7 +1812,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page) {
-        MainMenuItem mainItem = new MainMenuItem(icon, createStringResource(key), page);
+        return addMainMenuItem(item, icon, key, page, null);
+    }
+
+    private MainMenuItem addMainMenuItem(SideBarMenuItem item, String icon, String key, Class<? extends PageBase> page,
+            VisibleEnableBehaviour visibleEnableBehaviour) {
+        MainMenuItem mainItem = new MainMenuItem(icon, createStringResource(key), page, null, visibleEnableBehaviour);
         item.getItems().add(mainItem);
 
         return mainItem;
@@ -1881,8 +1833,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createWorkItemsItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
+                        AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
+                        AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
+                        AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
+                        AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
+                        AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_CASES_URL,
+                        AuthorizationConstants.AUTZ_UI_CASE_URL,
+                        AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_CASE_OBJECT_ICON,
-                createStringResource("PageAdmin.menu.top.cases"), null) {
+                createStringResource("PageAdmin.menu.top.cases"), null, null, visibleEnableBehaviour) {
 
             private static final long serialVersionUID = 1L;
 
@@ -1931,8 +1899,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createServerTasksItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
+                        AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_TASK_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.serverTasks"), null);
+                createStringResource("PageAdmin.menu.top.serverTasks"), null, null, visibleEnableBehaviour);
 
         addObjectListPageMenuItem(item, "PageAdmin.menu.top.serverTasks.list", GuiStyleConstants.CLASS_SHADOW_ICON_GENERIC, PageTasks.class);
 
@@ -1952,8 +1928,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createResourcesItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+                        AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
+                        AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.resources"), null);
+                createStringResource("PageAdmin.menu.top.resources"), null, null, visibleEnableBehaviour);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
@@ -1974,13 +1959,30 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createReportsItems() {
-        MainMenuItem item = new MainMenuItem("fa fa-pie-chart", createStringResource("PageAdmin.menu.top.reports"),
-                null);
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL,
+                        AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_REPORT_ICON, createStringResource("PageAdmin.menu.top.reports"),
+                null, null, visibleEnableBehaviour);
 
-        addMenuItem(item, "PageAdmin.menu.top.reports.list", PageReports.class);
+        addMenuItem(item, "PageAdmin.menu.top.reports.list", GuiStyleConstants.CLASS_REPORT_ICON, PageReports.class);
+
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_REPORTS_VIEW_URL)) {
+
+            addCollectionsMenuItems(item.getItems(), ReportType.COMPLEX_TYPE, PageReports.class);
+        }
+
+        MenuItem edit = new MenuItem(createStringResource("PageAdmin.menu.top.reports.edit"),
+                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+        item.getItems().add(edit);
 
         MenuItem configure = new MenuItem(createStringResource("PageAdmin.menu.top.reports.configure"),
-                PageReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageReport.class));
+                PageJasperReport.class, null, createVisibleDisabledBehaviorForEditMenu(PageJasperReport.class));
         item.getItems().add(configure);
 
         addMenuItem(item, "PageAdmin.menu.top.reports.created", PageCreatedReports.class);
@@ -1994,8 +1996,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createCertificationItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CERTIFICATION_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_DEFINITIONS_URL,
+                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_NEW_DEFINITION_URL,
+                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
+                        AuthorizationConstants.AUTZ_UI_CERTIFICATION_DECISIONS_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem("fa fa-certificate",
-                createStringResource("PageAdmin.menu.top.certification"), null) {
+                createStringResource("PageAdmin.menu.top.certification"), null, null, visibleEnableBehaviour) {
 
             private static final long serialVersionUID = 1L;
 
@@ -2079,8 +2092,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createHomeItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                        AuthorizationConstants.AUTZ_UI_HOME_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_DASHBOARD_ICON,
-                createStringResource("PageAdmin.menu.dashboard"), null);
+                createStringResource("PageAdmin.menu.dashboard"), null, null, visibleEnableBehaviour);
 
         addMenuItem(item, "PageAdmin.menu.dashboard.info", PageDashboardInfo.class);
 
@@ -2113,8 +2134,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createUsersItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
+                        AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.users"), null);
+                createStringResource("PageAdmin.menu.top.users"), null, null, visibleEnableBehaviour);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
@@ -2236,8 +2265,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createOrganizationsMenu() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ORG_STRUCT_URL,
+                        AuthorizationConstants.AUTZ_UI_ORG_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ORG_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.users.org"), null);
+                createStringResource("PageAdmin.menu.top.users.org"), null, null, visibleEnableBehaviour);
 
         MenuItem orgTree = new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"),
                 GuiStyleConstants.CLASS_OBJECT_ORG_ICON, PageOrgTree.class);
@@ -2252,8 +2289,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createRolesItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
+                        AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.roles"), null);
+                createStringResource("PageAdmin.menu.top.roles"), null, null, visibleEnableBehaviour);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
                 AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
@@ -2272,8 +2317,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createServicesItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
+                        AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.services"), null);
+                createStringResource("PageAdmin.menu.top.services"), null, null, visibleEnableBehaviour);
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
                 AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
@@ -2290,8 +2343,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private MainMenuItem createArchetypesItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                        AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                        AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL);
+            }
+        };
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
-                createStringResource("PageAdmin.menu.top.archetypes"), null);
+                createStringResource("PageAdmin.menu.top.archetypes"), null, null, visibleEnableBehaviour);
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
                 AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
             addObjectListPageMenuItem(item, "PageAdmin.menu.top.archetypes.list", GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class);
@@ -2303,6 +2365,27 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.archetypes.new", "PageAdmin.menu.top.archetypes.edit",
                 PageArchetype.class, true);
+
+        return item;
+    }
+
+    private MainMenuItem createObjectsCollectionItems() {
+        VisibleEnableBehaviour visibleEnableBehaviour = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
+                        AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL);
+            }
+        };
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON,
+                createStringResource("PageAdmin.menu.top.objectCollections"), null, null, visibleEnableBehaviour);
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
+                AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addObjectListPageMenuItem(item, "PageAdmin.menu.top.objectCollections.list", GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON, PageObjectCollections.class);
+        }
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.objectCollections.new", "PageAdmin.menu.top.objectCollections.edit",
+                PageObjectCollection.class, true);
 
         return item;
     }
@@ -2751,7 +2834,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public <C extends Containerable> Panel initContainerValuePanel(String id, IModel<PrismContainerValueWrapper<C>> model,
             ItemPanelSettings settings) {
         //TODO find from registry first
-        return new PrismContainerValuePanel<>(id, model, settings);
+        return new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>(id, model, settings) {
+            @Override
+            protected boolean isRemoveButtonVisible() {
+                return false;
+            }
+        };
     }
 
     public Clock getClock() {
@@ -2760,5 +2848,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private SideBarMenuPanel getSideBarMenuPanel(){
         return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
+    }
+
+    public ModelExecuteOptions executeOptions() {
+        return ModelExecuteOptions.create(getPrismContext());
     }
 }

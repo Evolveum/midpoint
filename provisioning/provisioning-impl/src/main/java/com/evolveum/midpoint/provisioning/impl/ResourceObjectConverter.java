@@ -412,8 +412,8 @@ public class ResourceObjectConverter {
         } catch (ObjectNotFoundException ex) {
             result.recordFatalError("Can't delete object " + shadow
                     + ". Reason: " + ex.getMessage(), ex);
-            throw new ObjectNotFoundException("An error occured while deleting resource object " + shadow
-                    + "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
+            throw new ObjectNotFoundException("An error occurred while deleting resource object " + shadow
+                    + " with identifiers " + identifiers + ": " + ex.getMessage(), ex);
         } catch (CommunicationException ex) {
             result.recordFatalError(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);

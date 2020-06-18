@@ -14,8 +14,12 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
@@ -30,7 +34,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -42,10 +45,8 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.Construction;
-import com.evolveum.midpoint.model.impl.lens.ConstructionPack;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -96,13 +96,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class AssignmentProcessor implements ProjectorProcessor {
 
     @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
     @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
+    @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private RelationRegistry relationRegistry;
     @Autowired private PrismContext prismContext;
@@ -114,6 +111,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @Autowired private ConstructionProcessor constructionProcessor;
     @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private ContextLoader contextLoader;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -193,6 +191,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         AssignmentTripleEvaluator<AH> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
         assignmentTripleEvaluator.setAssignmentEvaluator(assignmentEvaluator);
+        assignmentTripleEvaluator.setObjectResolver(objectResolver);
         assignmentTripleEvaluator.setContext(context);
         assignmentTripleEvaluator.setNow(now);
         assignmentTripleEvaluator.setPrismContext(prismContext);
@@ -375,17 +374,17 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void processProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>>() {
+    private <AH extends AssignmentHolderType> void processProjections(LensContext<AH> context, DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedConstructionImpl<AH>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedConstructionImpl<AH>>() {
 
             private boolean processOnlyExistingProjContexts;
 
             @Override
-            public boolean before(ResourceShadowDiscriminator rat) {
-                if (rat.getResourceOid() == null) {
+            public boolean before(ResourceShadowDiscriminator rsd) {
+                if (rsd.getResourceOid() == null) {
                     throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
                 }
-                if (rat.getIntent() == null) {
+                if (rsd.getIntent() == null) {
                     throw new IllegalStateException(
                             "Account type is null in ResourceAccountType during assignment processing");
                 }
@@ -393,10 +392,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 processOnlyExistingProjContexts = false;
                 if (ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
                     if (context.getTriggeredResourceOid() != null
-                            && !rat.getResourceOid().equals(context.getTriggeredResourceOid())) {
+                            && !rsd.getResourceOid().equals(context.getTriggeredResourceOid())) {
                         LOGGER.trace(
                                 "Skipping processing construction for shadow identified by {} because of limitation to propagate changes only for resource {}",
-                                rat, context.getTriggeredResourceOid());
+                                rsd, context.getTriggeredResourceOid());
                         return false;
                     }
 
@@ -411,8 +410,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+            public void onAssigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOld(false);
                 projectionContext.setLegalOld(false);
@@ -450,8 +449,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            public void onUnchangedInvalid(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                 if (projectionContext == null) {
                     if (processOnlyExistingProjContexts) {
                         LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
@@ -477,15 +476,15 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                if (accountExists(context, rat)) {
-                    LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            public void onUnassigned(ResourceShadowDiscriminator rsd, String desc) throws SchemaException {
+                if (accountExists(context, rsd)) {
+                    LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                     if (projectionContext == null) {
                         if (processOnlyExistingProjContexts) {
                             LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
                             return;
                         }
-                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                        projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
                     }
                     projectionContext.setAssigned(false);
                     projectionContext.setAssignedOld(true);
@@ -515,24 +514,24 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
 
             @Override
-            public void after(ResourceShadowDiscriminator rat, String desc,
-                    DeltaMapTriple<ResourceShadowDiscriminator, ConstructionPack<Construction<F>>> constructionMapTriple) {
-                PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> projectionConstructionDeltaSetTriple =
-                        prismContext.deltaFactory().createPrismValueDeltaSetTriple(
-                                getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
-                                getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
-                                getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+            public void after(ResourceShadowDiscriminator rsd, String desc,
+                    DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>>> constructionMapTriple) {
+                DeltaSetTriple<EvaluatedConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
+                        prismContext.deltaFactory().createDeltaSetTriple(
+                                getConstructions(constructionMapTriple.getZeroMap().get(rsd), true),
+                                getConstructions(constructionMapTriple.getPlusMap().get(rsd), true),
+                                getConstructions(constructionMapTriple.getMinusMap().get(rsd), false));
+                LensProjectionContext projectionContext = context.findProjectionContext(rsd);
                 if (projectionContext != null) {
                     // This can be null in a exotic case if we delete already deleted account
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Construction delta set triple for {}:\n{}", rat,
-                                projectionConstructionDeltaSetTriple.debugDump(1));
+                        LOGGER.trace("Construction delta set triple for {}:\n{}", rsd,
+                                projectionEvaluatedConstructionDeltaSetTriple.debugDump(1));
                     }
-                    projectionContext.setConstructionDeltaSetTriple(projectionConstructionDeltaSetTriple);
-                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rat)) || isForceRecon(
-                            constructionMapTriple.getPlusMap().get(rat)) || isForceRecon(
-                            constructionMapTriple.getMinusMap().get(rat))) {
+                    projectionContext.setEvaluatedConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
+                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) || isForceRecon(
+                            constructionMapTriple.getPlusMap().get(rsd)) || isForceRecon(
+                            constructionMapTriple.getMinusMap().get(rsd))) {
                         projectionContext.setDoReconciliation(true);
                     }
                 }
@@ -548,15 +547,16 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     // @pre: construction was already evaluated and is not ignored (i.e. has resource)
-    private <F extends FocusType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<F> context,
-            Construction<F> construction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+    private <AH extends AssignmentHolderType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<AH> context,
+            EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        String resourceOid = construction.getResourceOid();
-        String intent = construction.getIntent();
-        ShadowKindType kind = construction.getKind();
+        String resourceOid = evaluatedConstruction.getConstruction().getResourceOid();
+        String intent = evaluatedConstruction.getIntent();
+        ShadowKindType kind = evaluatedConstruction.getKind();
+        String tag = evaluatedConstruction.getTag();
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-        return new ResourceShadowDiscriminator(resourceOid, kind, intent, null, false);
+        return new ResourceShadowDiscriminator(resourceOid, kind, intent, tag, false);
     }
 
     /**
@@ -652,7 +652,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     /**
-     * Simply mark all projections as illegal - except those that are being unliked
+     * Simply mark all projections as illegal - except those that are being unlinked
      */
     private <F extends AssignmentHolderType> void processFocusDelete(LensContext<F> context, OperationResult result) {
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -665,22 +665,21 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    @NotNull
-    private Collection<PrismPropertyValue<Construction>> getConstructions(ConstructionPack accountConstructionPack, boolean validOnly) {
-        if (accountConstructionPack == null) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedConstructionImpl<AH>> getConstructions(EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
+        if (accountEvaluatedConstructionPack == null) {
             return Collections.emptySet();
         }
-        if (validOnly && !accountConstructionPack.hasValidAssignment()) {
+        if (validOnly && !accountEvaluatedConstructionPack.hasValidAssignment()) {
             return Collections.emptySet();
         }
-        return accountConstructionPack.getConstructions();
+        return accountEvaluatedConstructionPack.getEvaluatedConstructions();
     }
 
-    private boolean isForceRecon(ConstructionPack accountConstructionPack) {
-        if (accountConstructionPack == null) {
+    private boolean isForceRecon(EvaluatedConstructionPack accountEvaluatedConstructionPack) {
+        if (accountEvaluatedConstructionPack == null) {
             return false;
         }
-        return accountConstructionPack.isForceRecon();
+        return accountEvaluatedConstructionPack.isForceRecon();
     }
 
     /**
@@ -953,12 +952,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     }
 
-    private String dumpAccountMap(Map<ResourceShadowDiscriminator, ConstructionPack> accountMap) {
+    private String dumpAccountMap(Map<ResourceShadowDiscriminator, EvaluatedConstructionPack> accountMap) {
         StringBuilder sb = new StringBuilder();
-        Set<Entry<ResourceShadowDiscriminator, ConstructionPack>> entrySet = accountMap.entrySet();
-        Iterator<Entry<ResourceShadowDiscriminator, ConstructionPack>> i = entrySet.iterator();
+        Set<Entry<ResourceShadowDiscriminator, EvaluatedConstructionPack>> entrySet = accountMap.entrySet();
+        Iterator<Entry<ResourceShadowDiscriminator, EvaluatedConstructionPack>> i = entrySet.iterator();
         while (i.hasNext()) {
-            Entry<ResourceShadowDiscriminator, ConstructionPack> entry = i.next();
+            Entry<ResourceShadowDiscriminator, EvaluatedConstructionPack> entry = i.next();
             sb.append(entry.getKey()).append(": ");
             sb.append(entry.getValue());
             if (i.hasNext()) {
@@ -1124,7 +1123,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <F extends AssignmentHolderType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
             XMLGregorianCalendar now) throws SchemaException {
         return new AssignmentEvaluator.Builder<F>()
-                .repository(repositoryService)
+                .referenceResolver(referenceResolver)
                 .focusOdo(context.getFocusContext().getObjectDeltaObject())
                 .lensContext(context)
                 .channel(context.getChannel())
@@ -1134,6 +1133,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 .prismContext(prismContext)
                 .mappingFactory(mappingFactory)
                 .mappingEvaluator(mappingEvaluator)
+                .contextLoader(contextLoader)
                 .activationComputer(activationComputer)
                 .now(now)
                 .systemConfiguration(context.getSystemConfiguration())

@@ -70,6 +70,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     // experimental (currently some tests fail when using JSON)
+    @Deprecated
     public static final String DATA_LANGUAGE = PrismContext.LANG_XML;
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
@@ -1060,6 +1061,31 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
             if (!actualSubtypeValues.contains(specSubtype)) {
                 logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+                return false;
+            }
+        }
+
+        // Archetype
+        List<ObjectReferenceType> specArchetypeRefs = objectSelector.getArchetypeRef();
+        if (!specArchetypeRefs.isEmpty()) {
+            if (object.canRepresent(AssignmentHolderType.class)) {
+                boolean match = false;
+                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+                for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
+                    for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
+                        if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!match) {
+                    logger.trace("{} archetype mismatch, expected {}, was {}", logMessagePrefix, specArchetypeRefs, actualArchetypeRefs);
+                    return false;
+                }
+            } else {
+                logger.trace("{} archetype mismatch, expected {} but object has none (it is not of AssignmentHolderType)",
+                        logMessagePrefix, specArchetypeRefs);
                 return false;
             }
         }

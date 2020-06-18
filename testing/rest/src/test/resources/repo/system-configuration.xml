@@ -32,7 +32,7 @@
             <level>TRACE</level>
         </classLogger>
         <classLogger>
-            <package>com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler</package>
+            <package>com.evolveum.midpoint.rest.impl</package>
             <level>TRACE</level>
         </classLogger>
         <classLogger>
@@ -47,9 +47,5 @@
         <rootLoggerAppender>IDM_LOG</rootLoggerAppender>
         <rootLoggerLevel>INFO</rootLoggerLevel>
     </logging>
-<!--     <globalPasswordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffb" type="ValuePolicyType"/> -->
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b" type="SecurityPolicyType"/>
-    <internals>
-        <enableExperimentalCode>true</enableExperimentalCode>
-    </internals>
 </systemConfiguration>

@@ -83,6 +83,16 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
      */
     QName determineTypeForClass(Class<?> clazz);
 
+    @NotNull
+    default QName determineTypeForClassRequired(Class<?> clazz) {
+        QName typeName = determineTypeForClass(clazz);
+        if (typeName != null) {
+            return typeName;
+        } else {
+            throw new IllegalStateException("No type for " + clazz);
+        }
+    }
+
     /**
      * This method will try to locate the appropriate object definition and apply it.
      * @param container
@@ -124,6 +134,25 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     // Takes XSD types into account as well
     <T> Class<T> determineClassForType(QName type);
 
+    default <T> Class<T> determineClassForTypeRequired(QName type, Class<T> expected) {
+        Class<?> clazz = determineClassForTypeRequired(type);
+        if (!expected.isAssignableFrom(clazz)) {
+            throw new IllegalArgumentException("Expected to get " + expected + " but got " + clazz + " instead, for " + type);
+        } else {
+            //noinspection unchecked
+            return (Class<T>) clazz;
+        }
+    }
+
+    default <T> Class<T> determineClassForTypeRequired(QName type) {
+        Class<T> clazz = determineClassForType(type);
+        if (clazz != null) {
+            return clazz;
+        } else {
+            throw new IllegalArgumentException("No class for " + type);
+        }
+    }
+
     // Takes XSD types into account as well
     Class<?> determineClassForItemDefinition(ItemDefinition<?> itemDefinition);
 
@@ -164,6 +193,8 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
      */
     <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
             throws SchemaException;
+
+    boolean isAssignableFrom(@NotNull Class<?> superType, @NotNull QName subType);
 
     boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
 

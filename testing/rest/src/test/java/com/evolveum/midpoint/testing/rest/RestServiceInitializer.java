@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.testing.rest;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -106,7 +106,9 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     protected abstract String getContentType();
     protected abstract MidpointAbstractProvider getProvider();
 
-    protected String ENDPOINT_ADDRESS = "http://localhost:" + TestMidPointSpringApplication.DEFAULT_PORT + "/ws/rest";
+    protected String ENDPOINT_ADDRESS = "http://localhost:"
+            + TestMidPointSpringApplication.DEFAULT_PORT
+            + System.getProperty("mp.test.rest.context.path", "/ws/rest");
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
@@ -116,13 +118,13 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         InternalsConfig.encryptionChecks = false;
 
         PrismObject<RoleType> superRole = parseObject(ROLE_SUPERUSER_FILE);
-        addObject(superRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(superRole, executeOptions().overwrite(), initTask, result);
         PrismObject<RoleType> endRole = parseObject(ROLE_ENDUSER_FILE);
-        addObject(endRole, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(endRole, executeOptions().overwrite(), initTask, result);
         addObject(ROLE_REST_FILE, initTask, result);
         addObject(ROLE_READER_FILE, initTask, result);
         PrismObject<UserType> adminUser = parseObject(USER_ADMINISTRATOR_FILE);
-        addObject(adminUser, ModelExecuteOptions.createOverwrite(), initTask, result);
+        addObject(adminUser, executeOptions().overwrite(), initTask, result);
         addObject(USER_NOBODY_FILE, initTask, result);
         addObject(USER_CYCLOPS_FILE, initTask, result);
         addObject(USER_SOMEBODY_FILE, initTask, result);
@@ -133,10 +135,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
         addObject(VALUE_POLICY_SECURITY_ANSWER, initTask, result);
         addObject(SECURITY_POLICY, initTask, result);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
-        addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, result);
-
-        // TODO remove in 2021 - this should be covered in super.super.initSystem(...)
-//        dummyAuditService = DummyAuditService.getInstance();
+        addObject(systemConfig, executeOptions().overwrite(), initTask, result);
 
         InternalMonitor.reset();
 
@@ -146,8 +145,7 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     }
 
     protected WebClient prepareClient(String username, String password) {
-
-        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Arrays.asList(getProvider()));
+        WebClient client = WebClient.create(ENDPOINT_ADDRESS, Collections.singletonList(getProvider()));
         ClientConfiguration clientConfig = WebClient.getConfig(client);
 
         clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
@@ -157,7 +155,6 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
 
         createAuthorizationHeader(client, username, password);
         return client;
-
     }
 
     protected void createAuthorizationHeader(WebClient client, String username, String password) {
@@ -192,17 +189,4 @@ public abstract class RestServiceInitializer extends AbstractGuiIntegrationTest 
     public DummyAuditService getDummyAuditService() {
         return dummyAuditService;
     }
-
-    public MidpointXmlProvider getXmlProvider() {
-        return xmlProvider;
-    }
-
-    public MidpointJsonProvider getJsonProvider() {
-        return jsonProvider;
-    }
-
-    public MidpointYamlProvider getYamlProvider() {
-        return yamlProvider;
-    }
-
 }

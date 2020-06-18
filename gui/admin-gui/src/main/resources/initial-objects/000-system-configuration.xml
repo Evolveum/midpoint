@@ -382,6 +382,20 @@
                     <collectionRef oid="00000000-0000-0000-0000-000000000529" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>dashboard-reports-view</identifier>
+                <type>ReportType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000170" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>collection-reports-view</identifier>
+                <type>ReportType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000171" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage>
