@@ -24,7 +24,17 @@ public interface AxiomItem<V> {
         return Iterables.getOnlyElement(values());
     }
 
+    default Optional<? extends AxiomMapItem<V>> asMap() {
+        if (this instanceof AxiomMapItem) {
+            return Optional.of((AxiomMapItem<V>) this);
+        }
+        return Optional.empty();
+    }
+
     static <V> AxiomItem<V> from(AxiomItemDefinition def, Collection<? extends AxiomValue<V>> values) {
+        if(def.identifierDefinition().isPresent()) {
+            return AxiomMapItemImpl.from(def, values);
+        }
         return AxiomItemImpl.from(def, values);
     }
 

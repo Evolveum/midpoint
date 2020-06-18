@@ -30,7 +30,7 @@ public interface AxiomComplexValue extends AxiomValue<Collection<AxiomItem<?>>> 
         return Optional.ofNullable(itemMap().get(name));
     }
 
-   default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
+    default <T> Optional<AxiomValue<T>> onlyValue(Class<T> type, AxiomItemDefinition... components) {
         Optional<AxiomValue<?>> current = Optional.of(this);
         for(AxiomItemDefinition name : components) {
             current = current.get().asComplex().flatMap(c -> c.item(name)).map(i -> i.onlyValue());
