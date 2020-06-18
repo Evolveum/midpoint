@@ -24045,6 +24045,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="showOnlyWidgetsTable" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Some export types show tables of objects from widgets.
+                                    These tables don't show if this element is true.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.showOnlyWidgetsTable</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: other elements to configure the report -->
                 </xsd:sequence>
             </xsd:extension>
