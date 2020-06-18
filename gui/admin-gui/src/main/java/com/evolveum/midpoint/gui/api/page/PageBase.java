@@ -2126,6 +2126,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                     return dashboard.getOid().equals(dashboardOid.toString());
                 }
+
+                @Override
+                public VisibleEnableBehaviour getVisibleEnable() {
+                    return new VisibleEnableBehaviour(){
+                        @Override
+                        public boolean isVisible() {
+                            return WebComponentUtil.getElementVisibility(dashboard.getVisibility());
+                        }
+                    };
+                }
             };
             item.getItems().add(menu);
         });

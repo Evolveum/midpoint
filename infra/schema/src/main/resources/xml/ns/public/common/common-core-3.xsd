@@ -26247,10 +26247,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    TODO
-                </p>
-                <p>
-                    TODO
+                    Configuration Dasboard dashboard showing in GUI.
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -26265,6 +26262,19 @@
                     </xsd:element>
                     <!-- TODO: layout -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
+                    </xsd:element>
+                    <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
+                                 minOccurs="0" maxOccurs="1" default="automatic">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines, whether this dashboard will be visible or it will be hidden.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>DashboardType.visibility</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
