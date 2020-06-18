@@ -440,6 +440,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     boolean contains(V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
 
+    @Experimental
+    V findValue (V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
+
     /**
      * @return true if the item contains an equivalent value (the same as {@link #containsEquivalentValue(PrismValue, Comparator)}
      * with comparator being null)

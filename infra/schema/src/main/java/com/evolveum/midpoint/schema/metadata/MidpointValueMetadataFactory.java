@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.metadata;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.ValueMetadata;
 import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
@@ -29,8 +30,12 @@ public class MidpointValueMetadataFactory implements ValueMetadataFactory {
     @Override
     @NotNull
     public ValueMetadata createEmpty() {
-        return ValueMetadataAdapter.holding(
+        return createFrom(
                 new ValueMetadataType(prismContext)
                         .asPrismContainerValue());
+    }
+
+    public static ValueMetadata createFrom(PrismContainerValue<?> pcv) {
+        return ValueMetadataAdapter.holding(pcv);
     }
 }

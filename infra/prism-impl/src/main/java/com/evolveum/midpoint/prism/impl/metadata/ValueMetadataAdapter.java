@@ -15,6 +15,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,15 +147,23 @@ public class ValueMetadataAdapter implements ValueMetadata {
         delegate.setParent(parent);
     }
 
-    // TODO is this correct?
     public Optional<ValueMetadata> valueMetadata() {
-        return Optional.of(this);
+        // TODO reconsider
+        return Optional.empty();
     }
 
-    // TODO is this correct?
     @Override
+    @NotNull
     public ValueMetadata getValueMetadata() {
-        return this;
+        // TODO reconsider
+        return holding(new PrismContainerValueImpl<>());
+    }
+
+    @Override
+    public void setValueMetadata(ValueMetadata valueMetadata) {
+        // Metadata should not have its own metadata. (At least for now.)
+        // TODO reconsider
+        throw new UnsupportedOperationException("Couldn't set metadata on value metadata");
     }
 
     public @NotNull ItemPath getPath() {

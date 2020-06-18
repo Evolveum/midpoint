@@ -88,6 +88,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="valueMetadata" type="tns:ValueMetadataType" />
 
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>

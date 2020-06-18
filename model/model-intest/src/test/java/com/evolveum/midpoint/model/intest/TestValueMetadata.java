@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.util.Optional;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -157,7 +159,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         displayDumpable("assignment[111] admin status metadata", assignmentAdminStatusMetadata.get());
     }
 
-    @Test
+    /**
+     * Metadata is currently not stored into repository, so it cannot be asserted later.
+     */
+    @Test(enabled = false)
     public void test100SimpleMetadataMapping() throws Exception {
         given();
         Task task = getTestTask();
@@ -180,7 +185,32 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .display()
-//                    .assertPropertyValuesEqual(LOA_PATH, "low")
+                    //.assertPropertyValuesEqual(LOA_PATH, "low")
+                    .end();
+    }
+
+    @Test
+    public void test110SimpleMetadataMappingPreview() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_BOB, task, result);
+        ModelContext<UserType> modelContext =
+                previewChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_BOB.oid),
+                        ModelExecuteOptions.create(prismContext)
+                                .reconcile(),
+                        task, result);
+
+        then();
+        PrismObject<UserType> bobAfter = modelContext.getFocusContext().getObjectNew();
+        assertUser(bobAfter, "after")
+                .display()
+                .assertFullName("Bob Green")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertPropertyValuesEqual(LOA_PATH, "low")
                     .end();
     }
 

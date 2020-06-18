@@ -9,16 +9,16 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
 /**
- * Builder for (traditional) data mappings.
+ * TODO
  */
-public class MappingBuilder<V extends PrismValue, D extends ItemDefinition>
-    extends AbstractMappingBuilder<V, D, MappingType, MappingBuilder<V, D>> {
+public class MetadataMappingBuilder<V extends PrismValue, D extends ItemDefinition>
+    extends AbstractMappingBuilder<V, D, MetadataMappingType, MetadataMappingBuilder<V, D>> {
 
     @Override
-    public MappingImpl<V, D> build() {
-        return new MappingImpl<>(this);
+    public MetadataMappingImpl<V, D> build() {
+        return new MetadataMappingImpl<>(this);
     }
 }

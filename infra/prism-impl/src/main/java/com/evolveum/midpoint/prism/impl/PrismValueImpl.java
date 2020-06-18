@@ -395,6 +395,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     @Override
+    @NotNull
     public ValueMetadata getValueMetadata() throws SchemaException {
         if (valueMetadata != null) {
             return valueMetadata;
@@ -408,6 +409,11 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
                 return ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
             }
         }
+    }
+
+    @Override
+    public void setValueMetadata(ValueMetadata valueMetadata) {
+        this.valueMetadata = valueMetadata;
     }
 
     @Override
@@ -427,6 +433,18 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             }
         }
         return Optional.empty();
+    }
+
+    // TEMPORARY
+    @Override
+    public void fixMockUpValueMetadata() {
+        if (valueMetadata == null) {
+            try {
+                createMockUpValueMetadata().ifPresent(metadata -> valueMetadata = metadata.clone());
+            } catch (SchemaException e) {
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
     @Override
