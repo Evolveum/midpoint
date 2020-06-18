@@ -1,0 +1,19 @@
+model schema-org-person {
+
+    namespace "https://schema.org";
+
+    import "https://example.org" {
+        prefix base;
+    }
+
+    augmentation SchemaOrgPerson {
+        target base:Person;
+
+        item honorificPrefix {
+            type String;
+        }
+        item honorificSuffix {
+            type String;
+        }
+    }
+}

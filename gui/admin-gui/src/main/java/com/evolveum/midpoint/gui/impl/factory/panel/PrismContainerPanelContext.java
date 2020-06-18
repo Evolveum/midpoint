@@ -27,7 +27,7 @@ public class PrismContainerPanelContext<C extends Containerable> extends ItemPan
     }
 
     @Override
-    public <VW extends PrismValueWrapper<C,?>> void setRealValueModel(IModel<VW> valueWrapper) {
+    public <VW extends PrismValueWrapper<C>> void setRealValueModel(IModel<VW> valueWrapper) {
         super.setRealValueModel(valueWrapper);
         this.valueWrapperModel = (IModel<PrismContainerValueWrapper<C>>) valueWrapper;
     }

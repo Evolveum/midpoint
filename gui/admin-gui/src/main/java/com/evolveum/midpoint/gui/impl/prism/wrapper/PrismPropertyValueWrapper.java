@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -21,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
  * @author katka
  *
  */
-public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, PrismPropertyValue<T>> {
+public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
 
     /**
      * @param parent
@@ -115,4 +116,13 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
         return getRealValue().toString();
     }
 
+    @Override
+    public PrismPropertyValue<T> getNewValue() {
+        return super.getNewValue();
+    }
+
+    @Override
+    public PrismPropertyValue<T> getOldValue() {
+        return super.getOldValue();
+    }
 }

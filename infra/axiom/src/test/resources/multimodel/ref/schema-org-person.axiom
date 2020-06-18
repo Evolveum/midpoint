@@ -1,0 +1,19 @@
+model foaf-person {
+
+    namespace "https://schema.org";
+    //prefix schemaorg;
+
+
+    type Person {
+        item givenName {
+            type String;
+        }
+        item familyName {
+            type String;
+        }
+        item additionalName {
+            type String;
+        }
+    }
+
+}

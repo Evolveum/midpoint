@@ -1,0 +1,358 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+model axiom-model {
+
+    namespace "https://schema.evolveum.com/ns/axiom/model";
+
+    import "https://schema.evolveum.com/ns/axiom/data" {
+        prefix data;
+    }
+
+    root model {
+        documentation """
+            Declaration of Axiom model.
+        """;
+        type Model;
+    }
+
+    // Axiom Baseline Types
+
+    type SemanticVersion {
+            supertype String;
+    }
+
+
+    // Axiom Schema
+
+    type BaseDefinition {
+        argument name;
+
+        item name {
+            type QName;
+        }
+
+        item documentation {
+            type String;
+        }
+
+        item since {
+            type SemanticVersion;
+        }
+
+        item status {
+            type String;
+            documentation """
+                Status of definition, could be experimental, stable, deprecated.
+              """;
+        }
+    }
+
+    type IdentifierDefinition {
+         argument key;
+         item key {
+            type QName;
+            minOccurs "1";
+         }
+    }
+
+    type TypeDefinition {
+        supertype BaseDefinition;
+        documentation """
+            Definition of value type.
+
+            Defines type name, type supertype and set of value items.
+        """;
+
+        item argument {
+            type QName;
+            documentation """
+                Name of item, which is target of short-form value declaration.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+        }
+
+        // FIXME: should be inherit
+        item supertype {
+            type TypeReference;
+            documentation """
+                Reference to super type definition, which is subtyped by this type.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+        }
+
+        // FIXME: should be use
+        item include {
+            type TypeReference;
+            documentation """
+                Reference to mixin, from which this type definition reuses item definitions.
+            """;
+            minOccurs 0;
+        }
+
+        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
+        item itemName {
+            type QName;
+        }
+
+        item namespaceSensitive {
+            type Boolean;
+            // default false;
+        }
+
+        item item {
+            type ItemDefinition;
+            identifier name;
+            documentation """
+                Definition of child items
+            """;
+            minOccurs 0;
+            allowsSubstitution true;
+        }
+
+        substitution substitution {
+            type SubstitutionDefinition;
+            identifier name;
+            documentation """
+                Definition of Substitution;
+            """;
+            minOccurs 0;
+        }
+
+    }
+
+    type ItemDefinition {
+        supertype BaseDefinition;
+
+        item identifier {
+            type IdentifierDefinition;
+            documentation """
+                Definition of value identifier for this item.
+            """;
+            minOccurs 0;
+        }
+
+        item type {
+            type TypeReference;
+            documentation """
+                Value type.
+                item minOccurs {
+
+                All values must be instances or referenced type or it's subtypes.
+            """;
+            minOccurs 1;
+            maxOccurs 1;
+        }
+
+        item minOccurs {
+            type String;
+            documentation """
+                Declares minimum count of values required for this item.
+            """;
+        }
+
+        item maxOccurs {
+            type String;
+            documentation """
+                Declares maximum possible count of values for this item.
+            """;
+        }
+
+        item operational {
+            type Boolean;
+            documentation """
+                Marks if data are operational (provided by system).
+            """;
+        }
+
+        item inherited {
+            type Boolean;
+            operational true;
+        }
+
+        item default {
+          type data:DynamicType; // This should somehow be same type as value of type
+          documentation """
+            Declares default value for item.
+          """;
+          minOccurs 0;
+          maxOccurs 1;
+        }
+
+        item infra {
+          type InfraSpecification;
+          //default {
+          //  value data:AxiomValue;
+          //  item data:AxiomItem;
+          //}
+        }
+
+        item allowsSubstitution {
+          type Boolean;
+        }
+    }
+
+    type SubstitutionDefinition {
+        supertype ItemDefinition;
+        item target {
+            type QName;
+        }
+    }
+
+    type RootDefinition {
+        supertype ItemDefinition;
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
+    }
+
+    // Axiom Model?
+
+    type Model {
+        supertype BaseDefinition;
+
+        item namespace {
+            type String;
+            documentation """
+                Namespace of model.
+            """;
+        }
+
+        item version {
+            type SemanticVersion;
+            documentation """
+                Version of model.
+
+                Model versioning follows Semantic Versioning 2.0.
+            """;
+        }
+
+        item import {
+            type ImportDeclaration;
+            documentation """
+                Declaration of model imports.
+
+                Type definitions from imported models are referencable and
+                visible to all definition contained in this model.
+            """;
+        }
+
+        item root {
+            documentation """
+                Defines allowed root type for value serialization / deserialization.
+            """;
+            type RootDefinition;
+        }
+
+        item type {
+            type TypeDefinition;
+            documentation """
+                Declaration of a type. This type is visible to models
+                importing parent model namespace.
+            """;
+        }
+
+        item mixin {
+            type MixinDefinition;
+            documentation """
+                Declaration of mixin, a set of reusable item
+                definitions, which can be used in type definitions.
+            """;
+        }
+
+        // FIXME: should be augmentation
+        item augmentation {
+            type AugmentationDefinition;
+            documentation """
+                Declaration of augmentation. Augmentation adds new items
+                to already existing type, which can be defined in other
+                models (namespaces).
+            """;
+        }
+
+        substitution metadata {
+          type MetadataDefinition;
+          target augmentation;
+        }
+    }
+
+    type ImportDeclaration {
+        argument namespace;
+
+        item prefix {
+            type QName;
+        }
+
+        item namespace {
+            type String;
+        }
+    }
+
+    type InfraSpecification {
+      item value {
+        type TypeReference;
+        //  default AxiomValue;
+      }
+      item item {
+        type TypeReference;
+        //  default AxiomItem;
+      }
+    }
+
+    type TypeReference {
+        documentation """
+            Reference to type definition.
+
+            Referenced type definition is referenced by it's fully qualified
+            (namespace and local name).
+        """;
+        argument name;
+
+        item name {
+            type QName;
+            documentation """
+                Name of referenced type definition.
+                The value must be name of existing type definition, which is
+                available (visible) to model using this type reference.
+            """;
+            minOccurs 1;
+            maxOccurs 1;
+        }
+        item target {
+            type TypeDefinition;
+            documentation """
+                Referenced Type Definition.
+
+                The value is resolved operational definition of referenced type.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+            operational true;
+        }
+    }
+
+    type MixinDefinition {
+        supertype TypeDefinition;
+    }
+
+    type AugmentationDefinition {
+        supertype MixinDefinition;
+        item target {
+            type TypeReference;
+        }
+    }
+
+    type MetadataDefinition {
+      supertype AugmentationDefinition;
+      // TODO: Add limits for specific types
+      item target {
+        default data:ValueMetadata;
+      }
+    }
+
+}

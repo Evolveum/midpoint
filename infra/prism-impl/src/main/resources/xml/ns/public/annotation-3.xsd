@@ -662,6 +662,17 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+
+    <xsd:element name="valueMetadata">
+        <xsd:annotation>
+            <xsd:documentation>
+                EXPERIMENTAL: Value Metadata marker. This annotation marks elements to be considered as value metadata.
+                
+                
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

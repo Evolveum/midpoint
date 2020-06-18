@@ -39,7 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
-public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T, ?>> extends BasePanel<VW> {
+public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
@@ -52,6 +52,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_HEADER_CONTAINER = "header";
 
     private static final String ID_INPUT = "input";
+    private static final String ID_SHOW_METADATA = "showMetadata";
+    private static final String ID_METADATA = "metadata";
 
     private ItemPanelSettings settings;
 
@@ -73,6 +75,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         form.add(createHeaderPanel());
 
         createValuePanel(form);
+
+        createMetadataPanel(form);
     }
 
     private WebMarkupContainer createHeaderPanel() {
@@ -96,6 +100,17 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
         buttonContainer.add(removeButton);
 
+        AjaxLink<Void> showMetadataButton = new AjaxLink<Void>(ID_SHOW_METADATA) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showMetadataPerformed(PrismValuePanel.this.getModelObject(), target);
+            }
+        };
+        buttonContainer.add(showMetadataButton);
+        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null));
+
         addToHeader(buttonContainer);
         return buttonContainer;
     }
@@ -106,7 +121,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private WebMarkupContainer createValuePanel(Form form) {
 
-        GuiComponentFactory factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
+        GuiComponentFactory factory = null;
+        if (getModelObject() != null && getModelObject().getParent() != null) {
+            factory = getPageBase().getRegistry().findValuePanelFactory(getModelObject().getParent());
+        }
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
         form.add(valueContainer);
@@ -152,6 +170,12 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
+    protected void createMetadataPanel(Form form) {
+        MetadataContainerValuePanel metadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"), new ItemPanelSettingsBuilder().editabilityHandler(wrapper -> false).build());
+        metadataPanel.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
+        form.add(metadataPanel);
+    }
+
     private AjaxEventBehavior createEventBehavior() {
         return new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -175,10 +199,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private VisibleEnableBehaviour createVisibleEnableBehavior() {
         return new VisibleEnableBehaviour() {
 
-//            @Override
-//            public boolean isVisible() {
-//                return isVisibleValue();
-//            }
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
 
             @Override
             public boolean isEnabled() {
@@ -253,6 +277,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     //TODO move to the ItemPanel, exception handling
     protected abstract void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException;
+
+    private void showMetadataPerformed(VW value, AjaxRequestTarget target) {
+        value.setShowMetadata(!value.isShowMetadata());
+        target.add(PrismValuePanel.this);
+    }
 
 
     protected boolean isRemoveButtonVisible() {

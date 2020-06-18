@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Standard value metadata that is part of the static common-3 schema.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+
+    <xsd:complexType name="ValueMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The value metadata.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="c:extension" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Place for deployment-specific value metadata.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="storage" type="tns:StorageMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The details when data were stored in midPoint repository. It is about the creation
+                        (timestamp, originator user, channel, taskRef) and the last modification (the same).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="process" type="tns:ProcessMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The details how the data were processed by midPoint processes/tasks.
+                        Only present if it was approved or otherwise processed by a "process".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="provisioning" type="tns:ProvisioningMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="transformation" type="tns:TransformationMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="StorageMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:displayName>Storage metadata</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The timestamp of data creation. It is set once and should never be changed.
+                        </p>
+                        <p>
+                            In case of "background" processes to create object (e.g. create with approval)
+                            this should be the timestamp when the process ended. I.e. the timestamp when
+                            the operation was executed.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                        <a:since>3.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="creatorRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user that created the data.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.creatorRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Channel in which the object was created.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createChannel</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createTaskRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the task that created the object (if it was a persistent one).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createTaskRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The timestamp of last data modification. It should be updated to a current time
+                        when the object is modified.
+                        The modifications that change only operational attributes may not update the
+                        modify timestamp.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifierRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user that modified the data.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifierRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Channel in which the object was last modified.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyChannel</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyTaskRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the task that last modified the object (if it was a persistent one).
+                        If the last modification was carried out by synchronous task, this reference will be empty.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyTaskRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProcessMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:displayName>Process metadata</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The timestamp of "create" operation request. It is set once and should never be changed.
+                        </p>
+                        <p>
+                            In case of "background" processes to create object (e.g. create with approval)
+                            this should be the timestamp when the process started. I.e. the timestamp when
+                            the operation was requested.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.requestTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.5</a:since>
+                        <a:valueMetadata />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="requestorRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user that requested the "create" operation for this object or assignment.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.requestorRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:valueMetadata />
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="requestorComment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Comment of the user that requested the "create" operation for this object or assignment.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.requestorComment</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createApproverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user that approved the creation of the data (if there was such a user).
+                        This is multi-value reference therefore multiple approvers may be recorded. However the order and
+                        hierarchy of the approvers is lost.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createApproverRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Comments of the approvers during the creation of the data. Note that these comments are in no
+                        particular order, so basically it is not known who entered which comment.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createApprovalComment</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The timestamp of creation approval.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.createApprovalTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyApproverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Reference to the user that approved the last modification of the data (if there was such a user).
+                            This is multi-value reference therefore multiple approvers may be recorded. However the order and
+                            hierarchy of the approvers is lost.
+                        </p>
+                        <p>
+                            Even though this is multi-value reference it will get overwritten after each approval.
+                            The multiple values are used only if all the approvers are known at the same time,
+                            e.g. if multi-level approval is evaluated at the same time. But generally this refers
+                            only to the last approval event.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyApproverRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:indexed>true</a:indexed>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyApprovalComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Comments of the approvers during the last modification of the data. Note that these comments are in no
+                            particular order, so basically it is not known who entered which comment.
+                        </p>
+                        <p>
+                            Even though this is multi-value property it will get overwritten after each approval.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyApprovalComment</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modifyApprovalTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The timestamp of last modification approval.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.modifyApprovalTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.5</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certificationFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When last certification related to this item was finished.
+                        Only certifications that resulted in non-null outcome are taken into account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.certificationFinishedTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certificationOutcome" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Outcome (URI) of the last certification.
+                        Only certifications that resulted in non-null outcome are taken into account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.certificationOutcome</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certifierRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the user that certified the data.
+                        Contrary to approver/modifierRef, this field is filled-in also when certifier denies the item status.
+                        Only certifications that resulted in non-null outcome are taken into account.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.certifierRef</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="certifierComment" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Comments of the certifiers during the last certification of the data. Note that these comments are in no
+                            particular order, so basically it is not known who entered which comment.
+                        </p>
+                        <p>
+                            Even though this is multi-value property it will get overwritten after each approval.
+                        </p>
+                        <p>
+                            Only certifications that resulted in non-null outcome are taken into account.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.certifierComment</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvisioningMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:displayName>Provisioning metadata</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="lastProvisioningTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            The timestamp last provisioning operation that was based on this object.
+                            E.g. the timestamp of last modification of any account based on the
+                            data from the user. This value is only updated if there was any
+                            real change in the resource.
+                        </p>
+                        <p>
+                            This meta-datum is used as an informational property that tells when
+                            the data were last synchronized in outbound direction. But it has another
+                            important role. It is used indirectly to trigger optimistic locking
+                            conflicts that are used to detect a "clean" recompute (i.e. recompute
+                            that is processing data without any outside interaction).
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MetadataType.lastProvisioningTimestamp</a:displayName>
+                        <a:operational>true</a:operational>
+                        <a:since>3.6.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TransformationMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:displayName>Transformation metadata</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="source" type="tns:ValueSourceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Source(s) of the value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="transformer" type="tns:ValueTransformerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Transformer(s) that acted upon the value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ValueSourceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies a value source.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the source (resource, object template, assignment, user action, ...)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the source (whatever that means).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A midPoint object representing the source of the value (resource object, object template, assignment holder, user, ...)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="specificInformation" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific information needed to identify the source e.g. within the midPoint object
+                        (mapping name, assignment path, ...).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="storage" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Where was the original value stored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ValueTransformerType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies agent that transformed the value.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="kind" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of the transformer. Currently the only supported one is "mapping".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the transformer. Currently mapping name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A midPoint object holding the transformer.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="specificInformation" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specific information needed to identify the transformer e.g. within the midPoint object
+                        (mapping name, assignment path, ...).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

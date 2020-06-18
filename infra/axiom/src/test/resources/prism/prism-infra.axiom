@@ -1,0 +1,10 @@
+model test {
+    @type prism:PrismModel;
+    namespace "http://example.org";
+    import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+        prefix prism;
+    }
+    container test {
+    
+    }
+}
