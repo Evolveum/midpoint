@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 
 /**

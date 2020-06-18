@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;

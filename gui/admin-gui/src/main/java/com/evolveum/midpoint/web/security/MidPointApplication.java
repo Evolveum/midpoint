@@ -14,6 +14,8 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;

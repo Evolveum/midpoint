@@ -11,8 +11,9 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -23,19 +24,22 @@ import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -52,6 +56,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
     protected static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
     protected static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_NODE_GROUP_GUI = new TestResource<>(TEST_DIR, "archetype-node-group-gui.xml", "05b6933a-b7fc-4543-b8fa-fd8b278ff9ee");
 
     protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
     protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
@@ -75,6 +81,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
                 RESOURCE_SCRIPTY_FILE, RESOURCE_SCRIPTY_OID, initTask, initResult);
 
         importObjectFromFile(ROLE_SHIP_FILE);
+        repoAdd(ARCHETYPE_NODE_GROUP_GUI, initResult);
     }
 
     @Test
@@ -590,4 +597,30 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertLinks(userAfter, 0);
     }
 
+    @Test
+    public void test700AddNodeArchetype() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        given();
+
+        when();
+        NodeType localNode = taskManager.getLocalNode();
+        ObjectDelta<NodeType> delta = deltaFor(NodeType.class)
+                .item(NodeType.F_ASSIGNMENT)
+                .add(ObjectTypeUtil.createAssignmentTo(ARCHETYPE_NODE_GROUP_GUI.oid, ObjectTypes.ARCHETYPE, prismContext))
+                .asObjectDelta(localNode.getOid());
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertObject(NodeType.class, localNode.getOid(), "after")
+                .display()
+                .assertArchetypeRef(ARCHETYPE_NODE_GROUP_GUI.oid);
+
+        Set<String> localNodeGroups = taskManager.getLocalNodeGroups().stream()
+                .map(ObjectReferenceType::getOid)
+                .collect(Collectors.toSet());
+        assertThat(localNodeGroups).as("local node groups")
+                .containsExactlyInAnyOrder(ARCHETYPE_NODE_GROUP_GUI.oid);
+    }
 }
