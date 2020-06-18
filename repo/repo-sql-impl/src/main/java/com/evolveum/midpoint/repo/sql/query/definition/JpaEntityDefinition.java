@@ -37,8 +37,8 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
         super(jpaClass, jaxbClass);
     }
 
-    public void addDefinition(JpaLinkDefinition definition) {
-        JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPath(), JpaDataNodeDefinition.class, true);
+    public void addDefinition(JpaLinkDefinition<?> definition) {
+        JpaLinkDefinition<?> oldDef = findRawLinkDefinition(definition.getItemPath(), JpaDataNodeDefinition.class, true);
         if (oldDef != null) {
             // we don't replace definitions. E.g. name=>nameCopy for concrete classes with name=>name in RObject
             return;
@@ -90,7 +90,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
         return findDataNodeDefinition(path, itemDefinition, type, null, prismContext);
     }
 
-    public <D extends JpaDataNodeDefinition> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
+    public <D extends JpaDataNodeDefinition<D>> DataSearchResult<D> findDataNodeDefinition(ItemPath path,
             ItemDefinition itemDefinition, Class<D> type, LinkDefinitionHandler handler, PrismContext prismContext) throws QueryException {
         JpaDataNodeDefinition currentDefinition = this;
         for (; ; ) {
@@ -126,7 +126,9 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
     }
 
     @Override
-    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext) throws QueryException {
+    public DataSearchResult<?> nextLinkDefinition(
+            ItemPath path, ItemDefinition<?> itemDefinition, PrismContext prismContext)
+            throws QueryException {
 
         if (ItemPath.isEmpty(path)) {     // doesn't fulfill precondition
             return null;
@@ -149,7 +151,7 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition<JpaEntityDefiniti
     }
 
     @Override
-    public void accept(Visitor visitor) {
+    public void accept(Visitor<JpaDataNodeDefinition<JpaEntityDefinition>> visitor) {
         visitor.visit(this);
         for (JpaLinkDefinition definition : definitions) {
             definition.accept(visitor);

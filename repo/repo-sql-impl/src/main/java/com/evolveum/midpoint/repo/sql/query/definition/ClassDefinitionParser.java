@@ -132,8 +132,8 @@ public class ClassDefinitionParser {
         } else if (isEntity(jpaClass)) {
             JpaEntityDefinition content = parseClass(jpaClass);
             boolean embedded = method.isAnnotationPresent(Embedded.class) || jpaClass.isAnnotationPresent(Embeddable.class);
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, embedded,
-                    content);
+            linkDefinition = new JpaLinkDefinition<>(
+                    itemPath, jpaName, collectionSpecification, embedded, content);
         } else {
             boolean lob = method.isAnnotationPresent(Lob.class);
             boolean enumerated = method.isAnnotationPresent(Enumerated.class);
@@ -156,11 +156,11 @@ public class ClassDefinitionParser {
 
             boolean neverNull = method.isAnnotationPresent(NeverNull.class);
 
-            JpaPropertyDefinition propertyDefinition = new JpaPropertyDefinition(jpaClass, jaxbClass, lob, enumerated,
-                    indexed, count, neverNull);
+            JpaPropertyDefinition<?> propertyDefinition = new JpaPropertyDefinition<>(
+                    jpaClass, jaxbClass, lob, enumerated, indexed, count, neverNull);
             // Note that properties are considered to be embedded
-            linkDefinition = new JpaLinkDefinition<JpaDataNodeDefinition>(itemPath, jpaName, collectionSpecification, true,
-                    propertyDefinition);
+            linkDefinition = new JpaLinkDefinition<>(
+                    itemPath, jpaName, collectionSpecification, true, propertyDefinition);
         }
         return linkDefinition;
     }

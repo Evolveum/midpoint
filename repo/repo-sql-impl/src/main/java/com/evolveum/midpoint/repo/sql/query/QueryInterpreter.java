@@ -251,7 +251,7 @@ public class QueryInterpreter {
             ExistsFilter existsFilter = (ExistsFilter) filter;
             ItemPath path = existsFilter.getFullPath();
             ItemDefinition definition = existsFilter.getDefinition();
-            ProperDataSearchResult<JpaDataNodeDefinition> searchResult = resolver.findProperDataDefinition(
+            ProperDataSearchResult<?> searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaDataNodeDefinition.class, context.getPrismContext());
             if (searchResult == null) {
                 throw new QueryException("Path for ExistsFilter (" + path + ") doesn't point to a hibernate entity or property within " + baseEntityDefinition);
@@ -261,7 +261,7 @@ public class QueryInterpreter {
             RefFilter refFilter = (RefFilter) filter;
             ItemPath path = refFilter.getFullPath();
             ItemDefinition definition = refFilter.getDefinition();
-            ProperDataSearchResult<JpaReferenceDefinition> searchResult = resolver.findProperDataDefinition(
+            ProperDataSearchResult searchResult = resolver.findProperDataDefinition(
                     baseEntityDefinition, path, definition, JpaReferenceDefinition.class, context.getPrismContext());
             if (searchResult == null) {
                 throw new QueryException("Path for RefFilter (" + path + ") doesn't point to a reference item within " + baseEntityDefinition);
@@ -273,7 +273,7 @@ public class QueryInterpreter {
             ItemPath path = valFilter.getFullPath();
             ItemDefinition definition = valFilter.getDefinition();
 
-            ProperDataSearchResult<JpaPropertyDefinition> propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
+            ProperDataSearchResult propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
                     context.getPrismContext());
             if (propDefRes == null) {
                 throw new QueryException("Couldn't find a proper data item to query, given base entity " + baseEntityDefinition + " and this filter: " + valFilter.debugDump());
@@ -357,7 +357,7 @@ public class QueryInterpreter {
         ItemPath orderByPath = ordering.getOrderBy();
 
         // TODO if we'd like to have order-by extension properties, we'd need to provide itemDefinition for them
-        ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
+        ProperDataSearchResult<?> result = context.getItemPathResolver().findProperDataDefinition(
                 context.getRootEntityDefinition(), orderByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
         if (result == null) {
             LOGGER.error("Unknown path '" + orderByPath + "', couldn't find definition for it, "
@@ -407,7 +407,7 @@ public class QueryInterpreter {
         ItemPath groupByPath = grouping.getGroupBy();
 
         // TODO if we'd like to have group-by extension properties, we'd need to provide itemDefinition for them
-        ProperDataSearchResult<JpaDataNodeDefinition> result = context.getItemPathResolver().findProperDataDefinition(
+        ProperDataSearchResult<?> result = context.getItemPathResolver().findProperDataDefinition(
                 context.getRootEntityDefinition(), groupByPath, null, JpaDataNodeDefinition.class, context.getPrismContext());
         if (result == null) {
             LOGGER.error("Unknown path '" + groupByPath + "', couldn't find definition for it, "

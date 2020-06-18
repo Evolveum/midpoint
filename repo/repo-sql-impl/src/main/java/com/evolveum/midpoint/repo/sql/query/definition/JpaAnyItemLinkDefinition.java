@@ -15,13 +15,13 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
  *
  * @author mederly
  */
-public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefinition> {
+public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefinition<?>> {
 
     final private RObjectExtensionType ownerType;
     final private ItemDefinition<?> itemDefinition;
 
     JpaAnyItemLinkDefinition(ItemDefinition<?> itemDefinition, String jpaName, CollectionSpecification collectionSpecification,
-            RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
+            RObjectExtensionType ownerType, JpaDataNodeDefinition<?> targetDefinition) {
         super(itemDefinition.getItemName(), jpaName, collectionSpecification, false, targetDefinition);
         this.ownerType = ownerType;
         this.itemDefinition = itemDefinition;

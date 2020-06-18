@@ -16,9 +16,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-/**
- * @author mederly
- */
 public class JpaLinkDefinition<D extends JpaDataNodeDefinition>
         implements Visitable, DebugDumpable {
 

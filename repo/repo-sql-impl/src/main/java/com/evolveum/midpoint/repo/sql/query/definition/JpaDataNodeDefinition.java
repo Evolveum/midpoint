@@ -41,10 +41,10 @@ import com.evolveum.midpoint.util.DebugDumpable;
  * - state ~ data node (JpaDataNodeDefinition -> JpaEntityDefinition, JpaPropertyDefinition, ...)
  * - transition ~ link node (JpaLinkDefinition)
  *
- * @author mederly
+ * @param <T> represents current type in the hierarchy of JpaDataNodeDefinition-s
  */
 public abstract class JpaDataNodeDefinition<T extends JpaDataNodeDefinition<T>>
-        implements DebugDumpable, Visitable<T> {
+        implements DebugDumpable, Visitable<JpaDataNodeDefinition<T>> {
 
     /**
      * JPA class - either "composite" (RObject, RUser, RAssignment, ...) or "primitive" (String, Integer, int, ...)

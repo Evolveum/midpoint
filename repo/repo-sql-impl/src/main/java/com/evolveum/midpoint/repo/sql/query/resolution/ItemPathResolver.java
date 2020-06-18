@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -46,7 +46,7 @@ public class ItemPathResolver {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemPathResolver.class);
 
-    private InterpretationContext context;
+    private final InterpretationContext context;
 
     public ItemPathResolver(InterpretationContext interpretationContext) {
         this.context = interpretationContext;
@@ -150,7 +150,7 @@ public class ItemPathResolver {
         return joinedItemAlias;
     }
 
-    private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition joinedItemDefinition, RootHibernateQuery hibernateQuery) throws QueryException {
+    private Condition createJoinCondition(String joinedItemAlias, JpaLinkDefinition<?> joinedItemDefinition, RootHibernateQuery hibernateQuery) throws QueryException {
         Condition condition = null;
         if (joinedItemDefinition instanceof JpaAnyItemLinkDefinition) {
             JpaAnyItemLinkDefinition anyLinkDef = (JpaAnyItemLinkDefinition) joinedItemDefinition;
@@ -224,7 +224,7 @@ public class ItemPathResolver {
      * @param clazz Kind of definition to be looked for
      * @return Entity type definition + item definition, or null if nothing was found
      */
-    public <T extends JpaDataNodeDefinition>
+    public <T extends JpaDataNodeDefinition<T>>
     ProperDataSearchResult<T> findProperDataDefinition(JpaEntityDefinition baseEntityDefinition,
             ItemPath path, ItemDefinition itemDefinition,
             Class<T> clazz, PrismContext prismContext) throws QueryException {
