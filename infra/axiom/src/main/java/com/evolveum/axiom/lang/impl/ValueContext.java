@@ -6,7 +6,7 @@
  */
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.Lookup;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
@@ -204,7 +204,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key) {
         register(space, scope, key, this);
     }
 
@@ -267,7 +267,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
 
         @Override
-        public Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId) {
+        public Dependency<NamespaceContext> namespace(AxiomName name, AxiomValueIdentifier namespaceId) {
             return rootImpl().requireNamespace(name, namespaceId);
         }
 
@@ -312,7 +312,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
 
         @Override
-        public Dependency<AxiomValueContext<?>> modify(AxiomName space, IdentifierSpaceKey key) {
+        public Dependency<AxiomValueContext<?>> modify(AxiomName space, AxiomValueIdentifier key) {
             return (Dependency.retriableDelegate(() -> {
                 ValueContext<?> maybe = lookup(space, key);
                 if(maybe != null) {
@@ -330,7 +330,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public Dependency.Search<AxiomValue<?>> global(AxiomName space,
-                IdentifierSpaceKey key) {
+                AxiomValueIdentifier key) {
             return Dependency.retriableDelegate(() -> {
                 ValueContext<?> maybe = lookup(space, key);
                 if(maybe != null) {
@@ -342,7 +342,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public Dependency.Search<AxiomValueReference<?>> reference(AxiomName space,
-                IdentifierSpaceKey key) {
+                AxiomValueIdentifier key) {
             return Dependency.retriableDelegate(() -> {
                 ValueContext<?> maybe = lookup(space, key);
                 if(maybe != null) {
@@ -354,7 +354,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public Dependency.Search<AxiomValue<?>> namespaceValue(AxiomName space,
-                IdentifierSpaceKey key) {
+                AxiomValueIdentifier key) {
             return Dependency.retriableDelegate(() -> {
                 ValueContext<?> maybe = lookup(space, key);
                 if(maybe != null) {

@@ -22,7 +22,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.api.AxiomModel;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.collect.ImmutableMap;
@@ -100,7 +100,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
                         .map(v -> v.onlyValue()));
             }
             action.apply(ctx -> {
-                IdentifierSpaceKey key = keyFrom(components);
+                AxiomValueIdentifier key = keyFrom(components);
                 ctx.register(AxiomItemDefinition.VALUE_SPACE, Scope.PARENT, key);
             });
         }
@@ -236,12 +236,12 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         this.types = ImmutableSet.copyOf(types);
     }
 
-    static IdentifierSpaceKey keyFrom(Map<AxiomName,Dependency<AxiomValue<Object>>> ctx) {
+    static AxiomValueIdentifier keyFrom(Map<AxiomName,Dependency<AxiomValue<Object>>> ctx) {
         ImmutableMap.Builder<AxiomName, Object> components = ImmutableMap.builder();
         for(Entry<AxiomName, Dependency<AxiomValue<Object>>> entry : ctx.entrySet()) {
             components.put(entry.getKey(), entry.getValue().get().value());
         }
-        return IdentifierSpaceKey.from(components.build());
+        return AxiomValueIdentifier.from(components.build());
     }
 
     @Override
@@ -281,8 +281,8 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         return ImmutableSet.of();
     }
 
-    private static IdentifierSpaceKey namespaceId(String uri) {
-        return IdentifierSpaceKey.of(Item.NAMESPACE.name(), uri);
+    private static AxiomValueIdentifier namespaceId(String uri) {
+        return AxiomValueIdentifier.of(Item.NAMESPACE.name(), uri);
     }
 
     public static void addFromType(AxiomComplexValue source, AxiomValueContext<?> target) {

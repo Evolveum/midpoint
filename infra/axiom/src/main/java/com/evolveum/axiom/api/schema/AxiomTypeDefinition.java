@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.meta.Inheritance;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.collect.ImmutableMap;
 
 public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue {
@@ -52,8 +52,8 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexV
         return superType().flatMap(s -> s.itemDefinition(child));
     }
 
-    static IdentifierSpaceKey identifier(AxiomName name) {
-        return IdentifierSpaceKey.from(ImmutableMap.of(IDENTIFIER_MEMBER, name));
+    static AxiomValueIdentifier identifier(AxiomName name) {
+        return AxiomValueIdentifier.from(ImmutableMap.of(IDENTIFIER_MEMBER, name));
     }
 
     default Collection<AxiomItemDefinition> requiredItems() {

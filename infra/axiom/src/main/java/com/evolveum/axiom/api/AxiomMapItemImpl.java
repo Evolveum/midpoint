@@ -27,7 +27,7 @@ class AxiomMapItemImpl<V> extends AxiomItemImpl<V> implements AxiomMapItem<V> {
         // FIXME: Should be offset map?
         Builder<AxiomValueIdentifier, AxiomValue<V>> builder = ImmutableMap.builder();
         for(AxiomValue<V> value :val) {
-            builder.put(AxiomValueIdentifier.from(definition.identifierDefinition().get(), value), value);
+            builder.put(AxiomValueIdentifier.from(definition.identifierDefinition().get(), value.asComplex().get()), value);
         }
         values = builder.build();
     }

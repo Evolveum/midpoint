@@ -17,7 +17,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
 import com.evolveum.axiom.reactor.Dependency;
@@ -67,13 +67,13 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
         this.context.register(space, scope, key, context);
     }
 
     @Override
-    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomName space, AxiomValueIdentifier key) {
         return globalSpace.lookup(space, key);
     }
 
@@ -85,7 +85,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
         context.applyRuleDefinitions(valueContext);
     }
 
-    public Dependency<NamespaceContext> requireNamespace(AxiomName name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> requireNamespace(AxiomName name, AxiomValueIdentifier namespaceId) {
         return Dependency.retriableDelegate(() -> {
             return context.namespace(name, namespaceId);
         });
@@ -98,7 +98,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public void exportIdentifierSpace(IdentifierSpaceKey namespaceId) {
+    public void exportIdentifierSpace(AxiomValueIdentifier namespaceId) {
         context.exportIdentifierSpace(namespaceId, globalSpace.getExport());
     }
 

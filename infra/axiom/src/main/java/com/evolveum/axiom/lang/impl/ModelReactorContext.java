@@ -27,7 +27,7 @@ import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
@@ -104,7 +104,7 @@ public class ModelReactorContext extends
     Collection<RuleContextImpl> rules = new ArrayList<>();
 
     private final AxiomSchemaContext boostrapContext;
-    private final Map<IdentifierSpaceKey, CompositeIdentifierSpace> exported = new HashMap<>();
+    private final Map<AxiomValueIdentifier, CompositeIdentifierSpace> exported = new HashMap<>();
 
     Map<Object, AxiomValueContext<?>> globalItems = new HashMap<>();
 
@@ -191,15 +191,15 @@ public class ModelReactorContext extends
         return AxiomValueFactory.defaultFactory();
     }
 
-    public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {
+    public void exportIdentifierSpace(AxiomValueIdentifier namespace, IdentifierSpaceHolder localSpace) {
         exported(namespace).add(localSpace);
     }
 
-    private CompositeIdentifierSpace exported(IdentifierSpaceKey namespace) {
+    private CompositeIdentifierSpace exported(AxiomValueIdentifier namespace) {
         return exported.computeIfAbsent(namespace, k -> new CompositeIdentifierSpace());
     }
 
-    public Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> namespace(AxiomName name, AxiomValueIdentifier namespaceId) {
         return Dependency.orNull(exported.get(namespaceId));
     }
 
@@ -222,7 +222,7 @@ public class ModelReactorContext extends
         addActionsFor(valueContext);
     }
 
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
     }
 

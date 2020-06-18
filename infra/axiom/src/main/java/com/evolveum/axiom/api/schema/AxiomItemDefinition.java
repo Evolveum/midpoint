@@ -10,7 +10,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomComplexValue;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
@@ -60,8 +60,8 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexV
         };
     }
 
-    static IdentifierSpaceKey identifier(AxiomName name) {
-        return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
+    static AxiomValueIdentifier identifier(AxiomName name) {
+        return AxiomValueIdentifier.from(ImmutableMap.of(NAME, name));
     }
 
     interface Inherited extends AxiomItemDefinition {
