@@ -125,7 +125,13 @@ public class PageReport extends PageAdminObjectDetails<ReportType> {
             showResult(result);
             Task task = createSimpleTask("run_task");
             try {
-                PrismObject<ReportType> report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
+
+                PrismObject<ReportType> report;
+                if (getObjectModel().getObject().getOid() != null) {
+                    report = getObjectModel().getObject().getObject();
+                } else {
+                    report = (PrismObject<ReportType>) executedDeltas.iterator().next().getObjectDelta().getObjectToAdd();
+                }
                 getReportManager().runReport(report, null, task, result);
             } catch (Exception ex) {
                 result.recordFatalError(ex);
