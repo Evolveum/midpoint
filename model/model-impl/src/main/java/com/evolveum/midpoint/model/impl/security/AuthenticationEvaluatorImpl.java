@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.security.api.*;
 
-import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,17 +106,17 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         if (checkCredentials(principal, authnCtx, connEnv)) {
 
             if(AuthenticationEvaluatorUtil.checkRequiredAssignment(focusType.getAssignment(), authnCtx.getRequireAssignments())){
-                recordAuthenticationBehavior(principal, connEnv, null, true);
-                recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
+                recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
                 return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
             } else {
-                recordAuthenticationBehavior(principal, connEnv, "not contains required assignment", false);
-                recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "not contains required assignment");
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "not contains required assignment", authnCtx.getPrincipalType(), false);
+                recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "not contains required assignment", false);
                 throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
-            recordAuthenticationBehavior(principal, connEnv, "password mismatch", false);
-            recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
+            recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
             throw new BadCredentialsException("web.security.provider.invalid");
         }
     }
@@ -138,12 +136,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         if (checkCredentials(principal, authnCtx, connEnv)) {
-            recordAuthenticationBehavior(principal, connEnv, "password mismatch", true);
-            recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), true);
+            recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), false);
             return focusType;
         } else {
-            recordAuthenticationBehavior(principal, connEnv, "password mismatch", false);
-            recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password mismatch", authnCtx.getPrincipalType(), false);
+            recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch", false);
 
             throw new BadCredentialsException("web.security.provider.invalid");
         }
@@ -154,7 +152,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
         if (credentials == null || getCredential(credentials) == null) {
-            recordAuthenticationBehavior(principal, connEnv, "no credentials in user", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no credentials in user", authnCtx.getPrincipalType(), false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
         }
 
@@ -162,14 +160,14 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         // Lockout
         if (isLockedOut(getCredential(credentials), credentialsPolicy)) {
-            recordAuthenticationBehavior(principal, connEnv, "password locked-out", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password locked-out", authnCtx.getPrincipalType(), false);
             throw new LockedException("web.security.provider.locked");
         }
 
         if (supportsAuthzCheck()) {
             // Authorizations
             if (!hasAnyAuthorization(principal)) {
-                recordAuthenticationBehavior(principal, connEnv, "no authorizations", false);
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no authorizations", authnCtx.getPrincipalType(),false);
                 throw new DisabledException("web.security.provider.access.denied");
             }
         }
@@ -209,7 +207,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         FocusType focusType = principal.getFocus();
         CredentialsType credentials = focusType.getCredentials();
         if (credentials == null) {
-            recordAuthenticationBehavior(principal, connEnv, "no credentials in user", false);
+            recordAuthenticationBehavior(username, null, connEnv, "no credentials in user", FocusType.class, false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.invalid");
         }
         PasswordType passwordType = credentials.getPassword();
@@ -218,13 +216,13 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         // Lockout
         if (isLockedOut(passwordType, passwordCredentialsPolicy)) {
-            recordAuthenticationBehavior(principal, connEnv, "password locked-out", false);
+            recordAuthenticationBehavior(username, null, connEnv, "password locked-out", FocusType.class,false);
             throw new LockedException("web.security.provider.locked");
         }
 
         // Authorizations
         if (!hasAnyAuthorization(principal)) {
-            recordAuthenticationBehavior(principal, connEnv, "no authorizations", false);
+            recordAuthenticationBehavior(username, null, connEnv, "no authorizations", FocusType.class,false);
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
 
@@ -242,17 +240,16 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         // Authorizations
         if (!hasAnyAuthorization(principal)) {
-            recordAuthenticationBehavior(principal, connEnv, "no authorizations", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no authorizations", authnCtx.getPrincipalType(), false);
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
 
         if(AuthenticationEvaluatorUtil.checkRequiredAssignment(principal.getFocus().getAssignment(), authnCtx.getRequireAssignments())){
             PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
-            recordAuthenticationBehavior(principal, connEnv, null, true);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
             return token;
         } else {
-            recordAuthenticationBehavior(principal, connEnv, "not contains required assignment", false);
-            recordAuthenticationFailure(principal.getUsername(), connEnv,"not contains required assignment");
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "not contains required assignment", authnCtx.getPrincipalType(), false);
             throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
         }
     }
@@ -291,12 +288,12 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 
         if (principal == null) {
-            recordAuthenticationFailure(enteredUsername, connEnv, "no focus");
+            recordAuthenticationBehavior(enteredUsername, null, connEnv, "no focus", clazz, false);
             throw new UsernameNotFoundException("web.security.provider.invalid");
         }
 
         if (supportsActivationCheck && !principal.isEnabled()) {
-            recordAuthenticationBehavior(principal, connEnv, "focus disabled", false);
+            recordAuthenticationBehavior(enteredUsername, principal, connEnv, "focus disabled", clazz, false);
             throw new DisabledException("web.security.provider.disabled");
         }
         return principal;
@@ -318,7 +315,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     private <P extends CredentialPolicyType> void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, C credentials,
             P passwordCredentialsPolicy) {
         if (credentials == null) {
-            recordAuthenticationBehavior(principal, connEnv, "no stored credential value", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored credential value", principal.getFocus().getClass(), false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.credential.bad");
         }
 
@@ -335,7 +332,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             if (changeTimestamp != null) {
                 XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
                 if (clock.isPast(passwordValidUntil)) {
-                    recordAuthenticationBehavior(principal, connEnv, "password expired", false);
+                    recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password expired", principal.getFocus().getClass(), false);
                     throw new CredentialsExpiredException("web.security.provider.credential.expired");
                 }
             }
@@ -345,7 +342,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
     private void checkPasswordValidityAndAge(ConnectionEnvironment connEnv, @NotNull MidPointPrincipal principal, ProtectedStringType protectedString, MetadataType passwordMetadata,
             CredentialPolicyType passwordCredentialsPolicy) {
         if (protectedString == null) {
-            recordAuthenticationBehavior(principal, connEnv, "no stored password value", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored password value", principal.getFocus().getClass(), false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
         if (passwordCredentialsPolicy == null) {
@@ -357,7 +354,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             if (changeTimestamp != null) {
                 XMLGregorianCalendar passwordValidUntil = XmlTypeConverter.addDuration(changeTimestamp, maxAge);
                 if (clock.isPast(passwordValidUntil)) {
-                    recordAuthenticationBehavior(principal, connEnv, "password expired", false);
+                    recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "password expired", principal.getFocus().getClass(), false);
                     throw new CredentialsExpiredException("web.security.provider.credential.expired");
                 }
             }
@@ -383,7 +380,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             // But that would be too hard for system administrator to figure out what is going on - especially
             // if the administrator himself cannot log in. Therefore explicitly log those errors here.
             LOGGER.error("Error dealing with credentials of user \"{}\" credentials: {}", principal.getUsername(), e.getMessage());
-            recordAuthenticationBehavior(principal, connEnv, "error decrypting password: "+e.getMessage(), false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
             throw new AuthenticationServiceException("web.security.provider.unavailable", e);
         }
     }
@@ -394,7 +391,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             try {
                 decryptedPassword = protector.decryptString(protectedString);
             } catch (EncryptionException e) {
-                recordAuthenticationBehavior(principal, connEnv, "error decrypting password: "+e.getMessage(), false);
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
                 throw new AuthenticationServiceException("web.security.provider.unavailable", e);
             }
         } else {
@@ -411,7 +408,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             try {
                 decryptedPassword = protector.decryptString(protectedString);
             } catch (EncryptionException e) {
-                recordAuthenticationBehavior(principal, connEnv, "error decrypting password: "+e.getMessage(), false);
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "error decrypting password: "+e.getMessage(), principal.getFocus().getClass(), false);
                 throw new AuthenticationServiceException("web.security.provider.unavailable", e);
             }
         } else {
@@ -453,8 +450,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         return clock.isPast(lockedUntilTimestamp);
     }
 
-    public void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            @NotNull AuthenticationBehavioralDataType passwordType) {
+    protected void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+            @NotNull AuthenticationBehavioralDataType passwordType, boolean audit) {
         FocusType focusBefore = principal.getFocus().clone();
         Integer failedLogins = passwordType.getFailedLogins();
         if (failedLogins != null && failedLogins > 0) {
@@ -474,25 +471,38 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
 
         focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
-        recordAuthenticationSuccess(principal, connEnv);
+        if (audit) {
+            recordAuthenticationSuccess(principal, connEnv);
+        }
     }
 
     private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
         securityHelper.auditLoginSuccess(principal.getFocus(), connEnv);
     }
 
-    public void recordAuthenticationBehavior(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            String reason, boolean isSuccess) {
-        AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
-        if(isSuccess) {
-            recordPasswordAuthenticationSuccess(principal, connEnv, behavior);
+    public void recordAuthenticationBehavior(String username, MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+            String reason, Class<? extends FocusType> focusType, boolean isSuccess) {
+        if (principal == null && focusType != null) {
+            try {
+                principal = focusProfileService.getPrincipal(username, focusType);
+            } catch (Exception e) {
+                //ignore if non-exist
+            }
+        }
+        if (principal != null) {
+            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
+            if (isSuccess) {
+                recordPasswordAuthenticationSuccess(principal, connEnv, behavior, true);
+            } else {
+                recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason, true);
+            }
         } else {
-            recordPasswordAuthenticationFailure(principal, connEnv, behavior, null, reason);
+            recordAuthenticationFailure(username, connEnv, reason);
         }
     }
 
-    public void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
-            @NotNull AuthenticationBehavioralDataType passwordType, CredentialPolicyType credentialsPolicy, String reason) {
+    protected void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+            @NotNull AuthenticationBehavioralDataType passwordType, CredentialPolicyType credentialsPolicy, String reason, boolean audit) {
         FocusType focusBefore = principal.getFocus().clone();
         Integer failedLogins = passwordType.getFailedLogins();
         LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
@@ -543,7 +553,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
 
         focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
-        recordAuthenticationFailure(principal, connEnv, reason);
+        if (audit) {
+            recordAuthenticationFailure(principal, connEnv, reason);
+        }
     }
 
     protected void recordAuthenticationFailure(@NotNull MidPointPrincipal principal, ConnectionEnvironment connEnv, String reason) {

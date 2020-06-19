@@ -92,7 +92,7 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
     }
 
     @Test
-    public void test031resetPassowordSecurityQuestion() {
+    public void test031resetPasswordSecurityQuestion() {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         open("/login");
