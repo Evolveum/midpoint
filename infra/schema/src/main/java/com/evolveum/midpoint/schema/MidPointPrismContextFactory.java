@@ -18,7 +18,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
-import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataMockUpFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +65,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
             context.setMonitor(new InternalMonitor());
         }
         context.setParsingMigrator(new MidpointParsingMigrator());
-        context.setValueMetadataMockUpFactory(new MidpointValueMetadataMockUpFactory(context));
         context.setValueMetadataFactory(new MidpointValueMetadataFactory(context));
         return context;
     }
@@ -132,7 +130,6 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());         // declared by default
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/extension-metadata-3.xsd", "meta-ext");
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/extension-metadata-mock-3.xsd", "meta-mock-ext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/audit-3.xsd", "aud",
                 com.evolveum.midpoint.xml.ns._public.common.audit_3.ObjectFactory.class.getPackage());

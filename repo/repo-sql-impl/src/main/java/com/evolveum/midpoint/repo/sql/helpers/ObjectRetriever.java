@@ -601,7 +601,6 @@ public class ObjectRetriever {
         validateObjectType(prismObject, type);
 
         ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
-        prismObject.fixMockUpValueMetadata();
         return prismObject;
     }
 
