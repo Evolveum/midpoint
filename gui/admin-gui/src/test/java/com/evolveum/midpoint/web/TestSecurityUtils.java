@@ -13,7 +13,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
  * @author skublik
  */
 
-public class TestSecurityUtils {
+public class TestSecurityUtils extends AbstractGuiUnitTest {
 
     private List<AuthenticationSequenceType> getSequences() {
         List<AuthenticationSequenceType> sequences = new ArrayList();
