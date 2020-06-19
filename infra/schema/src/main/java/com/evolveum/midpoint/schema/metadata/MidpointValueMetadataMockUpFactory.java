@@ -153,7 +153,7 @@ public class MidpointValueMetadataMockUpFactory implements ValueMetadataMockUpFa
 
     private MetadataSources findMetadataSources(PrismObject<?> object, PrismValue value) {
         ItemPath path = value.getPath(); // will succeed as we know we can step up to the root object
-        System.out.println("Deriving value metadata for " + value + " in " + object + " (path = " + path + ")");
+        //System.out.println("Deriving value metadata for " + value + " in " + object + " (path = " + path + ")");
 
         ValueMetadataType attached;
         PrismContainerValue<?> attachedInfo = findAttachedMetadata(object, path, value);

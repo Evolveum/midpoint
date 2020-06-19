@@ -46,7 +46,7 @@ public class ClockworkConflictResolver {
 
     @Autowired private Clockwork clockwork;
     @Autowired private ContextFactory contextFactory;
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
 
     private static final int DEFAULT_MAX_CONFLICT_RESOLUTION_ATTEMPTS = 1; // synchronize with common-core-3.xsd

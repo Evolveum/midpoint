@@ -75,7 +75,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
 
     @ProcessorMethod
     public <AH extends AssignmentHolderType> void processFocus(LensContext<AH> context, String activityDescription, XMLGregorianCalendar now,

@@ -169,7 +169,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ObjectMerger objectMerger;
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
