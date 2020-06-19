@@ -189,7 +189,8 @@ public class SecurityUtils {
         return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 
-    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy) {
+    public static AuthenticationSequenceType getSequenceByPath(HttpServletRequest httpRequest, AuthenticationsPolicyType authenticationPolicy,
+            Collection<ObjectReferenceType> nodeGroups) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         if (authenticationPolicy == null || authenticationPolicy.getSequence() == null
                 || authenticationPolicy.getSequence().isEmpty()) {
@@ -202,11 +203,13 @@ public class SecurityUtils {
             return specificSequence;
         }
 
+        List<AuthenticationSequenceType> sequences = getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
+
         if (partsOfLocalPath.length >= 2 && partsOfLocalPath[0].equals(ModuleWebSecurityConfigurationImpl.DEFAULT_PREFIX_OF_MODULE)) {
-            AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, authenticationPolicy);
+            AuthenticationSequenceType sequence = searchSequence(partsOfLocalPath[1], false, sequences);
             if (sequence == null) {
                 LOGGER.debug("Couldn't find sequence by prefix {}, so try default channel", partsOfLocalPath[1]);
-                sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, authenticationPolicy);
+                sequence = searchSequence(SecurityPolicyUtil.DEFAULT_CHANNEL, true, sequences);
             }
             return sequence;
         }
@@ -216,9 +219,37 @@ public class SecurityUtils {
             usedChannel = SecurityPolicyUtil.DEFAULT_CHANNEL;
         }
 
-        AuthenticationSequenceType sequence = searchSequence(usedChannel, true, authenticationPolicy);
+        AuthenticationSequenceType sequence = searchSequence(usedChannel, true, sequences);
         return sequence;
 
+    }
+
+    public static List<AuthenticationSequenceType> getSequencesForNodeGroups(Collection<ObjectReferenceType> nodeGroups,
+            AuthenticationsPolicyType authenticationPolicy) {
+        List<String> nodeGroupsOid = new ArrayList<>();
+        nodeGroups.forEach(nodeGroup -> {
+            if (nodeGroup != null && nodeGroup.getOid() != null && !nodeGroup.getOid().isEmpty()) {
+                nodeGroupsOid.add(nodeGroup.getOid());
+            }
+        });
+
+        List<AuthenticationSequenceType> sequences = new ArrayList<>();
+        authenticationPolicy.getSequence().forEach(sequence -> {
+            if (sequence != null) {
+                if (sequence.getNodeGroup().isEmpty()) {
+                    sequences.add(sequence);
+                } else {
+                    for (ObjectReferenceType nodeGroup : sequence.getNodeGroup()) {
+                        if (nodeGroup != null && nodeGroup.getOid() != null && !nodeGroup.getOid().isEmpty()
+                                && nodeGroupsOid.contains(nodeGroup.getOid())) {
+                            sequences.add(sequence);
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        return sequences;
     }
 
     public static String searchChannelByPath(String localePath) {
@@ -263,17 +294,17 @@ public class SecurityUtils {
         return null;
     }
 
-    private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean useOnlyChannel, AuthenticationsPolicyType authenticationPolicy) {
+    private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean inputIsChannel, List<AuthenticationSequenceType> sequences) {
         Validate.notBlank(comparisonAttribute, "Comparison attribute for searching of sequence is blank");
-        for (AuthenticationSequenceType sequence : authenticationPolicy.getSequence()) {
+        for (AuthenticationSequenceType sequence : sequences) {
             if (sequence != null && sequence.getChannel() != null) {
-                if (useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getChannelId())
+                if (inputIsChannel && comparisonAttribute.equals(sequence.getChannel().getChannelId())
                         && Boolean.TRUE.equals(sequence.getChannel().isDefault())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }
                     return sequence;
-                } else if (!useOnlyChannel && comparisonAttribute.equals(sequence.getChannel().getUrlSuffix())) {
+                } else if (!inputIsChannel && comparisonAttribute.equals(sequence.getChannel().getUrlSuffix())) {
                     if (sequence.getModule() == null || sequence.getModule().isEmpty()) {
                         return null;
                     }

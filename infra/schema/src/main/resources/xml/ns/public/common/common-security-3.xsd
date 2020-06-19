@@ -1170,6 +1170,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="nodeGroup" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Required node group. This authentication sequence is applicable only to node group that
+                        have active assignment with this archetype.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- later: prohibitAssignmentTarget -->
             <!-- later: authenticationContextAttribute -->
             <xsd:element name="module" type="tns:AuthenticationSequenceModuleType" minOccurs="1" maxOccurs="unbounded">
