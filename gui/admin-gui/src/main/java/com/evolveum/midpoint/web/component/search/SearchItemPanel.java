@@ -15,17 +15,14 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -355,21 +352,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         popoverBody.setOutputMarkupId(true);
         popover.add(popoverBody);
 
-
-        DisplayableValue val = SearchItemPanel.this.getModelObject().getValue();
-        IModel<DisplayableValue<ObjectReferenceType>> refModel = new IModel<DisplayableValue<ObjectReferenceType>>() {
-            @Override
-            public DisplayableValue<ObjectReferenceType> getObject() {
-                if (val.getValue() instanceof ObjectReferenceType){
-                    return val;
-                } else {
-                    return null;
-                }
-            }
-        };
         if (getModelObject() != null && SearchItem.Type.REFERENCE.equals(getModelObject().getType())) {
-            SearchPopupPanel<T> value =
-                    (SearchPopupPanel<T>) new ReferencePopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value")) {
+            ReferenceValueSearchPopupPanel value =
+                    new ReferenceValueSearchPopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value.value")) {
 
                         private static final long serialVersionUID = 1L;
 
