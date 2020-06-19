@@ -22,8 +22,9 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -135,7 +136,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false, false);
     }
 
-    private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, SAXException, IOException {
+    private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, IOException {
 
         // GIVEN
         PrismContext prismContext = getPrismContext();
@@ -384,6 +385,19 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
                 new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
                 new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
         )), names);
+    }
+
+    @Test(enabled = false)
+    public void test700UserAliceMetadata() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+
+        when();
+        RootXNode root = prismContext.parserFor(getFile(USER_ALICE_METADATA_BASENAME)).parseToXNode();
+        displayValue("alice xnode", root);
+
+        String json = prismContext.jsonSerializer().serialize(root);
+        displayValue("alice json", json);
     }
 
     protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {

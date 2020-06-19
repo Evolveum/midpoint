@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.prism.lex;
 
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.YamlLexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.json.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -20,7 +20,7 @@ import java.util.List;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
 import static org.testng.AssertJUnit.assertEquals;
 
-public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
+public class TestYamlParser extends DelegatingLexicalProcessorTest {
 
     private static final String OBJECTS_8_MULTI_DOCUMENT = "objects-8-multi-document";
 
@@ -35,8 +35,10 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
     }
 
     @Override
-    protected YamlLexicalProcessor createParser() {
-        return new YamlLexicalProcessor(PrismTestUtil.getSchemaRegistry());
+    protected LexicalProcessor<String> createLexicalProcessor() {
+        return new DelegatingLexicalProcessor(
+                new YamlReader(PrismTestUtil.getSchemaRegistry()),
+                new YamlWriter());
     }
 
     @Override
@@ -47,7 +49,7 @@ public class TestYamlParser extends AbstractJsonLexicalProcessorTest {
     @Test
     public void testParseObjectsIteratively_8_multiDocument() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();

@@ -72,12 +72,12 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         return new File(getCommonSubdir(), baseName + "." + getFilenameSuffix());
     }
 
-    protected abstract LexicalProcessor<String> createParser();
+    protected abstract LexicalProcessor<String> createLexicalProcessor();
 
     @Test
     public void testParseUserToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -105,7 +105,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseUserRoundTrip() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse)
@@ -173,7 +173,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseResourceRumToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -195,7 +195,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseResourceRoundTrip() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse)
@@ -321,7 +321,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test(enabled = false)
     public void testParseEventHandler() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -359,7 +359,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
             throws SchemaException, IOException {
 
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -388,7 +388,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_1_FirstTwo() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -418,7 +418,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_3_NS() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -452,7 +452,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_4_noRootNs() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -486,7 +486,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_5_error() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -516,7 +516,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_6_single() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -548,7 +548,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseObjectsIteratively_7_single() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();

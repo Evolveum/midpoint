@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.impl.lex.json.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ParserFileSource;
@@ -22,16 +24,10 @@ import com.evolveum.midpoint.prism.ParserStringSource;
 import com.evolveum.midpoint.prism.ParserXNodeSource;
 import com.evolveum.midpoint.prism.impl.ParserElementSource;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.JsonLexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.NullLexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.YamlLexicalProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-/**
- * @author mederly
- */
 public class LexicalProcessorRegistry {
 
     private final Map<String, LexicalProcessor<?>> parserMap;
@@ -45,8 +41,8 @@ public class LexicalProcessorRegistry {
 
         parserMap = new HashMap<>();
         parserMap.put(LANG_XML, domLexicalProcessor);
-        parserMap.put(LANG_JSON, new JsonLexicalProcessor(schemaRegistry));
-        parserMap.put(LANG_YAML, new YamlLexicalProcessor(schemaRegistry));
+        parserMap.put(LANG_JSON, new DelegatingLexicalProcessor(new JsonReader(schemaRegistry), new JsonWriter()));
+        parserMap.put(LANG_YAML, new DelegatingLexicalProcessor(new YamlReader(schemaRegistry), new YamlWriter()));
     }
 
     @NotNull

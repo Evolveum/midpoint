@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,69 +7,60 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json;
 
-import java.io.*;
-import java.util.*;
-import java.util.Map.Entry;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ParserSource;
+import com.evolveum.midpoint.prism.ParsingContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.LexicalUtils;
-import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xnode.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.fasterxml.jackson.core.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.w3c.dom.Element;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<String> {
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractJsonLexicalProcessor.class);
+/**
+ * Takes care of reading JSON/YAML to XNode.
+ */
+abstract class AbstractReader {
 
-    private static final String PROP_NAMESPACE = "@ns";
-    private static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
-    private static final String PROP_TYPE = "@type";
-    private static final QName PROP_TYPE_QNAME = new QName(PROP_TYPE);
-    private static final String PROP_INCOMPLETE = "@incomplete";
-    private static final QName PROP_INCOMPLETE_QNAME = new QName(PROP_INCOMPLETE);
-    private static final String PROP_ELEMENT = "@element";
-    private static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
-    private static final String PROP_VALUE = "@value";
-    private static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractReader.class);
 
     private static final String DEFAULT_NAMESPACE_MARKER = "##DEFAULT-NAMESPACE##";
 
     @NotNull protected final SchemaRegistry schemaRegistry;
 
-    AbstractJsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+    AbstractReader(@NotNull SchemaRegistry schemaRegistry) {
         this.schemaRegistry = schemaRegistry;
     }
 
-    //region Parsing implementation
-
     @NotNull
-    @Override
-    public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         List<RootXNodeImpl> nodes = readInternal(source, parsingContext);
         if (nodes.isEmpty()) {
             throw new SchemaException("No data at input");          // shouldn't occur, because it is already treated in the called method
@@ -84,8 +75,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
      * Honors multi-document files and multiple objects in a single document ('c:objects', list-as-root mechanisms).
      */
     @NotNull
-    @Override
-    public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         return readInternal(source, parsingContext);
     }
 
@@ -113,19 +103,18 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     }
 
     private static final class IterativeParsingContext {
-        private final RootXNodeHandler handler;
+        private final LexicalProcessor.RootXNodeHandler handler;
         private boolean dataSent;                      // true if we really found the list of objects and sent it out
         private String defaultNamespace;               // default namespace, if present
         private boolean abortProcessing;               // used when handler returns 'do not continue'
 
-        private IterativeParsingContext(RootXNodeHandler handler) {
+        private IterativeParsingContext(LexicalProcessor.RootXNodeHandler handler) {
             this.handler = handler;
         }
     }
 
-    @Override
-    public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
-            RootXNodeHandler handler) throws SchemaException, IOException {
+    void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+            LexicalProcessor.RootXNodeHandler handler) throws SchemaException, IOException {
         InputStream is = source.getInputStream();
         try {
             JsonParser parser = createJacksonParser(is);
@@ -163,7 +152,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 
     @NotNull
     private List<RootXNodeImpl> parseFromStart(JsonParser unconfiguredParser, ParsingContext parsingContext,
-            RootXNodeHandler handler) throws SchemaException {
+            LexicalProcessor.RootXNodeHandler handler) throws SchemaException {
         List<RootXNodeImpl> rv = new ArrayList<>();
         JsonParsingContext ctx = null;
         try {
@@ -229,7 +218,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         }
         processDefaultNamespaces(xnode, defaultNamespace, ctx);
         processSchemaNodes(xnode);
-        Entry<QName, XNodeImpl> entry = ((MapXNodeImpl) xnode).entrySet().iterator().next();
+        Map.Entry<QName, XNodeImpl> entry = ((MapXNodeImpl) xnode).entrySet().iterator().next();
         RootXNodeImpl root = new RootXNodeImpl(entry.getKey(), entry.getValue());
         if (entry.getValue() != null) {
             root.setTypeQName(entry.getValue().getTypeQName());            // TODO - ok ????
@@ -249,7 +238,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
             MapXNodeImpl map = (MapXNodeImpl) xnode;
             String currentDefault = ctx.defaultNamespaces.getOrDefault(map, parentDefault);
             map.replaceDefaultNamespaceMarkers(DEFAULT_NAMESPACE_MARKER, currentDefault);
-            for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
+            for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
                 processDefaultNamespaces(entry.getValue(), currentDefault, ctx);
             }
             qualifyElementNameIfNeeded(map, currentDefault, ctx);
@@ -278,7 +267,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         if (xnode instanceof MapXNodeImpl) {
             MapXNodeImpl map = (MapXNodeImpl) xnode;
             XNodeImpl schemaNode = null;
-            for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
+            for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
                 QName fieldName = entry.getKey();
                 XNodeImpl subnode = entry.getValue();
                 if (DOMUtil.XSD_SCHEMA_ELEMENT.equals(fieldName)) {
@@ -376,7 +365,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                 boolean skipValue = false;
                 if (ipc != null && !isSpecial(currentFieldNameInfo.name)
                         && (prismContext.getObjectsElementName() == null
-                                || !QNameUtil.match(currentFieldNameInfo.name, prismContext.getObjectsElementName()))) {
+                        || !QNameUtil.match(currentFieldNameInfo.name, prismContext.getObjectsElementName()))) {
                     if (ipc.dataSent) {
                         ctx.prismParsingContext.warnOrThrow(LOGGER, "Superfluous data after list of objects was found: " + currentFieldNameInfo.name);
                         skipValue = true;
@@ -415,7 +404,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
                         elementNameInfo = QNameUtil.uriToQNameInfo(getStringValue(valueXNode, currentFieldNameInfo, ctx), true);
                     } else if (isValue(currentFieldNameInfo.name)) {
                         if (wrappedValue != null) {
-                            ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
+                            ctx.prismParsingContext.warnOrThrow(LOGGER, "Value ('" + Constants.PROP_VALUE + "') defined more than once at " + getPositionSuffix(ctx));
                         }
                         wrappedValue = valueXNode;
                     } else if (isIncompleteDeclaration(currentFieldNameInfo.name)) {
@@ -451,7 +440,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         int haveIncomplete = Boolean.TRUE.equals(incomplete) ? 1 : 0;
         XNodeImpl rv;
         if (haveRegular + haveWrapped + haveIncomplete > 1) {
-            ctx.prismParsingContext.warnOrThrow(LOGGER, "More than one of '" + PROP_VALUE + "', '" + PROP_INCOMPLETE
+            ctx.prismParsingContext.warnOrThrow(LOGGER, "More than one of '" + Constants.PROP_VALUE + "', '" + Constants.PROP_INCOMPLETE
                     + "' and regular content present at " + getPositionSuffix(ctx));
             rv = map;
         } else {
@@ -465,7 +454,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         }
         if (typeName != null) {
             if (wrappedValue != null && wrappedValue.getTypeQName() != null && !wrappedValue.getTypeQName().equals(typeName)) {
-                ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting type names for '" + PROP_VALUE
+                ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting type names for '" + Constants.PROP_VALUE
                         + "' (" + wrappedValue.getTypeQName() + ") and regular content (" + typeName + ") present at "
                         + getPositionSuffix(ctx));
             }
@@ -475,14 +464,14 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         if (elementNameInfo != null) {
             if (wrappedValue != null && wrappedValue.getElementName() != null) {
                 boolean wrappedValueElementNoNamespace = ctx.noNamespaceElementNames.containsKey(wrappedValue);
-                 if (!wrappedValue.getElementName().equals(elementNameInfo.name)
-                         || wrappedValueElementNoNamespace != elementNameInfo.explicitEmptyNamespace) {
-                     ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting element names for '" + PROP_VALUE
-                             + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
-                             + ") and regular content (" + elementNameInfo.name + "; no NS="
-                             + elementNameInfo.explicitEmptyNamespace + ") present at "
-                             + getPositionSuffix(ctx));
-                 }
+                if (!wrappedValue.getElementName().equals(elementNameInfo.name)
+                        || wrappedValueElementNoNamespace != elementNameInfo.explicitEmptyNamespace) {
+                    ctx.prismParsingContext.warnOrThrow(LOGGER, "Conflicting element names for '" + Constants.PROP_VALUE
+                            + "' (" + wrappedValue.getElementName() + "; no NS=" + wrappedValueElementNoNamespace
+                            + ") and regular content (" + elementNameInfo.name + "; no NS="
+                            + elementNameInfo.explicitEmptyNamespace + ") present at "
+                            + getPositionSuffix(ctx));
+                }
             }
             rv.setElementName(elementNameInfo.name);
             if (elementNameInfo.explicitEmptyNamespace) {
@@ -513,23 +502,23 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
     }
 
     private boolean isTypeDeclaration(QName fieldName) {
-        return PROP_TYPE_QNAME.equals(fieldName);
+        return Constants.PROP_TYPE_QNAME.equals(fieldName);
     }
 
     private boolean isIncompleteDeclaration(QName fieldName) {
-        return PROP_INCOMPLETE_QNAME.equals(fieldName);
+        return Constants.PROP_INCOMPLETE_QNAME.equals(fieldName);
     }
 
     private boolean isElementDeclaration(QName fieldName) {
-        return PROP_ELEMENT_QNAME.equals(fieldName);
+        return Constants.PROP_ELEMENT_QNAME.equals(fieldName);
     }
 
     private boolean isNamespaceDeclaration(QName fieldName) {
-        return PROP_NAMESPACE_QNAME.equals(fieldName);
+        return Constants.PROP_NAMESPACE_QNAME.equals(fieldName);
     }
 
     private boolean isValue(QName fieldName) {
-        return PROP_VALUE_QNAME.equals(fieldName);
+        return Constants.PROP_VALUE_QNAME.equals(fieldName);
     }
 
     private String getPositionSuffix(JsonParsingContext ctx) {
@@ -653,283 +642,6 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
         return parser;
     }
 
-    //endregion
-
-    //region Serialization implementation
-
-    static final class JsonSerializationContext {
-        @NotNull final JsonGenerator generator;
-        @NotNull private final SerializationContext prismSerializationContext;
-        private String currentNamespace;
-
-        private JsonSerializationContext(@NotNull JsonGenerator generator, @Nullable SerializationContext prismSerializationContext) {
-            this.generator = generator;
-            this.prismSerializationContext = prismSerializationContext != null ?
-                    prismSerializationContext :
-                    new SerializationContext(null);
-        }
-    }
-    @NotNull
-    @Override
-    public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
-        return write(LexicalUtils.createRootXNode((XNodeImpl) xnode, rootElementName), serializationContext);
-    }
-
-    protected abstract JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException;
-
-    @NotNull
-    @Override
-    public String write(@NotNull RootXNode root, SerializationContext prismSerializationContext) throws SchemaException {
-        return writeInternal((RootXNodeImpl) root, prismSerializationContext, false);
-    }
-
-    @NotNull
-    private String writeInternal(@NotNull XNodeImpl root, SerializationContext prismSerializationContext, boolean useMultiDocument) throws SchemaException {
-        StringWriter out = new StringWriter();
-        try ( JsonGenerator generator = createJacksonGenerator(out) ) {
-            JsonSerializationContext ctx = new JsonSerializationContext(generator, prismSerializationContext);
-            if (root instanceof RootXNodeImpl) {
-                root = ((RootXNodeImpl) root).toMapXNode();
-            }
-            if (root instanceof ListXNodeImpl && useMultiDocument && generator instanceof MidpointYAMLGenerator) {
-                boolean first = true;
-                for (XNodeImpl item : ((ListXNodeImpl) root)) {
-                    if (!first) {
-                        ((MidpointYAMLGenerator) generator).newDocument();
-                    } else {
-                        first = false;
-                    }
-                    serialize(item, ctx, false);
-                }
-            } else {
-                serialize(root, ctx, false);                // TODO default namespace
-            }
-        } catch (IOException ex) {
-            throw new SchemaException("Error during serializing to JSON/YAML: " + ex.getMessage(), ex);
-        }
-        return out.toString();
-    }
-
-    @NotNull
-    @Override
-    public String write(@NotNull List<RootXNodeImpl> roots, QName aggregateElementName,
-            @Nullable SerializationContext prismSerializationContext) throws SchemaException {
-        ListXNodeImpl objectsList = new ListXNodeImpl();
-        for (RootXNodeImpl root : roots) {
-            objectsList.add(root.toMapXNode());
-        }
-        XNodeImpl aggregate;
-        if (aggregateElementName != null) {
-            aggregate = new RootXNodeImpl(aggregateElementName, objectsList);
-            return writeInternal(aggregate, prismSerializationContext, false);
-        } else {
-            aggregate = objectsList;
-            return writeInternal(aggregate, prismSerializationContext, true);
-        }
-    }
-
-    private void serialize(XNodeImpl xnode, JsonSerializationContext ctx, boolean inValueWrapMode) throws IOException {
-        if (xnode instanceof MapXNodeImpl) {
-            serializeFromMap((MapXNodeImpl) xnode, ctx);
-        } else if (xnode == null) {
-            serializeFromNull(ctx);
-        } else if (needsValueWrapping(xnode) && !inValueWrapMode) {
-            ctx.generator.writeStartObject();
-            resetInlineTypeIfPossible(ctx);
-            writeAuxiliaryInformation(xnode, ctx);
-            ctx.generator.writeFieldName(PROP_VALUE);
-            serialize(xnode, ctx, true);
-            ctx.generator.writeEndObject();
-        } else if (xnode instanceof ListXNodeImpl) {
-            serializeFromList((ListXNodeImpl) xnode, ctx);
-        } else if (xnode instanceof PrimitiveXNodeImpl) {
-            serializeFromPrimitive((PrimitiveXNodeImpl<?>) xnode, ctx);
-        } else if (xnode instanceof SchemaXNodeImpl) {
-            serializeFromSchema((SchemaXNodeImpl) xnode, ctx);
-        } else if (xnode instanceof IncompleteMarkerXNodeImpl) {
-            ctx.generator.writeStartObject();
-            ctx.generator.writeFieldName(PROP_INCOMPLETE);
-            ctx.generator.writeBoolean(true);
-            ctx.generator.writeEndObject();
-        } else {
-            throw new UnsupportedOperationException("Cannot serialize from " + xnode);
-        }
-    }
-
-    private void serializeFromNull(JsonSerializationContext ctx) throws IOException {
-        ctx.generator.writeNull();
-    }
-
-    private void writeAuxiliaryInformation(XNodeImpl xnode, JsonSerializationContext ctx) throws IOException {
-        QName elementName = xnode.getElementName();
-        if (elementName != null) {
-            ctx.generator.writeObjectField(PROP_ELEMENT, createElementNameUri(elementName, ctx));
-        }
-        QName typeName = getExplicitType(xnode);
-        if (typeName != null) {
-            if (!supportsInlineTypes()) {
-                ctx.generator.writeObjectField(PROP_TYPE, typeName);
-            }
-        }
-    }
-
-    private boolean needsValueWrapping(XNodeImpl xnode) {
-        return xnode.getElementName() != null
-                || getExplicitType(xnode) != null && !supportsInlineTypes();
-    }
-
-    protected abstract boolean supportsInlineTypes();
-
-    protected abstract void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException;
-
-    private void serializeFromMap(MapXNodeImpl map, JsonSerializationContext ctx) throws IOException {
-        writeInlineTypeIfNeeded(map, ctx);
-        ctx.generator.writeStartObject();
-        resetInlineTypeIfPossible(ctx);
-        String oldDefaultNamespace = ctx.currentNamespace;
-        generateNsDeclarationIfNeeded(map, ctx);
-        writeAuxiliaryInformation(map, ctx);
-        for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
-            if (entry.getValue() == null) {
-                continue;
-            }
-            ctx.generator.writeFieldName(createKeyUri(entry, ctx));
-            serialize(entry.getValue(), ctx, false);
-        }
-        ctx.generator.writeEndObject();
-        ctx.currentNamespace = oldDefaultNamespace;
-    }
-
-    protected void resetInlineTypeIfPossible(JsonSerializationContext ctx) {
-    }
-
-    private void generateNsDeclarationIfNeeded(MapXNodeImpl map, JsonSerializationContext ctx) throws IOException {
-        SerializationOptions opts = ctx.prismSerializationContext.getOptions();
-        if (!SerializationOptions.isUseNsProperty(opts) || map.isEmpty()) {
-            return;
-        }
-        String namespace = determineNewCurrentNamespace(map, ctx);
-        if (namespace != null && !StringUtils.equals(namespace, ctx.currentNamespace)) {
-            ctx.currentNamespace = namespace;
-            ctx.generator.writeFieldName(PROP_NAMESPACE);
-            ctx.generator.writeString(namespace);
-        }
-    }
-
-    private String determineNewCurrentNamespace(MapXNodeImpl map, JsonSerializationContext ctx) {
-        Map<String,Integer> counts = new HashMap<>();
-        for (QName childName : map.keySet()) {
-            String childNs = childName.getNamespaceURI();
-            if (StringUtils.isEmpty(childNs)) {
-                continue;
-            }
-            if (childNs.equals(ctx.currentNamespace)) {
-                return ctx.currentNamespace;                    // found existing => continue with it
-            }
-            increaseCounter(counts, childNs);
-        }
-        if (map.getElementName() != null && QNameUtil.hasNamespace(map.getElementName())) {
-            increaseCounter(counts, map.getElementName().getNamespaceURI());
-        }
-        // otherwise, take the URI that occurs the most in the map
-        Entry<String,Integer> max = null;
-        for (Entry<String,Integer> count : counts.entrySet()) {
-            if (max == null || count.getValue() > max.getValue()) {
-                max = count;
-            }
-        }
-        return max != null ? max.getKey() : null;
-    }
-
-    private void increaseCounter(Map<String, Integer> counts, String childNs) {
-        Integer c = counts.get(childNs);
-        counts.put(childNs, c != null ? c+1 : 1);
-    }
-
-    private String createKeyUri(Entry<QName, XNodeImpl> entry, JsonSerializationContext ctx) {
-        QName key = entry.getKey();
-        if (namespaceMatch(ctx.currentNamespace, key.getNamespaceURI())) {
-            return key.getLocalPart();
-        } else if (StringUtils.isNotEmpty(ctx.currentNamespace) && !isAttribute(entry.getValue())) {
-            return QNameUtil.qNameToUri(key, true);        // items with no namespace should be written as such (starting with '#')
-        } else {
-            return QNameUtil.qNameToUri(key, false);    // items with no namespace can be written in plain
-        }
-    }
-
-    private String createElementNameUri(QName elementName, JsonSerializationContext ctx) {
-        if (namespaceMatch(ctx.currentNamespace, elementName.getNamespaceURI())) {
-            return elementName.getLocalPart();
-        } else {
-            return QNameUtil.qNameToUri(elementName, StringUtils.isNotEmpty(ctx.currentNamespace));
-        }
-    }
-
-    private boolean isAttribute(XNodeImpl node) {
-        return node instanceof PrimitiveXNodeImpl && ((PrimitiveXNodeImpl) node).isAttribute();
-    }
-
-    private boolean namespaceMatch(String currentNamespace, String itemNamespace) {
-        if (StringUtils.isEmpty(currentNamespace)) {
-            return StringUtils.isEmpty(itemNamespace);
-        } else {
-            return currentNamespace.equals(itemNamespace);
-        }
-    }
-
-    private void serializeFromList(ListXNodeImpl list, JsonSerializationContext ctx) throws IOException {
-        writeInlineTypeIfNeeded(list, ctx);
-        ctx.generator.writeStartArray();
-        resetInlineTypeIfPossible(ctx);
-        for (XNodeImpl item : list) {
-            serialize(item, ctx, false);
-        }
-        ctx.generator.writeEndArray();
-    }
-
-    private void writeInlineTypeIfNeeded(XNodeImpl node, JsonSerializationContext ctx) throws IOException {
-        QName explicitType = getExplicitType(node);
-        if (supportsInlineTypes() && explicitType != null) {
-            writeInlineType(explicitType, ctx);
-        }
-    }
-
-    private void serializeFromSchema(SchemaXNodeImpl node, JsonSerializationContext ctx) throws IOException {
-        writeInlineTypeIfNeeded(node, ctx);
-        Element schemaElement = node.getSchemaElement();
-        DOMUtil.fixNamespaceDeclarations(schemaElement); // TODO reconsider if it's OK to modify schema DOM element in this way
-        ctx.generator.writeObject(schemaElement);
-    }
-
-
-    private <T> void serializeFromPrimitive(PrimitiveXNodeImpl<T> primitive, JsonSerializationContext ctx) throws IOException {
-        writeInlineTypeIfNeeded(primitive, ctx);
-        if (primitive.isParsed()) {
-            ctx.generator.writeObject(primitive.getValue());
-        } else {
-            ctx.generator.writeObject(primitive.getStringValue());
-        }
-    }
-
-    private QName getExplicitType(XNodeImpl xnode) {
-        return xnode.isExplicitTypeDeclaration() ? xnode.getTypeQName() : null;
-    }
-
-    @SuppressWarnings("unused") // TODO
-    private String serializeNsIfNeeded(QName subNodeName, String globalNamespace, JsonGenerator generator) throws IOException {
-        if (subNodeName == null){
-            return globalNamespace;
-        }
-        String subNodeNs = subNodeName.getNamespaceURI();
-        if (StringUtils.isNotBlank(subNodeNs)){
-            if (!subNodeNs.equals(globalNamespace)){
-                globalNamespace = subNodeNs;
-                generator.writeStringField(PROP_NAMESPACE, globalNamespace);
-
-            }
-        }
-        return globalNamespace;
-    }
-    //endregion
-
+    public abstract boolean canRead(@NotNull File file) throws IOException;
+    public abstract boolean canRead(@NotNull String dataString);
 }

@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.prism.impl.lex.json;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.io.IOException;
+import java.io.StringWriter;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -22,56 +22,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
-import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
-
-    public JsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
-        super(schemaRegistry);
-    }
-
-    @Override
-    public boolean canRead(@NotNull File file) throws IOException {
-        return file.getName().endsWith(".json");
-    }
-
-    @Override
-    public boolean canRead(@NotNull String dataString) {
-        return dataString.startsWith("{");
-    }
-
-    @Override
-    protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
-        JsonFactory factory = new JsonFactory();
-        try {
-            return factory.createParser(stream);
-        } catch (IOException e) {
-            throw e;
-        }
-    }
+public class JsonWriter extends AbstractWriter {
 
     public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
         return createJsonGenerator(out);
     }
+
     private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{
         try {
             JsonFactory factory = new JsonFactory();
             JsonGenerator generator = factory.createGenerator(out);
             generator.setPrettyPrinter(new DefaultPrettyPrinter());
             generator.setCodec(configureMapperForSerialization());
-
             return generator;
-        } catch (IOException ex){
+        } catch (IOException ex) {
             throw new SchemaException("Schema error during serializing to JSON.", ex);
         }
-
     }
 
     private ObjectMapper configureMapperForSerialization(){
@@ -83,7 +55,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
         return mapper;
     }
 
-    private Module createSerializerModule(){
+    private Module createSerializerModule() {
         SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
         module.addSerializer(QName.class, new QNameSerializer());
         module.addSerializer(PolyString.class, new PolyStringSerializer());
@@ -96,17 +68,12 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
     }
 
     @Override
-    protected QName tagToTypeName(Object tid, AbstractJsonLexicalProcessor.JsonParsingContext ctx) {
-        return null;
-    }
-
-    @Override
     protected boolean supportsInlineTypes() {
         return false;
     }
 
     @Override
-    protected void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException {
+    protected void writeInlineType(QName typeName, JsonSerializationContext ctx) {
         throw new IllegalStateException("JSON cannot write type information using tags.");
     }
 }

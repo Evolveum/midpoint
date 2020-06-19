@@ -105,6 +105,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static final String REF_WITH_FILTER_NO_OID_BASENAME = "ref-with-filter-no-oid";
     public static final String REF_WITHOUT_FILTER_BASENAME = "ref-without-filter";
 
+    public static final String USER_ALICE_METADATA_BASENAME = "user-alice-metadata";
+
     // Namespaces
     public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
     public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";

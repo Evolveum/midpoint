@@ -409,5 +409,15 @@
     </xsd:complexType>
     <xsd:element name="operationFilter" type="tns:EventOperationFilterType" substitutionGroup="tns:handler" />
 
+    <xsd:complexType name="FooValueMetadataType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loa" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="fooValueMetadataType" type="tns:FooValueMetadataType" />
 </xsd:schema>
-

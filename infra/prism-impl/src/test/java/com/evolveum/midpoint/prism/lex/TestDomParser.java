@@ -43,14 +43,14 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
     }
 
     @Override
-    protected DomLexicalProcessor createParser() {
+    protected DomLexicalProcessor createLexicalProcessor() {
         return new DomLexicalProcessor(PrismTestUtil.getSchemaRegistry());
     }
 
     @Test
     public void testParseUserToXNode() throws Exception {
         // GIVEN
-        DomLexicalProcessor parser = createParser();
+        DomLexicalProcessor parser = createLexicalProcessor();
 
         // WHEN
         XNodeImpl xnode = parser.read(new ParserFileSource(getFile(USER_JACK_FILE_BASENAME)), createDefaultParsingContext());

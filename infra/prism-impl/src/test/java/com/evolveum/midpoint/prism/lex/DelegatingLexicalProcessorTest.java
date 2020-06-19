@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 @SuppressWarnings("Duplicates")
-public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalProcessorTest {
+public abstract class DelegatingLexicalProcessorTest extends AbstractLexicalProcessorTest {
 
     private static final String OBJECTS_2_WRONG = "objects-2-wrong";
     private static final String OBJECTS_2_WRONG_2 = "objects-2-wrong-2";
@@ -32,7 +32,7 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
     @Test
     public void testParseObjectsIteratively_2_Wrong() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -72,7 +72,7 @@ public abstract class AbstractJsonLexicalProcessorTest extends AbstractLexicalPr
     @Test
     public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
