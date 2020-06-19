@@ -16,8 +16,10 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithResolver;
+import com.evolveum.axiom.api.stream.AxiomStreamTarget;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
@@ -71,13 +73,8 @@ public class AxiomAntlrStatementSource {
 
     public final void stream(TargetWithResolver target, Optional<Set<AxiomName>> emitOnly,
             AxiomNameResolver resolver) {
-        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, target, emitOnly.orElse(null), resolver);
-        visitor.visit(root);
-    }
-
-    public final void stream(AxiomNameResolver statements, AxiomNameResolver arguments, AxiomItemStream.Target listener,
-            Optional<Set<AxiomName>> emitOnly) {
-        AxiomAntlrVisitor<?> visitor = new AxiomAntlrVisitor<>(sourceName, statements, arguments, listener, emitOnly.orElse(null));
+        AxiomStreamTarget<AxiomPrefixedName> prefixedTarget = target.asPrefixed(resolver);
+        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, prefixedTarget);
         visitor.visit(root);
     }
 

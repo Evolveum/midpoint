@@ -7,20 +7,13 @@
 package com.evolveum.axiom.api.stream;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 public interface AxiomItemStream {
 
-    interface Target {
-        void startItem(AxiomName item, SourceLocation loc);
-        void endItem(SourceLocation loc);
-
-        void startValue(Object value, SourceLocation loc);
-        void endValue(SourceLocation loc);
-
-        default void startInfra(AxiomName item, SourceLocation loc) {};
-        default void endInfra(SourceLocation loc) {};
+    interface Target extends AxiomStreamTarget<AxiomName> {
 
     }
 
@@ -29,6 +22,9 @@ public interface AxiomItemStream {
         AxiomNameResolver itemResolver();
         AxiomNameResolver valueResolver();
 
+        default AxiomStreamTarget<AxiomPrefixedName> asPrefixed(AxiomNameResolver sourceLocal) {
+            return new PrefixedToQualifiedNameAdapter(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal));
+        }
     }
 
 }

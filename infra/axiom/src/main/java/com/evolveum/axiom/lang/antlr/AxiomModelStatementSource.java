@@ -84,7 +84,7 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     public static Map<String,String> imports(AxiomParser.ValueContext root) {
         Map<String,String> prefixMap = new HashMap<>();
         root.item().stream().filter(s -> IMPORT.equals(s.itemBody().identifier().getText())).forEach(c -> {
-            String namespace = AxiomAntlrVisitor.convert(c.itemBody().value().argument().string());
+            String namespace = AxiomAntlrVisitor2.convert(c.itemBody().value().argument().string());
             String prefix = prefix(c.itemBody().value());
             prefixMap.put(prefix, namespace);
         });
@@ -94,13 +94,13 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
 
     private static String namespace(AxiomParser.ValueContext c) {
-        return AxiomAntlrVisitor.convert(c.item()
+        return AxiomAntlrVisitor2.convert(c.item()
                 .stream().filter(s -> NAMESPACE.equals(s.itemBody().identifier().getText()))
                 .findFirst().get().itemBody().value().argument().string());
     }
 
     private static String prefix(AxiomParser.ValueContext c) {
-        return AxiomAntlrVisitor.convertToString(c.item()
+        return AbstractAxiomAntlrVisitor.convertToString(c.item()
                 .stream().filter(s -> PREFIX.equals(s.itemBody().identifier().getText()))
                 .findFirst().get().itemBody().value().argument());
     }

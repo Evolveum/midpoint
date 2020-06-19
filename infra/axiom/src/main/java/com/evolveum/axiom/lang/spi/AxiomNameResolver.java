@@ -12,6 +12,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -64,6 +65,10 @@ public interface AxiomNameResolver {
             }
             return null;
         };
+    }
+
+    default AxiomName resolve(AxiomPrefixedName prefixedName) {
+        return resolveIdentifier(prefixedName.getPrefix(), prefixedName.getLocalName());
     }
 
 }

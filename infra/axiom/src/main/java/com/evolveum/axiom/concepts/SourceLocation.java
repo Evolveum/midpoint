@@ -24,7 +24,7 @@ public class SourceLocation {
 
     @Override
     public String toString() {
-        return sourceName + "["+ line + ":" + character + "]";
+        return sourceName + (line >= 0 ? "["+ line + ":" + character + "]" : "");
     }
 
     public String getSource() {

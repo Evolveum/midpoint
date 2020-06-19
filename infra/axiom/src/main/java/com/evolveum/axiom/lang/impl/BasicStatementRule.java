@@ -41,6 +41,15 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
             }
         }
     },*/
+    /*
+    SET_TYPE(all(),all()) {
+
+        @Override
+        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
+
+        }
+
+    },*/
 
     MOVE_ARGUMENT_VALUE(all(),all()) {
         @Override

@@ -6,37 +6,20 @@
  */
 package com.evolveum.axiom.lang.antlr;
 
-import java.util.Set;
-
-import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.stream.AxiomItemStream;
-import com.evolveum.axiom.api.stream.AxiomItemStream.Target;
-import com.evolveum.axiom.lang.spi.AxiomNameResolver;
+import com.evolveum.axiom.api.AxiomPrefixedName;
+import com.evolveum.axiom.api.stream.AxiomStreamTarget;
 
 public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 
-    private final AxiomItemStream.TargetWithResolver delegate;
-    private final AxiomNameResolver sourceLocal;
+    private final AxiomStreamTarget<AxiomPrefixedName> delegate;
 
-    public AxiomAntlrVisitor2(String name, AxiomItemStream.TargetWithResolver delegate,
-            Set<AxiomName> limit, AxiomNameResolver resolver) {
-        super(name, limit);
+    public AxiomAntlrVisitor2(String name, AxiomStreamTarget<AxiomPrefixedName> delegate) {
+        super(name);
         this.delegate = delegate;
-        this.sourceLocal = resolver;
     }
 
     @Override
-    protected AxiomName resolveArgument(String prefix, String localName) {
-        return delegate.valueResolver().or(sourceLocal).resolveIdentifier(prefix, localName);
-    }
-
-    @Override
-    protected AxiomName resolveItemName(String prefix, String localName) {
-        return delegate.itemResolver().or(sourceLocal).resolveIdentifier(prefix, localName);
-    }
-
-    @Override
-    protected Target delegate() {
+    protected AxiomStreamTarget<AxiomPrefixedName> delegate() {
         return delegate;
     }
 }
