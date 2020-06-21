@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,16 +14,22 @@ import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.*;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -530,5 +536,20 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public <T extends ObjectType> long countObjects(
+            Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        throw new UnsupportedOperationException("countObjects not supported");
+    }
+
+    @Override
+    @NotNull
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

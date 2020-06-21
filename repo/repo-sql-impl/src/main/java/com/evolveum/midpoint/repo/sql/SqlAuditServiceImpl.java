@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,10 +17,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FlushMode;
@@ -30,6 +26,7 @@ import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -41,6 +38,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 import com.evolveum.midpoint.repo.sql.data.BatchSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
@@ -53,7 +52,10 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,6 +66,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -183,6 +186,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     }
 
+    // Hibernate-based
     @Override
     public void reindexEntry(AuditEventRecord record) {
         final String operation = "reindexEntry";
@@ -203,6 +207,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void reindexEntryAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
@@ -228,6 +233,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     }
 
+    // Hibernate-based
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
             AuditResultHandler handler, OperationResult result) {
 
@@ -400,6 +406,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         queryBuilder.addParameters(params);
     }
 
+    // Hibernate-based
     // using generic parameter to avoid typing warnings
     private <X extends ObjectType> PrismObject<X> resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
         if (oid == null) {
@@ -426,6 +433,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return result;
     }
 
+    // Hibernate-based
     private void auditAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
@@ -529,6 +537,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Validate.notNull(policy, "Cleanup policy must not be null.");
@@ -540,6 +549,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         cleanupAuditMaxAge(policy, parentResult);
     }
 
+    // Hibernate-based
     private void cleanupAuditMaxAge(CleanupPolicyType policy, OperationResult parentResult) {
 
         if (policy.getMaxAge() == null) {
@@ -597,6 +607,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
 
         if (policy.getMaxRecords() == null) {
@@ -649,6 +660,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void checkTemporaryTablesSupport(Dialect dialect) {
         TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
@@ -660,6 +672,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     // deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
     private int batchDeletionAttempt(BiFunction<Session, String, Integer> recordsSelector, Holder<Integer> totalCountHolder,
             long batchStart, Dialect dialect, OperationResult subResult) {
@@ -715,6 +728,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
 
         // fill temporary table, we don't need to join task on object on
@@ -744,6 +758,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return query.executeUpdate();
     }
 
+    // Hibernate-based
     private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
@@ -780,6 +795,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     /**
      * This method creates temporary table for cleanup audit method.
      */
+    // Hibernate-based
     private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
         session.doWork(connection -> {
             // check if table exists
@@ -884,5 +900,20 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
         this.auditConfiguration = CloneUtil.clone(configuration);
+    }
+
+    @Override
+    public <T extends ObjectType> long countObjects(
+            Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        return 0;
+    }
+
+    @Override
+    @NotNull
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        return new SearchResultList<>();
     }
 }

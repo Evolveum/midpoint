@@ -1,11 +1,21 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
+
+import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
+
+import java.util.*;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
@@ -14,11 +24,9 @@ import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
@@ -28,20 +36,12 @@ import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
-
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
 
 /**
  * @author lazyman
@@ -73,7 +73,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
     @Override
     public void audit(AuditEventRecord record, Task task) {
-
         if (services.isEmpty()) {
             LOGGER.warn("Audit event will not be recorded. No audit services registered.");
             return;
@@ -191,7 +190,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
                         return null;
                     }
                     LOGGER.warn("Unresolved object reference in delta being audited (for {}: {}) -- this might indicate "
-                            + "a performance problem, as these references are normally resolved using repository cache",
+                                    + "a performance problem, as these references are normally resolved using repository cache",
                             objectClass.getSimpleName(), oid);
                     PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, nameOnlyOptions,
                             new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
@@ -259,5 +258,39 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     @Override
     public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
         services.forEach(service -> service.applyAuditConfiguration(configuration));
+    }
+
+    @Override
+    public <T extends ObjectType> long countObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
+        long count = 0;
+        for (AuditService service : services) {
+            if (service.supportsRetrieval()) {
+                long c = service.countObjects(type, query, options, parentResult);
+                count += c;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @NotNull
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws SchemaException {
+        // TODO: MID-6319 - does it even make sense?
+        SearchResultList<PrismObject<T>> result = new SearchResultList<>();
+        for (AuditService service : services) {
+            if (service.supportsRetrieval()) {
+                SearchResultList<PrismObject<T>> oneResult =
+                        service.searchObjects(type, query, options, parentResult);
+                if (!oneResult.isEmpty()) {
+                    result.addAll(oneResult);
+                }
+            }
+        }
+        return result;
     }
 }
