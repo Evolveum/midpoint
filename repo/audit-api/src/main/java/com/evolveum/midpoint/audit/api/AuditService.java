@@ -73,14 +73,12 @@ public interface AuditService {
 
     // TODO MID-6319 cleanup after done
     // see com.evolveum.midpoint.repo.api.RepositoryService.countObjects for javadoc and rephrase it here
-    <T extends ObjectType> long countObjects(
-            Class<T> type, ObjectQuery query,
+    long countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException;
 
     @NotNull
-    <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
-            Class<T> type, ObjectQuery query,
+    SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException;
 }

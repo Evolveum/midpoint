@@ -186,16 +186,14 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public <T extends ObjectType> long countObjects(
-            Class<T> type, ObjectQuery query,
+    public long countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
     @Override
     @NotNull
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
-            Class<T> type, ObjectQuery query,
+    public SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }

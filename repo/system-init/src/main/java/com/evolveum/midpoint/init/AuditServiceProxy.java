@@ -78,7 +78,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             return;
         }
 
-        assertCorrectness(record, task);
+        assertCorrectness(task);
         completeRecord(record, task);
 
         for (AuditService service : services) {
@@ -112,7 +112,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
         services.remove(service);
     }
 
-    private void assertCorrectness(AuditEventRecord record, Task task) {
+    private void assertCorrectness(Task task) {
         if (task == null) {
             LOGGER.warn("Task is null in a call to audit service");
         }
@@ -261,13 +261,13 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     }
 
     @Override
-    public <T extends ObjectType> long countObjects(Class<T> type, ObjectQuery query,
+    public long countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         long count = 0;
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
-                long c = service.countObjects(type, query, options, parentResult);
+                long c = service.countObjects(query, options, parentResult);
                 count += c;
             }
         }
@@ -276,16 +276,15 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
     @Override
     @NotNull
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
-            Class<T> type, ObjectQuery query,
+    public SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        // TODO: MID-6319 - does it even make sense?
-        SearchResultList<PrismObject<T>> result = new SearchResultList<>();
+        // TODO: MID-6319 - does it even make sense to merge multiple results for audit?
+        SearchResultList<AuditEventRecord> result = new SearchResultList<>();
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
-                SearchResultList<PrismObject<T>> oneResult =
-                        service.searchObjects(type, query, options, parentResult);
+                SearchResultList<AuditEventRecord> oneResult =
+                        service.searchObjects(query, options, parentResult);
                 if (!oneResult.isEmpty()) {
                     result.addAll(oneResult);
                 }
