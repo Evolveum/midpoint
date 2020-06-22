@@ -23,7 +23,7 @@ public interface AxiomItemStream {
         AxiomNameResolver valueResolver();
 
         default AxiomStreamTarget<AxiomPrefixedName> asPrefixed(AxiomNameResolver sourceLocal) {
-            return new PrefixedToQualifiedNameAdapter(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal));
+            return new PrefixedToQNameTarget(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal));
         }
     }
 

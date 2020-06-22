@@ -6,9 +6,13 @@
  */
 package com.evolveum.axiom.api;
 
+import java.util.Iterator;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 
 public class AxiomName {
@@ -16,6 +20,8 @@ public class AxiomName {
     public static final String AXIOM_NAMESPACE = "https://schema.evolveum.com/ns/axiom/model";
     private final String namespace;
     private final String localName;
+
+    private static final Splitter HASH_SYMBOL = Splitter.on('#');
 
     public AxiomName(String namespace, String localName) {
         this.namespace = Preconditions.checkNotNull(namespace, "namespace");
@@ -93,6 +99,11 @@ public class AxiomName {
 
     public static AxiomName local(@NotNull String localName) {
         return from("", localName);
+    }
+
+    public static AxiomName parse(String item) {
+        Iterator<String> nsLocalName = HASH_SYMBOL.split("#").iterator();
+        return from(nsLocalName.next(), nsLocalName.next());
     }
 
 }

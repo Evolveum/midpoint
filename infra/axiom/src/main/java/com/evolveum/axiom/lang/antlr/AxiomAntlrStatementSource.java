@@ -73,8 +73,11 @@ public class AxiomAntlrStatementSource {
 
     public final void stream(TargetWithResolver target, Optional<Set<AxiomName>> emitOnly,
             AxiomNameResolver resolver) {
-        AxiomStreamTarget<AxiomPrefixedName> prefixedTarget = target.asPrefixed(resolver);
-        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, prefixedTarget);
+        stream(target.asPrefixed(resolver));
+    }
+
+    public final void stream(AxiomStreamTarget<AxiomPrefixedName> target) {
+        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, target);
         visitor.visit(root);
     }
 
