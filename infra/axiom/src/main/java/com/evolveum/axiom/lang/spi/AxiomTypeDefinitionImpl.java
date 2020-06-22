@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.meta.Inheritance;
@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements AxiomTypeDefinition {
 
-    public static final AxiomComplexValue.Factory FACTORY = AxiomTypeDefinitionImpl::new;
+    public static final AxiomStructuredValue.Factory FACTORY = AxiomTypeDefinitionImpl::new;
     private final Map<AxiomName, AxiomItemDefinition> itemDefinitions;
     private final Optional<AxiomTypeDefinition> superType;
     private final Optional<AxiomItemDefinition> argument;
@@ -43,7 +43,7 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
                  AxiomIdentifierDefinitionImpl::from);
     }
 
-    public static AxiomTypeDefinition from(AxiomComplexValue value) {
+    public static AxiomTypeDefinition from(AxiomStructuredValue value) {
         if(value instanceof AxiomTypeDefinition) {
             return (AxiomTypeDefinition) value;
         }

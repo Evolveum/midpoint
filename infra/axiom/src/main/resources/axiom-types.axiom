@@ -11,6 +11,10 @@ model axiom-base-types {
     namespace "https://schema.evolveum.com/ns/axiom/types";
     version "0.1.0";
 
+
+    type Simple; // FIXME: Should we define this?
+    type Structured;
+
     type String;
     type Boolean;
     type Uri;

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
@@ -37,7 +37,7 @@ class LazyValue<V> extends LazyDelegate<AxiomValue<V>> implements AxiomValue<V> 
     }
 
     @Override
-    public Optional<AxiomComplexValue> asComplex() {
+    public Optional<AxiomStructuredValue> asComplex() {
         return delegate().asComplex();
     }
 

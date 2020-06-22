@@ -23,7 +23,7 @@ public interface AxiomValue<V> extends AxiomInfraValue {
     V value();
 
 
-    default Optional<? extends AxiomComplexValue> metadata() {
+    default Optional<? extends AxiomStructuredValue> metadata() {
         return infraItem(METADATA).flatMap(v -> v.onlyValue().asComplex());
     }
 
@@ -31,9 +31,9 @@ public interface AxiomValue<V> extends AxiomInfraValue {
         return metadata().flatMap(m -> m.item(name));
     }
 
-    default Optional<AxiomComplexValue> asComplex() {
-        if(this instanceof AxiomComplexValue)  {
-            return Optional.of((AxiomComplexValue) this);
+    default Optional<AxiomStructuredValue> asComplex() {
+        if(this instanceof AxiomStructuredValue)  {
+            return Optional.of((AxiomStructuredValue) this);
         }
         return Optional.empty();
     }

@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
@@ -101,7 +101,7 @@ public class TestAxiomInfra extends AbstractReactorTest {
 
 
     private void assertModel(AxiomItem<?> result, Object name) {
-        AxiomComplexValue model = result.onlyValue().asComplex().get();
+        AxiomStructuredValue model = result.onlyValue().asComplex().get();
         assertEquals(model.item(Item.NAME).get().onlyValue().value(), name);
     }
 }

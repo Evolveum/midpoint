@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
@@ -14,7 +14,7 @@ import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 
 public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements AxiomItemDefinition {
 
-    public static final AxiomComplexValue.Factory FACTORY = AxiomItemDefinitionImpl::new;
+    public static final AxiomStructuredValue.Factory FACTORY = AxiomItemDefinitionImpl::new;
     private final AxiomValue<AxiomTypeDefinition> valueType;
     private final Optional<AxiomItem<String>> minOccurs;
     private Optional<AxiomIdentifierDefinition> identifierDef;

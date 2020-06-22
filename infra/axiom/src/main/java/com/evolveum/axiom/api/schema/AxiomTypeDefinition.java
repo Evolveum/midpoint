@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomStructuredValue {
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");

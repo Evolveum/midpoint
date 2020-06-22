@@ -15,9 +15,9 @@ public interface AxiomValueFactory<V> {
     AxiomValueFactory<Object> DEFAULT_FACTORY = new AxiomValueFactory<Object>() {
 
         @Override
-        public AxiomComplexValue createComplex(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> items,
+        public AxiomStructuredValue createComplex(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> items,
                 Map<AxiomName, AxiomItem<?>> infraItems) {
-            return new ComplexValueImpl(def, items, infraItems);
+            return new StructuredValueImpl(def, items, infraItems);
         }
 
         @Override
@@ -29,7 +29,7 @@ public interface AxiomValueFactory<V> {
 
     AxiomValue<V> createSimple(AxiomTypeDefinition def, V value, Map<AxiomName, AxiomItem<?>> infraItems);
 
-    AxiomComplexValue createComplex(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> items ,Map<AxiomName, AxiomItem<?>> infraItems);
+    AxiomStructuredValue createComplex(AxiomTypeDefinition def, Map<AxiomName, AxiomItem<?>> items ,Map<AxiomName, AxiomItem<?>> infraItems);
 
     @SuppressWarnings("unchecked")
     static <V> AxiomValueFactory<V> defaultFactory() {

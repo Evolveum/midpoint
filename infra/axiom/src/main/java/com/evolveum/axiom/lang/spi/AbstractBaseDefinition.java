@@ -3,13 +3,13 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.ComplexValueImpl;
+import com.evolveum.axiom.api.StructuredValueImpl;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.schema.AxiomNamedDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 
-public class AbstractBaseDefinition extends ComplexValueImpl implements AxiomNamedDefinition {
+public class AbstractBaseDefinition extends StructuredValueImpl implements AxiomNamedDefinition {
 
     private final AxiomName name;
     private final  String documentation;

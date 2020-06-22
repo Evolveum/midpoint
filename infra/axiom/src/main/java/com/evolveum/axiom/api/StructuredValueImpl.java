@@ -15,7 +15,7 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
-public class ComplexValueImpl implements AxiomComplexValue {
+public class StructuredValueImpl implements AxiomStructuredValue {
 
     private final AxiomTypeDefinition type;
     private final Map<AxiomName, AxiomItem<?>> items;
@@ -27,7 +27,7 @@ public class ComplexValueImpl implements AxiomComplexValue {
         return value.get();
     }
 
-    public ComplexValueImpl(AxiomTypeDefinition type, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName,AxiomItem<?>> infraItems) {
+    public StructuredValueImpl(AxiomTypeDefinition type, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName,AxiomItem<?>> infraItems) {
         super();
         this.type = type;
         this.items = ImmutableMap.copyOf(items);
@@ -41,7 +41,7 @@ public class ComplexValueImpl implements AxiomComplexValue {
 
     @Override
     public Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
-        return AxiomComplexValue.super.item(def);
+        return AxiomStructuredValue.super.item(def);
     }
 
     @Override
