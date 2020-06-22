@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author honchar
  */
-public abstract class SearchFilter<O extends ObjectType, F extends ObjectFilter> implements Serializable {
+public abstract class SearchFilter<O extends ObjectType> implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private List<ValueSearchFilterItem> valueSearchFilterItems = new ArrayList<>();
@@ -43,14 +43,21 @@ public abstract class SearchFilter<O extends ObjectType, F extends ObjectFilter>
         return valueSearchFilterItems; //todo return unmodifiable list
     }
 
+    public List<ObjectFilter> getObjectFilterList() {
+        List<ObjectFilter> objectFilters = new ArrayList<>();
+        valueSearchFilterItems.forEach(filterItem -> objectFilters.add(filterItem.getFilter()));
+        return objectFilters;
+    }
+
     public abstract void addSearchFilterItem(ValueSearchFilterItem valueSearchFilterItem);
 
     protected abstract void initSearchFilterItems(ObjectFilter baseFilter);
 
+    public abstract ObjectFilter buildObjectFilter();
+
     public Class<O> getType(){
         return type;
     }
-
 
     public PrismContext getPrismContext() {
         return prismContext;

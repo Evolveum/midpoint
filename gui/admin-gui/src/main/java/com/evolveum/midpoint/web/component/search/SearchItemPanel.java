@@ -192,10 +192,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         Component searchItemField = null;
         SearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<T>>> choices = null;
-        PrismObject<LookupTableType> lookupTable = findLookupTable(item.getDefinition());
+        PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
         switch (item.getType()) {
             case REFERENCE:
-                //TODO change probably to another component
                 searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"){
                     private static final long serialVersionUID = 1L;
 
@@ -386,22 +385,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
             WebMarkupContainer value = new WebMarkupContainer(ID_VALUE);
             popoverBody.add(value);
         }
-    }
-
-    private <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition) {
-        PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
-        if (valueEnumerationRef == null) {
-            return null;
-        }
-
-        PageBase page = getPageBase();
-
-        String lookupTableUid = valueEnumerationRef.getOid();
-        Task task = page.createSimpleTask("loadLookupTable");
-        OperationResult result = task.getResult();
-
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(getSchemaHelper());
-        return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
     }
 
     private IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {

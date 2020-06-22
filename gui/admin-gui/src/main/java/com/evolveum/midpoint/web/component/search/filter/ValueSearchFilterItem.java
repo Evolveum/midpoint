@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search.filter;
 
 import java.io.Serializable;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -14,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 
 /**
@@ -27,6 +29,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public static final String F_APPLY_NEGATION = "applyNegation";
     public static final String F_FILTER = "filter";
     public static final String F_MATCHING_RULE = "matchingRule";
+    public static final String F_PROPERTY_NAME = "propertyName";
 
     public enum FilterName {
         EQUAL("EQUAL"),
@@ -74,11 +77,12 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     }
 
     private boolean applyNegation;
-    private ValueFilter<V, D> filter;
+    private ObjectFilter filter;
     private FilterName filterName;
     private MatchingRule matchingRule;
+    private String propertyName;
 
-    public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
+    public ValueSearchFilterItem(ObjectFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
     }
@@ -91,19 +95,26 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.applyNegation = applyNegation;
     }
 
-    public ValueFilter getFilter() {
+    public ObjectFilter getFilter() {
         return filter;
     }
 
-    public void setFilter(ValueFilter filter) {
+    public void setFilter(ObjectFilter filter) {
         this.filter = filter;
     }
 
+    //todo which filter types do we want to support here
     public V getValue() {
-        if (filter == null || CollectionUtils.isEmpty(filter.getValues())) {
+        if (filter == null) {
             return null;
         }
-        return filter.getValues().get(0);
+        if (filter instanceof ValueFilter) {
+            List<V> values = ((ValueFilter)filter).getValues();
+            if (CollectionUtils.isNotEmpty(values)){
+                return values.get(0);
+            }
+        }
+        return null;
     }
 
     public FilterName getFilterName() {
@@ -120,5 +131,12 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
 
     public void setMatchingRule(MatchingRule matchingRule) {
         this.matchingRule = matchingRule;
+    }
+
+    public String getPropertyName() {
+        if (filter instanceof ValueFilter) {
+            return ((ValueFilter) filter).getElementName().toString();
+        }
+        return "";
     }
 }

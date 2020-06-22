@@ -65,7 +65,15 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
     private void searchConfigurationPerformed(AjaxRequestTarget target){
         SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(),
-                new BasicSearchFilterModel<O>(getModel(), filterType, getPageBase()), filterType);
+                new BasicSearchFilterModel<O>(getModel(), filterType, getPageBase()), filterType){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
+                getPageBase().hideMainPopup(target);
+                //todo set new filter value
+            }
+        };
         getPageBase().showMainPopup(configPanel, target);
     }
 }

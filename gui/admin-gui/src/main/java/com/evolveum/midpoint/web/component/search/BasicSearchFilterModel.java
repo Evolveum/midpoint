@@ -32,6 +32,7 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
     private IModel<SearchFilterType> baseModel;
     private PageBase pageBase;
     private Class<O> type;
+    private BasicSearchFilter<O> basicSearchFilter;
 
     public BasicSearchFilterModel(IModel<SearchFilterType> valueWrapper, Class<O> type, PageBase pageBase) {
         this.baseModel = valueWrapper;
@@ -47,6 +48,13 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 
     @Override
     public BasicSearchFilter<O> getObject() {
+        if (basicSearchFilter == null){
+            basicSearchFilter = loadBasicSearchFilter();
+        }
+        return basicSearchFilter;
+    }
+
+    private BasicSearchFilter<O> loadBasicSearchFilter(){
         try {
             SearchFilterType value = baseModel.getObject();
             if (value == null) {

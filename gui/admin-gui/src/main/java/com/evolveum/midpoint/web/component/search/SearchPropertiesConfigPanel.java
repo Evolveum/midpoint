@@ -11,33 +11,17 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 
-import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -50,19 +34,27 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
+import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-
-import org.apache.wicket.model.util.ListModel;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author Kateryna Honchar
@@ -80,6 +72,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private static final String ID_ADD_BUTTON = "addButton";
 
     IModel<Property> propertyChoiceModel = Model.of();
+    private SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider;
 
     public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, Class<O> type) {
         super(id, searchModel, type);
@@ -137,7 +130,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     }
 
     private void initTable(WebMarkupContainer configPanel) {
-        SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider =
+        provider =
                 new SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem>(getPageBase(), getSearchFilterItemModel());
         List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> columns = getTableColumns();
         BoxedTablePanel<SelectableBean<ValueSearchFilterItem>> table =
@@ -197,7 +190,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> propertyColumn = new PropertyColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
-                "value.filter.fullPath");
+                "value." + ValueSearchFilterItem.F_PROPERTY_NAME);
         columns.add(propertyColumn);
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> valueColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
@@ -279,13 +272,23 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     }
 
     private void propertyAddedPerformed(AjaxRequestTarget target) {
-//        Property newPropertyValue = propertyChoiceModel.getObject();
-//        if (newPropertyValue != null) {
-//            getModelObject().addItem(newPropertyValue.getDefinition());
+        Property newPropertyValue = propertyChoiceModel.getObject();
+        if (newPropertyValue != null) {
+            getModelObject().addSearchFilterItem(createDefaultValueFilter(newPropertyValue));
 //            initTable((WebMarkupContainer) get(ID_CONFIGURATION_PANEL)); //todo don't re-init table!
-//            target.add(get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTIES_TABLE)));
-//        }
-//        target.add(SearchPropertiesConfigPanel.this);
+        }
+        target.add(SearchPropertiesConfigPanel.this);
+    }
+
+    private ValueSearchFilterItem createDefaultValueFilter(Property property) {
+        if (property == null){
+            return null;
+        }
+        ObjectFilter newFilter = getPageBase().getPrismContext().queryFor(getType())
+                .item(property.getDefinition().getItemName())
+                .isNull()
+                .buildFilter();
+        return new ValueSearchFilterItem(newFilter, false);
     }
 
     private Property getSelectedProperty() {
@@ -300,17 +303,71 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         if (valueSearchFilter.getFilter() == null){
             return new WebMarkupContainer(id);
         }
-        ItemDefinition propertyDef = valueSearchFilter.getFilter().getDefinition();
-        PrismValue propertyValue = valueSearchFilter.getValue();
-        IModel<List<DisplayableValue<T>>> choices = null;
+        ObjectFilter filter = valueSearchFilter.getFilter();
+        if (filter instanceof ValueFilter) {
+            ItemDefinition propertyDef = ((ValueFilter)filter).getDefinition();
+            PrismValue propertyValue = valueSearchFilter.getValue();
+            PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
 
-        if (propertyDef instanceof PrismReferenceDefinition) {
-            searchItemField = new ReferenceValueSearchPanel(id, Model.of(
-                    propertyValue != null ? (ObjectReferenceType) propertyValue.getRealValue() : null),
-                    (PrismReferenceDefinition) propertyDef);
+            if (propertyDef instanceof PrismReferenceDefinition) {
+                searchItemField = new ReferenceValueSearchPanel(id, Model.of(
+                        propertyValue != null ? (ObjectReferenceType) propertyValue.getRealValue() : null),
+                        (PrismReferenceDefinition) propertyDef);
+            } else if (propertyDef instanceof PrismPropertyDefinition) {
+                List<DisplayableValue> allowedValues = new ArrayList<>();
+                if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
+                    allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
+                }
+                if (lookupTable != null) {
+                    searchItemField = new AutoCompleteTextPanel<String>(id,
+                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE + ".realValue"), String.class,
+                            true, lookupTable.asObjectable()) {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Iterator<String> getIterator(String input) {
+                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
+                                    ((PageBase) getPage()).getLocalizationService()).iterator();
+                        }
+                    };
+                } else if (CollectionUtils.isNotEmpty(allowedValues)) {
+                    searchItemField = new DropDownChoicePanel<DisplayableValue>(id,
+                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE + ".realValue"),
+                            Model.ofList(allowedValues), new IChoiceRenderer<DisplayableValue>() {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Object getDisplayValue(DisplayableValue val) {
+                            return val.getLabel();
+                        }
+
+                        @Override
+                        public String getIdValue(DisplayableValue val, int index) {
+                            return Integer.toString(index);
+                        }
+
+                        @Override
+                        public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                            return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+                        }
+                    }, true);
+                } else {
+                    searchItemField = new TextPanel<String>(id, new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE + ".realValue"));
+
+                }
+            }
         }
         return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
+    }
 
+    @Override
+    protected void okButtonClicked(AjaxRequestTarget target){
+        ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
+        filterConfiguredPerformed(configuredFilter, target);
+    }
+
+    protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
     }
 
     public int getWidth() {

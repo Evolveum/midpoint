@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author honchar
  */
-public class BasicSearchFilter<O extends ObjectType> extends SearchFilter<O, ValueFilter> {
+public class BasicSearchFilter<O extends ObjectType> extends SearchFilter<O> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(BasicSearchFilter.class);
@@ -31,9 +31,6 @@ public class BasicSearchFilter<O extends ObjectType> extends SearchFilter<O, Val
 
     @Override
     public void addSearchFilterItem(ValueSearchFilterItem valueSearchFilterItem) {
-        if (!(valueSearchFilterItem instanceof ValueFilter)) {
-            LOGGER.error("Impossible to add another than ValueFilter to BasicSearchFilter search filter items list");
-        }
         getValueSearchFilterItems().add(valueSearchFilterItem);
     }
 
@@ -74,6 +71,15 @@ public class BasicSearchFilter<O extends ObjectType> extends SearchFilter<O, Val
             addValueFilters(orFilter.getConditions());
         } else if (baseFilter instanceof ValueFilter) {
             addValueFilters(Arrays.asList(baseFilter));
+        }
+    }
+
+    @Override
+    public ObjectFilter buildObjectFilter(){
+        if (logicalFilterValue.equals(LogicalFilterValue.OR)){
+            return getPrismContext().queryFactory().createAnd(getObjectFilterList());
+        } else {
+            return getPrismContext().queryFactory().createOr(getObjectFilterList());
         }
     }
 
