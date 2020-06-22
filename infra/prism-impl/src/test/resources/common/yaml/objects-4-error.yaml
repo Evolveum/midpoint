@@ -1,11 +1,13 @@
 ---
-objects:
-- user:
+-
+  user:
     name: "u1"
-- user:
+-
+  user:
     '@ns': http://a/
     name: "u2"
     @#@!#@!#@       # this is an error
     givenName: abcdef
-- role:
+-
+  role:
     name: "r1"

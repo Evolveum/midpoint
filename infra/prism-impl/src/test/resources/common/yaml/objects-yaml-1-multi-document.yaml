@@ -1,10 +1,13 @@
 ---
 - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
   user:
-    name: "u1"
+    name: u1
 - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
   user:
-    name-error: "u2"
-- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-  role:
-    name: "r1"
+    name: u2
+---
+- user:
+    name: u3
+- '@ns': "http://a/"
+  user:
+    name: u4

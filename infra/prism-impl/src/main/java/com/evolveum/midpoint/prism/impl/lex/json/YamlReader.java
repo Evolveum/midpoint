@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-//import com.fasterxml.jackson.core.YAMLGenerator;
 
 public class YamlReader extends AbstractReader {
 
@@ -60,7 +59,7 @@ public class YamlReader extends AbstractReader {
     }
 
     @Override
-    protected QName tagToTypeName(Object tag, JsonParsingContext ctx) throws IOException, SchemaException {
+    protected QName tagToTypeName(Object tag, JsonReadingContext ctx) throws IOException, SchemaException {
         if (tag == null) {
             return null;
         } if (TAG_BINARY.equals(tag)) {

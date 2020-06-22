@@ -31,7 +31,8 @@ public class JsonReader extends AbstractReader {
 
     @Override
     public boolean canRead(@NotNull String dataString) {
-        return dataString.startsWith("{");
+        // Second for is for multiple objects
+        return dataString.startsWith("{") || dataString.startsWith("[");
     }
 
     @Override
@@ -45,7 +46,7 @@ public class JsonReader extends AbstractReader {
     }
 
     @Override
-    protected QName tagToTypeName(Object tid, JsonParsingContext ctx) throws IOException, SchemaException {
+    protected QName tagToTypeName(Object tid, JsonReadingContext ctx) {
         return null;
     }
 }

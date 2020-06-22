@@ -24,20 +24,21 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @SuppressWarnings("Duplicates")
 public abstract class DelegatingLexicalProcessorTest extends AbstractLexicalProcessorTest {
 
-    private static final String OBJECTS_2_WRONG = "objects-2-wrong";
+    private static final String OBJECTS_JSON_YAML_1_INCOMPLETE_LIST = "objects-json-yaml-1-incomplete-list";
+
     private static final String OBJECTS_2_WRONG_2 = "objects-2-wrong-2";
     private static final String OBJECTS_9_LIST_SINGLE = "objects-9-list-single";
     private static final String OBJECTS_10_LIST_OF_LISTS = "objects-10-list-of-lists";
 
     @Test
-    public void testParseObjectsIteratively_2_Wrong() throws Exception {
+    public void testParseObjects_1_IncompleteList() throws Exception {
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
         try {
-            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_WRONG), PrismTestUtil.createDefaultParsingContext(),
+            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_JSON_YAML_1_INCOMPLETE_LIST), PrismTestUtil.createDefaultParsingContext(),
                     node -> {
                         nodes.add(node);
                         return true;
@@ -51,25 +52,14 @@ public abstract class DelegatingLexicalProcessorTest extends AbstractLexicalProc
         System.out.println("Parsed objects (iteratively):");
         System.out.println(DebugUtil.debugDump(nodes));
 
-        assertEquals("Wrong # of nodes read", 3, nodes.size());
-
-        nodes.forEach(n -> assertEquals("Wrong namespace", "", n.getRootElementName().getNamespaceURI()));
-        assertEquals("Wrong namespace for node 1", "", getFirstElementNS(nodes, 0));
-        assertEquals("Wrong namespace for node 2", "", getFirstElementNS(nodes, 1));
-        assertEquals("Wrong namespace for node 3", "", getFirstElementNS(nodes, 2));
-
-        // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_WRONG), PrismTestUtil
-                .createDefaultParsingContext());
-
-        System.out.println("Parsed objects (standard way):");
-        System.out.println(DebugUtil.debugDump(nodesStandard));
-
-        assertThat(nodesStandard).withFailMessage("Nodes are not different")
-                .isNotEqualTo(nodes);
+        // In JSON the parsing of second object does not finish successfully.
+        // In YAML the data is formally OK but the parser complains because of object emptiness.
+        // (This test is fragile anyway. In case of any problems just delete/disable it.)
+        int expectedNodes = this instanceof TestJsonParser ? 1 : 2;
+        assertEquals("Wrong # of nodes read", expectedNodes, nodes.size());
     }
 
-    @Test
+    @Test(enabled = false)
     public void testParseObjectsIteratively_2_Wrong_2() throws Exception {
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
@@ -94,13 +84,13 @@ public abstract class DelegatingLexicalProcessorTest extends AbstractLexicalProc
         assertEquals("Wrong # of nodes read", 3, nodes.size());
     }
 
-    @Test
+    @Test(enabled = false)
     public void testParseObjectsIteratively_9_listSingle() throws Exception {
-        standardTest(OBJECTS_9_LIST_SINGLE, 1);
+        executeReadObjectsTest(OBJECTS_9_LIST_SINGLE, 1);
     }
 
-    @Test
+    @Test(enabled = false)
     public void testParseObjectsIteratively_10_listOfLists() throws Exception {
-        standardTest(OBJECTS_10_LIST_OF_LISTS, 3);
+        executeReadObjectsTest(OBJECTS_10_LIST_OF_LISTS, 3);
     }
 }

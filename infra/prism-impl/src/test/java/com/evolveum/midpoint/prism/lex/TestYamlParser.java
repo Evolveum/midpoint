@@ -22,7 +22,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class TestYamlParser extends DelegatingLexicalProcessorTest {
 
-    private static final String OBJECTS_8_MULTI_DOCUMENT = "objects-8-multi-document";
+    private static final String OBJECTS_YAML_1_MULTI_DOCUMENT = "objects-yaml-1-multi-document";
 
     @Override
     protected String getSubdirName() {
@@ -47,13 +47,13 @@ public class TestYamlParser extends DelegatingLexicalProcessorTest {
     }
 
     @Test
-    public void testParseObjectsIteratively_8_multiDocument() throws Exception {
+    public void testParseObjects_yaml_1_MultiDocument() throws Exception {
         // GIVEN
         LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext(),
+        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_YAML_1_MULTI_DOCUMENT), createDefaultParsingContext(),
                 node -> {
                     nodes.add(node);
                     return true;
@@ -73,12 +73,11 @@ public class TestYamlParser extends DelegatingLexicalProcessorTest {
         assertEquals("Wrong namespace for node 4", "http://a/", i.next().getRootElementName().getNamespaceURI());
 
         // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_8_MULTI_DOCUMENT), createDefaultParsingContext());
+        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_YAML_1_MULTI_DOCUMENT), createDefaultParsingContext());
 
         System.out.println("Parsed objects (standard way):");
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
     }
-
 }

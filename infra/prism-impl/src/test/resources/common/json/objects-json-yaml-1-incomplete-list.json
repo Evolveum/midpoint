@@ -8,13 +8,8 @@
   {
     "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
     "user" : {
-      "name-error" : "u2"
-    }
-  },
-  {
-    "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-    "role" : {
-      "name" : "r1"
+      "name" : "u2"
     }
   }
+  ,
 ]
