@@ -485,4 +485,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
     }
 
+    @Override
+    public AxiomNameResolver infraResolver() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

@@ -81,6 +81,10 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition IMPORT_PREFIX = new Item("prefix", Type.STRING, true);
         public static final AxiomItemDefinition CONST = new Item("const", Type.STRING, true);
 
+        public static final AxiomItemDefinition INFRA_TYPE_REFERENCE = new Item(AxiomValue.TYPE, Type.TYPE_REFERENCE, true);
+        public static final AxiomItemDefinition INFRA_VALUE = new Item(AxiomValue.VALUE, Type.STRING, true);
+
+
         protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
                 ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
 
@@ -90,7 +94,11 @@ public class AxiomBuiltIn {
 
 
         private Item(String identifier, AxiomTypeDefinition type, boolean required) {
-            this.identifier = AxiomName.axiom(identifier);
+            this(AxiomName.axiom(identifier), type, required);
+        }
+
+        public Item(AxiomName name, AxiomTypeDefinition type, boolean required) {
+            this.identifier = name;
             this.type = type;
             this.required = required;
         }
@@ -245,9 +253,9 @@ public class AxiomBuiltIn {
         public static final Type IMPORT_DEFINITION = new Type("ImportDeclaration");
         public static final Type AUGMENTATION_DEFINITION = new Type("AugmentationDefinition",TYPE_DEFINITION);
 
-        public static final Type AXIOM_VALUE = new Type("Value", null, () -> itemDefs(
-                Item.TYPE_REFERENCE,
-                Item.VALUE
+        public static final Type AXIOM_VALUE = new Type(AxiomValue.AXIOM_VALUE, () -> itemDefs(
+                Item.INFRA_TYPE_REFERENCE,
+                Item.INFRA_VALUE
                 ));
 
         private final AxiomName identifier;
@@ -260,6 +268,10 @@ public class AxiomBuiltIn {
         }
 
         private Type(String identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
+            this(identifier, null, Lazy.nullValue(), Lazy.from(items));
+        }
+
+        private Type(AxiomName identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, null, Lazy.nullValue(), Lazy.from(items));
         }
 
@@ -280,6 +292,14 @@ public class AxiomBuiltIn {
         private Type(String identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
                 Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
             this.identifier = AxiomName.axiom(identifier);
+            this.argument = argument;
+            this.superType = superType;
+            this.items = items;
+        }
+
+        private Type(AxiomName identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
+                Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
+            this.identifier = identifier;
             this.argument = argument;
             this.superType = superType;
             this.items = items;

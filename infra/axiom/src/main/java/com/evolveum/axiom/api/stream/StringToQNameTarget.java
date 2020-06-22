@@ -15,9 +15,9 @@ public class StringToQNameTarget implements AxiomStreamTarget<String> {
     private PrefixedToQNameTarget target;
 
     public StringToQNameTarget(Target target, Supplier<AxiomNameResolver> itemResolver,
-            Supplier<AxiomNameResolver> valueResolver) {
+            Supplier<AxiomNameResolver> valueResolver, Supplier<AxiomNameResolver> infraResolver) {
         super();
-        this.target = new PrefixedToQNameTarget(target, itemResolver, valueResolver);
+        this.target = new PrefixedToQNameTarget(target, itemResolver, valueResolver, infraResolver);
     }
 
     public void endItem(SourceLocation loc) {

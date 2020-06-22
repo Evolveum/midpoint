@@ -91,6 +91,8 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
         AxiomNameResolver itemResolver();
 
         AxiomNameResolver valueResolver();
+
+        AxiomNameResolver infraResolver();
     }
 
     public interface ItemBuilder extends Builder {
@@ -127,6 +129,11 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     @Override
     public AxiomNameResolver valueResolver() {
         return current().valueResolver();
+    }
+
+    @Override
+    public AxiomNameResolver infraResolver() {
+        return current().infraResolver();
     }
 
 }

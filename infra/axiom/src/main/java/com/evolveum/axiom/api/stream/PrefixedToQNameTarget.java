@@ -15,24 +15,27 @@ public class PrefixedToQNameTarget implements AxiomStreamTarget<AxiomPrefixedNam
     private final AxiomItemStream.Target target;
 
     private final Supplier<AxiomNameResolver> argumentResolver;
-    private final Supplier<AxiomNameResolver> itemResolver;
+    private final Supplier<AxiomNameResolver> item;
+    private final Supplier<AxiomNameResolver> infra;
+
 
     public PrefixedToQNameTarget(Target target, Supplier<AxiomNameResolver> itemResolver,
-            Supplier<AxiomNameResolver> valueResolver) {
+            Supplier<AxiomNameResolver> valueResolver, Supplier<AxiomNameResolver> infraResolver) {
         super();
         this.target = target;
-        this.itemResolver = itemResolver;
+        this.item = itemResolver;
         this.argumentResolver = valueResolver;
+        this.infra = infraResolver;
     }
 
-    protected AxiomName convertItemName(AxiomPrefixedName prefixed, SourceLocation loc) {
-        AxiomName result = itemResolver.get().resolve(prefixed);
+    static AxiomName convertItemName(Supplier<AxiomNameResolver> resolver, AxiomPrefixedName prefixed, SourceLocation loc) {
+        AxiomName result = resolver.get().resolve(prefixed);
         AxiomSemanticException.check(result != null, loc, "Unknown item '%s'.", prefixed);
         return result;
     }
 
-    public void startItem(AxiomPrefixedName item, SourceLocation loc) {
-        target.startItem(convertItemName(item, loc), loc);
+    public void startItem(AxiomPrefixedName name, SourceLocation loc) {
+        target.startItem(convertItemName(item, name, loc), loc);
     }
     public void endItem(SourceLocation loc) {
         target.endItem(loc);
@@ -47,8 +50,8 @@ public class PrefixedToQNameTarget implements AxiomStreamTarget<AxiomPrefixedNam
     public void endValue(SourceLocation loc) {
         target.endValue(loc);
     }
-    public void startInfra(AxiomPrefixedName item, SourceLocation loc) {
-        target.startInfra(convertItemName(item, loc), loc);
+    public void startInfra(AxiomPrefixedName name, SourceLocation loc) {
+        target.startInfra(convertItemName(infra, name, loc), loc);
     }
     public void endInfra(SourceLocation loc) {
         target.endInfra(loc);

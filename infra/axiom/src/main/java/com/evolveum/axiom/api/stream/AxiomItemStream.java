@@ -21,9 +21,10 @@ public interface AxiomItemStream {
 
         AxiomNameResolver itemResolver();
         AxiomNameResolver valueResolver();
+        AxiomNameResolver infraResolver();
 
         default AxiomStreamTarget<AxiomPrefixedName> asPrefixed(AxiomNameResolver sourceLocal) {
-            return new PrefixedToQNameTarget(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal));
+            return new PrefixedToQNameTarget(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal), this::infraResolver);
         }
     }
 

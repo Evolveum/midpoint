@@ -80,6 +80,11 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
+        public AxiomNameResolver infraResolver() {
+            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+        }
+
+        @Override
         public void endValue(SourceLocation loc) {
 
         }
@@ -115,6 +120,10 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
             return resolver;
         }
 
+        @Override
+        public AxiomNameResolver infraResolver() {
+            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+        }
 
         protected Value<V> onlyValue() {
             return (Value<V>) builder.onlyValue();
@@ -198,6 +207,11 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
+        public AxiomNameResolver infraResolver() {
+            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+        }
+
+        @Override
         public AxiomItem<V> get() {
             throw new UnsupportedOperationException("Should not be called");
         }
@@ -274,6 +288,11 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
             return builder.type().itemDefinition(statement);
+        }
+
+        @Override
+        public AxiomNameResolver infraResolver() {
+            return AxiomNameResolver.defaultNamespaceFromType(infraType);
         }
 
         @Override
