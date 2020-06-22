@@ -358,7 +358,6 @@ model axiom-model {
 
     type MetadataDefinition {
       supertype AugmentationDefinition;
-      // TODO: Add limits for specific types
       item target {
         const data:ValueMetadata;
       }

@@ -45,15 +45,14 @@ model axiom-data {
         item metadata {
             type ValueMetadata;
         }
+        item value {
+            type DynamicType;
+        }
     }
 
     type AxiomSimpleValue {
         supertype AxiomValue;
         argument value;
-        
-        item value {
-            type DynamicType;
-        }
     }
 
     type AxiomStructuredValue {

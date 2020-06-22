@@ -28,17 +28,19 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
     private final AxiomSchemaContext context;
     private final AxiomNameResolver resolver;
-    private AxiomTypeDefinition infraType = AxiomBuiltIn.Type.AXIOM_VALUE;
+    private final AxiomTypeDefinition infraType;
     private Item<?> result;
 
     public AxiomItemTarget(AxiomSchemaContext context) {
         this(context, AxiomNameResolver.nullResolver());
+
     }
 
     public AxiomItemTarget(AxiomSchemaContext context, AxiomNameResolver rootResolver) {
         offer(new Root());
         this.context = context;
         this.resolver = Preconditions.checkNotNull(rootResolver, "rootResolver");
+        infraType = context.valueInfraType();
     }
 
     @Override
@@ -122,7 +124,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public AxiomNameResolver infraResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+            return AxiomNameResolver.defaultNamespaceFromType(infraType).or(itemResolver());
         }
 
         protected Value<V> onlyValue() {
@@ -277,7 +279,7 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
 
         @Override
         public AxiomNameResolver itemResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(builder.type());
+            return AxiomNameResolver.defaultNamespaceFromType(builder.type()).or(resolver);
         }
 
         @Override

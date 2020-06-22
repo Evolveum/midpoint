@@ -44,6 +44,10 @@ public interface AxiomNameResolver {
         return NULL_RESOLVER;
     }
 
+    default AxiomNameResolver orPrefix(String prefix, String namespace) {
+        return or((p, localName) -> prefix.equals(p) ? AxiomName.from(namespace, localName) : null);
+    }
+
     default AxiomNameResolver or(AxiomNameResolver next) {
         return (prefix, localName) -> {
             AxiomName maybe = this.resolveIdentifier(prefix, localName);
