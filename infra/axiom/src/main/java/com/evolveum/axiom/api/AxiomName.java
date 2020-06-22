@@ -18,6 +18,11 @@ import com.google.common.base.Strings;
 public class AxiomName {
 
     public static final String AXIOM_NAMESPACE = "https://schema.evolveum.com/ns/axiom/model";
+
+    public static final String MODEL_NAMESPACE = AXIOM_NAMESPACE;
+    public static final String TYPE_NAMESPACE = "https://schema.evolveum.com/ns/axiom/types";
+    public static final String DATA_NAMESPACE = "https://schema.evolveum.com/ns/axiom/data";
+
     private final String namespace;
     private final String localName;
 

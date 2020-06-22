@@ -14,9 +14,13 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 public interface AxiomValue<V> extends AxiomInfraValue {
 
-    AxiomName TYPE = AxiomName.axiom("type");
-    AxiomName VALUE = AxiomName.axiom("value");
-    AxiomName METADATA = AxiomName.axiom("metadata");
+    AxiomName AXIOM_VALUE = AxiomName.from(AxiomName.DATA_NAMESPACE, "AxiomValue");
+    AxiomName TYPE = AXIOM_VALUE.localName("type");
+    AxiomName VALUE = AXIOM_VALUE.localName("value");
+    AxiomName METADATA = AXIOM_VALUE.localName("metadata");
+
+    AxiomName METADATA_TYPE = AXIOM_VALUE.localName("ValueMetadata");
+
 
     Optional<AxiomTypeDefinition> type();
 

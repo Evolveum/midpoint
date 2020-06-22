@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomItem;
 
 abstract class DelegatedItemDefinition implements AxiomItemDefinition {
@@ -94,5 +95,15 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     @Override
     public Optional<AxiomName> substitutionOf() {
         return delegate().substitutionOf();
+    }
+
+    @Override
+    public Optional<AxiomValue<?>> constantValue() {
+        return delegate().constantValue();
+    }
+
+    @Override
+    public Optional<AxiomValue<?>> defaultValue() {
+        return delegate().defaultValue();
     }
 }

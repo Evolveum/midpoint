@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -78,6 +79,7 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition VALUE = new Item("value", Type.STRING, true);
         public static final AxiomItemDefinition IMPORT = new Item("import", Type.IMPORT, true);
         public static final AxiomItemDefinition IMPORT_PREFIX = new Item("prefix", Type.STRING, true);
+        public static final AxiomItemDefinition CONST = new Item("const", Type.STRING, true);
 
         protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
                 ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
@@ -163,6 +165,16 @@ public class AxiomBuiltIn {
         public Optional<AxiomName> substitutionOf() {
             return Optional.empty();
         }
+
+        @Override
+        public Optional<AxiomValue<?>> constantValue() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<AxiomValue<?>> defaultValue() {
+            return Optional.empty();
+        }
     }
 
     public static class Type implements AxiomTypeDefinition {
@@ -213,7 +225,8 @@ public class AxiomBuiltIn {
                     Item.ALLOWS_SUBSTITUTION,
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS,
-                    Item.OPERATIONAL
+                    Item.OPERATIONAL,
+                    Item.CONST
                 ));
 
         public static final Type SUBSTITUTION_DEFINITION =

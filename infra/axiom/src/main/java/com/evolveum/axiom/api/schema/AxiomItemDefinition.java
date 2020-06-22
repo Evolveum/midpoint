@@ -9,6 +9,7 @@ package com.evolveum.axiom.api.schema;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomStructuredValue;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.base.MoreObjects;
@@ -20,6 +21,9 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructur
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
     AxiomName NAME = AxiomName.axiom("name");
     AxiomName VALUE_SPACE = AxiomName.axiom("value");
+    AxiomName DEFAULT = SPACE.localName("default");
+    AxiomName CONSTANT = SPACE.localName("const");
+
 
     AxiomTypeDefinition typeDefinition();
 
@@ -103,5 +107,9 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructur
     Optional<AxiomIdentifierDefinition> identifierDefinition();
 
     Optional<AxiomName> substitutionOf();
+
+    Optional<AxiomValue<?>> constantValue();
+
+    Optional<AxiomValue<?>> defaultValue();
 
 }

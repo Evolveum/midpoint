@@ -60,7 +60,7 @@ public class AxiomValueIdentifier {
     }
 
     public static AxiomValueIdentifier from(AxiomIdentifierDefinition key, AxiomValue<?> value) {
-        Preconditions.checkArgument(value instanceof AxiomStructuredValue, "Value must be complex.");
+        Preconditions.checkArgument(value.asComplex().isPresent(), "Value must be complex.");
         AxiomStructuredValue complex = value.asComplex().get();
 
         // FIXME: Should be offset map?

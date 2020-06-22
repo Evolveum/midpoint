@@ -117,7 +117,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     protected ItemContext<?> createItem(AxiomName id, SourceLocation loc) {
-        return new ItemContext<>(this, id ,childItemDef(id).get(), loc);
+        AxiomItemDefinition childDef = childItemDef(id).get();
+        if(childDef.identifierDefinition().isPresent()) {
+            return new MapItemContext<>(this, id, childDef, loc);
+        }
+        return new ItemContext<>(this, id ,childDef, loc);
     }
 
     private class Result implements Dependency<AxiomValue<V>> {
@@ -168,6 +172,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
             return null;
         }
 
+        public boolean hasItem(AxiomName name) {
+            Supplier<? extends AxiomItem<?>> maybeItem = builder.get(name);
+            return maybeItem != null;
+        }
+
     }
 
     void addDependency(Dependency<?> action) {
@@ -195,11 +204,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     @Override
     public void mergeItem(AxiomItem<?> axiomItem) {
         ItemContext<?> item = startItem(axiomItem.name(), SourceLocation.runtime());
-        for(AxiomValue<?> value : axiomItem.values()) {
-            ValueContext<?> valueCtx = item.startValue(value.value(),SourceLocation.runtime());
-            valueCtx.replace(value);
-            valueCtx.endValue(SourceLocation.runtime());
-        }
+        item.merge(axiomItem.values());
         item.endNode(SourceLocation.runtime());
     }
 
@@ -461,6 +466,23 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     @Override
     public ItemBuilder startInfra(AxiomName identifier, SourceLocation loc) {
        throw new UnsupportedOperationException("Infra Items not yet supported for schema");
+    }
+
+    @Override
+    public void valueIdentifier(AxiomValueIdentifier key) {
+        ItemContext<V> parent = parent();
+        Preconditions.checkState(parent instanceof MapItemContext<?>, "Item must be indexed");
+        ((MapItemContext<V>) parent).addIdentifier(key, this);
+    }
+
+    @Override
+    public void mergeCompletedIfEmpty(Optional<AxiomItem<?>> item) {
+        if(item.isPresent()) {
+            AxiomName name = item.get().name();
+            if(!mutable().hasItem(name)) {
+                mergeItem(item.get());
+            }
+        }
     }
 
 }

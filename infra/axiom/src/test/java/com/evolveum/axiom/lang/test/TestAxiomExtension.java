@@ -12,12 +12,15 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
@@ -37,6 +40,8 @@ public class TestAxiomExtension extends AbstractReactorTest {
     private static final String ORDER = DIR + "declaration-order.axiom";
     private static final String LANG_EXT = DIR + "language-extension.axiom";
     private static final String LANG_EXT_USE = DIR + "language-extension-use.axiom";
+    private static final String METADATA_EXT = DIR + "metadata.axiom";
+    private static final AxiomName METADATA_MODIFIED = AxiomName.from("https://example.org/metadata", "modified");
 
     @Test
     public void axiomTestExtension() throws IOException, AxiomSyntaxException {
@@ -91,6 +96,17 @@ public class TestAxiomExtension extends AbstractReactorTest {
 
         assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());
+    }
+
+    @Test
+    public void axiomTestMetadata() throws AxiomSyntaxException, IOException {
+        ModelReactorContext context = ModelReactorContext.defaultReactor();
+        context.loadModelFromSource(source(METADATA_EXT));
+        AxiomSchemaContext schemaContext = context.computeSchemaContext();
+        AxiomTypeDefinition metadataTypeDef = schemaContext.getType(AxiomValue.METADATA_TYPE).get();
+        Map<AxiomName, AxiomItemDefinition> defs = metadataTypeDef.itemDefinitions();
+        assertFalse(defs.isEmpty());
+        metadataTypeDef.itemDefinition(METADATA_MODIFIED).isPresent();
     }
 
 }

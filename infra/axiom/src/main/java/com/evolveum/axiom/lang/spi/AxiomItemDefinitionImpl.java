@@ -19,6 +19,9 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
     private final Optional<AxiomItem<String>> minOccurs;
     private Optional<AxiomIdentifierDefinition> identifierDef;
     private Optional<AxiomName> substitutionOf;
+    private Optional<AxiomValue<?>> defaultValue;
+    private Optional<AxiomValue<?>> constantValue;
+
 
     public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName, AxiomItem<?>> infraItems) {
         super(axiomItemDefinition, items, infraItems);
@@ -26,6 +29,8 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
         this.identifierDef = asComplex().get().onlyValue(AxiomIdentifierDefinition.class, Item.IDENTIFIER_DEFINITION).map(v -> AxiomIdentifierDefinitionImpl.from(v));
         minOccurs = as(String.class,item(Item.MIN_OCCURS.name()));
         substitutionOf = as(AxiomName.class, item(Item.SUBSTITUTION_OF.name())).map(v -> v.onlyValue().value());
+        defaultValue = item(DEFAULT).map(AxiomItem::onlyValue);
+        constantValue = item(CONSTANT).map(AxiomItem::onlyValue);
     }
 
     @Override
@@ -72,6 +77,16 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
     @Override
     public Optional<AxiomName> substitutionOf() {
         return substitutionOf;
+    }
+
+    @Override
+    public Optional<AxiomValue<?>> constantValue() {
+        return constantValue;
+    }
+
+    @Override
+    public Optional<AxiomValue<?>> defaultValue() {
+        return defaultValue;
     }
 
     public static AxiomItemDefinition from(AxiomValue<?> value) {

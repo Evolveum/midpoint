@@ -182,6 +182,15 @@ model axiom-model {
           maxOccurs 1;
         }
 
+        item const {
+            type data:DynamicType;
+            documentation """
+                Declares constant value for item. This is useful for subtyping special cases.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
+        }
+
         item infra {
           type InfraSpecification;
           //default {
@@ -350,9 +359,9 @@ model axiom-model {
     type MetadataDefinition {
       supertype AugmentationDefinition;
       // TODO: Add limits for specific types
-      //item target {
-      //  default data:ValueMetadata;
-      //}
+      item target {
+        const data:ValueMetadata;
+      }
     }
 
 }

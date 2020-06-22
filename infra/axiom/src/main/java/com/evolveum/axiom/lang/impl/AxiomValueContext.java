@@ -13,6 +13,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
+import java.util.Optional;
 
 public interface AxiomValueContext<V> {
 
@@ -43,6 +44,10 @@ public interface AxiomValueContext<V> {
     void replaceValue(V object);
 
     <V> AxiomValueReference<V> asReference();
+
+    void valueIdentifier(AxiomValueIdentifier key);
+
+    void mergeCompletedIfEmpty(Optional<AxiomItem<?>> item);
 
     /*V requireValue() throws AxiomSemanticException;
 
