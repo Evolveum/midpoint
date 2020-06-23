@@ -42,8 +42,7 @@ public enum RAuditEventType {
 
     RUN_TASK_IMMEDIATELY(AuditEventType.RUN_TASK_IMMEDIATELY);
 
-
-    private AuditEventType type;
+    private final AuditEventType type;
 
     RAuditEventType(AuditEventType type) {
         this.type = type;
@@ -52,7 +51,6 @@ public enum RAuditEventType {
     public AuditEventType getType() {
         return type;
     }
-
 
     public static RAuditEventType toRepo(AuditEventType type) {
         if (type == null) {

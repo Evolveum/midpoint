@@ -9,27 +9,20 @@ package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.codeborne.selenide.Selenide;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
-import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
-import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
-import com.evolveum.midpoint.schrodinger.component.configuration.NotificationsTab;
-import com.evolveum.midpoint.schrodinger.page.configuration.SystemPage;
 import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.page.login.MailNoncePage;
 import com.evolveum.midpoint.schrodinger.page.login.SecurityQuestionsPage;
 import com.evolveum.midpoint.schrodinger.page.login.SelfRegistrationPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 import static com.codeborne.selenide.Selenide.*;
@@ -41,6 +34,9 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
 
     private static final File FLEXIBLE_AUTHENTICATION_SEC_QUES_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/flexible-authentication-policy-secururity-question-reset-pass.xml");
     private static final File FLEXIBLE_AUTHENTICATION_MAIL_NONCE_RESET_PASS_SECURITY_POLICY = new File("src/test/resources/configuration/objects/securitypolicies/flexible-authentication-policy-nonce-reset-pass.xml");
+    private static final File BULK_TASK = new File("src/test/resources/configuration/objects/tasks/add-archetype-to-node-bulk-task.xml");
+
+    private static final String ARCHETYPE_NODE_GROUP_GUI_OID = "05b6933a-b7fc-4543-b8fa-fd8b278ff9ee";
 
     @Test
     public void failWholeAuthenticationFlow() {
@@ -128,6 +124,28 @@ public class LoginPageWithAuthenticationConfigTest extends AbstractLoginPageTest
         $(Schrodinger.byDataId("successPanel")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
         String actualUrl = basicPage.getCurrentUrl();
         Assert.assertTrue(actualUrl.endsWith("/registration/result"));
+    }
+
+    @Test
+    public void test050UseSequenceForNodeArchetype() throws Exception {
+        basicPage.loggedUser().logoutIfUserIsLogin();
+        FormLoginPage login = midPoint.formLogin();
+
+        open("/");
+        login.loginWithReloadLoginPage("enabled_user", "5ecr3t");
+        basicPage.loggedUser().logoutIfUserIsLogin();
+
+        login.loginWithReloadLoginPage("administrator", "5ecr3t");
+        importObject(BULK_TASK, true);
+        basicPage.listTasks().table().clickByName("Add archetype").clickRunNow();
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+        basicPage.loggedUser().logoutIfUserIsLogin();
+
+        open("/");
+        unsuccessfulLogin("enabled_user", "5ecr3t");
+        login.loginWithReloadLoginPage("administrator", "5ecr3t");
+        FeedbackBox feedback = login.feedback();
+        basicPage.loggedUser().logoutIfUserIsLogin();
     }
 
     @Override

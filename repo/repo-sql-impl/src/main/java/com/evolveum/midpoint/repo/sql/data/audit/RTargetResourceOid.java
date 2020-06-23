@@ -7,29 +7,24 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
+
+import java.util.Objects;
 import javax.persistence.*;
 
-import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import org.hibernate.annotations.ForeignKey;
+
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-
-import org.hibernate.annotations.ForeignKey;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 @Ignore
 @Entity
 @IdClass(RTargetResourceOidId.class)
 @Table(name = RTargetResourceOid.TABLE_NAME, indexes = {
         @Index(name = "iAuditResourceOid", columnList = "resourceOid"),
-        @Index(name = "iAuditResourceOidRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditResourceOidRecordId", columnList = COLUMN_RECORD_ID) })
 public class RTargetResourceOid implements EntityState {
 
     public static final String TABLE_NAME = "m_audit_resource";
@@ -41,7 +36,7 @@ public class RTargetResourceOid implements EntityState {
 
     private RAuditEventRecord record;
     private Long recordId;
-        private String resourceOid;
+    private String resourceOid;
 
     @Transient
     @Override
@@ -86,19 +81,18 @@ public class RTargetResourceOid implements EntityState {
         this.record = record;
     }
 
-
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
 
-    public void setresourceOid(String resourceOid) {
+    public void setResourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
     }
 
     public static RTargetResourceOid toRepo(RAuditEventRecord record, String resourceOid) {
         RTargetResourceOid resourceOidObject = new RTargetResourceOid();
         resourceOidObject.setRecord(record);
-        resourceOidObject.setresourceOid(resourceOid);
+        resourceOidObject.setResourceOid(resourceOid);
         return resourceOidObject;
 
     }
@@ -112,19 +106,16 @@ public class RTargetResourceOid implements EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RTargetResourceOid)) { return false; }
 
         RTargetResourceOid that = (RTargetResourceOid) o;
-
-        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) return false;
-        return true;
+        return Objects.equals(recordId, that.recordId)
+                && Objects.equals(resourceOid, that.resourceOid);
     }
 
     @Override
     public int hashCode() {
-        int result = resourceOid != null ? resourceOid.hashCode() : 0;
-        return result;
+        return Objects.hash(recordId, resourceOid);
     }
-
 }
