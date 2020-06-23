@@ -14,15 +14,15 @@ import javax.xml.namespace.QName;
  */
 public class Constants {
     static final String PROP_NAMESPACE = "@ns";
-    static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
+    public static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
     static final String PROP_TYPE = "@type";
-    static final QName PROP_TYPE_QNAME = new QName(PROP_TYPE);
-    static final String PROP_INCOMPLETE = "@incomplete";
-    static final QName PROP_INCOMPLETE_QNAME = new QName(PROP_INCOMPLETE);
+    public static final QName PROP_TYPE_QNAME = new QName(PROP_TYPE);
+    public static final String PROP_INCOMPLETE = "@incomplete";
+    public static final QName PROP_INCOMPLETE_QNAME = new QName(PROP_INCOMPLETE);
     static final String PROP_ELEMENT = "@element";
-    static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
-    static final String PROP_VALUE = "@value";
-    static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);
-    static final String PROP_METADATA = "@metadata";
-    static final QName PROP_METADATA_QNAME = new QName(PROP_METADATA);
+    public static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
+    public static final String PROP_VALUE = "@value";
+    public static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);
+    private static final String PROP_METADATA = "@metadata";
+    public static final QName PROP_METADATA_QNAME = new QName(PROP_METADATA);
 }

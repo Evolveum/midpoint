@@ -52,11 +52,7 @@ public abstract class DelegatingLexicalProcessorTest extends AbstractLexicalProc
         System.out.println("Parsed objects (iteratively):");
         System.out.println(DebugUtil.debugDump(nodes));
 
-        // In JSON the parsing of second object does not finish successfully.
-        // In YAML the data is formally OK but the parser complains because of object emptiness.
-        // (This test is fragile anyway. In case of any problems just delete/disable it.)
-        int expectedNodes = this instanceof TestJsonParser ? 1 : 2;
-        assertEquals("Wrong # of nodes read", expectedNodes, nodes.size());
+        assertEquals("Wrong # of nodes read", 2, nodes.size());
     }
 
     @Test(enabled = false)

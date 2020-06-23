@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JsonReader extends AbstractReader {
 
@@ -36,17 +35,17 @@ public class JsonReader extends AbstractReader {
     }
 
     @Override
-    protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
-        JsonFactory factory = new JsonFactory();
-        try {
-            return factory.createParser(stream);
-        } catch (IOException e) {
-            throw e;
-        }
+    protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws IOException {
+        return new JsonFactory().createParser(stream);
     }
 
     @Override
     protected QName tagToTypeName(Object tid, JsonReadingContext ctx) {
         return null;
+    }
+
+    @Override
+    boolean supportsMultipleDocuments() {
+        return false;
     }
 }

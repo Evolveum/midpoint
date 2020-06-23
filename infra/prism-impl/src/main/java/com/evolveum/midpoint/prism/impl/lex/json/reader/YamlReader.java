@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.xml.namespace.QName;
 
+import com.fasterxml.jackson.core.JsonParser;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLFactory;
@@ -36,7 +37,7 @@ public class YamlReader extends AbstractReader {
     }
 
     @Override
-    public boolean canRead(@NotNull File file) throws IOException {
+    public boolean canRead(@NotNull File file) {
         return file.getName().endsWith(".yaml");
     }
 
@@ -46,16 +47,8 @@ public class YamlReader extends AbstractReader {
     }
 
     @Override
-    protected MidpointYAMLParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
-        MidpointYAMLFactory factory = new MidpointYAMLFactory();
-        try {
-            MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(stream);
-//            p.enable(Feature.BOGUS);
-//            String oid = p.getObjectId();
-            return p;
-        } catch (IOException e) {
-            throw e;
-        }
+    protected MidpointYAMLParser createJacksonParser(InputStream stream) throws IOException {
+        return (MidpointYAMLParser) new MidpointYAMLFactory().createParser(stream);
     }
 
     @Override
@@ -91,6 +84,28 @@ public class YamlReader extends AbstractReader {
             return null;
         }
     }
+
+    private static QName determineNumberType(JsonParser.NumberType numberType) throws SchemaException {
+        switch (numberType) {
+            case BIG_DECIMAL:
+                return DOMUtil.XSD_DECIMAL;
+            case BIG_INTEGER:
+                return DOMUtil.XSD_INTEGER;
+            case LONG:
+                return DOMUtil.XSD_LONG;
+            case INT:
+                return DOMUtil.XSD_INT;
+            case FLOAT:
+                return DOMUtil.XSD_FLOAT;
+            case DOUBLE:
+                return DOMUtil.XSD_DOUBLE;
+            default:
+                throw new SchemaException("Unsupported number type: " + numberType);
+        }
+    }
+
+    @Override
+    boolean supportsMultipleDocuments() {
+        return true;
+    }
 }
-
-

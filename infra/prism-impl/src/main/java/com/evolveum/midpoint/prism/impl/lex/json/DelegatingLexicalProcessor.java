@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 
+import com.evolveum.midpoint.prism.impl.lex.json.reader.AbstractReader;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;

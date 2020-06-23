@@ -5,9 +5,11 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.fasterxml.jackson.core.JsonParser;
@@ -16,11 +18,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.IdentityHashMap;
 
 /**
- *  TODO probably remove this class
+ * TODO
  */
 class JsonReadingContext {
+
     @NotNull final JsonParser parser;
     @NotNull final ParsingContextImpl prismParsingContext;
+    @NotNull final LexicalProcessor.RootXNodeHandler objectHandler;
+    @NotNull final AbstractReader.YamlTagResolver yamlTagResolver;
+    @NotNull final PrismContext prismContext;
+
+    private boolean aborted;
 
     // TODO consider getting rid of these IdentityHashMaps by support default namespace marking and resolution
     //  directly in XNode structures (like it was done for Map XNode keys recently).
@@ -31,12 +39,30 @@ class JsonReadingContext {
     // (Values for these entries are not important. Only key presence is relevant.)
     @NotNull final IdentityHashMap<XNodeImpl, Object> noNamespaceElementNames = new IdentityHashMap<>();
 
-    JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext) {
+    JsonReadingContext(@NotNull JsonParser parser, @NotNull ParsingContextImpl prismParsingContext,
+            @NotNull LexicalProcessor.RootXNodeHandler objectHandler, @NotNull AbstractReader.YamlTagResolver yamlTagResolver,
+            @NotNull PrismContext prismContext) {
         this.parser = parser;
         this.prismParsingContext = prismParsingContext;
+        this.objectHandler = objectHandler;
+        this.yamlTagResolver = yamlTagResolver;
+        this.prismContext = prismContext;
     }
 
-    JsonReadingContext createChildContext() {
-        return new JsonReadingContext(parser, prismParsingContext);
+    public boolean isAborted() {
+        return aborted;
+    }
+
+    public void setAborted() {
+        this.aborted = true;
+    }
+
+    String getPositionSuffix() {
+        return String.valueOf(parser.getCurrentLocation());
+    }
+
+    @NotNull
+    String getPositionSuffixIfPresent() {
+        return " At: " + getPositionSuffix();
     }
 }

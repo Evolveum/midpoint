@@ -8,7 +8,7 @@ package com.evolveum.midpoint.prism.lex;
 
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.DelegatingLexicalProcessor;
-import com.evolveum.midpoint.prism.impl.lex.json.JsonReader;
+import com.evolveum.midpoint.prism.impl.lex.json.reader.JsonReader;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonWriter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 

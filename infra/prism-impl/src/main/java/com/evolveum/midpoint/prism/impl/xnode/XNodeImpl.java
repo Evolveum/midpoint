@@ -36,7 +36,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
     public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
     public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
-    public static final QName DUMMY_NAME = new QName(null, "dummy");
+    private static final QName DUMMY_NAME = new QName(null, "dummy");
 
     // Common fields
     protected XNodeImpl parent;         // currently unused
@@ -62,6 +62,11 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     // a comment that could be stored into formats that support these (e.g. XML or YAML)
     private String comment;
+
+    /**
+     * Custom data to be used during parsing process. TODO reconsider
+     */
+    private transient Object parserData;
 
     public XNodeImpl getParent() {
         return parent;
@@ -227,4 +232,11 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         return this instanceof MapXNodeImpl && ((MapXNodeImpl) this).size() == 1;
     }
 
+    public Object getParserData() {
+        return parserData;
+    }
+
+    public void setParserData(Object parserData) {
+        this.parserData = parserData;
+    }
 }

@@ -16,6 +16,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.prism.impl.lex.json.*;
 
+import com.evolveum.midpoint.prism.impl.lex.json.reader.JsonReader;
+import com.evolveum.midpoint.prism.impl.lex.json.reader.YamlReader;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ParserFileSource;

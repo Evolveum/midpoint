@@ -5,24 +5,29 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.reader;
 
 import com.evolveum.midpoint.prism.ParserSource;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.impl.ParsingContextImpl;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.json.ItemPathDeserializer;
+import com.evolveum.midpoint.prism.impl.lex.json.ItemPathTypeDeserializer;
+import com.evolveum.midpoint.prism.impl.lex.json.PolyStringDeserializer;
+import com.evolveum.midpoint.prism.impl.lex.json.QNameDeserializer;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -38,7 +43,7 @@ import java.util.List;
 /**
  * Takes care of reading JSON/YAML to XNode.
  */
-abstract class AbstractReader {
+public abstract class AbstractReader {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractReader.class);
 
@@ -49,7 +54,7 @@ abstract class AbstractReader {
     }
 
     @NotNull
-    RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         List<RootXNodeImpl> nodes = readInternal(source, parsingContext, false);
         if (nodes.isEmpty()) {
             throw new SchemaException("No data at input");
@@ -64,7 +69,7 @@ abstract class AbstractReader {
      * Honors multi-document files and multiple objects in a single document (list-as-root mechanisms).
      */
     @NotNull
-    List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         return readInternal(source, parsingContext, true);
     }
 
@@ -94,7 +99,7 @@ abstract class AbstractReader {
         }
     }
 
-    void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+    public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
             LexicalProcessor.RootXNodeHandler handler) throws SchemaException, IOException {
         InputStream is = source.getInputStream();
         try {
@@ -117,10 +122,38 @@ abstract class AbstractReader {
     private void readFromStart(JsonParser unconfiguredParser, ParsingContext parsingContext,
             LexicalProcessor.RootXNodeHandler handler, boolean expectingMultipleObjects) throws SchemaException, IOException {
         JsonParser configuredParser = configureParser(unconfiguredParser);
-        JsonReadingContext ctx = new JsonReadingContext(configuredParser, (ParsingContextImpl) parsingContext);
-        ReadOperation readOperation = new ReadOperation(configuredParser, ctx, handler, expectingMultipleObjects,
-                this::tagToTypeName, schemaRegistry.getPrismContext());
-        readOperation.execute();
+        JsonReadingContext ctx = new JsonReadingContext(configuredParser, (ParsingContextImpl) parsingContext,
+                handler, this::tagToTypeName, schemaRegistry.getPrismContext());
+        readTreatingExceptions(expectingMultipleObjects, configuredParser, ctx);
+    }
+
+    private void readTreatingExceptions(boolean expectingMultipleObjects, JsonParser configuredParser, JsonReadingContext ctx)
+            throws SchemaException, IOException {
+        try {
+            readFirstTokenAndCheckEmptyInput(configuredParser);
+            if (supportsMultipleDocuments()) {
+                new MultiDocumentReader(ctx).read(expectingMultipleObjects);
+            } else {
+                new DocumentReader(ctx).read(expectingMultipleObjects);
+            }
+        } catch (SchemaException e) {
+            throw e;
+        } catch (JsonParseException e) {
+            throw new SchemaException("Couldn't parse JSON/YAML object: " + e.getMessage() + ctx.getPositionSuffixIfPresent(), e);
+        } catch (IOException e) {
+            throw new IOException("Couldn't parse JSON/YAML object: " + e.getMessage() + ctx.getPositionSuffixIfPresent(), e);
+        } catch (Throwable t) {
+            throw new SystemException("Couldn't parse JSON/YAML object: " + t.getMessage() + ctx.getPositionSuffixIfPresent(), t);
+        }
+    }
+
+    abstract boolean supportsMultipleDocuments();
+
+    private void readFirstTokenAndCheckEmptyInput(JsonParser configuredParser) throws IOException, SchemaException {
+        configuredParser.nextToken();
+        if (configuredParser.currentToken() == null) {
+            throw new SchemaException("Nothing to parse: the input is empty.");
+        }
     }
 
     private JsonParser configureParser(JsonParser parser) {
@@ -140,25 +173,6 @@ abstract class AbstractReader {
     protected abstract QName tagToTypeName(Object tid, JsonReadingContext ctx) throws IOException, SchemaException;
 
     public abstract boolean canRead(@NotNull File file) throws IOException;
+
     public abstract boolean canRead(@NotNull String dataString);
-
-
-    static QName determineNumberType(JsonParser.NumberType numberType) throws SchemaException {
-        switch (numberType) {
-            case BIG_DECIMAL:
-                return DOMUtil.XSD_DECIMAL;
-            case BIG_INTEGER:
-                return DOMUtil.XSD_INTEGER;
-            case LONG:
-                return DOMUtil.XSD_LONG;
-            case INT:
-                return DOMUtil.XSD_INT;
-            case FLOAT:
-                return DOMUtil.XSD_FLOAT;
-            case DOUBLE:
-                return DOMUtil.XSD_DOUBLE;
-            default:
-                throw new SchemaException("Unsupported number type: " + numberType);
-        }
-    }
 }
