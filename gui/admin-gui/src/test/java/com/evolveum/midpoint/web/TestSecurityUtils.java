@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -29,16 +30,26 @@ public class TestSecurityUtils extends AbstractGuiUnitTest {
         AuthenticationSequenceType sequence = new AuthenticationSequenceType();
         sequence.setName("sequence1");
         sequence.getNodeGroup().add(getReference("1"));
+        sequence.setChannel(getChannel("gui1"));
         sequences.add(sequence);
         sequence = new AuthenticationSequenceType();
         sequence.setName("sequence2");
         sequence.getNodeGroup().add(getReference("1"));
         sequence.getNodeGroup().add(getReference("2"));
+        sequence.setChannel(getChannel("gui2"));
         sequences.add(sequence);
         sequence = new AuthenticationSequenceType();
         sequence.setName("sequence3");
+        sequence.setChannel(getChannel("gui3"));
         sequences.add(sequence);
         return sequences;
+    }
+
+    private AuthenticationSequenceChannelType getChannel(String key) {
+        AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
+        channel.setUrlSuffix(key);
+        channel.setChannelId("channel#" + key);
+        return channel;
     }
 
     private ObjectReferenceType getReference(String oid) {
