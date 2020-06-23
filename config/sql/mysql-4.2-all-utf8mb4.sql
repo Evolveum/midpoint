@@ -1406,7 +1406,7 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object (oid);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
 
 # By: Ron Cordell - roncordell
 #  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.

@@ -56,7 +56,8 @@ class SchemaActionComputer {
     private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
             Arrays.asList(
                     new ImmutablePair<>("3.8", "3.9"),
-                    new ImmutablePair<>("3.9", "4.0"))
+                    new ImmutablePair<>("3.9", "4.0"),
+                    new ImmutablePair<>("4.0", "4.2"))
     );
 
     enum State {

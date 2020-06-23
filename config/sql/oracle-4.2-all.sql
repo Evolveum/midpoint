@@ -1208,7 +1208,7 @@ CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID) INITRANS 30;
 CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID) INITRANS 30;
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
 
 --
 -- A hint submitted by a user: Oracle DB MUST be created as "shared" and the
