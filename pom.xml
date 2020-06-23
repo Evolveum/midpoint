@@ -27,7 +27,7 @@
     Hence, " -Dmaven.javadoc.skip" is not necessary with "-P -dist".
 
     Quick developer's run without any tests, skipping distribution (~6m):
-    mvn clean install -P -dist -DskipTests -Dcheckstyle.skip
+    mvn clean install -P -dist -DskipTests
 
     "Quick" build with unit tests only and checkstyle (~30m):
     mvn clean install -P -dist -DskipITs
