@@ -10,8 +10,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
 import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
+import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -27,6 +32,8 @@ import javax.xml.namespace.QName;
  */
 public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePanel<SearchFilterType> {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(SearchFilterConfigurationPanel.class);
 
     private static final String ID_ACE_EDITOR_FIELD = "aceEditorField";
     private static final String ID_CONFIGURE_BUTTON = "configureButton";
@@ -57,23 +64,35 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                 searchConfigurationPerformed(target);
             }
         };
-//        searchConfigurationButton.add(new VisibleBehaviour(() -> false));
         searchConfigurationButton.setOutputMarkupId(true);
         add(searchConfigurationButton);
 
     }
 
     private void searchConfigurationPerformed(AjaxRequestTarget target){
-        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(),
+        SearchPropertiesConfigPanel<O> configPanel = new SearchPropertiesConfigPanel<O>(getPageBase().getMainPopupBodyId(),
                 new BasicSearchFilterModel<O>(getModel(), filterType, getPageBase()), filterType){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
                 getPageBase().hideMainPopup(target);
-                //todo set new filter value
+
+                try {
+                    if (configuredFilter == null) {
+                        return;
+                    }
+                    SearchFilterConfigurationPanel.this.getModel().setObject(getPageBase().getPrismContext().getQueryConverter().createSearchFilterType(configuredFilter));
+                    target.add(getAceEditorPanel());
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
+                }
             }
         };
         getPageBase().showMainPopup(configPanel, target);
+    }
+
+    private AceEditorPanel getAceEditorPanel(){
+        return (AceEditorPanel) get(ID_ACE_EDITOR_FIELD);
     }
 }

@@ -45,7 +45,7 @@ public abstract class SearchFilter<O extends ObjectType> implements Serializable
 
     public List<ObjectFilter> getObjectFilterList() {
         List<ObjectFilter> objectFilters = new ArrayList<>();
-        valueSearchFilterItems.forEach(filterItem -> objectFilters.add(filterItem.getFilter()));
+        valueSearchFilterItems.forEach(filterItem -> objectFilters.add(filterItem.buildFilter(prismContext, type)));
         return objectFilters;
     }
 

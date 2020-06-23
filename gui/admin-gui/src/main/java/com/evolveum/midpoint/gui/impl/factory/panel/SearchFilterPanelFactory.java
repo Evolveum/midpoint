@@ -48,7 +48,8 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
         if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType){
             ObjectCollectionType collectionObj = (ObjectCollectionType) containerWrapper.getRealValue();
             return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                    (Class<? extends ObjectType>)WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(), collectionObj.getType()));
+                    (Class<? extends ObjectType>)WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(),
+                            collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE));
         }
         return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
     }
