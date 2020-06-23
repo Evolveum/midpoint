@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import java.util.Objects;
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtLongId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-import java.util.Objects;
 
 /**
  * @author lazyman
@@ -77,9 +78,9 @@ public class ROExtLong extends ROExtBase<Long> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
         ROExtLong roExtLong = (ROExtLong) o;
         return Objects.equals(value, roExtLong.value);
     }

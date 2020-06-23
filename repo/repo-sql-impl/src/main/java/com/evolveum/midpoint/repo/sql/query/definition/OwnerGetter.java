@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -18,9 +18,10 @@ import java.lang.annotation.Target;
  * @author lazyman
  * @author mederly
  */
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OwnerGetter {
 
-    Class<?> ownerClass();
+    // hard to generify, can be <? extends RObject> but also a Container<? extends RObject>
+    Class ownerClass();
 }
