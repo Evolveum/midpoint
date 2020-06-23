@@ -23,6 +23,9 @@
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
+
+        <!-- TODO MID-6319 -->
+        <querydsl.version>4.3.1</querydsl.version>
     </properties>
 
     <dependencies>
@@ -158,6 +161,19 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
+        </dependency>
+
+        <!-- TODO MID-6319 -->
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql</artifactId>
+            <version>${querydsl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql-codegen</artifactId>
+            <version>${querydsl.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

@@ -1546,6 +1546,13 @@
                 <artifactId>test-util</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- TODO MID-6319 -->
+            <dependency>
+                <groupId>org.eclipse.jdt.core.compiler</groupId>
+                <artifactId>ecj</artifactId>
+                <version>4.4.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
