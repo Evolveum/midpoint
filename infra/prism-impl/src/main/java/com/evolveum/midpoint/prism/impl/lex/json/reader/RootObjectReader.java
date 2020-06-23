@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
+
 import com.fasterxml.jackson.core.JsonParser;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -74,12 +77,21 @@ class RootObjectReader {
             for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
                 processDefaultNamespaces(entry.getValue(), currentDefault, ctx);
             }
+            if (map.getMetadataNode() != null) {
+                processDefaultNamespaces((XNodeImpl) map.getMetadataNode(), currentDefault, ctx);
+            }
             qualifyElementNameIfNeeded(map, currentDefault, ctx);
         } else {
             qualifyElementNameIfNeeded(xnode, parentDefault, ctx);
             if (xnode instanceof ListXNodeImpl) {
                 for (XNodeImpl item : (ListXNodeImpl) xnode) {
                     processDefaultNamespaces(item, parentDefault, ctx);
+                }
+            }
+            if (xnode instanceof MetadataAware) {
+                MapXNode metadataNode = ((MetadataAware) xnode).getMetadataNode();
+                if (metadataNode != null) {
+                    processDefaultNamespaces((XNodeImpl) metadataNode, parentDefault, ctx);
                 }
             }
         }

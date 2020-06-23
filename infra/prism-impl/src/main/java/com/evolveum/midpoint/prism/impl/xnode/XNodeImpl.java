@@ -12,7 +12,9 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -238,5 +240,12 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     public void setParserData(Object parserData) {
         this.parserData = parserData;
+    }
+
+    void appendMetadata(StringBuilder sb, int indent, MapXNode metadata) {
+        if (metadata != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "metadata", metadata, indent);
+        }
     }
 }

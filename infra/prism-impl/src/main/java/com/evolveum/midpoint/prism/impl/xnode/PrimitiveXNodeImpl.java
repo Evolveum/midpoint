@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -45,7 +46,10 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      *   - If value is non-null, super.typeName must be non-null.
      */
     private T value;
+
     private ValueParser<T> valueParser;
+
+    private MapXNode metadata;
 
     /**
      * If set to true then this primitive value either came from an attribute
@@ -234,6 +238,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         if (dumpSuffix != null) {
             sb.append(dumpSuffix);
         }
+        appendMetadata(sb, indent, metadata);
         return sb.toString();
     }
 
@@ -386,5 +391,15 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             valueParser = valueParser.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public MapXNode getMetadataNode() {
+        return metadata;
+    }
+
+    @Override
+    public void setMetadataNode(MapXNode metadata) {
+        this.metadata = metadata;
     }
 }

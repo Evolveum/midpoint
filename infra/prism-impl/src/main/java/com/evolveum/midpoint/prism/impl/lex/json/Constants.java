@@ -23,6 +23,6 @@ public class Constants {
     public static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
     public static final String PROP_VALUE = "@value";
     public static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);
-    private static final String PROP_METADATA = "@metadata";
+    public static final String PROP_METADATA = "@metadata";
     public static final QName PROP_METADATA_QNAME = new QName(PROP_METADATA);
 }

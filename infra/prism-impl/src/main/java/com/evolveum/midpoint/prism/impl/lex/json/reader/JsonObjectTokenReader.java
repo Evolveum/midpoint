@@ -12,6 +12,10 @@ import static com.evolveum.midpoint.prism.impl.lex.json.reader.RootObjectReader.
 import java.io.IOException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +66,11 @@ class JsonObjectTokenReader {
      * Should be set only once.
      */
     private XNodeImpl wrappedValue;
+
+    /**
+     * Metadata (@metadata).
+     */
+    private MapXNode metadata;
 
     /**
      * Value of the "incomplete" flag (@incomplete).
@@ -146,6 +155,8 @@ class JsonObjectTokenReader {
             processElementNameDeclaration();
         } else if (isWrappedValue()) {
             processWrappedValue();
+        } else if (isMetadataValue()) {
+            processMetadataValue();
         } else if (isIncompleteDeclaration()) {
             processIncompleteDeclaration();
         } else {
@@ -190,6 +201,17 @@ class JsonObjectTokenReader {
             warnOrThrow("Value ('" + Constants.PROP_VALUE + "') defined more than once");
         }
         wrappedValue = currentFieldValue;
+    }
+
+    private void processMetadataValue() throws SchemaException {
+        if (metadata != null) {
+            warnOrThrow("Value ('" + Constants.PROP_METADATA + "') defined more than once");
+        }
+        if (currentFieldValue instanceof MapXNode) {
+            metadata = (MapXNode) currentFieldValue;
+        } else {
+            warnOrThrow("Metadata is not a map XNode: " + currentFieldValue.debugDump());
+        }
     }
 
     private void processElementNameDeclaration() throws SchemaException {
@@ -262,6 +284,14 @@ class JsonObjectTokenReader {
             ctx.defaultNamespaces.put((MapXNodeImpl) rv, declaredNamespace);
         }
 
+        if (metadata != null) {
+            if (rv instanceof MetadataAware) {
+                ((MetadataAware) rv).setMetadataNode(metadata);
+            } else {
+                warnOrThrow("Couldn't apply metadata to non-metadata-aware node: " + rv.getClass());
+            }
+        }
+        
         return rv;
     }
 
@@ -296,6 +326,10 @@ class JsonObjectTokenReader {
 
     private boolean isWrappedValue() {
         return Constants.PROP_VALUE_QNAME.equals(currentFieldName.name);
+    }
+
+    private boolean isMetadataValue() {
+        return Constants.PROP_METADATA_QNAME.equals(currentFieldName.name);
     }
 
     private void warnOrThrow(String message) throws SchemaException {
