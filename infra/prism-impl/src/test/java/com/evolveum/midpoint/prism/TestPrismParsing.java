@@ -388,7 +388,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         )), names);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test700UserAliceMetadata() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();

@@ -20,13 +20,14 @@ import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.SchemaXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.xnode.IncompleteMarkerXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -81,12 +82,12 @@ public class DomLexicalWriter {
     }
 
     @NotNull
-    public Element serialize(@NotNull RootXNodeImpl rootxnode) throws SchemaException {
+    public Element write(@NotNull RootXNodeImpl rootxnode) throws SchemaException {
         initialize();
         return serializeInternal(rootxnode, null);
     }
 
-    public Element serialize(@NotNull List<RootXNodeImpl> roots) throws SchemaException {
+    public Element write(@NotNull List<RootXNodeImpl> roots) throws SchemaException {
         initialize();
         QName aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
         if (aggregateElementName == null) {
@@ -155,7 +156,7 @@ public class DomLexicalWriter {
         DOMUtil.setNamespaceDeclaration(top, "", namespaces.iterator().next());
     }
 
-    Element serializeToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
+    Element writeToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
         initialize();
         Element element = createElement(elementName, null);
         serializeMap(xmap, element);
@@ -226,7 +227,7 @@ public class DomLexicalWriter {
         DOMUtil.setAttributeValue(parent, DOMUtil.IS_LIST_ATTRIBUTE_NAME, "true");
     }
 
-    Element serializeXPrimitiveToElement(PrimitiveXNodeImpl<?> xprim, QName elementName) throws SchemaException {
+    private Element writeXPrimitiveToElement(PrimitiveXNodeImpl<?> xprim, QName elementName) throws SchemaException {
         initialize();
         Element parent = DOMUtil.createElement(doc, new QName("fake","fake"));
         serializePrimitiveElementOrAttribute(xprim, parent, elementName, false);
@@ -396,8 +397,41 @@ public class DomLexicalWriter {
         return namespacePrefixMapper.setQNamePrefixExplicit(qname);
     }
 
-    public Element serializeItemPathTypeToElement(ItemPathType itemPathType, QName elementName, Document ownerDocument) {
+    private Element serializeItemPathTypeToElement(ItemPathType itemPathType, QName elementName, Document ownerDocument) {
         return ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, ownerDocument);
     }
 
+    Element writeSingleElementMapToElement(MapXNode map) throws SchemaException {
+        MapXNodeImpl xmap = (MapXNodeImpl) map;
+        if (xmap == null || xmap.isEmpty()) {
+            return null;
+        }
+        Entry<QName, XNodeImpl> subEntry = xmap.getSingleSubEntry(xmap.toString());
+        Element parent = writeToElement2(xmap, subEntry.getKey());
+        return DOMUtil.getFirstChildElement(parent);
+    }
+
+    // TODO correlate to writeToElement
+    private Element writeToElement2(XNodeImpl xnode, QName elementName) throws SchemaException {
+        Validate.notNull(xnode);
+        Validate.notNull(elementName);
+        if (xnode instanceof MapXNodeImpl) {
+            return writeToElement((MapXNodeImpl) xnode, elementName);
+        } else if (xnode instanceof PrimitiveXNodeImpl<?>) {
+            return writeXPrimitiveToElement((PrimitiveXNodeImpl<?>) xnode, elementName);
+        } else if (xnode instanceof RootXNodeImpl) {
+            return write((RootXNodeImpl) xnode);
+        } else if (xnode instanceof ListXNodeImpl) {
+            ListXNodeImpl xlist = (ListXNodeImpl) xnode;
+            if (xlist.size() == 0) {
+                return null;
+            } else if (xlist.size() > 1) {
+                throw new IllegalArgumentException("Cannot serialize list xnode with more than one item: " + xlist);
+            } else {
+                return writeToElement2(xlist.get(0), elementName);
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot serialize " + xnode + " to element");
+        }
+    }
 }
