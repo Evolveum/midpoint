@@ -38,9 +38,6 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(HttpHeaderModuleFactory.class);
 
-//    @Autowired
-//    private AuthenticationProvider midPointAuthenticationProvider;
-
     @Override
     public boolean match(AbstractAuthenticationModuleType moduleType) {
         if (moduleType instanceof HttpHeaderAuthenticationModuleType) {
@@ -58,16 +55,16 @@ public class HttpHeaderModuleFactory extends AbstractModuleFactory {
         }
 
         isSupportedChannel(authenticationChannel);
-
-        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(moduleType, prefixOfSequence);
-        configuration.addAuthenticationProvider(new PasswordProvider());
+        HttpHeaderAuthenticationModuleType httpModuleType = (HttpHeaderAuthenticationModuleType) moduleType;
+        HttpHeaderModuleWebSecurityConfiguration configuration = HttpHeaderModuleWebSecurityConfiguration.build(httpModuleType, prefixOfSequence);
+        configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new PasswordProvider()));
         ModuleWebSecurityConfig module = getObjectObjectPostProcessor().postProcess(new HttpHeaderModuleWebSecurityConfig(configuration));
         module.setObjectPostProcessor(getObjectObjectPostProcessor());
         HttpSecurity http = module.getNewHttpSecurity();
         setSharedObjects(http, sharedObjects);
 
         ModuleAuthentication moduleAuthentication = createEmptyModuleAuthentication(configuration);
-        moduleAuthentication.setFocusType(moduleType.getFocusType());
+        moduleAuthentication.setFocusType(httpModuleType.getFocusType());
         SecurityFilterChain filter = http.build();
         return AuthModuleImpl.build(filter, configuration, moduleAuthentication);
     }
