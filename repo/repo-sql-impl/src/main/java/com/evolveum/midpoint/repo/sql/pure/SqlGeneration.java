@@ -33,6 +33,10 @@ public class SqlGeneration {
         exporter.export(conn.getMetaData());
          */
 
+        examples();
+    }
+
+    private static void examples() {
         System.out.println(M_AUDIT_EVENT);
         System.out.println("\nColumns: " + M_AUDIT_EVENT.getColumns());
         System.out.println("\nAnnotated element: " + M_AUDIT_EVENT.getAnnotatedElement());
@@ -66,7 +70,7 @@ public class SqlGeneration {
         Map<?, ?> transform = query.transform(GroupBy.groupBy(M_AUDIT_EVENT.id).as(GroupBy.list(M_AUDIT_DELTA)));
         System.out.println("transform = " + transform);
 
-        // "manual" transformation
+        // "manual" transformation of one-to-many to proper graph
         List<Tuple> plainResult = queryFactory
                 .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
                 .from(M_AUDIT_EVENT)
@@ -76,8 +80,11 @@ public class SqlGeneration {
 //                .orderBy(M_AUDIT_EVENT.id.asc())
                 .where(M_AUDIT_EVENT.id.eq(452L))
                 .fetch();
-        System.out.println("\nFinal result"
-                + mapOneToMany(plainResult, M_AUDIT_EVENT, M_AUDIT_DELTA, (o, m) -> o.addDelta(m)));
+        Map<MAuditEventRecord, Collection<MAuditDelta>> resultMap =
+                mapOneToMany(plainResult, M_AUDIT_EVENT, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
+        System.out.println("\nFinal result" + resultMap);
+
+        System.out.println("deltas for 1st item: " + resultMap.keySet().iterator().next().deltas);
     }
 
     /**
@@ -85,7 +92,7 @@ public class SqlGeneration {
      * Returns map with "one" entities as keys (preserving original order) and related "many"
      * entities as a collection in the value for each key.
      * Optional accumulator can call further processing on both objects for each "many" item.
-     *
+     * <p>
      * Note that proper equals/hashCode must be implemented for {@code <O>} type.
      *
      * @param rawResult collection of tuples, unprocessed result
@@ -102,12 +109,15 @@ public class SqlGeneration {
             RelationalPathBase<M> manyPath,
             @Nullable BiConsumer<O, M> manyAccumulator) {
 
+        Map<O, O> canonicalKey = new HashMap<>();
         Map<O, Collection<M>> result = new LinkedHashMap<>();
         for (Tuple row : rawResult) {
             O oneItem = Objects.requireNonNull(row.get(onePath),
                     "result for path " + onePath + " not found in tuple " + row);
             M manyItem = Objects.requireNonNull(row.get(manyPath),
                     "result for path " + manyPath + " not found in tuple " + row);
+
+            oneItem = canonicalKey.computeIfAbsent(oneItem, v -> v);
             result.computeIfAbsent(oneItem, o -> new ArrayList<>())
                     .add(manyItem);
 
