@@ -360,6 +360,18 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertThat(nodesStandard).isEmpty();
+
+        testSerializeAndParseAgain(lexicalProcessor, nodesStandard);
+    }
+
+    private void testSerializeAndParseAgain(LexicalProcessor<String> lexicalProcessor, List<RootXNodeImpl> nodes)
+            throws SchemaException, IOException {
+        String serialized = lexicalProcessor.write(nodes, null);
+        displayValue("Serialized", serialized);
+
+        List<RootXNodeImpl> reparsed = lexicalProcessor.readObjects(new ParserStringSource(serialized), createDefaultParsingContext());
+        displayValue("Re-parsed", reparsed);
+        assertThat(reparsed).isEqualTo(nodes);
     }
 
     @Test
@@ -399,6 +411,8 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
         return nodes;
     }
 
@@ -425,6 +439,8 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
         assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
         assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
     String getFirstElementNS(List<RootXNodeImpl> nodes, int index) {
@@ -462,6 +478,8 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
     @Test
@@ -494,6 +512,8 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
     @Test

@@ -1,18 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.prism.SerializationContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.Version;
@@ -23,18 +24,21 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.IOException;
+import java.io.StringWriter;
 
-public class JsonWriter extends AbstractWriter {
+/**
+ * TODO
+ */
+class JsonWritingContext extends WritingContext<JsonGenerator> {
 
-    public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
-        return createJsonGenerator(out);
+    JsonWritingContext(SerializationContext prismSerializationContext) {
+        super(prismSerializationContext);
     }
 
-    private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{
+    JsonGenerator createJacksonGenerator(StringWriter out) {
         try {
             JsonFactory factory = new JsonFactory();
             JsonGenerator generator = factory.createGenerator(out);
@@ -42,14 +46,14 @@ public class JsonWriter extends AbstractWriter {
             generator.setCodec(configureMapperForSerialization());
             return generator;
         } catch (IOException ex) {
-            throw new SchemaException("Schema error during serializing to JSON.", ex);
+            throw new SystemException("Couldn't create Jackson generator for JSON: " + ex.getMessage(), ex);
         }
     }
 
-    private ObjectMapper configureMapperForSerialization(){
+    private ObjectMapper configureMapperForSerialization() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        mapper.setSerializationInclusion(Include.NON_NULL);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         mapper.registerModule(createSerializerModule());
         mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
         return mapper;
@@ -67,13 +71,26 @@ public class JsonWriter extends AbstractWriter {
         return module;
     }
 
-    @Override
     protected boolean supportsInlineTypes() {
         return false;
     }
 
     @Override
-    protected void writeInlineType(QName typeName, JsonSerializationContext ctx) {
-        throw new IllegalStateException("JSON cannot write type information using tags.");
+    void writeInlineType(QName typeName) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void resetInlineTypeIfPossible() {
+    }
+
+    @Override
+    boolean supportsMultipleDocuments() {
+        return false;
+    }
+
+    @Override
+    void newDocument() {
+        throw new UnsupportedOperationException();
     }
 }

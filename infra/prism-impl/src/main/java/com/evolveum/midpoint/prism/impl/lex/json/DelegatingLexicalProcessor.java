@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 
 import com.evolveum.midpoint.prism.impl.lex.json.reader.AbstractReader;
+import com.evolveum.midpoint.prism.impl.lex.json.writer.AbstractWriter;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -80,8 +81,7 @@ public class DelegatingLexicalProcessor implements LexicalProcessor<String> {
 
     @NotNull
     @Override
-    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
-            @Nullable SerializationContext context) throws SchemaException {
-        return writer.write(roots, aggregateElementName, context);
+    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context) throws SchemaException {
+        return writer.write(roots, context);
     }
 }

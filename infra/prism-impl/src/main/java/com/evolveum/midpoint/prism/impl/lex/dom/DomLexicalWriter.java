@@ -86,13 +86,11 @@ public class DomLexicalWriter {
         return serializeInternal(rootxnode, null);
     }
 
-    public Element serialize(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName) throws SchemaException {
+    public Element serialize(@NotNull List<RootXNodeImpl> roots) throws SchemaException {
         initialize();
+        QName aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
         if (aggregateElementName == null) {
-            aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
-            if (aggregateElementName == null) {
-                throw new IllegalStateException("Couldn't serialize list of objects because the aggregated element name is not set");
-            }
+            throw new IllegalStateException("Couldn't serialize list of objects because the aggregated element name is not set");
         }
         Element aggregateElement = createElement(aggregateElementName, null);
         for (RootXNodeImpl root : roots) {

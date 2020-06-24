@@ -13,12 +13,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public abstract class SerializerTarget<T> {
 
     @NotNull public final PrismContextImpl prismContext;
@@ -31,6 +27,5 @@ public abstract class SerializerTarget<T> {
     abstract public T write(@NotNull RootXNodeImpl xroot, SerializationContext context) throws SchemaException;
 
     @NotNull
-    abstract public T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
-            @Nullable SerializationContext context) throws SchemaException;
+    abstract public T write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context) throws SchemaException;
 }

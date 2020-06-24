@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.lex;
 import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.*;
 import com.evolveum.midpoint.prism.impl.lex.json.reader.YamlReader;
+import com.evolveum.midpoint.prism.impl.lex.json.writer.YamlWriter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.util.DebugUtil;

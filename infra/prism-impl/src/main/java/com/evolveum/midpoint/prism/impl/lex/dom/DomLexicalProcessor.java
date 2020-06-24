@@ -444,16 +444,15 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     @NotNull
     @Override
-    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
-            @Nullable SerializationContext context) throws SchemaException {
-        Element aggregateElement = writeXRootListToElement(roots, aggregateElementName);
+    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context) throws SchemaException {
+        Element aggregateElement = writeXRootListToElement(roots);
         return DOMUtil.serializeDOMToString(aggregateElement);
     }
 
     @NotNull
-    public Element writeXRootListToElement(@NotNull List<RootXNodeImpl> roots, QName aggregateElementName) throws SchemaException {
+    public Element writeXRootListToElement(@NotNull List<RootXNodeImpl> roots) throws SchemaException {
         DomLexicalWriter serializer = new DomLexicalWriter(schemaRegistry, null);
-        return serializer.serialize(roots, aggregateElementName);
+        return serializer.serialize(roots);
     }
 
     public Element serializeXMapToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {

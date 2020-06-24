@@ -13,13 +13,13 @@ import javax.xml.namespace.QName;
  * TODO
  */
 public class Constants {
-    static final String PROP_NAMESPACE = "@ns";
+    public static final String PROP_NAMESPACE = "@ns";
     public static final QName PROP_NAMESPACE_QNAME = new QName(PROP_NAMESPACE);
-    static final String PROP_TYPE = "@type";
+    public static final String PROP_TYPE = "@type";
     public static final QName PROP_TYPE_QNAME = new QName(PROP_TYPE);
     public static final String PROP_INCOMPLETE = "@incomplete";
     public static final QName PROP_INCOMPLETE_QNAME = new QName(PROP_INCOMPLETE);
-    static final String PROP_ELEMENT = "@element";
+    public static final String PROP_ELEMENT = "@element";
     public static final QName PROP_ELEMENT_QNAME = new QName(PROP_ELEMENT);
     public static final String PROP_VALUE = "@value";
     public static final QName PROP_VALUE_QNAME = new QName(PROP_VALUE);

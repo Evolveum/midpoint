@@ -11,36 +11,28 @@ import java.io.IOException;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.MetadataAware;
-
-import com.fasterxml.jackson.core.JsonParser;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.impl.lex.json.JsonValueParser;
 import com.evolveum.midpoint.prism.impl.xnode.*;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * TODO
  */
 class RootObjectReader {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RootObjectReader.class);
-
     static final String DEFAULT_NAMESPACE_MARKER = "##DEFAULT-NAMESPACE##";
 
     @NotNull private final JsonReadingContext ctx;
-    @NotNull private final JsonParser parser;
 
-    RootObjectReader(JsonReadingContext ctx) {
+    RootObjectReader(@NotNull JsonReadingContext ctx) {
         this.ctx = ctx;
-        this.parser = ctx.parser;
     }
 
     void read() throws SchemaException, IOException {

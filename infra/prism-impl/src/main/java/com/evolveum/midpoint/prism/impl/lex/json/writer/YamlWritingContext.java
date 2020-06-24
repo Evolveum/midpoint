@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.prism.impl.lex.json;
+package com.evolveum.midpoint.prism.impl.lex.json.writer;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -18,32 +18,37 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLFactory;
 import com.evolveum.midpoint.prism.impl.lex.json.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class YamlWriter extends AbstractWriter {
+public class YamlWritingContext extends WritingContext<MidpointYAMLGenerator> {
 
-    public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
+    YamlWritingContext(@Nullable SerializationContext prismSerializationContext) {
+        super(prismSerializationContext);
+    }
+
+    MidpointYAMLGenerator createJacksonGenerator(StringWriter out) {
         try {
             MidpointYAMLFactory factory = new MidpointYAMLFactory();
             MidpointYAMLGenerator generator = (MidpointYAMLGenerator) factory.createGenerator(out);
             generator.setPrettyPrinter(new DefaultPrettyPrinter());
             generator.setCodec(configureMapperForSerialization());
             return generator;
-        } catch (IOException ex){
-            throw new SchemaException("Schema error during serializing to JSON.", ex);
+        } catch (IOException ex) {
+            throw new SystemException("Couldn't create Jackson generator for YAML: " + ex.getMessage(), ex);
         }
     }
 
-    private ObjectMapper configureMapperForSerialization(){
+    private ObjectMapper configureMapperForSerialization() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 //        mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS, As.EXISTING_PROPERTY);
@@ -79,12 +84,22 @@ public class YamlWriter extends AbstractWriter {
     }
 
     @Override
-    protected void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException {
-        ctx.generator.writeTypeId(QNameUtil.qNameToUri(typeName, false, '/'));
+    protected void writeInlineType(QName typeName) throws IOException {
+        generator.writeTypeId(QNameUtil.qNameToUri(typeName, false, '/'));
     }
 
     @Override
-    protected void resetInlineTypeIfPossible(JsonSerializationContext ctx) {
-        ((MidpointYAMLGenerator) ctx.generator).resetTypeId();                    // brutal hack
+    protected void resetInlineTypeIfPossible() {
+        generator.resetTypeId(); // brutal hack
+    }
+
+    @Override
+    boolean supportsMultipleDocuments() {
+        return true;
+    }
+
+    @Override
+    void newDocument() throws IOException {
+        generator.newDocument();
     }
 }
