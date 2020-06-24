@@ -1,32 +1,38 @@
-package com.myproject.mydomain;
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.repo.sql.metamodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.*;
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
-import com.querydsl.core.types.dsl.*;
-
-import com.querydsl.core.types.PathMetadata;
-import javax.annotation.Generated;
-import com.querydsl.core.types.Path;
-
-import com.querydsl.sql.ColumnMetadata;
 import java.sql.Types;
 
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.ColumnMetadata;
 
-
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.MAuditEventRecord;
 
 /**
- * QMAuditEvent is a Querydsl query type for QMAuditEvent
+ * Querydsl query type for M_AUDIT_EVENT table.
  */
-@Generated("com.querydsl.sql.codegen.MetaDataSerializer")
-public class QMAuditEvent extends com.querydsl.sql.RelationalPathBase<QMAuditEvent> {
+public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRecord> {
 
     private static final long serialVersionUID = -229589301;
 
-    public static final QMAuditEvent mAuditEvent = new QMAuditEvent("M_AUDIT_EVENT");
+    public static final QAuditEventRecord M_AUDIT_EVENT = new QAuditEventRecord("M_AUDIT_EVENT");
 
-    public final StringPath attorneyname = createString("attorneyname");
+    public final StringPath attorneyName = createString("attorneyname");
 
-    public final StringPath attorneyoid = createString("attorneyoid");
+    public final StringPath attorneyOid = createString("attorneyoid");
 
     public final StringPath channel = createString("channel");
 
@@ -80,46 +86,46 @@ public class QMAuditEvent extends com.querydsl.sql.RelationalPathBase<QMAuditEve
 
     public final DateTimePath<java.sql.Timestamp> timestampvalue = createDateTime("timestampvalue", java.sql.Timestamp.class);
 
-    public final com.querydsl.sql.PrimaryKey<QMAuditEvent> constraint85c = createPrimaryKey(id);
+    public final com.querydsl.sql.PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
 
     public final com.querydsl.sql.ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
 
     public final com.querydsl.sql.ForeignKey<QMAuditPropValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
 
-    public final com.querydsl.sql.ForeignKey<QMAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
+    public final com.querydsl.sql.ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
 
     public final com.querydsl.sql.ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
 
     public final com.querydsl.sql.ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
-    public QMAuditEvent(String variable) {
-        super(QMAuditEvent.class, forVariable(variable), "PUBLIC", "M_AUDIT_EVENT");
+    public QAuditEventRecord(String variable) {
+        super(MAuditEventRecord.class, forVariable(variable), "PUBLIC", "M_AUDIT_EVENT");
         addMetadata();
     }
 
-    public QMAuditEvent(String variable, String schema, String table) {
-        super(QMAuditEvent.class, forVariable(variable), schema, table);
+    public QAuditEventRecord(String variable, String schema, String table) {
+        super(MAuditEventRecord.class, forVariable(variable), schema, table);
         addMetadata();
     }
 
-    public QMAuditEvent(String variable, String schema) {
-        super(QMAuditEvent.class, forVariable(variable), schema, "M_AUDIT_EVENT");
+    public QAuditEventRecord(String variable, String schema) {
+        super(MAuditEventRecord.class, forVariable(variable), schema, "M_AUDIT_EVENT");
         addMetadata();
     }
 
-    public QMAuditEvent(Path<? extends QMAuditEvent> path) {
+    public QAuditEventRecord(Path<? extends MAuditEventRecord> path) {
         super(path.getType(), path.getMetadata(), "PUBLIC", "M_AUDIT_EVENT");
         addMetadata();
     }
 
-    public QMAuditEvent(PathMetadata metadata) {
-        super(QMAuditEvent.class, metadata, "PUBLIC", "M_AUDIT_EVENT");
+    public QAuditEventRecord(PathMetadata metadata) {
+        super(MAuditEventRecord.class, metadata, "PUBLIC", "M_AUDIT_EVENT");
         addMetadata();
     }
 
     public void addMetadata() {
-        addMetadata(attorneyname, ColumnMetadata.named("ATTORNEYNAME").withIndex(2).ofType(Types.VARCHAR).withSize(255));
-        addMetadata(attorneyoid, ColumnMetadata.named("ATTORNEYOID").withIndex(3).ofType(Types.VARCHAR).withSize(36));
+        addMetadata(attorneyName, ColumnMetadata.named("ATTORNEYNAME").withIndex(2).ofType(Types.VARCHAR).withSize(255));
+        addMetadata(attorneyOid, ColumnMetadata.named("ATTORNEYOID").withIndex(3).ofType(Types.VARCHAR).withSize(36));
         addMetadata(channel, ColumnMetadata.named("CHANNEL").withIndex(4).ofType(Types.VARCHAR).withSize(255));
         addMetadata(eventidentifier, ColumnMetadata.named("EVENTIDENTIFIER").withIndex(5).ofType(Types.VARCHAR).withSize(255));
         addMetadata(eventstage, ColumnMetadata.named("EVENTSTAGE").withIndex(6).ofType(Types.INTEGER).withSize(10));
@@ -147,6 +153,5 @@ public class QMAuditEvent extends com.querydsl.sql.RelationalPathBase<QMAuditEve
         addMetadata(taskoid, ColumnMetadata.named("TASKOID").withIndex(27).ofType(Types.VARCHAR).withSize(255));
         addMetadata(timestampvalue, ColumnMetadata.named("TIMESTAMPVALUE").withIndex(28).ofType(Types.TIMESTAMP).withSize(23).withDigits(10));
     }
-
 }
 

@@ -1,4 +1,10 @@
-package com.myproject.mydomain;
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.repo.sql.metamodel;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -30,7 +36,7 @@ public class QMAuditItem extends com.querydsl.sql.RelationalPathBase<QMAuditItem
 
     public final com.querydsl.sql.PrimaryKey<QMAuditItem> constraint1 = createPrimaryKey(changeditempath, recordId);
 
-    public final com.querydsl.sql.ForeignKey<QMAuditEvent> auditItemFk = createForeignKey(recordId, "ID");
+    public final com.querydsl.sql.ForeignKey<QAuditEventRecord> auditItemFk = createForeignKey(recordId, "ID");
 
     public QMAuditItem(String variable) {
         super(QMAuditItem.class, forVariable(variable), "PUBLIC", "M_AUDIT_ITEM");

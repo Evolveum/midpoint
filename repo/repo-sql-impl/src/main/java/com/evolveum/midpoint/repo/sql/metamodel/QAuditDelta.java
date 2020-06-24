@@ -1,28 +1,32 @@
-package com.myproject.mydomain;
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.repo.sql.metamodel;
 
-import static com.querydsl.core.types.PathMetadataFactory.*;
+import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
-import com.querydsl.core.types.dsl.*;
-
-import com.querydsl.core.types.PathMetadata;
-import javax.annotation.Generated;
-import com.querydsl.core.types.Path;
-
-import com.querydsl.sql.ColumnMetadata;
 import java.sql.Types;
 
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.NumberPath;
+import com.querydsl.core.types.dsl.SimplePath;
+import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.ForeignKey;
+import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
 
-
-/**
- * QMAuditDelta is a Querydsl query type for QMAuditDelta
- */
-@Generated("com.querydsl.sql.codegen.MetaDataSerializer")
-public class QMAuditDelta extends com.querydsl.sql.RelationalPathBase<QMAuditDelta> {
+public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
 
     private static final long serialVersionUID = -231012375;
 
-    public static final QMAuditDelta mAuditDelta = new QMAuditDelta("M_AUDIT_DELTA");
+    public static final QAuditDelta M_AUDIT_DELTA = new QAuditDelta("M_AUDIT_DELTA");
 
     public final StringPath checksum = createString("checksum");
 
@@ -48,32 +52,32 @@ public class QMAuditDelta extends com.querydsl.sql.RelationalPathBase<QMAuditDel
 
     public final NumberPath<Integer> status = createNumber("status", Integer.class);
 
-    public final com.querydsl.sql.PrimaryKey<QMAuditDelta> constraint85 = createPrimaryKey(checksum, recordId);
+    public final PrimaryKey<MAuditDelta> constraint85 = createPrimaryKey(checksum, recordId);
 
-    public final com.querydsl.sql.ForeignKey<QMAuditEvent> auditDeltaFk = createForeignKey(recordId, "ID");
+    public final ForeignKey<QAuditEventRecord> auditDeltaFk = createForeignKey(recordId, "ID");
 
-    public QMAuditDelta(String variable) {
-        super(QMAuditDelta.class, forVariable(variable), "PUBLIC", "M_AUDIT_DELTA");
+    public QAuditDelta(String variable) {
+        super(MAuditDelta.class, forVariable(variable), "PUBLIC", "M_AUDIT_DELTA");
         addMetadata();
     }
 
-    public QMAuditDelta(String variable, String schema, String table) {
-        super(QMAuditDelta.class, forVariable(variable), schema, table);
+    public QAuditDelta(String variable, String schema, String table) {
+        super(MAuditDelta.class, forVariable(variable), schema, table);
         addMetadata();
     }
 
-    public QMAuditDelta(String variable, String schema) {
-        super(QMAuditDelta.class, forVariable(variable), schema, "M_AUDIT_DELTA");
+    public QAuditDelta(String variable, String schema) {
+        super(MAuditDelta.class, forVariable(variable), schema, "M_AUDIT_DELTA");
         addMetadata();
     }
 
-    public QMAuditDelta(Path<? extends QMAuditDelta> path) {
+    public QAuditDelta(Path<? extends MAuditDelta> path) {
         super(path.getType(), path.getMetadata(), "PUBLIC", "M_AUDIT_DELTA");
         addMetadata();
     }
 
-    public QMAuditDelta(PathMetadata metadata) {
-        super(QMAuditDelta.class, metadata, "PUBLIC", "M_AUDIT_DELTA");
+    public QAuditDelta(PathMetadata metadata) {
+        super(MAuditDelta.class, metadata, "PUBLIC", "M_AUDIT_DELTA");
         addMetadata();
     }
 
