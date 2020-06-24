@@ -18,7 +18,7 @@ public enum RAuditEventStage {
 
     EXECUTION(AuditEventStage.EXECUTION);
 
-    private AuditEventStage stage;
+    private final AuditEventStage stage;
 
     RAuditEventStage(AuditEventStage stage) {
         this.stage = stage;
