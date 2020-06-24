@@ -10,9 +10,14 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+import com.google.common.base.Joiner;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
-import com.querydsl.sql.RelationalPathBase;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.QMap;
+import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SQLTemplates;
@@ -33,7 +38,46 @@ public class SqlGeneration {
         exporter.export(conn.getMetaData());
          */
 
-        examples();
+        SQLQueryFactory queryFactory = new SQLQueryFactory(
+                SQLTemplates.DEFAULT, () -> getConnection());
+
+        QMap auditDelta = Projections.map(M_AUDIT_DELTA.all());
+        List<Tuple> result = queryFactory
+                // this way we don't use M-beans, which is more flexible, and still get close to "select whole entity A+B"
+//                .select(expand(M_AUDIT_EVENT.id, M_AUDIT_DELTA))
+
+                // This is also interesting, we instruct to create map for auditDelta paths.
+                // .all() above is necessary, otherwise the map contains only one M-bean, which we want to avoid
+                // Also, we want to extract this expression as variable, so we can use it later, e.g. to get from a tuple, or mapOneToMany processing, etc.
+                .select(M_AUDIT_EVENT.id, auditDelta)
+                .from(M_AUDIT_EVENT)
+                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+                .fetch();
+        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
+                mapOneToMany(result, M_AUDIT_EVENT.id, auditDelta);
+
+        System.out.println("result = " + Joiner.on("\n").withKeyValueSeparator(" = ").join(mapResult));
+        System.out.println(mapResult.size());
+    }
+
+    /**
+     * Expand the list of paths (provided as vararg) so that each {@link RelationalPath}
+     * is represented by all its columns.
+     * This generates expression array that results in the query of tuples which does not
+     * require any backing beans.
+     *
+     * TODO: maybe we want to convert them to QMap or a tuple?
+     */
+    private static Expression<?>[] expand(Path<?>... paths) {
+        List<Expression<?>> pathsCombined = new ArrayList<>();
+        for (Path<?> path : paths) {
+            if (path instanceof RelationalPath) {
+                pathsCombined.addAll(((RelationalPath<?>) path).getColumns());
+            } else {
+                pathsCombined.add(path);
+            }
+        }
+        return pathsCombined.toArray(new Expression<?>[0]);
     }
 
     private static void examples() {
@@ -44,8 +88,8 @@ public class SqlGeneration {
         System.out.println("\nInverse FKs: " + M_AUDIT_EVENT.getInverseForeignKeys());
         System.out.println();
 
-        SQLQueryFactory queryFactory = new SQLQueryFactory(SQLTemplates.DEFAULT, () ->
-                getConnection());
+        SQLQueryFactory queryFactory = new SQLQueryFactory(
+                SQLTemplates.DEFAULT, () -> getConnection());
 
         System.out.println("audit size = " + queryFactory.selectFrom(M_AUDIT_EVENT).fetchCount());
 
@@ -60,7 +104,7 @@ public class SqlGeneration {
 //                .orderBy(M_AUDIT_EVENT.id.asc())
                 .from(M_AUDIT_EVENT, M_AUDIT_DELTA)
                 .where(M_AUDIT_EVENT.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
-                .where(M_AUDIT_EVENT.id.eq(452L));
+                .where(M_AUDIT_EVENT.id.eq(452L)); // "Works on my computer! :-)"
 
         List<Tuple> result = query.fetch();
         System.out.println("result = " + result);
@@ -91,7 +135,11 @@ public class SqlGeneration {
      * Resolves one-to-many relations between two paths from the {@link Tuple}-based result.
      * Returns map with "one" entities as keys (preserving original order) and related "many"
      * entities as a collection in the value for each key.
-     * Optional accumulator can call further processing on both objects for each "many" item.
+     * <p>
+     * Optional accumulator can call further processing on both objects for each "many" item
+     * with "one" being internalized to the actual key in the resulting map.
+     * This solves the problem when the same entity is represented by different instances.
+     * Without this it wouldn't be possible to accumulate "many" in the collection owned by "one".
      * <p>
      * Note that proper equals/hashCode must be implemented for {@code <O>} type.
      *
@@ -99,14 +147,15 @@ public class SqlGeneration {
      * @param onePath path expression designating "one" role of the relationship
      * @param manyPath path expression designating "many" role of the relationship
      * @param manyAccumulator optional, called for each row with respective "one" and "many" items
+     * (always the same "one" instance is used for the group matching one key, see details above)
      * @param <O> type of "one" role
      * @param <M> type of "many" role
      * @return map of one->[many*] with keys in the original iterating order
      */
     private static <O, M> Map<O, Collection<M>> mapOneToMany(
             Collection<Tuple> rawResult,
-            RelationalPathBase<O> onePath,
-            RelationalPathBase<M> manyPath,
+            Expression<O> onePath,
+            Expression<M> manyPath,
             @Nullable BiConsumer<O, M> manyAccumulator) {
 
         Map<O, O> canonicalKey = new HashMap<>();
@@ -126,6 +175,17 @@ public class SqlGeneration {
             }
         }
         return result;
+    }
+
+    /**
+     * Like {@link #mapOneToMany(Collection, Expression, Expression, BiConsumer)},
+     * just without any consumer for additional processing.
+     */
+    private static <O, M> Map<O, Collection<M>> mapOneToMany(
+            Collection<Tuple> rawResult,
+            Expression<O> onePath,
+            Expression<M> manyPath) {
+        return mapOneToMany(rawResult, onePath, manyPath, null);
     }
 
     private static Connection getConnection() {

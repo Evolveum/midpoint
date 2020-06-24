@@ -102,4 +102,3 @@ public class MAuditEventRecord {
         return Objects.hash(id);
     }
 }
-
