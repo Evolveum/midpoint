@@ -2,6 +2,8 @@
 user:
   oid: "f6ba0f28-8875-4b41-9915-1277ed561d11"
   version: 42
+  "@metadata":
+    test: abc
   name:
     "@value": alice
     "@metadata":

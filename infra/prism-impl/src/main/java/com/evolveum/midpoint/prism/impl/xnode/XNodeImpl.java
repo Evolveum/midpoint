@@ -248,4 +248,12 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
             DebugUtil.debugDumpWithLabel(sb, "metadata", metadata, indent);
         }
     }
+
+    boolean metadataEquals(MapXNode metadata1, MapXNode metadata2) {
+        if (metadata1 == null) {
+            return metadata2 == null;
+        } else {
+            return metadata1.equals(metadata2);
+        }
+    }
 }

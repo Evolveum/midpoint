@@ -328,18 +328,23 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
         }
 
         PrimitiveXNodeImpl other = (PrimitiveXNodeImpl) obj;
-        if (other.isParsed() && isParsed()){
+
+        if (!metadataEquals(this.metadata, other.metadata)) {
+            return false;
+        }
+
+        if (other.isParsed() && isParsed()) {
             return value.equals(other.value);
-        } else if (!other.isParsed() && !isParsed()){
+        } else if (!other.isParsed() && !isParsed()) {
             // TODO consider problem with namespaces (if string value is QName/ItemPath its meaning can depend on namespace declarations that are placed outside the element)
             String thisStringVal = this.getStringValue();
             String otherStringVal = other.getStringValue();
             return Objects.equals(thisStringVal, otherStringVal);
-        } else if (other.isParsed() && !isParsed()){
+        } else if (other.isParsed() && !isParsed()) {
             String thisStringValue = this.getStringValue();
             String otherStringValue = String.valueOf(other.value);
             return Objects.equals(otherStringValue, thisStringValue);
-        } else if (!other.isParsed() && isParsed()){
+        } else if (!other.isParsed() && isParsed()) {
             String thisStringValue = String.valueOf(value);
             String otherStringValue = other.getStringValue();
             return Objects.equals(thisStringValue, otherStringValue);

@@ -247,7 +247,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             return false;
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
-        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet());
+        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet()) &&
+                metadataEquals(this.metadata, other.metadata);
     }
 
     public int hashCode() {

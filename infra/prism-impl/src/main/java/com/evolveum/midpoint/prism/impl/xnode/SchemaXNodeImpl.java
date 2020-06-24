@@ -71,6 +71,10 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
         SchemaXNodeImpl that = (SchemaXNodeImpl) o;
 
+        if (!metadataEquals(metadata, that.metadata)) {
+            return false;
+        }
+
         if (schemaElement == null) {
             return that.schemaElement == null;
         }

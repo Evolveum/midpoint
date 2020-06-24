@@ -1,6 +1,9 @@
 {
   "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
   "user" : {
+    "@metadata" : {
+      "test" : "abc"
+    },
     "oid" : "f6ba0f28-8875-4b41-9915-1277ed561d11",
     "version" : "42",
     "name" : {

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.impl.lex.json.Constants;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -63,11 +65,11 @@ class DocumentWriter {
     private void write(XNodeImpl xnode, boolean wrappingValue) throws IOException {
         if (xnode == null) {
             writeNull();
+        } else if (xnode instanceof MapXNodeImpl) {
+            writeMap((MapXNodeImpl) xnode);
         } else if (!wrappingValue && needsValueWrapping(xnode)) {
             writeWithValueWrapped(xnode);
-        } else if (xnode instanceof MapXNodeImpl) {
-            writeMap((MapXNodeImpl) xnode, wrappingValue);
-        } else  if (xnode instanceof ListXNodeImpl) {
+        } else if (xnode instanceof ListXNodeImpl) {
             writeList((ListXNodeImpl) xnode);
         } else if (xnode instanceof PrimitiveXNodeImpl) {
             writePrimitive((PrimitiveXNodeImpl<?>) xnode);
@@ -82,7 +84,8 @@ class DocumentWriter {
 
     private boolean needsValueWrapping(XNodeImpl xnode) {
         return xnode.getElementName() != null
-                || getExplicitType(xnode) != null && !ctx.supportsInlineTypes();
+                || getExplicitType(xnode) != null && !ctx.supportsInlineTypes()
+                || xnode.hasMetadata();
     }
 
     private void writeNull() throws IOException {
@@ -90,25 +93,24 @@ class DocumentWriter {
     }
 
     private void writeWithValueWrapped(XNodeImpl xnode) throws IOException {
+        assert !(xnode instanceof MapXNode);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
         writeElementAndTypeIfNeeded(xnode);
         generator.writeFieldName(Constants.PROP_VALUE);
         write(xnode, true);
+        writeMetadataIfNeeded(xnode);
         generator.writeEndObject();
     }
 
-    private void writeMap(MapXNodeImpl map, boolean wrappingValue) throws IOException {
+    private void writeMap(MapXNodeImpl map) throws IOException {
         writeInlineTypeIfNeeded(map);
         generator.writeStartObject();
         ctx.resetInlineTypeIfPossible();
         String oldDefaultNamespace = currentNamespace;
         writeNsDeclarationIfNeeded(map);
-        if (!wrappingValue) {
-            writeElementAndTypeIfNeeded(map);
-        } else {
-            // these were already written
-        }
+        writeElementAndTypeIfNeeded(map);
+        writeMetadataIfNeeded(map);
         for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
             if (entry.getValue() != null) {
                 generator.writeFieldName(createKeyUri(entry));
@@ -161,6 +163,16 @@ class DocumentWriter {
         if (typeName != null) {
             if (!ctx.supportsInlineTypes()) {
                 generator.writeObjectField(Constants.PROP_TYPE, typeName);
+            }
+        }
+    }
+
+    private void writeMetadataIfNeeded(XNodeImpl xnode) throws IOException {
+        if (xnode instanceof MetadataAware) {
+            MapXNode metadataNode = ((MetadataAware) xnode).getMetadataNode();
+            if (metadataNode != null) {
+                generator.writeFieldName(Constants.PROP_METADATA);
+                writeMap((MapXNodeImpl) metadataNode);
             }
         }
     }
