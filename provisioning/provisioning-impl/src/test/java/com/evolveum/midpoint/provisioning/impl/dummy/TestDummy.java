@@ -1819,7 +1819,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test172SearchShipNull() throws Exception {
         testSeachIterativeSingleAttrFilter(
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null, null, true,
-                "daemon", "Will");
+                "daemon");
     }
 
     @Test
