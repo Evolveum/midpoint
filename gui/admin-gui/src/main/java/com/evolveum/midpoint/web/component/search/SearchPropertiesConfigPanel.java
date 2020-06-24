@@ -15,6 +15,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -38,7 +40,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -222,13 +223,15 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
+                List<ValueSearchFilterItem.FilterName> availableFilterNames = rowModel.getObject().getValue().getAvailableFilterNameList();
                 DropDownChoicePanel<ValueSearchFilterItem.FilterName> filterPanel = WebComponentUtil.createEnumPanel(id,
-                        Model.ofList(Arrays.asList(ValueSearchFilterItem.FilterName.values())),
-                        new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_FILTER_NAME),
+                        Model.ofList(availableFilterNames),
+                        new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_FILTER_TYPE_NAME),
                         SearchPropertiesConfigPanel.this, false,
                         getPageBase().createStringResource("SearchPropertiesConfigPanel.selectFilter").getString());
                 filterPanel.setOutputMarkupId(true);
                 filterPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                filterPanel.getBaseFormComponent().add(new EnableBehaviour(() -> availableFilterNames.size() > 1));
                 item.add(filterPanel);
             }
         };
@@ -279,7 +282,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private boolean isPropertyAlreadyAdded(ItemDefinition def){
         List<SelectableBean<ValueSearchFilterItem>> properties = provider.getAvailableData();
         for (SelectableBean<ValueSearchFilterItem> prop : properties){
-            if (QNameUtil.match(prop.getValue().getElementName(), def.getItemName())){
+            if (QNameUtil.match(prop.getValue().getPropertyPath(), def.getItemName())){
                 return true;
             }
         }
@@ -317,19 +320,6 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         if (property == null){
             return null;
         }
-//        ObjectFilter newFilter;
-//        if (property.getDefinition() instanceof PrismReferenceDefinition){
-//            PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) property.getDefinition();
-//            newFilter = getPageBase().getPrismContext().queryFor(getType())
-//                    .item(property.getDefinition().getItemName())
-//                    .ref("", refDefinition.getTargetTypeName() != null ? refDefinition.getTargetTypeName() : ObjectType.COMPLEX_TYPE)
-//                    .buildFilter();
-//        } else {
-//            newFilter = getPageBase().getPrismContext().queryFor(getType())
-//                    .item(property.getDefinition().getItemName())
-//                    .isNull()
-//                    .buildFilter();
-//        }
         return new ValueSearchFilterItem(property, false);
     }
 

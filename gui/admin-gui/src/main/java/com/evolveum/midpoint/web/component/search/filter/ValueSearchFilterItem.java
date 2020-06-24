@@ -7,17 +7,16 @@
 package com.evolveum.midpoint.web.component.search.filter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections.CollectionUtils;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_ConditionEntry;
 import com.evolveum.midpoint.web.component.search.Property;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -30,7 +29,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
 
     private static final long serialVersionUID = 1L;
     public static final String F_VALUE = "value";
-    public static final String F_FILTER_NAME = "filterName";
+    public static final String F_FILTER_TYPE_NAME = "filterTypeName";
     public static final String F_APPLY_NEGATION = "applyNegation";
     public static final String F_FILTER = "filter";
     public static final String F_MATCHING_RULE = "matchingRule";
@@ -38,25 +37,48 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public static final String F_PROPERTY_PATH = "propertyPath";
 
     public enum FilterName {
-        EQUAL("EQUAL"),
-        GREATER_OR_EQUAL("GREATER-OR-EQUAL"),
-        GREATER("GREATER"),
-        LESS_OR_EQUAL("LESS-OR-EQUAL"),
-        LESS("LESS"),
-        REF("REF"),
-        SUBSTRING("SUBSTRING"),
-        SUBSTRING_ANCHOR_START("SUBSTRING_ANCHOR_START"),
-        SUBSTRING_ANCHOR_END("SUBSTRING_ANCHOR_END");
+        EQUAL(EqualFilter.class),
+        GREATER_OR_EQUAL(GreaterFilter.class),
+        GREATER(GreaterFilter.class),
+        LESS_OR_EQUAL(LessFilter.class),
+        LESS(LessFilter.class),
+        REF(RefFilter.class),
+        SUBSTRING(SubstringFilter.class),
+        SUBSTRING_ANCHOR_START(SubstringFilter.class),
+        SUBSTRING_ANCHOR_END(SubstringFilter.class);
 //        SUBSTRING_ANCHOR_START_AND_END("SUBSTRING_ANCHOR_START_AND_END"); //seems repeats usual substring
 
-        private String filterName;
+        private Class<? extends ValueFilter> filterType;
 
-        FilterName(String filterName) {
-            this.filterName = filterName;
+        FilterName(Class<? extends ValueFilter> filterType) {
+            this.filterType = filterType;
         }
 
-        public String getFilterName() {
-            return filterName;
+        public Class<? extends ValueFilter> getFilterType() {
+            return filterType;
+        }
+
+        public static <F extends ValueFilter> FilterName findFilterName(F filter) {
+            if (filter instanceof LessFilter && ((LessFilter) filter).isEquals()) {
+                return FilterName.LESS_OR_EQUAL;
+            } else if (filter instanceof GreaterFilter && ((GreaterFilter) filter).isEquals()) {
+                return FilterName.GREATER_OR_EQUAL;
+            } else if (filter instanceof SubstringFilter && ((SubstringFilter) filter).isAnchorStart() && !((SubstringFilter) filter).isAnchorEnd()) {
+                return FilterName.SUBSTRING_ANCHOR_START;
+            } else if (filter instanceof SubstringFilter && ((SubstringFilter) filter).isAnchorEnd() && !((SubstringFilter) filter).isAnchorStart()) {
+                return FilterName.SUBSTRING_ANCHOR_END;
+            } else{
+                return findFilterName(filter.getClass());
+            }
+        }
+
+        public static FilterName findFilterName(Class<? extends ValueFilter> filterType){
+            for (FilterName filterName : values()){
+                if (filterName.getFilterType().equals(filterType.getInterfaces()[0])){
+                    return filterName;
+                }
+            }
+            return null;
         }
     }
 
@@ -83,24 +105,22 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     }
 
     private boolean applyNegation;
-    private ObjectFilter filter;
-    private FilterName filterName = FilterName.EQUAL;
+    private ValueFilter<V, D> filter;
+    private FilterName filterTypeName = FilterName.EQUAL;
     private MatchingRule matchingRule = null;
     private String propertyName;
     private QName propertyPath;
     private Object value;
     ItemDefinition propertyDef;
 
-    public ValueSearchFilterItem(ObjectFilter filter, boolean applyNegation) {
+    public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
-        if (filter instanceof ValueFilter) {
-            propertyName = ((ValueFilter) filter).getElementName().toString();
-            propertyPath = ((ValueFilter) filter).getElementName();
-            propertyDef = ((ValueFilter) filter).getDefinition();
-            value = CollectionUtils.isNotEmpty(((ValueFilter) filter).getValues()) ?
-                    ((ValueFilter) filter).getValues().get(0) : null;
-        }
+        propertyName = filter.getElementName().toString();
+        propertyPath = filter.getElementName();
+        propertyDef = filter.getDefinition();
+        value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
+        parseFilterName();
     }
 
     public ValueSearchFilterItem(Property property, boolean applyNegation) {
@@ -108,6 +128,10 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         propertyPath = property.getDefinition().getItemName();
         propertyDef = property.getDefinition();
         this.applyNegation = applyNegation;
+        if (propertyDef instanceof PrismReferenceDefinition){
+            value = new ObjectReferenceType();
+        }
+        parseFilterName();
     }
 
     public boolean isApplyNegation() {
@@ -118,11 +142,11 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.applyNegation = applyNegation;
     }
 
-    public ObjectFilter getFilter() {
+    public ValueFilter getFilter() {
         return filter;
     }
 
-    public void setFilter(ObjectFilter filter) {
+    public void setFilter(ValueFilter filter) {
         this.filter = filter;
     }
 
@@ -134,12 +158,12 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         return null;
     }
 
-    public FilterName getFilterName() {
-        return filterName;
+    public FilterName getFilterTypeName() {
+        return filterTypeName;
     }
 
-    public void setFilterName(FilterName filterName) {
-        this.filterName = filterName;
+    public void setFilterTypeName(FilterName filterTypeName) {
+        this.filterTypeName = filterTypeName;
     }
 
     public MatchingRule getMatchingRule() {
@@ -148,9 +172,6 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
 
     public void setMatchingRule(MatchingRule matchingRule) {
         this.matchingRule = matchingRule;
-        if (filter instanceof ValueFilter){
-            ((ValueFilter) filter).setMatchingRule(matchingRule.getMatchingRuleName());
-        }
     }
 
     public String getPropertyName() {
@@ -181,40 +202,77 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.propertyDef = propertyDef;
     }
 
-    public QName getElementName(){
-        if (filter instanceof ValueFilter) {
-            return ((ValueFilter) filter).getElementName();
-        }
-        return null;
-    }
-
     public ObjectFilter buildFilter(PrismContext prismContext, Class<O> type){
         S_ConditionEntry conditionEntry = prismContext.queryFor(type).item(propertyPath);
         ObjectFilter builtFilter = null;
-        if (FilterName.EQUAL.equals(filterName)) {
+        if (FilterName.EQUAL.equals(filterTypeName)) {
             builtFilter = conditionEntry.eq(value).buildFilter();
-        } else if (FilterName.GREATER.equals(filterName)) {
+        } else if (FilterName.GREATER.equals(filterTypeName)) {
             builtFilter = conditionEntry.gt(value).buildFilter();
-        } else if (FilterName.GREATER_OR_EQUAL.equals(filterName)) {
+        } else if (FilterName.GREATER_OR_EQUAL.equals(filterTypeName)) {
             builtFilter = conditionEntry.ge(value).buildFilter();
-        } else if (FilterName.LESS.equals(filterName)) {
+        } else if (FilterName.LESS.equals(filterTypeName)) {
             builtFilter = conditionEntry.lt(value).buildFilter();
-        } else if (FilterName.LESS_OR_EQUAL.equals(filterName)) {
+        } else if (FilterName.LESS_OR_EQUAL.equals(filterTypeName)) {
             builtFilter = conditionEntry.le(value).buildFilter();
-        } else if (FilterName.REF.equals(filterName) && value != null) {
-            ObjectReferenceType refVal = (ObjectReferenceType) value;
+        } else if (FilterName.REF.equals(filterTypeName) && value != null) {
+            PrismReferenceValue refVal = (PrismReferenceValue) value;
             //todo do we need to separately create refType and refRelation ?
 //            if (StringUtils.isNotEmpty(refVal.getOid())){
 //
 //            }
-            builtFilter = conditionEntry.ref(refVal.asReferenceValue()).buildFilter();
-        } else if (FilterName.SUBSTRING.equals(filterName)) {
+            if (refVal.getParent() instanceof RefFilter){
+                builtFilter = (RefFilter) refVal.getParent();
+            } else {
+                builtFilter = conditionEntry.ref(refVal).buildFilter();
+            }
+        } else if (FilterName.SUBSTRING.equals(filterTypeName)) {
             builtFilter = conditionEntry.contains(value).buildFilter();
-        } else if (FilterName.SUBSTRING_ANCHOR_START.equals(filterName)) {
+        } else if (FilterName.SUBSTRING_ANCHOR_START.equals(filterTypeName)) {
             builtFilter = conditionEntry.startsWith(value).buildFilter();
-        } else if (FilterName.SUBSTRING_ANCHOR_END.equals(filterName)) {
+        } else if (FilterName.SUBSTRING_ANCHOR_END.equals(filterTypeName)) {
             builtFilter = conditionEntry.endsWith(value).buildFilter();
         }
+        if (builtFilter instanceof ValueFilter && matchingRule != null){
+            ((ValueFilter) builtFilter).setMatchingRule(matchingRule.getMatchingRuleName());
+        }
+        if (isApplyNegation()){
+            builtFilter = prismContext.queryFactory().createNot(builtFilter);
+        }
         return builtFilter != null ? builtFilter : prismContext.queryFor(type).buildFilter();
+    }
+
+    private void parseFilterName (){
+        if (propertyDef instanceof PrismReferenceDefinition){
+            filterTypeName = FilterName.REF;
+        } else if (filter != null) {
+            filterTypeName = FilterName.findFilterName(filter);
+        }
+    }
+
+    public List<FilterName> getAvailableFilterNameList(){
+        if (propertyDef == null){
+            return Arrays.asList(FilterName.values());
+        }
+        if (propertyDef instanceof PrismReferenceDefinition){
+            return Collections.singletonList(FilterName.REF);
+        } else {
+            List<FilterName> filterNames = new ArrayList<>();
+            for (FilterName val : FilterName.values()) {
+                if (!FilterName.REF.equals(val)){
+                    filterNames.add(val);
+                }
+            }
+            return filterNames;
+        }
+    }
+
+    public List<MatchingRule> getAvailableMatchingRuleList(){
+        List<MatchingRule> matchingRules = Arrays.asList(MatchingRule.values());
+        if (propertyDef == null){
+            return matchingRules;
+        }
+        //todo
+        return matchingRules;
     }
 }

@@ -51,6 +51,8 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     }
 
     private void initLayout(){
+        setOutputMarkupId(true);
+
         TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD, Model.of(getReferenceTextModel()));
         referenceTextValueField.setOutputMarkupId(true);
         add(referenceTextValueField);
@@ -92,6 +94,7 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
 
                     @Override
                     protected void confirmPerformed(AjaxRequestTarget target) {
+                        target.add(ReferenceValueSearchPanel.this);
                     }
                 };
         value.setRenderBodyOnly(true);
