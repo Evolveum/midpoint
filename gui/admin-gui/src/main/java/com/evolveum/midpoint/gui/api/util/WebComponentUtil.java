@@ -4396,6 +4396,20 @@ public final class WebComponentUtil {
         return null;
     }
 
+    public static <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition, PageBase page) {
+        PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
+        if (valueEnumerationRef == null) {
+            return null;
+        }
+
+        String lookupTableUid = valueEnumerationRef.getOid();
+        Task task = page.createSimpleTask("loadLookupTable");
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(page.getSchemaHelper());
+        return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
+    }
+
     public static <AH extends AssignmentHolderType> boolean hasAnyArchetypeAssignemnt(AH assignmentHolder) {
         if (assignmentHolder.getAssignment() == null) {
             return false;

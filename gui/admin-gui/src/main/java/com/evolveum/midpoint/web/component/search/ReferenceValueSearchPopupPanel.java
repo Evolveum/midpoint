@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<DisplayableValue<ObjectReferenceType>> {
+public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,11 +43,8 @@ public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<Display
     private static final String ID_RELATION = "relation";
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
-//    private List<QName> allowedRelations;
-
-    public ReferencePopupPanel(String id, IModel<DisplayableValue<ObjectReferenceType>> model) {
+    public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
-//        this.allowedRelations = allowedRelations;
     }
 
     @Override
@@ -58,7 +55,7 @@ public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<Display
 
     private void initLayout() {
 
-        TextField<String> oidField = new TextField<String>(ID_OID, new PropertyModel<>(getModel(), SearchValue.F_VALUE + ".oid"));
+        TextField<String> oidField = new TextField<String>(ID_OID, new PropertyModel<>(getModel(), "oid"));
 
         oidField.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -73,23 +70,7 @@ public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<Display
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(oidField);
 
-        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, new IModel<ObjectReferenceType>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public ObjectReferenceType getObject() {
-                return getModelObject().getValue();
-            }
-
-            @Override
-            public void setObject(ObjectReferenceType ref) {
-                if (ref == null){
-                    return;
-                }
-                getModelObject().getValue().setOid(ref.getOid());
-                getModelObject().getValue().setType(ref.getType());
-            }
-        },
+        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
                 new AutoCompleteReferenceRenderer(),
                 getPageBase()){
 
@@ -106,20 +87,20 @@ public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<Display
 
         };
 
-        nameField.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-
-            }
-        });
+//        nameField.add(new AjaxFormComponentUpdatingBehavior("blur") {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//
+//            }
+//        });
         nameField.setOutputMarkupId(true);
         nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(nameField);
 
-        DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".type"),
+        DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), "type"),
                 getSupportedTargetList(), new QNameObjectTypeChoiceRenderer());
         type.setNullValid(true);
         type.setOutputMarkupId(true);
@@ -135,15 +116,15 @@ public class ReferencePopupPanel<O extends ObjectType> extends BasePanel<Display
         type.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(type);
 
-        if (getModelObject() != null && getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
-            getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
+        if (getModelObject() != null && getModelObject().getRelation() == null){
+            getModelObject().setRelation(PrismConstants.Q_ANY);
         }
         List<QName> allowedRelations = new ArrayList<QName>();
         allowedRelations.addAll(getAllowedRelations());
         if (!allowedRelations.contains(PrismConstants.Q_ANY)) {
             allowedRelations.add(0, PrismConstants.Q_ANY);
         }
-        DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".relation"),
+        DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), "relation"),
                 allowedRelations, new QNameObjectTypeChoiceRenderer());
 //        relation.setNullValid(true);
         relation.setOutputMarkupId(true);

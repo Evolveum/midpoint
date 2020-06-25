@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.search.filter.SearchFilter;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -20,19 +24,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * @author Kateryna Honchar
  */
-public abstract class AbstractSearchConfigurationPanel extends BasePanel<Search> {
+public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O extends ObjectType> extends BasePanel<F> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOG = TraceManager.getTrace(AbstractSearchConfigurationPanel.class);
 
     protected static final String ID_CONFIGURATION_PANEL = "configurationPanel";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
-    private static final String ID_APPLY_FILTER_BUTTON = "applyFilterButton";
-    private static final String ID_SAVE_FILTER_BUTTON = "saveFilterButton";
+    private static final String ID_OK_BUTTON = "okButton";
+//    private static final String ID_APPLY_FILTER_BUTTON = "applyFilterButton";
+//    private static final String ID_SAVE_FILTER_BUTTON = "saveFilterButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    public AbstractSearchConfigurationPanel(String id, IModel<Search> searchModel) {
+    private Class<O> type;
+
+    public AbstractSearchConfigurationPanel(String id, IModel<F> searchModel, Class<O> type) {
         super(id, searchModel);
+        this.type = type;
     }
 
     @Override
@@ -56,27 +64,38 @@ public abstract class AbstractSearchConfigurationPanel extends BasePanel<Search>
         buttonsPanel.setOutputMarkupId(true);
         add(buttonsPanel);
 
-        AjaxButton applyFilterButton = new AjaxButton(ID_APPLY_FILTER_BUTTON, createStringResource("SearchPropertiesConfigPanel.applyFilterButton")) {
+        AjaxButton applyFilterButton = new AjaxButton(ID_OK_BUTTON, createStringResource("Button.ok")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                //todo
+                okButtonClicked(ajaxRequestTarget);
             }
         };
         applyFilterButton.setOutputMarkupId(true);
         buttonsPanel.add(applyFilterButton);
 
-        AjaxButton saveFilterButton = new AjaxButton(ID_SAVE_FILTER_BUTTON, createStringResource("SearchPropertiesConfigPanel.saveFilterButton")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                //todo
-            }
-        };
-        saveFilterButton.setOutputMarkupId(true);
-        buttonsPanel.add(saveFilterButton);
+//        AjaxButton applyFilterButton = new AjaxButton(ID_APPLY_FILTER_BUTTON, createStringResource("SearchPropertiesConfigPanel.applyFilterButton")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                //todo
+//            }
+//        };
+//        applyFilterButton.setOutputMarkupId(true);
+//        buttonsPanel.add(applyFilterButton);
+//
+//        AjaxButton saveFilterButton = new AjaxButton(ID_SAVE_FILTER_BUTTON, createStringResource("SearchPropertiesConfigPanel.saveFilterButton")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                //todo
+//            }
+//        };
+//        saveFilterButton.setOutputMarkupId(true);
+//        buttonsPanel.add(saveFilterButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("SearchPropertiesConfigPanel.cancelButton")) {
             private static final long serialVersionUID = 1L;
@@ -92,6 +111,11 @@ public abstract class AbstractSearchConfigurationPanel extends BasePanel<Search>
 
     protected abstract void initConfigurationPanel(WebMarkupContainer configPanel);
 
-    @NotNull
-    protected abstract <O extends ObjectType> Class<O> getObjectClass();
+    protected void okButtonClicked(AjaxRequestTarget target){
+
+    }
+
+    public Class<O> getType() {
+        return type;
+    }
 }

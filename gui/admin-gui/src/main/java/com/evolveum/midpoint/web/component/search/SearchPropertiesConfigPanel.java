@@ -8,8 +8,10 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,9 +28,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -36,39 +43,45 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
+import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author Kateryna Honchar
  */
-public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigurationPanel implements Popupable {
+public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractSearchConfigurationPanel<BasicSearchFilter<O>, O> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_PROPERTY_CONFIG_CONTAINER = "propertyConfigContainer";
     private static final String ID_PROPERTY_CHOICE = "propertyChoice";
-    private static final String ID_PROPERTY_VALUE = "propertyValue";
-    private static final String ID_FILTER = "filter";
-    private static final String ID_MATCHING_RULE = "matchingRule";
-    private static final String ID_NEGATION = "negation";
     private static final String ID_PROPERTIES_TABLE = "propertiesTable";
     private static final String ID_ADD_BUTTON = "addButton";
 
-    IModel<Property> propertyChoiceModel = Model.of();
+    private SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider;
 
-    public SearchPropertiesConfigPanel(String id, IModel<Search> searchModel) {
-        super(id, searchModel);
+    public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, Class<O> type) {
+        super(id, searchModel, type);
     }
 
     @Override
     protected void initConfigurationPanel(WebMarkupContainer configPanel) {
+        provider =
+                new SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem>(getPageBase(), getSearchFilterItemModel());
+
         WebMarkupContainer propertyConfigContainer = new WebMarkupContainer(ID_PROPERTY_CONFIG_CONTAINER);
         propertyConfigContainer.setOutputMarkupId(true);
         configPanel.add(propertyConfigContainer);
 
         DropDownChoicePanel<Property> propertyChoicePanel = new DropDownChoicePanel<Property>(ID_PROPERTY_CHOICE,
-                propertyChoiceModel, Model.ofList(getAvailablePropertiesList()), new IChoiceRenderer<Property>() {
+                Model.of(getDefaultPropertyChoice()), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -98,26 +111,6 @@ public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigur
         propertyChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         propertyConfigContainer.add(propertyChoicePanel);
 
-//        TextPanel valuePanel = new TextPanel(ID_PROPERTY_VALUE, Model.of());
-//        valuePanel.setOutputMarkupId(true);
-//        propertyConfigContainer.add(valuePanel);
-//
-//        DropDownChoicePanel<SearchConfigDto.FilterType> filterChoice = WebComponentUtil.createEnumPanel(ID_FILTER,
-//                Model.ofList(Arrays.asList(SearchConfigDto.FilterType.values())), Model.of(),
-//                SearchPropertiesConfigPanel.this, true, "Select"); //todo allow null?
-//        filterChoice.setOutputMarkupId(true);
-//        propertyConfigContainer.add(filterChoice);
-//
-//        DropDownChoicePanel<SearchConfigDto.MatchingRule> matchingRuleChoice = WebComponentUtil.createEnumPanel(ID_MATCHING_RULE,
-//                Model.ofList(Arrays.asList(SearchConfigDto.MatchingRule.values())), Model.of(),
-//                SearchPropertiesConfigPanel.this, true, "Select");  //todo allow null?
-//        matchingRuleChoice.setOutputMarkupId(true);
-//        propertyConfigContainer.add(matchingRuleChoice);
-//
-//        CheckBoxPanel negationChoice = new CheckBoxPanel(ID_NEGATION, Model.of());
-//        negationChoice.setOutputMarkupId(true);
-//        propertyConfigContainer.add(negationChoice);
-
         AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -132,12 +125,18 @@ public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigur
         initTable(configPanel);
     }
 
+    private Property getDefaultPropertyChoice() {
+        List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
+        if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
+            return availablePropertiesList.get(0);
+        }
+        return null;
+    }
+
     private void initTable(WebMarkupContainer configPanel) {
-        SelectableListDataProvider<SelectableBean<SearchConfigDto>, SearchConfigDto> provider =
-                new SelectableListDataProvider<SelectableBean<SearchConfigDto>, SearchConfigDto>(getPageBase(), getSearchConfigModel());
-        List<IColumn<SelectableBean<SearchConfigDto>, String>> columns = getTableColumns();
-        BoxedTablePanel<SelectableBean<SearchConfigDto>> table =
-                new BoxedTablePanel<SelectableBean<SearchConfigDto>>(ID_PROPERTIES_TABLE, provider, columns, null, 20) {
+        List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> columns = getTableColumns();
+        BoxedTablePanel<SelectableBean<ValueSearchFilterItem>> table =
+                new BoxedTablePanel<SelectableBean<ValueSearchFilterItem>>(ID_PROPERTIES_TABLE, provider, columns, null, 20) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -182,62 +181,61 @@ public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigur
                     }
                 };
         table.setOutputMarkupId(true);
-        configPanel.addOrReplace(table);
+        configPanel.add(table);
     }
 
-    private List<IColumn<SelectableBean<SearchConfigDto>, String>> getTableColumns() {
-        List<IColumn<SelectableBean<SearchConfigDto>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> getTableColumns() {
+        List<IColumn<SelectableBean<ValueSearchFilterItem>, String>> columns = new ArrayList<>();
 
-        CheckBoxHeaderColumn<SelectableBean<SearchConfigDto>> checkboxColumn = new CheckBoxHeaderColumn<>();
+        CheckBoxHeaderColumn<SelectableBean<ValueSearchFilterItem>> checkboxColumn = new CheckBoxHeaderColumn<>();
         columns.add(checkboxColumn);
 
-        IColumn<SelectableBean<SearchConfigDto>, String> propertyColumn = new PropertyColumn<SelectableBean<SearchConfigDto>, String>(getPageBase()
+        IColumn<SelectableBean<ValueSearchFilterItem>, String> propertyColumn = new PropertyColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
-                "value." + SearchConfigDto.F_PROPERTY + "." + Property.F_NAME);
+                "value." + ValueSearchFilterItem.F_PROPERTY_NAME);
         columns.add(propertyColumn);
 
-        IColumn<SelectableBean<SearchConfigDto>, String> valueColumn = new AbstractColumn<SelectableBean<SearchConfigDto>, String>(getPageBase()
+        IColumn<SelectableBean<ValueSearchFilterItem>, String> valueColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.value")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<SearchConfigDto>>> item, String id, IModel<SelectableBean<SearchConfigDto>> rowModel) {
-                TextPanel valuePanel = new TextPanel(id, new PropertyModel(rowModel, "value." + SearchConfigDto.F_VALUE));
-                valuePanel.setOutputMarkupId(true);
-                valuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                item.add(valuePanel);
+            public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
+                item.add(getPropertyValueField( id, rowModel));
 
             }
         };
         columns.add(valueColumn);
 
-        IColumn<SelectableBean<SearchConfigDto>, String> filterColumn = new AbstractColumn<SelectableBean<SearchConfigDto>, String>(getPageBase()
+        IColumn<SelectableBean<ValueSearchFilterItem>, String> filterColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.filter")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<SearchConfigDto>>> item, String id, IModel<SelectableBean<SearchConfigDto>> rowModel) {
-                DropDownChoicePanel<SearchConfigDto.FilterType> filterPanel = WebComponentUtil.createEnumPanel(id,
-                        Model.ofList(Arrays.asList(SearchConfigDto.FilterType.values())),
-                        new PropertyModel<>(rowModel, "value." + SearchConfigDto.F_FILTER_TYPE),
-                        SearchPropertiesConfigPanel.this, true,
+            public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
+                List<ValueSearchFilterItem.FilterName> availableFilterNames = rowModel.getObject().getValue().getAvailableFilterNameList();
+                DropDownChoicePanel<ValueSearchFilterItem.FilterName> filterPanel = WebComponentUtil.createEnumPanel(id,
+                        Model.ofList(availableFilterNames),
+                        new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_FILTER_TYPE_NAME),
+                        SearchPropertiesConfigPanel.this, false,
                         getPageBase().createStringResource("SearchPropertiesConfigPanel.selectFilter").getString());
                 filterPanel.setOutputMarkupId(true);
                 filterPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                filterPanel.getBaseFormComponent().add(new EnableBehaviour(() -> availableFilterNames.size() > 1));
                 item.add(filterPanel);
             }
         };
         columns.add(filterColumn);
 
-        IColumn<SelectableBean<SearchConfigDto>, String> matchingRuleColumn = new AbstractColumn<SelectableBean<SearchConfigDto>, String>(getPageBase()
+        IColumn<SelectableBean<ValueSearchFilterItem>, String> matchingRuleColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.matchingRule")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<SearchConfigDto>>> item, String id, IModel<SelectableBean<SearchConfigDto>> rowModel) {
-                DropDownChoicePanel<SearchConfigDto.FilterType> matchingRulePanel = WebComponentUtil.createEnumPanel(id,
-                        Model.ofList(Arrays.asList(SearchConfigDto.FilterType.values())),
-                        new PropertyModel<>(rowModel, "value." + SearchConfigDto.F_MATCHING_RULE),
+            public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
+                DropDownChoicePanel<ValueSearchFilterItem.MatchingRule> matchingRulePanel = WebComponentUtil.createEnumPanel(id,
+                        Model.ofList(Arrays.asList(ValueSearchFilterItem.MatchingRule.values())),
+                        new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_MATCHING_RULE),
                         SearchPropertiesConfigPanel.this, true,
                         getPageBase().createStringResource("SearchPropertiesConfigPanel.selectMatchingRule").getString());
                 matchingRulePanel.setOutputMarkupId(true);
@@ -247,50 +245,143 @@ public abstract class SearchPropertiesConfigPanel extends AbstractSearchConfigur
         };
         columns.add(matchingRuleColumn);
 
-        CheckBoxColumn<SelectableBean<SearchConfigDto>> negationColumn = new CheckBoxColumn<SelectableBean<SearchConfigDto>>(getPageBase()
+        CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
-                "value." + SearchConfigDto.F_NEGATION);
+                "value." + ValueSearchFilterItem.F_APPLY_NEGATION);
         columns.add(negationColumn);
         return columns;
     }
 
-    private List<Property> getAvailablePropertiesList() {
-        PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getObjectClass(), null, getPageBase());
-        List<SearchItemDefinition> availableDefs = SearchFactory.getAvailableDefinitions(objectDef, true);
-        List<Property> propertiesList = new ArrayList<>();
-        availableDefs.forEach(searchItemDef -> propertiesList.add(new Property(searchItemDef.getDef())));
-        return propertiesList;
+    private LoadableModel<List<Property>> getAvailablePropertiesListModel() {
+        return new LoadableModel<List<Property>>() {
+            @Override
+            protected List<Property> load() {
+                PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
+                List<SearchItemDefinition> availableDefs = SearchFactory.getAvailableDefinitions(objectDef, true);
+                List<Property> propertiesList = new ArrayList<>();
+                availableDefs.forEach(searchItemDef -> {
+                    if (!isPropertyAlreadyAdded(searchItemDef.getDef())) {
+                        propertiesList.add(new Property(searchItemDef.getDef()));
+                    }
+                });
+                return propertiesList;
+            }
+        };
     }
 
-    private LoadableModel<List<SearchConfigDto>> getSearchConfigModel() {
-        return new LoadableModel<List<SearchConfigDto>>(true) {
+    private boolean isPropertyAlreadyAdded(ItemDefinition def){
+        List<SelectableBean<ValueSearchFilterItem>> properties = provider.getAvailableData();
+        for (SelectableBean<ValueSearchFilterItem> prop : properties){
+            if (QNameUtil.match(prop.getValue().getPropertyPath(), def.getItemName())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private LoadableModel<List<ValueSearchFilterItem>> getSearchFilterItemModel() {
+        return new LoadableModel<List<ValueSearchFilterItem>>(true) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<SearchConfigDto> load() {
-                List<SearchConfigDto> searchConfigDtos = new ArrayList<>();
-                getModelObject().getItems().forEach(searchItem -> {
-                    searchConfigDtos.add(SearchConfigDto.createSearchConfigDto(searchItem));
-                });
-                return searchConfigDtos;
+            protected List<ValueSearchFilterItem> load() {
+                BasicSearchFilter basicSearchFilter = getModelObject();
+                if (basicSearchFilter == null){
+                    return new ArrayList<>();
+                }
+                return basicSearchFilter.getValueSearchFilterItems();
             }
         };
     }
 
     private void propertyAddedPerformed(AjaxRequestTarget target) {
-        Property newPropertyValue = propertyChoiceModel.getObject();
+        Property newPropertyValue = getPropertyChoicePanel().getBaseFormComponent().getModelObject();
         if (newPropertyValue != null) {
-            getModelObject().addItem(newPropertyValue.getDefinition());
-            initTable((WebMarkupContainer) get(ID_CONFIGURATION_PANEL)); //todo don't re-init table!
-            target.add(get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTIES_TABLE)));
+            getModelObject().addSearchFilterItem(createDefaultValueFilter(newPropertyValue));
         }
         target.add(SearchPropertiesConfigPanel.this);
     }
 
-    private Property getSelectedProperty() {
-        DropDownChoicePanel<Property> propertyChoicePanel = (DropDownChoicePanel<Property>) get(getPageBase()
-                .createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
-        return propertyChoicePanel.getModel().getObject();
+    private DropDownChoicePanel<Property> getPropertyChoicePanel(){
+        return (DropDownChoicePanel<Property>) get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
+    }
+
+    private ValueSearchFilterItem createDefaultValueFilter(Property property) {
+        if (property == null){
+            return null;
+        }
+        return new ValueSearchFilterItem(property, false);
+    }
+
+    private Component getPropertyValueField(String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
+        Component searchItemField = null;
+        ValueSearchFilterItem valueSearchFilter = rowModel.getObject().getValue();
+        ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
+        if (propertyDef != null) {
+            PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
+
+            if (propertyDef instanceof PrismReferenceDefinition) {
+                ObjectReferenceType propertyValue = (ObjectReferenceType) valueSearchFilter.getValue();
+                searchItemField = new ReferenceValueSearchPanel(id, Model.of(propertyValue),
+                        (PrismReferenceDefinition) propertyDef);
+            } else if (propertyDef instanceof PrismPropertyDefinition) {
+                List<DisplayableValue> allowedValues = new ArrayList<>();
+                if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
+                    allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
+                }
+                if (lookupTable != null) {
+                    searchItemField = new AutoCompleteTextPanel<String>(id,
+                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE), String.class,
+                            true, lookupTable.asObjectable()) {
+
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Iterator<String> getIterator(String input) {
+                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
+                                    ((PageBase) getPage()).getLocalizationService()).iterator();
+                        }
+                    };
+                } else if (CollectionUtils.isNotEmpty(allowedValues)) {
+                    searchItemField = new DropDownChoicePanel<DisplayableValue>(id,
+                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE),
+                            Model.ofList(allowedValues), new IChoiceRenderer<DisplayableValue>() {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Object getDisplayValue(DisplayableValue val) {
+                            return val.getLabel();
+                        }
+
+                        @Override
+                        public String getIdValue(DisplayableValue val, int index) {
+                            return Integer.toString(index);
+                        }
+
+                        @Override
+                        public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                            return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+                        }
+                    }, true);
+                } else {
+                    searchItemField = new TextPanel<String>(id, new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE));
+
+                }
+            }
+        }
+        if (searchItemField != null && searchItemField instanceof InputPanel){
+            ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        }
+        return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
+    }
+
+    @Override
+    protected void okButtonClicked(AjaxRequestTarget target){
+        ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
+        filterConfiguredPerformed(configuredFilter, target);
+    }
+
+    protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
     }
 
     public int getWidth() {

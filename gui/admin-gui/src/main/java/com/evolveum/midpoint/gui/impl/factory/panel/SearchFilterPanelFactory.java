@@ -9,6 +9,15 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.page.admin.reports.component.SearchFilterConfigurationPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +43,14 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+        PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
+        PrismContainerValueWrapper containerWrapper = searchFilterItemWrapper.getParent();
+        if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType){
+            ObjectCollectionType collectionObj = (ObjectCollectionType) containerWrapper.getRealValue();
+            return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
+                    (Class<? extends ObjectType>)WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(),
+                            collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE));
+        }
         return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
     }
 
