@@ -235,6 +235,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
         SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
         schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
+        schemaRegistry.setDefaultNamespace(NS_FOO);
         DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
         // Set default namespace?
         schemaRegistry.setNamespacePrefixMapper(prefixMapper);
@@ -243,7 +244,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
         schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
-        if (extraSchema != null){
+        if (extraSchema != null) {
             schemaRegistry.registerPrismSchemaFile(extraSchema);
         }
         prefixMapper.registerPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);

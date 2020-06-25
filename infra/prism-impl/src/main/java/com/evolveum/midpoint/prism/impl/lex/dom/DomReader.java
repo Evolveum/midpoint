@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.impl.xnode.*;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -40,14 +42,22 @@ class DomReader {
     public static final Trace LOGGER = TraceManager.getTrace(DomLexicalProcessor.class);
 
     private static final QName SCHEMA_ELEMENT_QNAME = DOMUtil.XSD_SCHEMA_ELEMENT;
-    private static final String VALUE_LOCAL_PART = "_value";
+    static final String VALUE_LOCAL_PART = "_value";
+    static final String METADATA_LOCAL_PART = "_metadata";
 
     private final Element root;
+    private final QName rootElementName;
     private final SchemaRegistry schemaRegistry;
+
+    @NotNull private final QName valueElementName;
+    @NotNull private final QName metadataElementName;
 
     DomReader(@NotNull Element root, SchemaRegistry schemaRegistry) {
         this.root = root;
+        this.rootElementName = DOMUtil.getQName(root);
         this.schemaRegistry = schemaRegistry;
+        this.valueElementName = new QName(schemaRegistry.getDefaultNamespace(), VALUE_LOCAL_PART);
+        this.metadataElementName = new QName(schemaRegistry.getDefaultNamespace(), DomReader.METADATA_LOCAL_PART);
     }
 
     DomReader(Document document, SchemaRegistry schemaRegistry) {
@@ -56,8 +66,7 @@ class DomReader {
 
     @NotNull
     List<RootXNodeImpl> readObjects() throws SchemaException {
-        QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
-        if (objectsMarker != null && !QNameUtil.match(DOMUtil.getQName(root), objectsMarker)) {
+        if (rootIsNotObjectsMarker()) {
             return Collections.singletonList(read());
         } else {
             List<RootXNodeImpl> rv = new ArrayList<>();
@@ -69,44 +78,15 @@ class DomReader {
     }
 
     @NotNull RootXNodeImpl read() throws SchemaException {
-        QName rootElementName = DOMUtil.getQName(root);
-
         RootXNodeImpl xroot = new RootXNodeImpl(rootElementName);
         XNodeImpl xnode = readElementContent(root, rootElementName, false);
         xroot.setSubnode(xnode);
         return xroot;
     }
 
-    private void extractCommonMetadata(Element element, QName xsiType, XNodeImpl xnode)
-            throws SchemaException {
-
-        if (xsiType != null) {
-            xnode.setTypeQName(xsiType);
-            xnode.setExplicitTypeDeclaration(true);
-        }
-
-        String maxOccursString = element.getAttributeNS(
-                PrismConstants.A_MAX_OCCURS.getNamespaceURI(),
-                PrismConstants.A_MAX_OCCURS.getLocalPart());
-        if (!StringUtils.isBlank(maxOccursString)) {
-            int maxOccurs = parseMultiplicity(maxOccursString, element);
-            xnode.setMaxOccurs(maxOccurs);
-        }
-    }
-
-    private int parseMultiplicity(String maxOccursString, Element element) throws SchemaException {
-        if (PrismConstants.MULTIPLICITY_UNBONUNDED.equals(maxOccursString)) {
-            return -1;
-        }
-        if (maxOccursString.startsWith("-")) {
-            return -1;
-        }
-        if (StringUtils.isNumeric(maxOccursString)) {
-            return Integer.parseInt(maxOccursString);
-        } else {
-            throw new SchemaException("Expected numeric value for " + PrismConstants.A_MAX_OCCURS.getLocalPart()
-                    + " attribute on " + DOMUtil.getQName(element) + " but got " + maxOccursString);
-        }
+    private boolean rootIsNotObjectsMarker() {
+        QName objectsMarker = schemaRegistry.getPrismContext().getObjectsElementName();
+        return objectsMarker != null && !QNameUtil.match(rootElementName, objectsMarker);
     }
 
     /**
@@ -121,15 +101,14 @@ class DomReader {
         QName xsiType = DOMUtil.resolveXsiType(element);
         QName elementName = knownElementName != null ? knownElementName : DOMUtil.getQName(element);
 
-//        Element valueChild = DOMUtil.getChildElement(element, VALUE_LOCAL_PART);
-//        if (valueChild != null) {
-//            node = readElementContent(valueChild, elementName, false);
-//        } else
-        if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
+        Element valueChild = DOMUtil.getMatchingChildElement(element, valueElementName);
+        if (valueChild != null) {
+            node = readElementContent(valueChild, elementName, false);
+        } else if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
             if (isList(element, elementName, xsiType)) {
-                node = parseElementContentToList(element);
+                node = readElementContentToList(element);
             } else {
-                node = parseElementContentToMap(element);
+                node = readElementContentToMap(element);
             }
         } else if (DOMUtil.isMarkedAsIncomplete(element)) {
             // Note that it is of no use to check for "incomplete" on non-leaf elements. In XML the incomplete attribute
@@ -138,22 +117,73 @@ class DomReader {
         } else {
             node = parsePrimitiveElement(element);
         }
-        if (storeElementName) {
-            node.setElementName(elementName);
-        }
-        extractCommonMetadata(element, xsiType, node);
+        readMetadata(element, node);
+        readMaxOccurs(element, node);
+
+        setTypeAndElementName(xsiType, elementName, node, storeElementName);
         return node;
     }
 
+    private void readMetadata(@NotNull Element element, XNodeImpl node) throws SchemaException {
+        Element metadataChild = DOMUtil.getMatchingChildElement(element, metadataElementName);
+        if (metadataChild != null) {
+            XNodeImpl metadata = readElementContent(metadataChild, null, false);
+            if (metadata instanceof MapXNode) {
+                if (node instanceof MetadataAware) {
+                    ((MetadataAware) node).setMetadataNode((MapXNode) metadata);
+                } else {
+                    throw new SchemaException("Attempt to add metadata to non-metadata-aware XNode: " + node);
+                }
+            } else {
+                throw new SchemaException("Metadata is not of Map type: " + metadata);
+            }
+        }
+    }
+
+    private void readMaxOccurs(Element element, XNodeImpl xnode) throws SchemaException {
+        String maxOccursString = element.getAttributeNS(
+                PrismConstants.A_MAX_OCCURS.getNamespaceURI(),
+                PrismConstants.A_MAX_OCCURS.getLocalPart());
+        if (!StringUtils.isBlank(maxOccursString)) {
+            int maxOccurs = parseMultiplicity(maxOccursString, element);
+            xnode.setMaxOccurs(maxOccurs);
+        }
+    }
+
+    private int parseMultiplicity(String maxOccursString, Element element) throws SchemaException {
+        if (PrismConstants.MULTIPLICITY_UNBOUNDED.equals(maxOccursString)) {
+            return -1;
+        }
+        if (maxOccursString.startsWith("-")) {
+            return -1;
+        }
+        if (StringUtils.isNumeric(maxOccursString)) {
+            return Integer.parseInt(maxOccursString);
+        } else {
+            throw new SchemaException("Expected numeric value for " + PrismConstants.A_MAX_OCCURS.getLocalPart()
+                    + " attribute on " + DOMUtil.getQName(element) + " but got " + maxOccursString);
+        }
+    }
+
+    private void setTypeAndElementName(QName xsiType, QName elementName, XNodeImpl xnode, boolean storeElementName) {
+        if (xsiType != null) {
+            xnode.setTypeQName(xsiType);
+            xnode.setExplicitTypeDeclaration(true);
+        }
+        if (storeElementName) {
+            xnode.setElementName(elementName);
+        }
+    }
+
     // all the sub-elements should be compatible (this is not enforced here, however)
-    private ListXNodeImpl parseElementContentToList(Element element) throws SchemaException {
+    private ListXNodeImpl readElementContentToList(Element element) throws SchemaException {
         if (DOMUtil.hasApplicationAttributes(element)) {
             throw new SchemaException("List should have no application attributes: " + element);
         }
         return parseElementList(DOMUtil.listChildElements(element), null, true);
     }
 
-    private MapXNodeImpl parseElementContentToMap(Element element) throws SchemaException {
+    private MapXNodeImpl readElementContentToMap(Element element) throws SchemaException {
         MapXNodeImpl xmap = new MapXNodeImpl();
 
         // Attributes
@@ -168,6 +198,9 @@ class DomReader {
         List<Element> lastElements = null;
         for (Element childElement : DOMUtil.listChildElements(element)) {
             QName childName = DOMUtil.getQName(childElement);
+            if (QNameUtil.match(childName, metadataElementName)) {
+                continue;
+            }
             if (!match(childName, lastElementName)) {
                 parseSubElementsGroupAsMapEntry(xmap, lastElementName, lastElements);
                 lastElementName = childName;

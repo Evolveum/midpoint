@@ -388,7 +388,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         )), names);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test700UserAliceMetadata() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();
@@ -399,9 +399,9 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
 
         assertAliceMetadata(root);
 
-        //testSerializeMetadata(root, PrismContext.LANG_XML);
-        testSerializeMetadata(root, PrismContext.LANG_JSON);
-        testSerializeMetadata(root, PrismContext.LANG_YAML);
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_XML));
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_JSON));
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_YAML));
     }
 
     private void assertAliceMetadata(RootXNode alice) throws SchemaException {
@@ -432,15 +432,14 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         assertThat(parsedValue).isEqualTo(expected);
     }
 
-    private void testSerializeMetadata(RootXNode original, String language) throws SchemaException {
+    private RootXNode testSerializeMetadata(RootXNode original, String language) throws SchemaException {
         PrismContext prismContext = getPrismContext();
         String serialized = prismContext.serializerFor(language).serialize(original);
         displayValue("serialized", serialized);
 
         RootXNode reparsed = prismContext.parserFor(serialized).parseToXNode();
         displayValue("reparsed", reparsed);
-
-        assertThat(reparsed).as("reparsed").isEqualTo(original);
+        return reparsed;
     }
 
     protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {

@@ -49,8 +49,8 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     @Override
     public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
         if (source instanceof ParserElementSource) {
-            return new DomReader(((ParserElementSource) source).getElement(), schemaRegistry)
-                    .read();
+            Element root = ((ParserElementSource) source).getElement();
+            return new DomReader(root, schemaRegistry).read();
         } else {
             InputStream is = source.getInputStream();
             try {
@@ -103,47 +103,49 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     @NotNull
     @Override
     public String write(@NotNull XNode xnode, @NotNull QName rootElementName, SerializationContext serializationContext) throws SchemaException {
-        DomLexicalWriter writer = new DomLexicalWriter(schemaRegistry, serializationContext);
         RootXNodeImpl xroot = LexicalUtils.createRootXNode((XNodeImpl) xnode, rootElementName);
-        Element element = writer.write(xroot);
+        Element element =
+                new DomWriter(schemaRegistry, serializationContext)
+                        .writeRoot(xroot);
         return DOMUtil.serializeDOMToString(element);
     }
 
     @NotNull
     @Override
     public String write(@NotNull RootXNode xnode, SerializationContext serializationContext) throws SchemaException {
-        DomLexicalWriter writer = new DomLexicalWriter(schemaRegistry, serializationContext);
-        Element element = writer.write((RootXNodeImpl) xnode);
+        Element element =
+                new DomWriter(schemaRegistry, serializationContext)
+                        .writeRoot(xnode);
         return DOMUtil.serializeDOMToString(element);
     }
 
     @NotNull
     @Override
     public String write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context) throws SchemaException {
-        Element aggregateElement = writeXRootListToElement(roots);
-        return DOMUtil.serializeDOMToString(aggregateElement);
+        Element element = writeXRootListToElement(roots);
+        return DOMUtil.serializeDOMToString(element);
     }
 
     @NotNull
     public Element writeXRootListToElement(@NotNull List<RootXNodeImpl> roots) throws SchemaException {
-        return new DomLexicalWriter(schemaRegistry, null)
-                .write(roots);
+        return new DomWriter(schemaRegistry, null)
+                .writeRoots(roots);
     }
 
+    /**
+     * Seems to be used in strange circumstances (called from various hacks).
+     * To be reconsidered eventually. Avoid using in new code.
+     */
+    @Deprecated
     public Element writeXMapToElement(MapXNodeImpl xmap, QName elementName) throws SchemaException {
-        return new DomLexicalWriter(schemaRegistry, null)
-                .writeToElement(xmap, elementName);
+        return new DomWriter(schemaRegistry, null)
+                .writeMap(xmap, elementName);
     }
 
     @NotNull
     public Element writeXRootToElement(@NotNull RootXNodeImpl xroot) throws SchemaException {
-        return new DomLexicalWriter(schemaRegistry, null)
-                .write(xroot);
-    }
-
-    public Element serializeSingleElementMapToElement(MapXNode map) throws SchemaException {
-        return new DomLexicalWriter(schemaRegistry, null)
-                .writeSingleElementMapToElement(map);
+        return new DomWriter(schemaRegistry, null)
+                .writeRoot(xroot);
     }
 
     // TODO move somewhere

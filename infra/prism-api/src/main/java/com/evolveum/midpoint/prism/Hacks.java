@@ -25,6 +25,4 @@ public interface Hacks {
 
     @VisibleForTesting
     <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException;
-
-    Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException;
 }

@@ -16,6 +16,9 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+    <_metadata>
+        <test>abc</test>
+    </_metadata>
     <name>
         <_value>alice</_value>
         <_metadata>
