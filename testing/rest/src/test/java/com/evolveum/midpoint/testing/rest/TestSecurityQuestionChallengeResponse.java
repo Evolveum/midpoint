@@ -15,6 +15,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -46,13 +47,14 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 
         response = getUserAdministrator("SecQ " + Base64Utility.encode(secQusernameChallenge.getBytes()));
         challengeBase64 = assertAndGetChallenge(response);
-        String answerChallenge;
+        String answerChallenge = null;
         try {
             answerChallenge = new String(Base64Utility.decode(challengeBase64));
             logger.info("Answer challenge: " + answerChallenge);
         } catch (Base64Exception e) {
             fail("Failed to decode base64 username challenge");
         }
+        assertEquals("Wrong number of questions", 3,  StringUtils.countMatches(answerChallenge, "\"qid\":"));
         String secQAnswerChallenge = "{"
                 + "\"user\" : \"administrator\","
                 + "\"answer\" : ["

@@ -78,7 +78,7 @@ public class HttpSecurityQuestionsAuthenticationEntryPoint extends HttpAuthentic
             return null;
         }
         for (SecurityQuestionDefinitionType question : questions) {
-            if (Boolean.TRUE.equals(question.isEnabled())) {
+            if (!Boolean.FALSE.equals(question.isEnabled())) {
                 JSONObject json  = new JSONObject();
                 json.put(SecurityQuestionsAuthenticationFilter.J_QID, question.getIdentifier());
                 json.put(SecurityQuestionsAuthenticationFilter.J_QTXT, question.getQuestionText());

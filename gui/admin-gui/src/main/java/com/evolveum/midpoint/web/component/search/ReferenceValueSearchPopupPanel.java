@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteReferenceRenderer;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<ObjectReferenceType> {
+public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -42,11 +43,8 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
     private static final String ID_RELATION = "relation";
     private static final String ID_CONFIRM_BUTTON = "confirmButton";
 
-//    private List<QName> allowedRelations;
-
-    public ReferencePopupPanel(String id, IModel<DisplayableValue<ObjectReferenceType>> model) {
+    public ReferenceValueSearchPopupPanel(String id, IModel<ObjectReferenceType> model) {
         super(id, model);
-//        this.allowedRelations = allowedRelations;
     }
 
     @Override
@@ -57,7 +55,7 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
 
     private void initLayout() {
 
-        TextField<String> oidField = new TextField<String>(ID_OID, new PropertyModel<>(getModel(), SearchValue.F_VALUE + ".oid"));
+        TextField<String> oidField = new TextField<String>(ID_OID, new PropertyModel<>(getModel(), "oid"));
 
         oidField.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -72,7 +70,7 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
         oidField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(oidField);
 
-        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject().getValue()),
+        ReferenceAutocomplete nameField = new ReferenceAutocomplete(ID_NAME, Model.of(getModelObject()),
                 new AutoCompleteReferenceRenderer(),
                 getPageBase()){
 
@@ -102,7 +100,7 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
         nameField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(nameField);
 
-        DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".type"),
+        DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), "type"),
                 getSupportedTargetList(), new QNameObjectTypeChoiceRenderer());
         type.setNullValid(true);
         type.setOutputMarkupId(true);
@@ -118,15 +116,15 @@ public class ReferencePopupPanel<O extends ObjectType> extends SearchPopupPanel<
         type.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         add(type);
 
-        if (getModelObject() != null && getModelObject().getValue() != null && getModelObject().getValue().getRelation() == null){
-            getModelObject().getValue().setRelation(PrismConstants.Q_ANY);
+        if (getModelObject() != null && getModelObject().getRelation() == null){
+            getModelObject().setRelation(PrismConstants.Q_ANY);
         }
         List<QName> allowedRelations = new ArrayList<QName>();
         allowedRelations.addAll(getAllowedRelations());
         if (!allowedRelations.contains(PrismConstants.Q_ANY)) {
             allowedRelations.add(0, PrismConstants.Q_ANY);
         }
-        DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".relation"),
+        DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), "relation"),
                 allowedRelations, new QNameObjectTypeChoiceRenderer());
 //        relation.setNullValid(true);
         relation.setOutputMarkupId(true);

@@ -110,15 +110,15 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
         super.setAuthenticationManager(authenticationManager);
     }
 
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException, ServletException {
-
-        if (authResult instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authResult;
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
-        }
-
-        super.successfulAuthentication(request, response, authResult);
-    }
+//    @Override
+//    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException, ServletException {
+//
+//        if (authResult instanceof MidpointAuthentication) {
+//            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authResult;
+//            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+//            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+//        }
+//
+//        super.successfulAuthentication(request, response, authResult);
+//    }
 }
