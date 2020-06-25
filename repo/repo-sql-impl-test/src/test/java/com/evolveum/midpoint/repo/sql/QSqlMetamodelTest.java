@@ -57,7 +57,6 @@ public class QSqlMetamodelTest extends AbstractUnitTest {
 
         public QTestEntity(String variable) {
             super(QTestEntity.class, forVariable(variable), "SCHEMA", "TEST_TABLE");
-            fixMetadata();
         }
 
         @Override

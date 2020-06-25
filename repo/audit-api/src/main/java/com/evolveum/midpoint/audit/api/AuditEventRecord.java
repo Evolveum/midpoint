@@ -84,8 +84,6 @@ public class AuditEventRecord implements DebugDumpable {
      */
     private String sessionIdentifier;
 
-    // channel???? (e.g. web gui, web service, ...)
-
     /**
      * <p>
      * Task identifier. Operations are executed in a context of a task.

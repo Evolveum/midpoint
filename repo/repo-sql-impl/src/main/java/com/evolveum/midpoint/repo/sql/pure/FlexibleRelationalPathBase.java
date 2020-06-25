@@ -31,7 +31,6 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
 
     private static final long serialVersionUID = -3374516272567011096L;
 
-    // tracking statically registered columns, will be nullified at the end of the constructor
     private Set<String> knownColumns = new HashSet<>();
 
     public FlexibleRelationalPathBase(
@@ -64,8 +63,10 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
         knownColumns = null;
     }
 
-    public void addMetadataForExtension(Path<?> path, ColumnMetadata metadata) {
-        addMetadata(path, metadata);
+    @Override
+    protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
+
+        return super.addMetadata(path, metadata);
     }
 
     protected abstract SqlTableMetamodel<?> getTableMetamodel();

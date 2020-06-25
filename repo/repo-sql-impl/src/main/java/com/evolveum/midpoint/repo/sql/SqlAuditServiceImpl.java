@@ -48,14 +48,12 @@ import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,6 +62,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
@@ -82,6 +81,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Autowired
     private BaseHelper baseHelper;
+
+    @Autowired
+    private SqlQueryExecutor sqlQueryExecutor;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
@@ -915,6 +917,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         // TODO MID-6319
-        return new SearchResultList<>();
+        // support for options, skipped for now
+        // do something with the OperationResult... skipped for now
+        // TODO why the duality of AuditEventRecordType and AuditEventRecord?
+        SearchResultList<AuditEventRecord> result =
+                sqlQueryExecutor.list(AuditEventRecordType.class, query);
+
+        return result;
     }
 }
